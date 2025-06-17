@@ -60,27 +60,26 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // ABSOLUTE FIX: Use ONLY the driveTimeHours from segment with absolute 10h cap
+  // CRITICAL FIX: ALWAYS use segment.driveTimeHours directly - NO FALLBACK CALCULATIONS
   const driveTime = React.useMemo(() => {
-    console.log(`🚗 ABSOLUTE UI FIX: Drive time display for Day ${segment.day}:`, {
+    console.log(`🚗 CRITICAL UI FIX: Drive time display for Day ${segment.day}:`, {
       segmentDriveTimeHours: segment.driveTimeHours,
       segmentDistance: segment.distance,
-      segmentEndCity: segment.endCity
+      segmentEndCity: segment.endCity,
+      willUseSegmentTime: true,
+      noFallbackCalculation: true
     });
 
-    // ABSOLUTE GUARANTEE: Never show more than 10 hours
-    const ABSOLUTE_MAX_DISPLAY = 10;
+    // CRITICAL: ALWAYS use the segment's drive time - it's already been enforced
+    const finalDriveTime = segment.driveTimeHours || 0;
     
-    if (segment.driveTimeHours && typeof segment.driveTimeHours === 'number') {
-      const cappedTime = Math.min(segment.driveTimeHours, ABSOLUTE_MAX_DISPLAY);
-      console.log(`🚗 ABSOLUTE UI FIX: Using segment drive time for Day ${segment.day}: ${cappedTime}h (capped from ${segment.driveTimeHours}h)`);
-      return cappedTime;
+    console.log(`🚗 CRITICAL UI FIX: Final drive time for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h`);
+    
+    if (finalDriveTime > 10) {
+      console.error(`❌ CRITICAL ERROR: UI showing drive time > 10h for Day ${segment.day}: ${finalDriveTime.toFixed(1)}h`);
     }
     
-    // Fallback calculation with absolute cap
-    const fallbackTime = Math.min(segment.distance / 55, ABSOLUTE_MAX_DISPLAY);
-    console.log(`🚗 ABSOLUTE UI FIX: Using fallback calculation for Day ${segment.day}: ${fallbackTime}h (absolutely capped)`);
-    return fallbackTime;
+    return finalDriveTime;
   }, [segment.driveTimeHours, segment.distance, segment.day]);
 
   return (
@@ -112,7 +111,7 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and time info - ABSOLUTELY CAPPED */}
+          {/* Distance and time info - CRITICAL FIX: Only show segment drive time */}
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-600 mb-1">
               {Math.round(segment.distance)} mi
@@ -120,16 +119,22 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             <div className="text-sm text-gray-500">
               {formatTime(driveTime)} drive time
             </div>
-            {/* ABSOLUTE WARNING: Show if exceeds 8 hours (getting close to limit) */}
-            {driveTime > 8 && (
+            {/* WARNING: Show if exceeds 8 hours (getting close to limit) */}
+            {driveTime > 8 && driveTime < 10 && (
               <div className="text-xs text-orange-500 mt-1">
                 ⚠️ Long drive day
               </div>
             )}
-            {/* ABSOLUTE ERROR: Show if somehow equals 10 hours (at absolute limit) */}
+            {/* ERROR: Show if equals 10 hours (at absolute limit) */}
             {driveTime >= 10 && (
               <div className="text-xs text-red-500 mt-1">
                 🚨 Maximum drive time
+              </div>
+            )}
+            {/* CRITICAL ERROR: Show if somehow exceeds 10 hours */}
+            {driveTime > 10 && (
+              <div className="text-xs text-red-600 mt-1 font-bold">
+                ❌ SYSTEM ERROR: Drive time exceeds limit
               </div>
             )}
           </div>

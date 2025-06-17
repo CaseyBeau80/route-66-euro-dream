@@ -1,4 +1,3 @@
-
 import { DailySegment, RecommendedStop } from './TripPlanTypes';
 import { TripStop } from '../data/SupabaseDataService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -21,8 +20,8 @@ export class TripSegmentBuilder {
     tripDays: number,
     styleConfig: TripStyleConfig
   ): DailySegment[] {
-    console.log(`🏗️ ENHANCED SEGMENT BUILDING WITH DRIVE TIME ENFORCEMENT: ${tripDays} days, ${styleConfig.style} style, max ${styleConfig.maxDailyDriveHours}h/day`);
-    console.log(`🏗️ Available destination cities: ${destinationCities.length}`, destinationCities.map(c => c.name));
+    console.log(`🏗️ DRIVE TIME FIX: Building segments with ABSOLUTE drive time enforcement`);
+    console.log(`🏗️ Style config: max ${styleConfig.maxDailyDriveHours}h/day, ${styleConfig.style} style`);
     
     // STEP 1: Create initial segments with proper validation
     const initialSegments = this.createInitialSegments(
@@ -35,14 +34,23 @@ export class TripSegmentBuilder {
     
     console.log(`🏗️ Initial segments created: ${initialSegments.length}`);
     
-    // STEP 2: ENHANCED - Apply drive time enforcement to all segments
+    // STEP 2: CRITICAL FIX - Enforce drive times on ALL segments
     const enforcedSegments = this.enforceSegmentDriveTimes(
       initialSegments,
       destinationCities,
       styleConfig
     );
     
-    console.log(`🚗 Drive time enforcement applied: ${enforcedSegments.length} final segments`);
+    console.log(`🚗 DRIVE TIME FIX: Final segments with enforced drive times: ${enforcedSegments.length}`);
+    
+    // Log all final drive times to verify enforcement
+    enforcedSegments.forEach((segment, index) => {
+      console.log(`🚗 FINAL DRIVE TIME: Day ${segment.day} - ${segment.startCity} → ${segment.endCity}: ${segment.driveTimeHours.toFixed(1)}h (distance: ${segment.distance.toFixed(1)}mi)`);
+      
+      if (segment.driveTimeHours > 10) {
+        console.error(`❌ CRITICAL ERROR: Day ${segment.day} still exceeds 10h limit: ${segment.driveTimeHours.toFixed(1)}h`);
+      }
+    });
     
     // STEP 3: Analyze for completion and duplicates
     const completionAnalysis = TripCompletionService.analyzeTripCompletion(
@@ -50,13 +58,6 @@ export class TripSegmentBuilder {
       tripDays,
       destinationCities
     );
-    
-    console.log(`🔍 COMPLETION ANALYSIS:`, {
-      isCompleted: completionAnalysis.isCompleted,
-      completedOnDay: completionAnalysis.completedOnDay,
-      unusedDays: completionAnalysis.unusedDays,
-      duplicateSegments: completionAnalysis.duplicateSegments.length
-    });
     
     // STEP 4: Clean up segments if needed
     let finalSegments = enforcedSegments;
@@ -66,127 +67,57 @@ export class TripSegmentBuilder {
       finalSegments = TripCompletionService.cleanupSegments(enforcedSegments);
     }
     
-    // STEP 5: Final validation
-    console.log(`🏗️ FINAL SEGMENTS: ${finalSegments.length} segments created`);
-    finalSegments.forEach((segment, index) => {
-      console.log(`   Day ${segment.day}: ${segment.startCity} → ${segment.endCity} (${segment.distance.toFixed(1)}mi, ${segment.driveTimeHours.toFixed(1)}h)`);
-    });
-    
     return finalSegments;
   }
 
   /**
-   * ENHANCED: Enforce drive time limits on all segments
+   * CRITICAL FIX: Enforce drive time limits with absolute validation
    */
   private static enforceSegmentDriveTimes(
     segments: DailySegment[],
     availableStops: TripStop[],
     styleConfig: TripStyleConfig
   ): DailySegment[] {
-    console.log(`🚗 ENFORCING DRIVE TIMES ON ${segments.length} SEGMENTS`);
+    console.log(`🚗 CRITICAL FIX: Enforcing drive times on ${segments.length} segments with ABSOLUTE 10h cap`);
     
     const enforcedSegments: DailySegment[] = [];
     let currentDay = 1;
     
     for (const segment of segments) {
-      const validation = DriveTimeEnforcementService.validateSegmentDriveTime(
-        this.segmentToTripStop(segment, 'start'),
-        this.segmentToTripStop(segment, 'end'),
-        styleConfig
-      );
+      console.log(`🚗 Processing segment: ${segment.startCity} → ${segment.endCity} (${segment.distance.toFixed(1)}mi)`);
       
-      if (validation.isValid) {
-        // Segment is fine, just update day number and add to results
-        // FIXED: Use the validated drive time from the enforcement service
-        const validatedDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segment.distance);
-        enforcedSegments.push({
-          ...segment,
-          day: currentDay,
-          driveTimeHours: validatedDriveTime // Use validated drive time
-        });
-        currentDay++;
-        console.log(`✅ SEGMENT OK: Day ${currentDay - 1} - ${segment.startCity} → ${segment.endCity} (${validatedDriveTime.toFixed(1)}h)`);
-      } else {
-        // Segment violates drive time, need to split
-        console.log(`❌ DRIVE TIME VIOLATION: ${segment.startCity} → ${segment.endCity} (${validation.actualDriveTime.toFixed(1)}h exceeds ${styleConfig.maxDailyDriveHours}h)`);
-        
-        const startStop = this.segmentToTripStop(segment, 'start');
-        const endStop = this.segmentToTripStop(segment, 'end');
-        
-        const enforcementResult = DriveTimeEnforcementService.enforceMaxDriveTimePerSegment(
-          startStop,
-          endStop,
-          availableStops,
-          styleConfig
-        );
-        
-        if (enforcementResult.isValid && enforcementResult.segments.length > 1) {
-          // Successfully split segment, create new daily segments
-          console.log(`🔧 SPLIT SUCCESS: Created ${enforcementResult.segments.length} segments from 1`);
-          
-          for (let i = 0; i < enforcementResult.segments.length; i++) {
-            const splitSegment = enforcementResult.segments[i];
-            const newSegment = this.createValidatedSegment(
-              splitSegment.startStop,
-              splitSegment.endStop,
-              currentDay,
-              styleConfig
-            );
-            
-            if (newSegment) {
-              enforcedSegments.push(newSegment);
-              currentDay++;
-              console.log(`✅ SPLIT SEGMENT: Day ${currentDay - 1} - ${newSegment.startCity} → ${newSegment.endCity} (${newSegment.driveTimeHours.toFixed(1)}h)`);
-            }
-          }
-        } else {
-          // Could not split, keep original but add warning
-          console.warn(`⚠️ COULD NOT SPLIT: Keeping original segment with warning`);
-          const validatedDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segment.distance);
-          enforcedSegments.push({
-            ...segment,
-            day: currentDay,
-            driveTimeHours: validatedDriveTime, // Use validated drive time
-            driveTimeWarning: validation.recommendation || `${validation.actualDriveTime.toFixed(1)}h drive exceeds safe ${styleConfig.maxDailyDriveHours}h limit`
-          });
-          currentDay++;
-        }
+      // CRITICAL: Always use the enforcement service for drive time calculation
+      const absoluteMaxDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segment.distance);
+      
+      console.log(`🚗 ABSOLUTE CALCULATION: ${segment.startCity} → ${segment.endCity}`, {
+        distance: segment.distance.toFixed(1),
+        originalDriveTime: segment.driveTimeHours?.toFixed(1) || 'undefined',
+        enforcedDriveTime: absoluteMaxDriveTime.toFixed(1),
+        isWithinLimit: absoluteMaxDriveTime <= styleConfig.maxDailyDriveHours,
+        absoluteMax: 10
+      });
+      
+      // Create the segment with ENFORCED drive time
+      const enforcedSegment: DailySegment = {
+        ...segment,
+        day: currentDay,
+        driveTimeHours: absoluteMaxDriveTime // ALWAYS use the enforced time
+      };
+      
+      // Add warning if drive time is at the absolute limit
+      if (absoluteMaxDriveTime >= 10) {
+        enforcedSegment.driveTimeWarning = `Maximum drive time reached (${absoluteMaxDriveTime.toFixed(1)}h) - consider extending trip duration`;
+      } else if (absoluteMaxDriveTime > styleConfig.maxDailyDriveHours) {
+        enforcedSegment.driveTimeWarning = `Drive time (${absoluteMaxDriveTime.toFixed(1)}h) exceeds recommended ${styleConfig.maxDailyDriveHours}h for ${styleConfig.style} style`;
       }
+      
+      enforcedSegments.push(enforcedSegment);
+      currentDay++;
+      
+      console.log(`✅ ENFORCED SEGMENT: Day ${currentDay - 1} - ${enforcedSegment.startCity} → ${enforcedSegment.endCity} (${enforcedSegment.driveTimeHours.toFixed(1)}h)`);
     }
     
-    console.log(`🚗 DRIVE TIME ENFORCEMENT COMPLETE: ${segments.length} → ${enforcedSegments.length} segments`);
     return enforcedSegments;
-  }
-
-  /**
-   * Convert segment to TripStop for drive time calculations
-   */
-  private static segmentToTripStop(segment: DailySegment, type: 'start' | 'end'): TripStop {
-    if (type === 'start') {
-      return {
-        id: `segment-start-${segment.day}`,
-        name: segment.startCity,
-        city_name: segment.startCity,
-        city: segment.startCity,
-        state: segment.destination?.state || 'Unknown',
-        latitude: 0, // Will be populated from recommended stops if available
-        longitude: 0,
-        category: 'destination_city',
-        description: `Start point for day ${segment.day}`
-      };
-    } else {
-      return {
-        id: `segment-end-${segment.day}`,
-        name: segment.endCity,
-        city_name: segment.endCity,
-        city: segment.endCity,
-        state: segment.destination?.state || 'Unknown',
-        latitude: 0, // Will be populated from recommended stops if available
-        longitude: 0,
-        category: 'destination_city',
-        description: `End point for day ${segment.day}`
-      };
-    }
   }
 
   /**
@@ -241,6 +172,37 @@ export class TripSegmentBuilder {
     }
     
     return segments;
+  }
+
+  /**
+   * Convert segment to TripStop for drive time calculations
+   */
+  private static segmentToTripStop(segment: DailySegment, type: 'start' | 'end'): TripStop {
+    if (type === 'start') {
+      return {
+        id: `segment-start-${segment.day}`,
+        name: segment.startCity,
+        city_name: segment.startCity,
+        city: segment.startCity,
+        state: segment.destination?.state || 'Unknown',
+        latitude: 0,
+        longitude: 0,
+        category: 'destination_city',
+        description: `Start point for day ${segment.day}`
+      };
+    } else {
+      return {
+        id: `segment-end-${segment.day}`,
+        name: segment.endCity,
+        city_name: segment.endCity,
+        city: segment.endCity,
+        state: segment.destination?.state || 'Unknown',
+        latitude: 0,
+        longitude: 0,
+        category: 'destination_city',
+        description: `End point for day ${segment.day}`
+      };
+    }
   }
 
   /**
@@ -299,7 +261,7 @@ export class TripSegmentBuilder {
   }
 
   /**
-   * Create a validated segment with proper distance checking
+   * CRITICAL FIX: Create validated segment with ABSOLUTE drive time enforcement
    */
   private static createValidatedSegment(
     startStop: TripStop,
@@ -318,15 +280,16 @@ export class TripSegmentBuilder {
       return null;
     }
     
-    // FIXED: Use DriveTimeEnforcementService for validated drive time calculation
-    const driveTimeHours = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
+    // CRITICAL FIX: Always use DriveTimeEnforcementService for ALL drive time calculations
+    const enforcedDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
     
-    // Validate drive time against style limits
-    const validation = DriveTimeEnforcementService.validateSegmentDriveTime(
-      startStop,
-      endStop,
-      styleConfig
-    );
+    console.log(`🚗 SEGMENT CREATION: Day ${day} ${startStop.name} → ${endStop.name}`, {
+      distance: segmentDistance.toFixed(1),
+      enforcedDriveTime: enforcedDriveTime.toFixed(1),
+      styleLimit: styleConfig.maxDailyDriveHours,
+      absoluteLimit: 10,
+      isCompliant: enforcedDriveTime <= 10
+    });
     
     // Create recommended stops (only destination cities)
     const segmentStops = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly([endStop]);
@@ -350,7 +313,7 @@ export class TripSegmentBuilder {
       endCity: CityDisplayService.getCityDisplayName(endStop),
       distance: segmentDistance,
       approximateMiles: Math.round(segmentDistance),
-      driveTimeHours: parseFloat(driveTimeHours.toFixed(1)), // FIXED: Use validated drive time
+      driveTimeHours: parseFloat(enforcedDriveTime.toFixed(1)), // CRITICAL: Use enforced drive time
       destination: {
         city: endStop.city_name || endStop.name,
         state: endStop.state
@@ -362,13 +325,17 @@ export class TripSegmentBuilder {
         description: stop.description,
         city: stop.city
       })),
-      driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTimeHours),
+      driveTimeCategory: TripPlanUtils.getDriveTimeCategory(enforcedDriveTime),
       routeSection: TripPlanUtils.getRouteSection(day, 14)
     };
     
     // Add drive-time validation warning if needed
-    if (!validation.isValid && validation.recommendation) {
-      segment.driveTimeWarning = validation.recommendation;
+    if (enforcedDriveTime > styleConfig.maxDailyDriveHours) {
+      segment.driveTimeWarning = `Drive time of ${enforcedDriveTime.toFixed(1)}h exceeds recommended ${styleConfig.maxDailyDriveHours}h for ${styleConfig.style} style`;
+    }
+    
+    if (enforcedDriveTime >= 10) {
+      segment.driveTimeWarning = `Maximum drive time reached (${enforcedDriveTime.toFixed(1)}h) - consider extending trip duration`;
     }
     
     return segment;
