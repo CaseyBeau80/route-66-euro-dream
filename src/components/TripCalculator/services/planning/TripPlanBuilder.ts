@@ -8,6 +8,17 @@ export interface DailySegment {
   driveTimeHours: number;
   stops: TripStop[];
   driveTimeWarning?: string;
+  title?: string;
+  approximateMiles?: number;
+  destination?: {
+    city: string;
+    state: string;
+  };
+  recommendedStops?: TripStop[];
+  attractions?: any[];
+  driveTimeCategory?: 'comfortable' | 'moderate' | 'extended';
+  routeSection?: string;
+  subStopTimings?: any[];
 }
 
 export interface SegmentTiming {
@@ -29,6 +40,8 @@ export interface TripPlan {
     endLocation: string;
     tripStyle?: string;
   };
+  startCity?: string;
+  endCity?: string;
 }
 
 export class TripPlanBuilder {

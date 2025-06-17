@@ -1,6 +1,7 @@
+
 export interface TripCompletionAnalysis {
   isCompleted: boolean;
-  originalDays: number; // Add this property
+  originalDays: number;
   optimizedDays: number;
   adjustmentReason?: string;
   confidence: number;
@@ -11,4 +12,6 @@ export interface TripCompletionAnalysis {
     overallScore: number;
   };
   recommendations?: string[];
+  duplicateSegments?: any[]; // Add for compatibility
+  totalUsefulDays?: number; // Add for compatibility
 }
