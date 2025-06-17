@@ -6,10 +6,18 @@ import { CityDisplayService } from './utils/CityDisplayService';
 import { DistanceCalculationService } from './utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
 import { CityStateDisambiguationService } from './utils/CityStateDisambiguationService';
+import { TripCompletionService, TripCompletionAnalysis } from './planning/TripCompletionService';
 
 // Re-export types for backward compatibility
-export type { DailySegment, TripPlan, SegmentTiming };
+export type { DailySegment, TripPlan, SegmentTiming, TripCompletionAnalysis };
 export type TripStop = import('../types/TripStop').TripStop;
+
+export interface EnhancedTripPlanResult {
+  tripPlan: TripPlan;
+  completionAnalysis?: TripCompletionAnalysis;
+  originalRequestedDays: number;
+  optimizationSummary?: string;
+}
 
 export class Route66TripPlannerService {
   static async planTrip(
@@ -18,7 +26,20 @@ export class Route66TripPlannerService {
     tripDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlan> {
-    console.log(`🗺️ ENHANCED CITY MATCHING: ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
+    const result = await this.planTripWithAnalysis(startCityName, endCityName, tripDays, tripStyle);
+    return result.tripPlan;
+  }
+
+  /**
+   * Enhanced trip planning with completion analysis
+   */
+  static async planTripWithAnalysis(
+    startCityName: string, 
+    endCityName: string, 
+    tripDays: number,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+  ): Promise<EnhancedTripPlanResult> {
+    console.log(`🗺️ ENHANCED PLANNING WITH COMPLETION ANALYSIS: ${tripDays}-day ${tripStyle} trip from ${startCityName} to ${endCityName}`);
 
     // Use enhanced data service with fallback tracking
     const allStops = await EnhancedSupabaseDataService.fetchAllStops();
@@ -108,32 +129,76 @@ export class Route66TripPlannerService {
       endStop,
       startCityName,
       endCityName,
-      destinationCitiesOnly // Only pass destination cities for validation
+      destinationCitiesOnly
     );
 
     // Use UnifiedTripPlanningService with the specified trip style and destination cities only
     const planningResult = UnifiedTripPlanningService.createTripPlan(
       validatedStartStop,
       validatedEndStop,
-      destinationCitiesOnly, // Only pass destination cities
+      destinationCitiesOnly,
       tripDays,
       startCityName,
       endCityName,
       tripStyle
     );
 
+    // ENHANCED: Analyze completion and optimize if needed
+    const completionAnalysis = TripCompletionService.analyzeTripCompletion(
+      planningResult.tripPlan.segments,
+      tripDays,
+      destinationCitiesOnly
+    );
+
+    console.log(`🔍 COMPLETION ANALYSIS RESULTS:`, {
+      isCompleted: completionAnalysis.isCompleted,
+      completedOnDay: completionAnalysis.completedOnDay,
+      unusedDays: completionAnalysis.unusedDays,
+      duplicateSegments: completionAnalysis.duplicateSegments.length,
+      strategy: completionAnalysis.redistributionSuggestion?.recommendedApproach
+    });
+
+    // Apply optimizations if needed
+    let finalTripPlan = planningResult.tripPlan;
+    let optimizationSummary = '';
+
+    if (completionAnalysis.isCompleted || completionAnalysis.duplicateSegments.length > 0) {
+      console.log(`🔧 APPLYING OPTIMIZATIONS: Cleaning up ${completionAnalysis.duplicateSegments.length} issues`);
+      
+      const optimizedSegments = TripCompletionService.cleanupSegments(planningResult.tripPlan.segments);
+      
+      finalTripPlan = {
+        ...planningResult.tripPlan,
+        segments: optimizedSegments,
+        dailySegments: optimizedSegments,
+        totalDays: optimizedSegments.length,
+        title: `${startCityName} to ${endCityName} - Optimized ${optimizedSegments.length}-Day Route 66 Adventure`
+      };
+
+      optimizationSummary = TripCompletionService.createCompletionMessage(completionAnalysis);
+      console.log(`✅ OPTIMIZATION COMPLETE: ${optimizedSegments.length} days, message: ${optimizationSummary}`);
+    }
+
     console.log('🎯 ENHANCED: Final trip plan created:', {
-      title: planningResult.tripPlan.title,
+      title: finalTripPlan.title,
       tripStyle: planningResult.tripStyle,
       warnings: planningResult.warnings?.length || 0,
-      segmentsCount: planningResult.tripPlan.segments.length,
+      segmentsCount: finalTripPlan.segments.length,
+      originalDays: tripDays,
+      finalDays: finalTripPlan.totalDays,
       startCity: `${validatedStartStop.name}, ${validatedStartStop.state}`,
       endCity: `${validatedEndStop.name}, ${validatedEndStop.state}`,
       dataSource: EnhancedSupabaseDataService.isUsingFallback() ? 'fallback' : 'supabase',
-      destinationCitiesOnly: true
+      destinationCitiesOnly: true,
+      optimized: completionAnalysis.isCompleted
     });
     
-    return planningResult.tripPlan;
+    return {
+      tripPlan: finalTripPlan,
+      completionAnalysis,
+      originalRequestedDays: tripDays,
+      optimizationSummary
+    };
   }
 
   /**
