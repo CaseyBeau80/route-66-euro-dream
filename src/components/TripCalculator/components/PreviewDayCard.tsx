@@ -60,6 +60,20 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
+  // FIXED: Use the validated drive time from segment data instead of recalculating
+  const driveTime = React.useMemo(() => {
+    // Use the driveTimeHours from the segment if available (this comes from drive time enforcement)
+    if (segment.driveTimeHours && typeof segment.driveTimeHours === 'number') {
+      console.log(`🚗 DRIVE TIME FIX: Using validated drive time for Day ${segment.day}: ${segment.driveTimeHours}h`);
+      return segment.driveTimeHours;
+    }
+    
+    // Fallback to basic calculation only if no validated time available
+    const fallbackTime = segment.distance / 55;
+    console.log(`⚠️ DRIVE TIME FIX: Using fallback calculation for Day ${segment.day}: ${fallbackTime}h`);
+    return fallbackTime;
+  }, [segment.driveTimeHours, segment.distance, segment.day]);
+
   return (
     <div className={`group relative bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden ${!isLast ? 'mb-8' : ''}`}>
       {/* Decorative gradient border */}
@@ -89,14 +103,20 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and time info */}
+          {/* Distance and time info - FIXED to use validated drive time */}
           <div className="text-right">
             <div className="text-2xl font-bold text-blue-600 mb-1">
               {Math.round(segment.distance)} mi
             </div>
             <div className="text-sm text-gray-500">
-              {formatTime(segment.distance / 55)} drive time
+              {formatTime(driveTime)} drive time
             </div>
+            {/* Show warning if drive time exceeds safe limits */}
+            {driveTime > 10 && (
+              <div className="text-xs text-red-500 mt-1">
+                ⚠️ Exceeds 10h limit
+              </div>
+            )}
           </div>
         </div>
 
@@ -112,6 +132,18 @@ const PreviewDayCard: React.FC<PreviewDayCardProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Drive time warning if present */}
+        {segment.driveTimeWarning && (
+          <div className="mb-6 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Clock className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-orange-700">
+                <strong>Drive Time Notice:</strong> {segment.driveTimeWarning}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Unified Weather Widget */}
         {tripStartDate && segmentDate && (

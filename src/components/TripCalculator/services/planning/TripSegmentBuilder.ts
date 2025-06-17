@@ -1,3 +1,4 @@
+
 import { DailySegment, RecommendedStop } from './TripPlanTypes';
 import { TripStop } from '../data/SupabaseDataService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -96,12 +97,15 @@ export class TripSegmentBuilder {
       
       if (validation.isValid) {
         // Segment is fine, just update day number and add to results
+        // FIXED: Use the validated drive time from the enforcement service
+        const validatedDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segment.distance);
         enforcedSegments.push({
           ...segment,
-          day: currentDay
+          day: currentDay,
+          driveTimeHours: validatedDriveTime // Use validated drive time
         });
         currentDay++;
-        console.log(`✅ SEGMENT OK: Day ${currentDay - 1} - ${segment.startCity} → ${segment.endCity} (${validation.actualDriveTime.toFixed(1)}h)`);
+        console.log(`✅ SEGMENT OK: Day ${currentDay - 1} - ${segment.startCity} → ${segment.endCity} (${validatedDriveTime.toFixed(1)}h)`);
       } else {
         // Segment violates drive time, need to split
         console.log(`❌ DRIVE TIME VIOLATION: ${segment.startCity} → ${segment.endCity} (${validation.actualDriveTime.toFixed(1)}h exceeds ${styleConfig.maxDailyDriveHours}h)`);
@@ -138,9 +142,11 @@ export class TripSegmentBuilder {
         } else {
           // Could not split, keep original but add warning
           console.warn(`⚠️ COULD NOT SPLIT: Keeping original segment with warning`);
+          const validatedDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segment.distance);
           enforcedSegments.push({
             ...segment,
             day: currentDay,
+            driveTimeHours: validatedDriveTime, // Use validated drive time
             driveTimeWarning: validation.recommendation || `${validation.actualDriveTime.toFixed(1)}h drive exceeds safe ${styleConfig.maxDailyDriveHours}h limit`
           });
           currentDay++;
@@ -312,6 +318,7 @@ export class TripSegmentBuilder {
       return null;
     }
     
+    // FIXED: Use DriveTimeEnforcementService for validated drive time calculation
     const driveTimeHours = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
     
     // Validate drive time against style limits
@@ -343,7 +350,7 @@ export class TripSegmentBuilder {
       endCity: CityDisplayService.getCityDisplayName(endStop),
       distance: segmentDistance,
       approximateMiles: Math.round(segmentDistance),
-      driveTimeHours: parseFloat(driveTimeHours.toFixed(1)),
+      driveTimeHours: parseFloat(driveTimeHours.toFixed(1)), // FIXED: Use validated drive time
       destination: {
         city: endStop.city_name || endStop.name,
         state: endStop.state
