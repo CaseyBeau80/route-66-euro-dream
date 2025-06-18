@@ -1,6 +1,7 @@
 
 import { TripStop } from '../../types/TripStop';
 import { convertToTripStop } from '../../types/TripStop';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 
 export class TripBoundaryService {
   /**
@@ -29,8 +30,17 @@ export class TripBoundaryService {
 
     console.log(`✅ Boundary stops found:`, {
       start: `${startStop.name} (${startStop.state})`,
-      end: `${endStop.name} (${endStop.state})`
+      end: `${endStop.name} (${endStop.state})`,
+      startCoords: `${startStop.latitude}, ${startStop.longitude}`,
+      endCoords: `${endStop.latitude}, ${endStop.longitude}`
     });
+
+    // Calculate distance between start and end to verify
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+    console.log(`📏 Total distance from ${startStop.name} to ${endStop.name}: ${totalDistance.toFixed(1)} miles`);
 
     // Filter stops to get the route between start and end
     const routeStops = this.getRouteStops(startStop, endStop, tripStops);
@@ -96,35 +106,61 @@ export class TripBoundaryService {
       }
     }
 
-    // Step 4: Geographic fallbacks based on known Route 66 endpoints
+    // Step 4: Geographic fallbacks with specific coordinates for major cities
     console.log(`⚠️ No match found for "${location}", using geographic fallback`);
     
     if (type === 'start') {
-      // For start locations, prefer Chicago area or eastern stops
+      // For Chicago/start locations, find the easternmost stop or create a default
       const easternStops = allStops
-        .filter(stop => stop.longitude < -90) // East of -90 longitude
-        .sort((a, b) => a.longitude - b.longitude); // Sort by longitude (easternmost first)
+        .filter(stop => stop.longitude < -85) // East of -85 longitude
+        .sort((a, b) => a.longitude - b.longitude);
       
       if (easternStops.length > 0) {
         console.log(`🔄 Using eastern fallback: ${easternStops[0].name}`);
         return easternStops[0];
       }
+      
+      // Create Chicago fallback if no eastern stops found
+      return this.createFallbackStop('Chicago, IL', 41.8781, -87.6298, 'start');
     } else {
-      // For end locations, prefer California or western stops
+      // For Los Angeles/end locations, find the westernmost stop or create a default
       const westernStops = allStops
-        .filter(stop => stop.longitude > -115) // West of -115 longitude (California area)
-        .sort((a, b) => b.longitude - a.longitude); // Sort by longitude (westernmost first)
+        .filter(stop => stop.longitude > -120) // West of -120 longitude
+        .sort((a, b) => b.longitude - a.longitude);
       
       if (westernStops.length > 0) {
         console.log(`🔄 Using western fallback: ${westernStops[0].name}`);
         return westernStops[0];
       }
+      
+      // Create Los Angeles fallback if no western stops found
+      return this.createFallbackStop('Los Angeles, CA', 34.0522, -118.2437, 'end');
     }
+  }
 
-    // Step 5: Last resort - use first or last stop
-    const fallbackStop = type === 'start' ? allStops[0] : allStops[allStops.length - 1];
-    console.log(`🚨 Last resort fallback: ${fallbackStop.name}`);
-    return fallbackStop;
+  /**
+   * Create a fallback stop with valid coordinates
+   */
+  private static createFallbackStop(
+    name: string, 
+    latitude: number, 
+    longitude: number, 
+    type: 'start' | 'end'
+  ): TripStop {
+    const [cityName, state] = name.split(', ');
+    return {
+      id: `fallback-${type}-${Date.now()}`,
+      name: cityName,
+      description: `${name} - Route 66 ${type} point`,
+      category: 'destination_city',
+      city_name: cityName,
+      city: cityName,
+      state: state,
+      latitude: latitude,
+      longitude: longitude,
+      is_major_stop: true,
+      is_official_destination: true
+    };
   }
 
   /**
@@ -155,12 +191,13 @@ export class TripBoundaryService {
     // Determine trip direction
     const isEastToWest = startStop.longitude < endStop.longitude;
     
-    // Filter stops that are geographically between start and end
-    const minLat = Math.min(startStop.latitude, endStop.latitude) - 2; // Add buffer
+    // Calculate the geographic bounds with a reasonable buffer
+    const minLat = Math.min(startStop.latitude, endStop.latitude) - 2;
     const maxLat = Math.max(startStop.latitude, endStop.latitude) + 2;
     const minLng = Math.min(startStop.longitude, endStop.longitude) - 2;
     const maxLng = Math.max(startStop.longitude, endStop.longitude) + 2;
 
+    // Filter stops that are geographically between start and end
     const routeStops = allStops.filter(stop => 
       stop.id !== startStop.id &&
       stop.id !== endStop.id &&
@@ -180,6 +217,15 @@ export class TripBoundaryService {
     });
 
     console.log(`🛣️ Route stops found: ${routeStops.length} stops between ${startStop.name} and ${endStop.name}`);
+    
+    // Log distances to verify they're reasonable
+    if (routeStops.length > 0) {
+      const firstDistance = DistanceCalculationService.calculateDistance(
+        startStop.latitude, startStop.longitude,
+        routeStops[0].latitude, routeStops[0].longitude
+      );
+      console.log(`📏 Distance to first route stop: ${firstDistance.toFixed(1)} miles`);
+    }
     
     return routeStops;
   }
