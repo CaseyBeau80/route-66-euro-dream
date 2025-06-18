@@ -4,13 +4,13 @@ import { TripPlanningOrchestrator, OrchestrationData } from './TripPlanningOrche
 
 export class BasicTripPlanner {
   /**
-   * Plan a basic trip with enhanced logic
+   * Plan a basic trip with enhanced logic - FIXED: Only destination-focused
    */
   static async planBasicTrip(
     startLocation: string,
     endLocation: string,
     travelDays: number,
-    tripStyle: 'balanced' | 'destination-focused'
+    tripStyle: 'destination-focused'
   ): Promise<TripPlan> {
     console.log(`🚗 BASIC PLANNING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle}`);
 

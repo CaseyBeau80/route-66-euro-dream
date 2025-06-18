@@ -17,7 +17,7 @@ export const useEnhancedTripCalculation = () => {
     travelDays: 0,
     dailyDrivingLimit: 300,
     tripStartDate: undefined,
-    tripStyle: 'balanced'
+    tripStyle: 'destination-focused' // FIXED: Default to destination-focused
   });
   
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
@@ -166,8 +166,8 @@ export const useEnhancedTripCalculation = () => {
     }
   };
 
-  // Handle trip style changes
-  const handleTripStyleChange = async (style: 'balanced' | 'destination-focused') => {
+  // Handle trip style changes - FIXED: Only destination-focused
+  const handleTripStyleChange = async (style: 'destination-focused') => {
     console.log(`🎨 Trip style change handler called: ${style}`);
     
     // Update form data

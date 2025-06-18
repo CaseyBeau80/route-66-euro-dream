@@ -13,5 +13,5 @@ export interface TripFormData {
   travelDays: number;
   dailyDrivingLimit: number; // Changed from number[] to number for simplicity
   tripStartDate?: Date; // Added trip start date
-  tripStyle: 'balanced' | 'destination-focused'; // New trip style option
+  tripStyle: 'destination-focused'; // FIXED: Only destination-focused now
 }

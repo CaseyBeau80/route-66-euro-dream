@@ -8,7 +8,7 @@ interface TripStyleHelperMessageProps {
   startLocation: string;
   endLocation: string;
   actualDays: number;
-  tripStyle: 'balanced' | 'destination-focused';
+  tripStyle: 'destination-focused'; // FIXED: Only destination-focused
 }
 
 const TripStyleHelperMessage: React.FC<TripStyleHelperMessageProps> = ({
