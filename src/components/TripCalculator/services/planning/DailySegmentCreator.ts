@@ -27,7 +27,7 @@ export class DailySegmentCreator {
     const avgDistancePerDay = totalDistance / totalDays;
     console.log(`📏 STRICT: Target average distance per day: ${Math.round(avgDistancePerDay)} miles`);
     
-    // Find intermediate overnight stops (destination cities only)
+    // Find intermediate overnight stops (destination cities only) - explicitly type as TripStop[]
     const overnightStops: TripStop[] = this.selectDestinationCityOvernightStops(
       startStop,
       endStop,
@@ -36,18 +36,19 @@ export class DailySegmentCreator {
       totalDistance
     );
     
-    // Strict validation of all selected overnight stops with proper type narrowing
+    // Strict validation of all selected overnight stops
     const warnings: string[] = [];
     for (const stop of overnightStops) {
-      // Separate the type guard check from the destination city validation
-      if (!this.isValidTripStop(stop)) {
+      // Type assertion to ensure TypeScript knows this is a TripStop
+      const tripStop = stop as TripStop;
+      
+      if (!this.isValidTripStop(tripStop)) {
         warnings.push(`Invalid stop data found and was removed from overnight stops`);
         continue;
       }
       
-      // Now TypeScript knows stop is a valid TripStop
-      if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
-        warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+      if (!StrictDestinationCityEnforcer.isDestinationCity(tripStop)) {
+        warnings.push(`${tripStop.name} is not a destination city and was removed from overnight stops`);
       }
     }
     
