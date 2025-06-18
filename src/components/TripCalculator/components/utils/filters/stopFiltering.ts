@@ -3,7 +3,7 @@ import { TripStop } from '../../../types/TripStop';
 import { StrictDestinationCityEnforcer } from '../../../services/planning/StrictDestinationCityEnforcer';
 
 // STRICT filter function to only allow destination cities
-export const isUserRelevantStop = (stop: TripStop): boolean => {
+export const isUserRelevantStop = (stop: TripStop): stop is TripStop => {
   if (!stop || typeof stop !== 'object') {
     console.log(`🚫 STRICT FILTER: Invalid stop object`);
     return false;
@@ -22,12 +22,12 @@ export const isUserRelevantStop = (stop: TripStop): boolean => {
 };
 
 // Additional filter to ensure only destination cities are used
-export const isDestinationCity = (stop: TripStop): boolean => {
+export const isDestinationCity = (stop: TripStop): stop is TripStop => {
   return StrictDestinationCityEnforcer.isDestinationCity(stop);
 };
 
 // Legacy support for existing filters but enforce destination city restriction
-export const isValidRouteStop = (stop: TripStop): boolean => {
+export const isValidRouteStop = (stop: TripStop): stop is TripStop => {
   if (!stop || typeof stop !== 'object') {
     console.log(`🚫 STRICT VALIDATION: Invalid stop object`);
     return false;

@@ -11,7 +11,7 @@ import { isValidStopData, createStableSegmentKey } from './types/stopValidationT
 export { isGeographicallyRelevant, createStableSegmentKey };
 
 // STRICT: Use destination city enforcer for filtering
-export const isUserRelevantStop = (stop: TripStop): boolean => {
+export const isUserRelevantStop = (stop: TripStop): stop is TripStop => {
   return StrictDestinationCityEnforcer.isDestinationCity(stop);
 };
 
@@ -44,7 +44,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         return isValid;
       })
       .map((stop, index) => convertStopToTripStop(stop, index, 'recommended', segmentKey))
-      .filter((stop: TripStop) => {
+      .filter((stop: TripStop): stop is TripStop => {
         // STRICT: Only allow destination cities for overnight stops
         const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
         if (!isDestCity) {
@@ -74,7 +74,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         return isValid;
       })
       .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction', segmentKey))
-      .filter((stop: TripStop) => {
+      .filter((stop: TripStop): stop is TripStop => {
         // STRICT: For attractions, we can be less strict but still prefer destination cities
         const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
         if (isDestCity) {
