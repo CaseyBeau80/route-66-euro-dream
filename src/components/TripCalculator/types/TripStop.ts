@@ -19,6 +19,8 @@ export interface TripStop {
   population?: number;
   // NEW: Heritage value for heritage scoring
   heritage_value?: 'low' | 'medium' | 'high';
+  // NEW: Heritage score for enhanced trip logic
+  heritage_score?: number;
 }
 
 // Type guard to validate TripStop objects
