@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -100,39 +99,38 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 4: Remove start and end cities with safe filtering - FIXED TYPE NARROWING
-    const availableCities = canonicalStops.filter((city): city is TripStop => {
-      // First, ensure we have a valid object
+    const availableCities: TripStop[] = [];
+    
+    for (const city of canonicalStops) {
+      // Check if we have a valid city object
       if (!city || typeof city !== 'object') {
         console.warn(`⚠️ FILTERING OUT invalid city: missing data`);
-        return false;
+        continue;
       }
       
-      // Type assertion to access properties after object validation
-      const validCity = city as TripStop;
-      
       // Check if city has required properties
-      if (!validCity.id) {
+      if (!city.id) {
         console.warn(`⚠️ FILTERING OUT city: missing ID`);
-        return false;
+        continue;
       }
       
       // Check if it's not start or end stop and has valid coordinates
-      const isNotStartOrEnd = validCity.id !== startStop.id && validCity.id !== endStop.id;
-      const hasValidCoords = this.hasValidCoordinates(validCity);
+      const isNotStartOrEnd = city.id !== startStop.id && city.id !== endStop.id;
+      const hasValidCoords = this.hasValidCoordinates(city);
       
       if (!isNotStartOrEnd || !hasValidCoords) {
         console.warn(`⚠️ FILTERING OUT city:`, {
-          id: validCity.id,
-          name: validCity.name,
-          reason: validCity.id === startStop.id ? 'is start stop' :
-                  validCity.id === endStop.id ? 'is end stop' :
+          id: city.id,
+          name: city.name,
+          reason: city.id === startStop.id ? 'is start stop' :
+                  city.id === endStop.id ? 'is end stop' :
                   !hasValidCoords ? 'invalid coordinates' : 'unknown'
         });
-        return false;
+        continue;
       }
       
-      return true;
-    });
+      availableCities.push(city);
+    }
     
     console.log(`🏛️ Available canonical cities: ${availableCities.length}`);
     
@@ -163,21 +161,25 @@ export class EnhancedDestinationSelector {
       console.log(`📈 Need more cities: expanding beyond canonical destinations`);
       
       // Add non-canonical destination cities that are in sequence
-      const nonCanonicalDestinations = destinationCities.filter((city): city is TripStop => {
+      const nonCanonicalDestinations: TripStop[] = [];
+      
+      for (const city of destinationCities) {
         if (!city || typeof city !== 'object') {
-          return false;
+          continue;
         }
         
-        const validCity = city as TripStop;
-        if (!validCity.id) {
-          return false;
+        if (!city.id) {
+          continue;
         }
         
-        return validCity.id !== startStop.id && 
-               validCity.id !== endStop.id &&
-               this.hasValidCoordinates(validCity) &&
-               !canonicalStops.some(canonical => canonical && canonical.id === validCity.id);
-      });
+        const isNotStartOrEnd = city.id !== startStop.id && city.id !== endStop.id;
+        const hasValidCoords = this.hasValidCoordinates(city);
+        const isNotAlreadyCanonical = !canonicalStops.some(canonical => canonical && canonical.id === city.id);
+        
+        if (isNotStartOrEnd && hasValidCoords && isNotAlreadyCanonical) {
+          nonCanonicalDestinations.push(city);
+        }
+      }
       
       try {
         const additionalSequenceResult = Route66SequenceValidator.filterValidSequenceStops(
@@ -339,20 +341,22 @@ export class EnhancedDestinationSelector {
     for (const city of availableCities) {
       if (expanded.length >= needed) break;
       
-      // Type guard check first
+      // Check if we have a valid city object and coordinates
       if (!city || typeof city !== 'object') {
         continue;
       }
       
-      // Type assertion after validation
-      const validCity = city as TripStop;
+      if (!city.id) {
+        continue;
+      }
       
-      if (this.hasValidCoordinates(validCity) &&
-          !usedIds.has(validCity.id) && 
-          validCity.id !== startStop.id && 
-          validCity.id !== endStop.id) {
-        expanded.push(validCity);
-        usedIds.add(validCity.id);
+      const hasValidCoords = this.hasValidCoordinates(city);
+      const isNotUsed = !usedIds.has(city.id);
+      const isNotStartOrEnd = city.id !== startStop.id && city.id !== endStop.id;
+      
+      if (hasValidCoords && isNotUsed && isNotStartOrEnd) {
+        expanded.push(city);
+        usedIds.add(city.id);
       }
     }
     
