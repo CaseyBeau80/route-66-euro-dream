@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import PreviewDayCard from './PreviewDayCard';
+import DaySegmentCard from './DaySegmentCard';
+import ErrorBoundary from './ErrorBoundary';
 
 interface PreviewDailyItineraryProps {
   segments: DailySegment[];
@@ -12,38 +13,44 @@ const PreviewDailyItinerary: React.FC<PreviewDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('🗓️ CRITICAL FIX: PreviewDailyItinerary render:', {
-    segmentsCount: segments.length,
-    tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateLocal: tripStartDate?.toLocaleDateString(),
-    segments: segments.map(s => ({
-      day: s.day,
-      endCity: s.endCity,
-      startCity: s.startCity
-    }))
-  });
+  console.log('📅 PreviewDailyItinerary: Rendering', segments.length, 'segments with new blue theme');
+
+  if (!segments || segments.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <p>No daily segments available</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-0">
-      {segments.map((segment, index) => {
-        console.log(`🗓️ CRITICAL FIX: Rendering PreviewDayCard for Day ${segment.day}:`, {
-          segmentDay: segment.day,
-          arrayIndex: index,
-          endCity: segment.endCity,
-          tripStartDate: tripStartDate?.toLocaleDateString(),
-          note: 'Using segment.day for date calculation, not array index'
-        });
-
-        return (
-          <PreviewDayCard
-            key={`day-${segment.day}`}
+    <div className="space-y-4">
+      <div className="text-center p-4 bg-blue-600 rounded">
+        <h3 className="text-lg font-bold text-white mb-2">
+          📅 Your complete day-by-day guide with live weather forecasts
+        </h3>
+        <p className="text-blue-100 text-sm">
+          Trip starts: {tripStartDate?.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long', 
+            day: 'numeric',
+            year: 'numeric'
+          }) || 'Date not specified'}
+        </p>
+      </div>
+      
+      {segments.map((segment, index) => (
+        <ErrorBoundary key={`preview-segment-${segment.day}-${index}`} context={`PreviewItinerary-${index}`}>
+          <DaySegmentCard
             segment={segment}
-            dayIndex={index}
             tripStartDate={tripStartDate}
-            isLast={index === segments.length - 1}
+            cardIndex={index}
+            sectionKey="preview-itinerary"
+            isSharedView={false}
+            isPDFExport={false}
           />
-        );
-      })}
+        </ErrorBoundary>
+      ))}
     </div>
   );
 };
