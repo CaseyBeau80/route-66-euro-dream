@@ -1,3 +1,4 @@
+
 import { TripPlan } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { TripStyleLogic, TripStyleConfig } from './TripStyleLogic';
@@ -175,7 +176,11 @@ export class EnhancedTripStyleLogic extends TripStyleLogic {
     };
     populationGuidance?: string;
   } {
-    const baseMetrics = super.calculateStyleMetrics(totalDistance, totalDays, config);
+    // Calculate base metrics
+    const dailyDistanceTarget = totalDistance / totalDays;
+    const dailyDriveTimeTarget = config.preferredDriveTime;
+    const isWithinLimits = dailyDistanceTarget <= (config.maxDailyDriveHours * 55);
+    const requiresRebalancing = !isWithinLimits;
     
     // Add heritage analysis
     const heritageStats = HeritageScoringService.getHeritageStatistics(selectedStops);
@@ -190,7 +195,11 @@ export class EnhancedTripStyleLogic extends TripStyleLogic {
     }
 
     return {
-      ...baseMetrics,
+      dailyDistanceTarget,
+      dailyDriveTimeTarget,
+      isWithinLimits,
+      recommendation: requiresRebalancing ? 'Consider adding more days or reducing scope' : undefined,
+      requiresRebalancing,
       heritageAnalysis: {
         averageHeritageScore: heritageStats.averageHeritageScore,
         tierDistribution: heritageStats.tierDistribution,

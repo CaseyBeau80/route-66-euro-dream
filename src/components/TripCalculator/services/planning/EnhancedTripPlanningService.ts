@@ -1,4 +1,3 @@
-
 import { TripPlan } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { DailySegment } from './TripPlanTypes';
@@ -80,6 +79,10 @@ export class EnhancedTripPlanningService {
         stops: [],
         lastUpdated: new Date()
       };
+
+      // 10. Analyze trip completion - Fix: Use only one argument
+      const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
+      console.log('✅ Trip Completion Analysis:', completionAnalysis);
 
       return tripPlan;
 
@@ -185,7 +188,7 @@ export class EnhancedTripPlanningService {
         lastUpdated: new Date()
       };
 
-      // 10. Analyze trip completion - Fix: Remove second argument
+      // 10. Analyze trip completion - Fix: Use only one argument
       const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
       console.log('✅ Trip Completion Analysis:', completionAnalysis);
 

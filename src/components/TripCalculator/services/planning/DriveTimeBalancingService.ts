@@ -4,6 +4,8 @@ import { TripStyleConfig } from './TripStyleLogic';
 export interface DriveTimeTarget {
   day: number;
   targetHours: number;
+  minHours: number; // Added missing property
+  maxHours: number; // Added missing property
   category: 'short' | 'optimal' | 'long' | 'extreme';
   flexibility: number;
 }
@@ -25,6 +27,8 @@ export class DriveTimeBalancingService {
       targets.push({
         day,
         targetHours: styleConfig.preferredDriveTime,
+        minHours: styleConfig.minDailyDriveHours,
+        maxHours: styleConfig.maxDailyDriveHours,
         category: 'optimal',
         flexibility: styleConfig.flexibility
       });
@@ -49,6 +53,8 @@ export class DriveTimeBalancingService {
       targets.push({
         day,
         targetHours: styleConfig.preferredDriveTime,
+        minHours: styleConfig.minDailyDriveHours,
+        maxHours: styleConfig.maxDailyDriveHours,
         category: 'optimal',
         flexibility: styleConfig.flexibility
       });
