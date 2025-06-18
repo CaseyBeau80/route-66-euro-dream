@@ -76,23 +76,21 @@ export class DailySegmentCreator {
   }
   
   /**
-   * Validate overnight stops and return warnings
+   * Validate overnight stops and return warnings - fixed type narrowing
    */
   private static validateOvernightStops(overnightStops: TripStop[]): string[] {
     const warnings: string[] = [];
     
-    for (let i = 0; i < overnightStops.length; i++) {
-      const stop = overnightStops[i];
-      
+    overnightStops.forEach((stop: TripStop) => {
       if (!this.isValidTripStop(stop)) {
         warnings.push(`Invalid stop data found and was removed from overnight stops`);
-        continue;
+        return;
       }
       
       if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
         warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
       }
-    }
+    });
     
     return warnings;
   }
