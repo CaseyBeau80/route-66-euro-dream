@@ -118,22 +118,24 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
     // Use the fixed startDate
     const tripStartDate = tripPlan.startDate || undefined;
 
-    // Validate that we have a proper Date object
-    if (tripStartDate && !(tripStartDate instanceof Date)) {
-      console.error('❌ TripDetailsContent: tripStartDate is not a Date object after processing:', {
-        tripStartDate,
-        type: typeof tripStartDate,
-        constructor: tripStartDate?.constructor?.name
-      });
-    } else if (tripStartDate) {
-      console.log('✅ TripDetailsContent: Valid Date object confirmed:', {
-        tripStartDate: tripStartDate.toISOString(),
-        tripStartDateLocal: tripStartDate.toLocaleDateString()
-      });
+    // FIXED: Improve type checking to avoid TypeScript error
+    if (tripStartDate !== undefined && tripStartDate !== null) {
+      if (!(tripStartDate instanceof Date)) {
+        console.error('❌ TripDetailsContent: tripStartDate is not a Date object after processing:', {
+          tripStartDate,
+          type: typeof tripStartDate,
+          constructorName: tripStartDate && typeof tripStartDate === 'object' && tripStartDate.constructor ? tripStartDate.constructor.name : 'unknown'
+        });
+      } else {
+        console.log('✅ TripDetailsContent: Valid Date object confirmed:', {
+          tripStartDate: tripStartDate.toISOString(),
+          tripStartDateLocal: tripStartDate.toLocaleDateString()
+        });
+      }
     }
 
     console.log('🚨 TripDetailsContent: About to render SharedTripContentRenderer', {
-      tripStartDate: tripStartDate?.toISOString(),
+      tripStartDate: tripStartDate instanceof Date ? tripStartDate.toISOString() : tripStartDate,
       isSharedView: true,
       shareUrl,
       componentVersion: 'DATE_DESERIALIZATION_FIX'
