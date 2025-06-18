@@ -1,74 +1,103 @@
 
-import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, Clock, Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { Info, ChevronDown, ChevronUp, MapPin, Clock, Route } from 'lucide-react';
+import { TripAdjustmentNotice as TripAdjustmentNoticeType } from '../services/planning/TripAdjustmentService';
 
 interface TripAdjustmentNoticeProps {
-  originalDays: number;
-  adjustedDays: number;
-  driveTimeBalance?: {
-    averageDriveTime: number;
-    balanceQuality: 'excellent' | 'good' | 'fair' | 'poor';
-  };
+  notice: TripAdjustmentNoticeType;
+  className?: string;
 }
 
-const TripAdjustmentNotice: React.FC<TripAdjustmentNoticeProps> = ({
-  originalDays,
-  adjustedDays,
-  driveTimeBalance
+const TripAdjustmentNotice: React.FC<TripAdjustmentNoticeProps> = ({ 
+  notice, 
+  className = '' 
 }) => {
-  const getAdjustmentReason = () => {
-    if (adjustedDays > originalDays) {
-      return {
-        icon: <Shield className="h-4 w-4" />,
-        title: "Trip Extended for Comfort & Safety",
-        reason: "to ensure comfortable daily driving times and safer travel",
-        benefit: "More time to enjoy attractions and rest between destinations"
-      };
-    } else {
-      return {
-        icon: <Clock className="h-4 w-4" />,
-        title: "Trip Optimized for Better Balance",
-        reason: "to create a more balanced and enjoyable travel experience",
-        benefit: "Better pacing with optimal driving times each day"
-      };
+  const [showDetails, setShowDetails] = useState(false);
+
+  const getIconAndColors = () => {
+    switch (notice.type) {
+      case 'success':
+        return {
+          icon: <MapPin className="h-5 w-5" />,
+          bgColor: 'bg-green-50',
+          borderColor: 'border-green-200',
+          iconColor: 'text-green-600',
+          titleColor: 'text-green-800',
+          textColor: 'text-green-700'
+        };
+      case 'warning':
+        return {
+          icon: <Clock className="h-5 w-5" />,
+          bgColor: 'bg-amber-50',
+          borderColor: 'border-amber-200',
+          iconColor: 'text-amber-600',
+          titleColor: 'text-amber-800',
+          textColor: 'text-amber-700'
+        };
+      default:
+        return {
+          icon: <Route className="h-5 w-5" />,
+          bgColor: 'bg-blue-50',
+          borderColor: 'border-blue-200',
+          iconColor: 'text-blue-600',
+          titleColor: 'text-blue-800',
+          textColor: 'text-blue-700'
+        };
     }
   };
 
-  const adjustment = getAdjustmentReason();
-  const avgDriveTime = driveTimeBalance?.averageDriveTime;
+  const { icon, bgColor, borderColor, iconColor, titleColor, textColor } = getIconAndColors();
 
   return (
-    <Alert className="border-blue-200 bg-blue-50 text-blue-900 mb-6">
-      <Info className="h-4 w-4" />
-      <AlertTitle className="flex items-center gap-2 text-blue-900 font-semibold">
-        {adjustment.icon}
-        {adjustment.title}
-      </AlertTitle>
-      <AlertDescription className="text-blue-800 mt-2">
-        <div className="space-y-2">
-          <p>
-            We've adjusted your trip from <strong>{originalDays} days</strong> to{' '}
-            <strong>{adjustedDays} days</strong> {adjustment.reason}.
-          </p>
-          
-          {avgDriveTime && (
-            <p className="text-sm">
-              <strong>Average daily driving time:</strong> {Math.round(avgDriveTime)}h{' '}
-              <span className="text-blue-600">
-                ({driveTimeBalance?.balanceQuality === 'excellent' ? '🌟 Excellent' :
-                  driveTimeBalance?.balanceQuality === 'good' ? '✅ Good' :
-                  driveTimeBalance?.balanceQuality === 'fair' ? '👍 Fair' : '⚠️ Needs attention'} balance)
-              </span>
-            </p>
-          )}
-          
-          <p className="text-sm italic text-blue-700">
-            💡 {adjustment.benefit}
-          </p>
+    <div className={`${bgColor} ${borderColor} border rounded-lg p-4 ${className}`}>
+      <div className="flex items-start gap-3">
+        <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+          {icon}
         </div>
-      </AlertDescription>
-    </Alert>
+        
+        <div className="flex-1 min-w-0">
+          <h4 className={`${titleColor} font-semibold text-sm mb-1`}>
+            {notice.title}
+          </h4>
+          
+          <p className={`${textColor} text-sm leading-relaxed`}>
+            {notice.message}
+          </p>
+          
+          {notice.details && notice.details.length > 0 && (
+            <>
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className={`${textColor} hover:${titleColor} text-xs font-medium mt-2 flex items-center gap-1 transition-colors`}
+              >
+                {showDetails ? (
+                  <>
+                    <ChevronUp className="h-3 w-3" />
+                    Hide details
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3 w-3" />
+                    View details
+                  </>
+                )}
+              </button>
+              
+              {showDetails && (
+                <div className="mt-3 space-y-1">
+                  {notice.details.map((detail, index) => (
+                    <div key={index} className={`${textColor} text-xs flex items-start gap-2`}>
+                      <span className="text-xs mt-0.5">•</span>
+                      <span>{detail}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Sparkles, Info } from 'lucide-react';
@@ -16,6 +15,7 @@ import UnitSelector from './components/UnitSelector';
 import StopsLimitationNotice from './components/StopsLimitationNotice';
 import { useFormValidation } from './hooks/useFormValidation';
 import DataSourceIndicator from './components/DataSourceIndicator';
+import TripAdjustmentNotice from './components/TripAdjustmentNotice';
 
 interface TripCalculatorFormProps {
   formData: TripFormData;
@@ -84,6 +84,14 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         <DataSourceIndicator showDetails={true} className="text-xs" />
       </div>
 
+      {/* Trip Adjustment Notice - Show when trip is planned and adjustments were made */}
+      {tripPlan && tripPlan.adjustmentNotice && (
+        <TripAdjustmentNotice 
+          notice={tripPlan.adjustmentNotice}
+          className="animate-in slide-in-from-top-2 duration-300"
+        />
+      )}
+
       {/* Stops Limitation Notice - Show after trip is planned */}
       {tripPlan && (
         <StopsLimitationNotice tripPlan={tripPlan} />
@@ -125,7 +133,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
                   ⏱️ Max 10h/day driving
                 </span>
                 <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
-                  🎯 Optimized routes
+                  🎯 Auto-adjusted days
                 </span>
               </div>
             </div>
@@ -204,7 +212,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
           ✨ Start Your Epic Heritage Cities Journey! ✨
         </p>
         <p className="text-sm text-gray-600 mt-1">
-          Free planning • Optimized drive times • Heritage destinations
+          Free planning • Auto-adjusted days • Heritage destinations
         </p>
       </div>
 

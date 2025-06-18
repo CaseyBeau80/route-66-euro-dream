@@ -1,3 +1,5 @@
+import { PlanningAdjustment } from './PlanningPolicy';
+import { TripAdjustmentNotice } from './TripAdjustmentService';
 
 export interface TripPlan {
   id: string;
@@ -13,93 +15,16 @@ export interface TripPlan {
   totalDrivingTime: number;
   segments: DailySegment[];
   dailySegments: DailySegment[];
-  tripStyle: 'destination-focused' | 'balanced';
   stops: any[];
+  tripStyle: string;
   lastUpdated: Date;
   stopsLimited?: boolean;
   limitMessage?: string;
-  // Additional properties that components expect
-  startCityImage?: string;
-  endCityImage?: string;
-  isEnriched?: boolean;
-  enrichmentStatus?: {
-    weatherData?: boolean;
-    stopsData?: boolean;
-    validationComplete?: boolean;
-  };
-  exportTimestamp?: number;
-  originalDays?: number;
-  driveTimeBalance?: DriveTimeBalance;
-  summary?: {
-    totalDays: number;
-    totalDistance: number;
-    totalDriveTime: number;
-    startLocation: string;
-    endLocation: string;
-    tripStyle?: string;
-  };
-}
-
-export interface RecommendedStop {
-  stopId: string;
-  id: string;
-  name: string;
-  description: string;
-  latitude: number;
-  longitude: number;
-  category?: string;
-  city_name?: string;
-  state?: string;
-  city?: string;
-}
-
-export interface DriveTimeCategory {
-  category: 'short' | 'optimal' | 'long' | 'extreme';
-  message: string;
-  color?: string;
-}
-
-export interface WeatherData {
-  temperature?: number;
-  highTemp?: number;
-  lowTemp?: number;
-  description?: string;
-  condition?: string;
-  humidity?: number;
-  windSpeed?: number;
-  precipitation?: number;
-  cloudCover?: number;
-  isActualForecast?: boolean;
-  main?: {
-    temp: number;
-    temp_min: number;
-    temp_max: number;
-    humidity: number;
-  };
-  temp?: {
-    day: number;
-    min: number;
-    max: number;
-  };
-  weather?: Array<{
-    description: string;
-    icon: string;
-    main: string;
-  }>;
-  icon?: string;
-  source?: string;
-}
-
-export interface DriveTimeBalance {
-  isBalanced: boolean;
-  averageDriveTime: number;
-  variance: number;
-  driveTimeRange: { min: number; max: number };
-  balanceQuality: 'excellent' | 'good' | 'fair' | 'poor';
-  qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F';
-  overallScore: number;
-  suggestions: string[];
-  reason: string;
+  
+  // New constraint-related fields
+  planningAdjustments?: PlanningAdjustment[];
+  adjustmentNotice?: TripAdjustmentNotice | null;
+  originalRequestedDays?: number;
 }
 
 export interface DailySegment {
@@ -109,29 +34,22 @@ export interface DailySegment {
   endCity: string;
   distance: number;
   approximateMiles: number;
-  driveTimeHours: number;
-  drivingTime?: number;
-  destination: {
-    city: string;
-    state: string;
-  };
-  attractions: any[];
-  recommendedStops: RecommendedStop[];
-  weatherData?: WeatherData;
-  weather?: WeatherData;
+  driveTimeHours?: number;
+  destination: DestinationInfo;
+  recommendedStops: any[];
   isGoogleMapsData?: boolean;
-  stops?: any[];
-  notes?: string;
-  recommendations?: string[];
-  driveTimeCategory?: DriveTimeCategory;
-  routeSection?: string;
-  subStopTimings?: any[];
-  dataAccuracy?: string;
-  routeProgression?: {
-    segmentNumber: number;
-    progressPercentage: number;
-    cumulativeDistance: number;
-    totalDistance: number;
-  };
-  driveTimeWarning?: string;
+  attractions: Attraction[];
+}
+
+export interface DestinationInfo {
+  city: string;
+  state: string;
+}
+
+export interface Attraction {
+  name: string;
+  title: string;
+  description: string;
+  city: string;
+  category: string;
 }

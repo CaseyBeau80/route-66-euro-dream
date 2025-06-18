@@ -1,8 +1,11 @@
+
 import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { TripBoundaryService } from './TripBoundaryService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { calculateRealisticDriveTime, validateGeographicProgression } from '../../utils/distanceCalculator';
+import { PlanningPolicy, PlanningAdjustment } from './PlanningPolicy';
+import { TripAdjustmentService, TripAdjustmentNotice } from './TripAdjustmentService';
 
 export class EnhancedHeritageCitiesService {
   // ABSOLUTE CONSTRAINTS - These cannot be exceeded
@@ -15,9 +18,9 @@ export class EnhancedHeritageCitiesService {
   // ENHANCED DISCOVERY PARAMETERS - Removed artificial limits
   private static readonly EXPANDED_SEARCH_RADIUS = 200; // Increased from 150 miles
   private static readonly MIN_STOPS_FOR_WARNING = 3; // Warn if fewer than 3 real stops found
-  
+
   /**
-   * Plan Heritage Cities trip with enhanced stop discovery - RESPECT REQUESTED DAYS
+   * Plan Heritage Cities trip with constraint-based planning
    */
   static async planEnhancedHeritageCitiesTrip(
     startLocation: string,
@@ -25,7 +28,7 @@ export class EnhancedHeritageCitiesService {
     travelDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log(`🏛️ ENHANCED Heritage Cities Planning (RESPECTING ${travelDays} DAYS): ${startLocation} → ${endLocation}`);
+    console.log(`🏛️ ENHANCED Heritage Cities Planning with Constraints: ${startLocation} → ${endLocation} (${travelDays} days requested)`);
 
     // Validate minimum days requirement
     if (travelDays < 1) {
@@ -45,6 +48,28 @@ export class EnhancedHeritageCitiesService {
         start: `${startStop.name} (${startStop.state})`,
         end: `${endStop.name} (${endStop.state})`,
         availableStops: routeStops.length
+      });
+
+      // Apply planning constraints using the new policy system
+      const planningPolicy = new PlanningPolicy();
+      const constraintResult = planningPolicy.applyConstraints({
+        startLocation,
+        endLocation,
+        requestedDays: travelDays,
+        tripStyle: 'destination-focused',
+        availableStops: allStops,
+        routeStops
+      });
+
+      // Update travel days based on constraints
+      const originalDays = travelDays;
+      travelDays = constraintResult.finalDays;
+
+      console.log(`🎯 CONSTRAINTS APPLIED:`, {
+        originalDays,
+        adjustedDays: travelDays,
+        adjustments: constraintResult.adjustments.length,
+        warnings: constraintResult.warnings.length
       });
 
       // Calculate total distance and validate feasibility
@@ -86,7 +111,7 @@ export class EnhancedHeritageCitiesService {
         discoveredDestinations.splice(0, discoveredDestinations.length, ...fixedDestinations);
       }
 
-      // INTELLIGENT SEGMENT DISTRIBUTION - RESPECT REQUESTED DAYS
+      // INTELLIGENT SEGMENT DISTRIBUTION - RESPECT ADJUSTED DAYS
       const { segments, warningMessage } = this.intelligentSegmentDistribution(
         startStop,
         endStop,
@@ -119,6 +144,17 @@ export class EnhancedHeritageCitiesService {
       const actualTotalDistance = segments.reduce((total, segment) => total + segment.distance, 0);
       const totalDrivingTime = segments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0);
 
+      // Generate adjustment notice if days were changed
+      let adjustmentNotice: TripAdjustmentNotice | null = null;
+      if (originalDays !== travelDays || constraintResult.warnings.length > 0) {
+        adjustmentNotice = TripAdjustmentService.generateAdjustmentNotice(
+          constraintResult.adjustments,
+          constraintResult.warnings,
+          originalDays,
+          travelDays
+        );
+      }
+
       const tripPlan: TripPlan = {
         id: `enhanced-heritage-${Date.now()}`,
         title: `${startLocation} to ${endLocation} Enhanced Route 66 Heritage Journey`,
@@ -137,7 +173,11 @@ export class EnhancedHeritageCitiesService {
         tripStyle: 'destination-focused',
         lastUpdated: new Date(),
         stopsLimited: discoveredDestinations.length < travelDays - 1,
-        limitMessage: warningMessage
+        limitMessage: warningMessage,
+        // Add constraint-related metadata
+        planningAdjustments: constraintResult.adjustments,
+        adjustmentNotice,
+        originalRequestedDays: originalDays
       };
 
       console.log(`✅ Enhanced Heritage trip complete (${travelDays} DAYS):`, {
@@ -148,7 +188,13 @@ export class EnhancedHeritageCitiesService {
         maxDailyDistance: Math.max(...segments.map(s => s.distance || 0)).toFixed(1),
         realDestinationsFound: discoveredDestinations.length,
         hasWarning: !!warningMessage,
-        exactDayCount: segments.length === travelDays
+        exactDayCount: segments.length === travelDays,
+        constraintAdjustments: constraintResult.adjustments.length,
+        adjustmentSummary: TripAdjustmentService.formatAdjustmentSummary(
+          constraintResult.adjustments, 
+          originalDays, 
+          travelDays
+        )
       });
 
       return tripPlan;
