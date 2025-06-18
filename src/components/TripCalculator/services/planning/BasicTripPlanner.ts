@@ -64,7 +64,8 @@ export class BasicTripPlanner {
         dailySegments: segments,
         startDate: new Date(),
         title: `${startLocation} to ${endLocation} Route 66 Adventure`,
-        tripStyle
+        tripStyle,
+        lastUpdated: new Date()
       };
 
       console.log('✅ BasicTripPlanner: Trip planned successfully', {

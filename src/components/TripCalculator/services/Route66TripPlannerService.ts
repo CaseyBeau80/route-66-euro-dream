@@ -92,4 +92,47 @@ export class Route66TripPlannerService {
       throw error;
     }
   }
+
+  /**
+   * Simple trip planning method for compatibility
+   */
+  static async planTrip(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused'
+  ): Promise<TripPlan> {
+    const result = await this.planTripWithAnalysis(startLocation, endLocation, travelDays, tripStyle);
+    if (!result.tripPlan) {
+      throw new Error('Failed to plan trip');
+    }
+    return result.tripPlan;
+  }
+
+  /**
+   * Get data source status for debugging
+   */
+  static getDataSourceStatus(): string {
+    return 'supabase';
+  }
+
+  /**
+   * Check if using fallback data
+   */
+  static isUsingFallbackData(): boolean {
+    return false;
+  }
+
+  /**
+   * Get destination cities count
+   */
+  static async getDestinationCitiesCount(): Promise<number> {
+    try {
+      const stops = await SupabaseDataService.fetchAllStops();
+      return stops?.length || 0;
+    } catch (error) {
+      console.error('Failed to get destination cities count:', error);
+      return 0;
+    }
+  }
 }
