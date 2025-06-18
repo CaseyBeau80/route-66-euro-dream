@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -63,11 +62,12 @@ export class EnhancedDestinationSelector {
       if (this.isValidTripStop(stop)) {
         validStops.push(stop);
       } else {
+        // Fix: Use optional chaining for all property accesses in console.warn
         console.warn(`⚠️ SKIPPING invalid stop:`, {
-          id: stop.id || 'no-id',
-          name: stop.name || 'no-name',
-          hasLatitude: typeof stop.latitude === 'number',
-          hasLongitude: typeof stop.longitude === 'number'
+          id: stop?.id || 'no-id',
+          name: stop?.name || 'no-name',
+          hasLatitude: typeof stop?.latitude === 'number',
+          hasLongitude: typeof stop?.longitude === 'number'
         });
       }
     }
@@ -104,6 +104,7 @@ export class EnhancedDestinationSelector {
     
     for (const city of canonicalStops) {
       if (!this.isValidTripStop(city)) {
+        // Fix: Use optional chaining for all property accesses in console.warn
         console.warn(`⚠️ FILTERING OUT city: invalid coordinates`, {
           id: city?.id || 'no-id',
           name: city?.name || 'no-name'
