@@ -107,7 +107,7 @@ const Route66TripCalculator: React.FC = () => {
     console.log('🔄 Reset trip requested');
     resetTrip();
     setHasCostEstimate(false);
-    setCompletionAnalysi
+    setCompletionAnalysis(undefined);
     setOriginalRequestedDays(undefined);
     // FIXED: Reset travel days to 0 to force dropdown selection
     setFormData(prev => ({

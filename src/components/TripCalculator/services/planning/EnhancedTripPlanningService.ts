@@ -11,7 +11,7 @@ export class EnhancedTripPlanningService {
     startLocation: string,
     endLocation: string,
     travelDays: number,
-    tripStyle: 'balanced' | 'destination-focused'
+    tripStyle: 'destination-focused'
   ): Promise<TripPlan> {
     return await BasicTripPlanner.planBasicTrip(
       startLocation,
@@ -28,7 +28,7 @@ export class EnhancedTripPlanningService {
     startLocation: string,
     endLocation: string,
     travelDays: number,
-    tripStyle: 'balanced' | 'destination-focused'
+    tripStyle: 'destination-focused'
   ): Promise<TripPlan> {
     return await GoogleMapsTripPlanner.planTripWithGoogleMaps(
       startLocation,

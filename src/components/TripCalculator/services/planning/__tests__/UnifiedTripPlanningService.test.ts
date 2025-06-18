@@ -1,3 +1,4 @@
+
 import { UnifiedTripPlanningService } from '../UnifiedTripPlanningService';
 import { TripStop } from '../../../types/TripStop';
 
@@ -76,7 +77,7 @@ try {
     'Chicago',
     'Los Angeles', 
     5,
-    'balanced'
+    'destination-focused'
   );
 
   console.log('✅ Test passed: Trip plan created successfully');

@@ -1,5 +1,6 @@
 
 import { TripStyleLogic } from './TripStyleLogic';
+import { TripStop } from '../../types/TripStop';
 
 export class EnhancedTripStyleLogic {
   /**
@@ -12,8 +13,47 @@ export class EnhancedTripStyleLogic {
       ...baseConfig,
       enhanced: true,
       driveTimeOptimization: 'aggressive',
-      destinationPriority: 'maximum'
+      destinationPriority: 'maximum',
+      heritageWeight: 0.7,
+      prioritizeHeritageOverDistance: true,
+      style: tripStyle
     };
+  }
+
+  /**
+   * Get enhanced style configuration (alias for getEnhancedConfig)
+   */
+  static getEnhancedStyleConfig(tripStyle: 'destination-focused') {
+    return this.getEnhancedConfig(tripStyle);
+  }
+
+  /**
+   * Filter stops with heritage and population criteria
+   */
+  static filterStopsWithHeritageAndPopulation(
+    stops: TripStop[],
+    config: any
+  ): TripStop[] {
+    return stops.filter(stop => {
+      // Heritage criteria
+      const hasHeritageValue = stop.heritage_score && stop.heritage_score > 50;
+      
+      // Population criteria for destination cities
+      const isDestinationCity = stop.category === 'destination_city';
+      const hasPopulation = stop.population && stop.population > 10000;
+      
+      // Allow destination cities with heritage or population
+      if (isDestinationCity && (hasHeritageValue || hasPopulation)) {
+        return true;
+      }
+      
+      // Allow other stops with high heritage value
+      if (hasHeritageValue) {
+        return true;
+      }
+      
+      return false;
+    });
   }
 
   /**

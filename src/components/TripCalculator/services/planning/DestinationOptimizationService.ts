@@ -22,7 +22,7 @@ export class DestinationOptimizationService {
     availableStops: TripStop[], 
     remainingDays: number,
     driveTimeTarget?: DriveTimeTarget,
-    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
+    tripStyle: 'destination-focused' = 'destination-focused'
   ): TripStop {
     if (availableStops.length === 0 || remainingDays <= 1) {
       return finalDestination;
@@ -31,7 +31,7 @@ export class DestinationOptimizationService {
     console.log(`🏛️ HERITAGE-ENHANCED destination selection (${tripStyle} style, ${remainingDays} days remaining)`);
 
     // Get enhanced trip style configuration
-    const enhancedConfig = EnhancedTripStyleLogic.getEnhancedStyleConfig(tripStyle);
+    const enhancedConfig = EnhancedTripStyleLogic.getEnhancedConfig(tripStyle);
 
     // Determine trip direction and filter by sequence
     const direction = SequenceOrderService.getTripDirection(currentStop, finalDestination);
@@ -267,11 +267,11 @@ export class DestinationOptimizationService {
     availableStops: TripStop[],
     targetDistance: number,
     driveTimeTarget?: DriveTimeTarget,
-    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
+    tripStyle: 'destination-focused' = 'destination-focused'
   ): TripStop {
     if (availableStops.length === 0) return finalDestination;
 
-    const enhancedConfig = EnhancedTripStyleLogic.getEnhancedStyleConfig(tripStyle);
+    const enhancedConfig = EnhancedTripStyleLogic.getEnhancedConfig(tripStyle);
 
     // Apply heritage and sequence filtering
     const direction = SequenceOrderService.getTripDirection(currentStop, finalDestination);
