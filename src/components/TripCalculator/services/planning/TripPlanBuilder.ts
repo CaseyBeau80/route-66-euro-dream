@@ -1,4 +1,5 @@
 
+
 import { TripStop } from '../../types/TripStop';
 
 export interface DriveTimeTarget {
@@ -106,8 +107,8 @@ export interface DailySegment {
     city: string;
     state: string;
   };
-  recommendedStops?: RecommendedStop[];
-  attractions?: Array<{
+  recommendedStops: RecommendedStop[];
+  attractions: Array<{
     name: string;
     title: string;
     description: string;
@@ -136,13 +137,13 @@ export interface TripPlan {
   segments: DailySegment[];
   stops: TripStop[];
   
-  // Additional properties from TripPlanTypes that components expect
+  // Additional properties that components expect
   startCity: string;
   endCity: string;
-  startDate: Date; // Make this required to match TripPlanTypes
+  startDate: Date;
   totalMiles?: number;
   totalDrivingTime?: number;
-  dailySegments: DailySegment[]; // Make this required to match TripPlanTypes
+  dailySegments: DailySegment[];
   startCityImage?: string;
   endCityImage?: string;
   title?: string;
@@ -167,7 +168,7 @@ export interface TripPlan {
   };
 }
 
-// Add comprehensive TripPlanDataValidator with all expected methods
+// Enhanced TripPlanDataValidator with proper return types
 export class TripPlanDataValidator {
   static validate(tripPlan: TripPlan): boolean {
     return !!(tripPlan.id && tripPlan.startLocation && tripPlan.endLocation && tripPlan.segments?.length > 0);
@@ -186,9 +187,10 @@ export class TripPlanDataValidator {
       stops: tripPlan.stops || [],
       dailySegments: tripPlan.dailySegments || tripPlan.segments || [],
       startDate: tripPlan.startDate || new Date(),
-      // Sanitize segments to ensure they have proper driveTimeCategory
+      // Sanitize segments to ensure they have proper driveTimeCategory and recommendedStops
       segments: (tripPlan.segments || []).map(segment => ({
         ...segment,
+        recommendedStops: segment.recommendedStops || [],
         driveTimeCategory: segment.driveTimeCategory ? {
           ...segment.driveTimeCategory,
           category: ['short', 'optimal', 'long', 'extreme'].includes(segment.driveTimeCategory.category as any) 
@@ -198,8 +200,46 @@ export class TripPlanDataValidator {
       }))
     };
   }
+
+  // Additional validation methods that components might expect
+  static validateSegments(segments: DailySegment[]): { isValid: boolean; issues: string[] } {
+    const issues: string[] = [];
+    
+    if (!segments || segments.length === 0) {
+      issues.push('No segments provided');
+    }
+    
+    segments.forEach((segment, index) => {
+      if (!segment.recommendedStops) {
+        issues.push(`Segment ${index + 1} missing recommendedStops`);
+      }
+      if (!segment.destination?.city) {
+        issues.push(`Segment ${index + 1} missing destination city`);
+      }
+    });
+    
+    return {
+      isValid: issues.length === 0,
+      issues
+    };
+  }
+
+  static validateTripPlanStructure(tripPlan: TripPlan): { isValid: boolean; issues: string[] } {
+    const issues: string[] = [];
+    
+    if (!tripPlan.startLocation) issues.push('Missing startLocation');
+    if (!tripPlan.endLocation) issues.push('Missing endLocation');
+    if (!tripPlan.stops) issues.push('Missing stops array');
+    if (!tripPlan.segments || tripPlan.segments.length === 0) issues.push('Missing or empty segments');
+    
+    return {
+      isValid: issues.length === 0,
+      issues
+    };
+  }
 }
 
 export const getDestinationCityName = (segment: DailySegment): string => {
   return segment.destination?.city || segment.endCity || 'Unknown';
 };
+
