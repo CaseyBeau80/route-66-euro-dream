@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -36,12 +37,14 @@ export class DailySegmentCreator {
       totalDistance
     );
     
-    // Strict validation of all selected overnight stops with improved type safety
+    // Strict validation of all selected overnight stops with proper type narrowing
     const warnings: string[] = [];
     for (const stop of overnightStops) {
-      // Use explicit type guard function to ensure proper type inference
-      if (this.isValidTripStop(stop) && !StrictDestinationCityEnforcer.isDestinationCity(stop)) {
-        warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+      // First ensure it's a valid TripStop, then check if it's a destination city
+      if (this.isValidTripStop(stop)) {
+        if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
+          warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+        }
       }
     }
     
