@@ -1,21 +1,39 @@
 
-// UNIFIED TYPE DEFINITIONS
-// This file now re-exports all types from TripPlanBuilder.ts to ensure consistency
-// across the entire codebase and prevent type conflicts.
+export interface TripPlan {
+  id: string;
+  title: string;
+  startCity: string;
+  endCity: string;
+  startLocation: string;
+  endLocation: string;
+  startDate: Date;
+  totalDays: number;
+  totalDistance: number;
+  totalMiles: number;
+  totalDrivingTime: number;
+  segments: DailySegment[];
+  dailySegments: DailySegment[];
+  tripStyle: string;
+  stops: any[];
+  lastUpdated: Date;
+  stopsLimited?: boolean;
+  limitMessage?: string;
+}
 
-export {
-  type DriveTimeCategory,
-  type RecommendedStop,
-  type SegmentTiming,
-  type WeatherData,
-  type DriveTimeBalance,
-  type RouteProgression,
-  type TripPlan,
-  type DailySegment,
-  TripPlanDataValidator,
-  getDestinationCityName
-} from './TripPlanBuilder';
-
-// Legacy exports for backward compatibility
-export type { DriveTimeTarget } from './TripPlanBuilder';
-
+export interface DailySegment {
+  day: number;
+  title: string;
+  startCity: string;
+  endCity: string;
+  distance: number;
+  approximateMiles: number;
+  driveTimeHours: number;
+  destination: {
+    city: string;
+    state: string;
+  };
+  attractions: any[];
+  recommendedStops: any[];
+  weatherData: any;
+  isGoogleMapsData: boolean;
+}

@@ -18,9 +18,15 @@ export interface OrchestrationData {
   routeStops: any[];
   driveTimeTargets: DriveTimeTarget[];
   balanceMetrics: any;
+  stopsLimited?: boolean;
+  limitMessage?: string;
 }
 
 export class TripPlanningOrchestrator {
+  // CRITICAL: Maximum stops limit to prevent overcrowded itineraries
+  private static readonly MAX_STOPS_LIMIT = 12;
+  private static readonly OPTIMAL_DAYS_PER_STOP = 1.2;
+
   /**
    * Orchestrate the complete trip planning process
    */
@@ -43,7 +49,16 @@ export class TripPlanningOrchestrator {
       allStops
     );
 
-    // 3. Determine drive time targets and balance metrics
+    // 3. CRITICAL: Check if we need to limit stops due to too many days
+    const { shouldLimit, limitMessage } = this.checkStopsLimit(travelDays, routeStops.length);
+    let finalRouteStops = routeStops;
+    
+    if (shouldLimit) {
+      console.warn(`⚠️ STOPS LIMITED: ${travelDays} days requires limiting stops to ${this.MAX_STOPS_LIMIT}`);
+      finalRouteStops = this.limitStopsForManyDays(routeStops, startStop, endStop);
+    }
+
+    // 4. Determine drive time targets and balance metrics
     const { driveTimeTargets, balanceMetrics } = DriveTimeBalancingService.calculateDriveTimeTargets(
       travelDays,
       styleConfig
@@ -54,10 +69,59 @@ export class TripPlanningOrchestrator {
       styleConfig,
       startStop,
       endStop,
-      routeStops,
+      routeStops: finalRouteStops,
       driveTimeTargets,
-      balanceMetrics
+      balanceMetrics,
+      stopsLimited: shouldLimit,
+      limitMessage: shouldLimit ? limitMessage : undefined
     };
+  }
+
+  /**
+   * Check if stops need to be limited due to too many days
+   */
+  private static checkStopsLimit(travelDays: number, availableStops: number): { shouldLimit: boolean; limitMessage: string } {
+    const optimalStops = Math.ceil(travelDays / this.OPTIMAL_DAYS_PER_STOP);
+    const effectiveStops = Math.min(availableStops, this.MAX_STOPS_LIMIT);
+    
+    if (travelDays > 10 && availableStops > this.MAX_STOPS_LIMIT) {
+      return {
+        shouldLimit: true,
+        limitMessage: `⚠️ Limited to ${this.MAX_STOPS_LIMIT} major stops for ${travelDays}-day trip to maintain quality experience. Consider fewer days for more comprehensive coverage.`
+      };
+    }
+    
+    if (travelDays > 8 && optimalStops > effectiveStops) {
+      return {
+        shouldLimit: true,
+        limitMessage: `ℹ️ ${travelDays} days allows for leisurely exploration of ${effectiveStops} major Route 66 destinations with extra time at each location.`
+      };
+    }
+    
+    return { shouldLimit: false, limitMessage: '' };
+  }
+
+  /**
+   * Limit stops to maintain quality when there are many days
+   */
+  private static limitStopsForManyDays(routeStops: any[], startStop: any, endStop: any): any[] {
+    if (routeStops.length <= this.MAX_STOPS_LIMIT) {
+      return routeStops;
+    }
+
+    // Prioritize destination cities and major heritage locations
+    const prioritizedStops = routeStops
+      .filter(stop => stop.id !== startStop.id && stop.id !== endStop.id)
+      .sort((a, b) => {
+        // Priority order: destination_city > heritage_site > attraction
+        const priorityOrder = { 'destination_city': 3, 'heritage_site': 2, 'attraction': 1 };
+        const aPriority = priorityOrder[a.category] || 0;
+        const bPriority = priorityOrder[b.category] || 0;
+        return bPriority - aPriority;
+      })
+      .slice(0, this.MAX_STOPS_LIMIT - 2); // Reserve space for start/end
+
+    return [startStop, ...prioritizedStops, endStop];
   }
 
   /**
@@ -70,9 +134,14 @@ export class TripPlanningOrchestrator {
     travelDays: number,
     tripStyle: 'destination-focused'
   ): Promise<TripPlan> {
-    const { startStop, endStop, allStops, styleConfig } = orchestrationData;
+    const { startStop, endStop, allStops, styleConfig, stopsLimited, limitMessage } = orchestrationData;
 
     console.log(`🎯 Building trip plan for EXACTLY ${travelDays} days with STRICT 10h max drive time`);
+    
+    // Log stops limitation if applied
+    if (stopsLimited && limitMessage) {
+      console.log(`📍 ${limitMessage}`);
+    }
 
     // Calculate total distance for the trip
     const totalDistance = DistanceCalculationService.calculateDistance(
@@ -121,10 +190,10 @@ export class TripPlanningOrchestrator {
     const actualTotalDistance = segments.reduce((sum, seg) => sum + seg.distance, 0);
     const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
 
-    // Create the trip plan
+    // Create the trip plan with stops limitation info
     const tripPlan: TripPlan = {
       id: `heritage-trip-${Date.now()}`,
-      title: `${startLocation} to ${endLocation} Route 66 Heritage Adventure`,
+      title: `${startLocation} to ${endLocation} Route 66 Heritage Adventure${stopsLimited ? ' (Optimized)' : ''}`,
       startCity: startLocation,
       endCity: endLocation,
       startLocation,
@@ -138,14 +207,17 @@ export class TripPlanningOrchestrator {
       dailySegments: segments,
       tripStyle,
       stops: [],
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      // Add stops limitation metadata
+      stopsLimited,
+      limitMessage
     };
 
     // Analyze trip completion
     const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
     console.log('✅ Trip Completion Analysis:', completionAnalysis);
 
-    console.log(`✅ Final trip plan: ${segments.length} days (requested: ${travelDays}), ${Math.round(actualTotalDistance)} miles`);
+    console.log(`✅ Final trip plan: ${segments.length} days (requested: ${travelDays}), ${Math.round(actualTotalDistance)} miles${stopsLimited ? ' (stops limited)' : ''}`);
 
     return tripPlan;
   }

@@ -13,6 +13,7 @@ import CostEstimatorSection from './components/CostEstimatorSection';
 import FormValidationHelper from './components/FormValidationHelper';
 import SmartPlanningInfo from './components/SmartPlanningInfo';
 import UnitSelector from './components/UnitSelector';
+import StopsLimitationNotice from './components/StopsLimitationNotice';
 import { useFormValidation } from './hooks/useFormValidation';
 import DataSourceIndicator from './components/DataSourceIndicator';
 
@@ -82,6 +83,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         </div>
         <DataSourceIndicator showDetails={true} className="text-xs" />
       </div>
+
+      {/* Stops Limitation Notice - Show after trip is planned */}
+      {tripPlan && (
+        <StopsLimitationNotice tripPlan={tripPlan} />
+      )}
 
       {/* Main Form */}
       <LocationSelectionForm 
