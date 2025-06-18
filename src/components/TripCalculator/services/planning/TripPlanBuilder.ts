@@ -13,10 +13,10 @@ export interface RecommendedStop {
   description: string;
   latitude: number;
   longitude: number;
-  category: string;
-  city_name: string;
-  state: string;
-  city: string;
+  category?: string; // Made optional to match TripPlanTypes
+  city_name?: string; // Made optional to match TripPlanTypes
+  state?: string; // Made optional to match TripPlanTypes
+  city?: string; // Made optional to match TripPlanTypes
 }
 
 export interface SegmentTiming {
@@ -106,7 +106,7 @@ export interface DailySegment {
     city: string;
     state: string;
   };
-  recommendedStops?: RecommendedStop[];
+  recommendedStops?: RecommendedStop[]; // Made optional to match TripPlanTypes
   attractions?: Array<{
     name: string;
     title: string;
@@ -127,7 +127,8 @@ export interface DailySegment {
 }
 
 export interface TripPlan {
-  // Original properties from TripPlanBuilder
+  // Core properties that must exist
+  id: string; // Made required to match TripPlanTypes expectations
   startLocation: string;
   endLocation: string;
   totalDistance: number;
@@ -136,9 +137,8 @@ export interface TripPlan {
   stops: TripStop[];
   
   // Additional properties from TripPlanTypes that components expect
-  id?: string;
-  startCity?: string;
-  endCity?: string;
+  startCity: string;
+  endCity: string;
   startDate?: Date;
   totalMiles?: number;
   totalDrivingTime?: number;
@@ -166,3 +166,14 @@ export interface TripPlan {
     tripStyle?: string;
   };
 }
+
+// Add missing exports that other components expect
+export class TripPlanDataValidator {
+  static validate(tripPlan: TripPlan): boolean {
+    return !!(tripPlan.id && tripPlan.startLocation && tripPlan.endLocation && tripPlan.segments?.length > 0);
+  }
+}
+
+export const getDestinationCityName = (segment: DailySegment): string => {
+  return segment.destination?.city || segment.endCity || 'Unknown';
+};

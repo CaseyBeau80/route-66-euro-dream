@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
 import { format } from 'date-fns';
-import { TripPlan } from './services/Route66TripPlannerService';
+import { TripPlan } from './services/planning/TripPlanBuilder';
 import { TripCompletionAnalysis } from './services/planning/TripCompletionService';
 import { DataStandardizationService } from '@/services/DataStandardizationService';
 import { useUnits } from '@/contexts/UnitContext';
@@ -46,8 +46,8 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     return {
       distance: DataStandardizationService.standardizeDistance(totalDistance, preferences),
       driveTime: DataStandardizationService.standardizeDriveTime(totalDriveTime),
-      startLocation: tripPlan.summary?.startLocation || 'Start Location',
-      endLocation: tripPlan.summary?.endLocation || 'End Location'
+      startLocation: tripPlan.summary?.startLocation || tripPlan.startLocation || 'Start Location',
+      endLocation: tripPlan.summary?.endLocation || tripPlan.endLocation || 'End Location'
     };
   }, [tripPlan, preferences]);
 
