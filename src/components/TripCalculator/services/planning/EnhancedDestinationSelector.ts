@@ -12,7 +12,7 @@ export class EnhancedDestinationSelector {
   static selectDestinationCitiesForTrip(
     startStop: TripStop,
     endStop: TripStop,
-    allStops: TripStop[],
+    allStops: any[], // Changed from TripStop[] to any[] to handle invalid objects
     totalDays: number
   ): TripStop[] {
     console.log(`🎯 ENHANCED CANONICAL SELECTION: ${totalDays} days from ${startStop?.name || 'undefined'} to ${endStop?.name || 'undefined'}`);
@@ -62,12 +62,12 @@ export class EnhancedDestinationSelector {
       if (this.isValidTripStop(stop)) {
         validStops.push(stop);
       } else {
-        // Fix: Use optional chaining for all property accesses in console.warn
+        // Fixed: Safe property access for invalid objects
         console.warn(`⚠️ SKIPPING invalid stop:`, {
-          id: stop?.id || 'no-id',
-          name: stop?.name || 'no-name',
-          hasLatitude: typeof stop?.latitude === 'number',
-          hasLongitude: typeof stop?.longitude === 'number'
+          id: (stop && typeof stop === 'object' && 'id' in stop) ? stop.id : 'no-id',
+          name: (stop && typeof stop === 'object' && 'name' in stop) ? stop.name : 'no-name',
+          hasLatitude: (stop && typeof stop === 'object' && 'latitude' in stop) ? typeof stop.latitude === 'number' : false,
+          hasLongitude: (stop && typeof stop === 'object' && 'longitude' in stop) ? typeof stop.longitude === 'number' : false
         });
       }
     }
@@ -104,10 +104,10 @@ export class EnhancedDestinationSelector {
     
     for (const city of canonicalStops) {
       if (!this.isValidTripStop(city)) {
-        // Fix: Use optional chaining for all property accesses in console.warn
+        // Fixed: Safe property access for invalid objects
         console.warn(`⚠️ FILTERING OUT city: invalid coordinates`, {
-          id: city?.id || 'no-id',
-          name: city?.name || 'no-name'
+          id: (city && typeof city === 'object' && 'id' in city) ? city.id : 'no-id',
+          name: (city && typeof city === 'object' && 'name' in city) ? city.name : 'no-name'
         });
         continue;
       }
