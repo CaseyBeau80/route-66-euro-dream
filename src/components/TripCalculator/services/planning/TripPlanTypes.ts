@@ -191,6 +191,7 @@ export interface DriveTimeBalance {
   variance?: number; // Add missing variance property
   driveTimeRange: { min: number; max: number }; // Add missing driveTimeRange property
   balanceQuality?: 'excellent' | 'good' | 'fair' | 'poor'; // Add missing balanceQuality property
+  qualityGrade?: 'A' | 'B' | 'C' | 'D' | 'F'; // Add missing qualityGrade property
   segments: {
     day: number;
     hours: number;
