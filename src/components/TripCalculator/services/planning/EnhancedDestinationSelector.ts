@@ -15,23 +15,48 @@ export class EnhancedDestinationSelector {
     allStops: TripStop[],
     totalDays: number
   ): TripStop[] {
-    console.log(`🎯 ENHANCED CANONICAL SELECTION: ${totalDays} days from ${startStop.name} to ${endStop.name}`);
+    console.log(`🎯 ENHANCED CANONICAL SELECTION: ${totalDays} days from ${startStop?.name || 'undefined'} to ${endStop?.name || 'undefined'}`);
+    
+    // Add comprehensive null safety checks
+    if (!startStop || !endStop || !allStops) {
+      console.error('❌ CRITICAL: Null input parameters', { startStop: !!startStop, endStop: !!endStop, allStops: !!allStops });
+      return [];
+    }
+
+    if (!startStop.latitude || !startStop.longitude || !endStop.latitude || !endStop.longitude) {
+      console.error('❌ CRITICAL: Missing coordinates', { 
+        startStop: { lat: startStop.latitude, lng: startStop.longitude },
+        endStop: { lat: endStop.latitude, lng: endStop.longitude }
+      });
+      return [];
+    }
     
     // CRITICAL FIX: Calculate the correct number of intermediate destinations needed
     const neededIntermediateDestinations = totalDays - 1; // For N days, we need N-1 intermediate destinations
     
     console.log(`🎯 NEED ${neededIntermediateDestinations} intermediate destinations for ${totalDays} day trip`);
     
-    // STEP 1: Filter to only destination cities
-    const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
+    // STEP 1: Filter to only destination cities with null safety
+    const safeAllStops = allStops.filter(stop => 
+      stop && 
+      typeof stop === 'object' && 
+      stop.id && 
+      stop.name &&
+      typeof stop.latitude === 'number' &&
+      typeof stop.longitude === 'number'
+    );
+    
+    console.log(`🛡️ SAFETY: Filtered ${allStops.length} stops to ${safeAllStops.length} safe stops`);
+    
+    const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(safeAllStops);
     
     // STEP 2: Match available cities to canonical destinations
     const canonicalStops = CanonicalRoute66Cities.matchStopsToCanonical(destinationCities);
     console.log(`🏛️ Canonical destinations available: ${canonicalStops.length}`);
     
-    // STEP 3: Remove start and end cities
+    // STEP 3: Remove start and end cities with safe filtering
     const availableCities = canonicalStops.filter(city => 
-      city.id !== startStop.id && city.id !== endStop.id
+      city && city.id !== startStop.id && city.id !== endStop.id
     );
     
     console.log(`🏛️ Available canonical cities: ${availableCities.length}`);
@@ -53,9 +78,10 @@ export class EnhancedDestinationSelector {
       
       // Add non-canonical destination cities that are in sequence
       const nonCanonicalDestinations = destinationCities.filter(city => 
+        city && 
         city.id !== startStop.id && 
         city.id !== endStop.id &&
-        !canonicalStops.some(canonical => canonical.id === city.id)
+        !canonicalStops.some(canonical => canonical && canonical.id === city.id)
       );
       
       const { validStops: additionalValidCities } = Route66SequenceValidator.filterValidSequenceStops(
@@ -102,8 +128,21 @@ export class EnhancedDestinationSelector {
       );
     }
     
-    // STEP 9: Validate final sequence
-    const finalSequence = [startStop, ...finalSelection, endStop];
+    // STEP 9: Final safety check - ensure all selected cities have coordinates
+    const safeFinalSelection = finalSelection.filter(city => 
+      city && 
+      typeof city.latitude === 'number' && 
+      typeof city.longitude === 'number' &&
+      !isNaN(city.latitude) &&
+      !isNaN(city.longitude)
+    );
+    
+    if (safeFinalSelection.length !== finalSelection.length) {
+      console.warn(`⚠️ SAFETY: Removed ${finalSelection.length - safeFinalSelection.length} cities with invalid coordinates`);
+    }
+    
+    // STEP 10: Validate final sequence
+    const finalSequence = [startStop, ...safeFinalSelection, endStop];
     const sequenceValidation = Route66SequenceValidator.validateTripSequence(finalSequence);
     
     if (!sequenceValidation.isValid) {
@@ -112,11 +151,11 @@ export class EnhancedDestinationSelector {
       console.log(`✅ CANONICAL SEQUENCE VALIDATION PASSED`);
     }
     
-    // STEP 10: Log final result
-    console.log(`🎯 FINAL SELECTION: ${finalSelection.length}/${neededIntermediateDestinations} destinations for ${totalDays} days`);
-    console.log(`✅ Selected destinations:`, finalSelection.map(c => c.name));
+    // STEP 11: Log final result
+    console.log(`🎯 FINAL SELECTION: ${safeFinalSelection.length}/${neededIntermediateDestinations} destinations for ${totalDays} days`);
+    console.log(`✅ Selected destinations:`, safeFinalSelection.map(c => c?.name || 'unnamed'));
     
-    return finalSelection;
+    return safeFinalSelection;
   }
 
   /**
