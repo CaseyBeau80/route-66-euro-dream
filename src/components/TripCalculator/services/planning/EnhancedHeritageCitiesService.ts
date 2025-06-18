@@ -10,11 +10,14 @@ export class EnhancedHeritageCitiesService {
   private static readonly RECOMMENDED_MAX_DRIVE_HOURS = 8;
   private static readonly OPTIMAL_MAX_DRIVE_HOURS = 6;
   private static readonly MIN_DRIVE_HOURS = 2;
-  private static readonly MAX_STOPS_LIMIT = 8; // Prevent overcrowding
   private static readonly MAX_DAILY_MILES = 500; // HARD LIMIT: Never exceed 500 miles per day
   
+  // ENHANCED DISCOVERY PARAMETERS - Removed artificial limits
+  private static readonly EXPANDED_SEARCH_RADIUS = 200; // Increased from 150 miles
+  private static readonly MIN_STOPS_FOR_WARNING = 3; // Warn if fewer than 3 real stops found
+  
   /**
-   * Plan Heritage Cities trip with strict geographic and time constraints - NO WAYPOINTS
+   * Plan Heritage Cities trip with enhanced stop discovery - NO ARTIFICIAL REST DAYS
    */
   static async planEnhancedHeritageCitiesTrip(
     startLocation: string,
@@ -22,7 +25,7 @@ export class EnhancedHeritageCitiesService {
     travelDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log(`🏛️ ENHANCED Heritage Cities Planning (NO WAYPOINTS): ${startLocation} → ${endLocation}, ${travelDays} days`);
+    console.log(`🏛️ ENHANCED Heritage Cities Planning (REAL STOPS ONLY): ${startLocation} → ${endLocation}, ${travelDays} days`);
 
     // Validate minimum days requirement
     if (travelDays < 1) {
@@ -60,8 +63,8 @@ export class EnhancedHeritageCitiesService {
         travelDays = minRequiredDays;
       }
 
-      // Create geographic progression with ULTRA STRICT validation - NO WAYPOINTS
-      const destinationCities = this.selectRealDestinationsOnly(
+      // ENHANCED STOP DISCOVERY - Find all possible real destinations
+      const discoveredDestinations = this.enhancedStopDiscovery(
         startStop,
         endStop,
         routeStops,
@@ -69,23 +72,25 @@ export class EnhancedHeritageCitiesService {
         totalDistance
       );
 
+      console.log(`🔍 Enhanced discovery found ${discoveredDestinations.length} real destinations for ${travelDays} days`);
+
       // Validate geographic progression
-      const allStopsInOrder = [startStop, ...destinationCities, endStop];
+      const allStopsInOrder = [startStop, ...discoveredDestinations, endStop];
       const isEastToWest = startStop.longitude < endStop.longitude;
       const progressionValidation = validateGeographicProgression(allStopsInOrder, isEastToWest);
       
       if (!progressionValidation.isValid) {
         console.error(`❌ GEOGRAPHIC VIOLATIONS:`, progressionValidation.violations);
         // Fix the progression by removing problematic stops
-        const fixedDestinations = this.fixGeographicProgression(destinationCities, startStop, endStop, isEastToWest);
-        destinationCities.splice(0, destinationCities.length, ...fixedDestinations);
+        const fixedDestinations = this.fixGeographicProgression(discoveredDestinations, startStop, endStop, isEastToWest);
+        discoveredDestinations.splice(0, discoveredDestinations.length, ...fixedDestinations);
       }
 
-      // FIXED: Create segments with GUARANTEED exact day count
-      const segments = this.createGuaranteedDaySegments(
+      // INTELLIGENT SEGMENT DISTRIBUTION - No artificial rest days
+      const { segments, warningMessage } = this.intelligentSegmentDistribution(
         startStop,
         endStop,
-        destinationCities,
+        discoveredDestinations,
         travelDays,
         totalDistance
       );
@@ -114,12 +119,6 @@ export class EnhancedHeritageCitiesService {
       const actualTotalDistance = segments.reduce((total, segment) => total + segment.distance, 0);
       const totalDrivingTime = segments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0);
 
-      // Apply stops limitation message if applicable
-      const stopsLimited = routeStops.length > this.MAX_STOPS_LIMIT;
-      const limitMessage = stopsLimited 
-        ? `🎯 Optimized to ${Math.min(routeStops.length, this.MAX_STOPS_LIMIT)} major destinations for ${travelDays}-day experience`
-        : undefined;
-
       const tripPlan: TripPlan = {
         id: `enhanced-heritage-${Date.now()}`,
         title: `${startLocation} to ${endLocation} Enhanced Route 66 Heritage Journey`,
@@ -134,21 +133,21 @@ export class EnhancedHeritageCitiesService {
         totalDrivingTime,
         segments,
         dailySegments: segments,
-        stops: [startStop, ...destinationCities, endStop],
+        stops: [startStop, ...discoveredDestinations, endStop],
         tripStyle: 'destination-focused',
         lastUpdated: new Date(),
-        stopsLimited,
-        limitMessage
+        stopsLimited: discoveredDestinations.length < travelDays - 1,
+        limitMessage: warningMessage
       };
 
-      console.log(`✅ Enhanced Heritage trip complete (GUARANTEED ${travelDays} DAYS):`, {
+      console.log(`✅ Enhanced Heritage trip complete (${travelDays} DAYS):`, {
         segments: segments.length,
         totalDistance: actualTotalDistance.toFixed(1),
         totalDrivingTime: totalDrivingTime.toFixed(1),
         maxDailyDriveTime: Math.max(...segments.map(s => s.driveTimeHours || 0)).toFixed(1),
         maxDailyDistance: Math.max(...segments.map(s => s.distance || 0)).toFixed(1),
-        stopsLimited,
-        realDestinationsOnly: true,
+        realDestinationsFound: discoveredDestinations.length,
+        hasWarning: !!warningMessage,
         exactDayCount: segments.length === travelDays
       });
 
@@ -161,46 +160,142 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Select REAL destinations only - NO virtual waypoints
+   * ENHANCED STOP DISCOVERY - Comprehensive search for real heritage destinations
    */
-  private static selectRealDestinationsOnly(
+  private static enhancedStopDiscovery(
     startStop: TripStop,
     endStop: TripStop,
     routeStops: TripStop[],
     travelDays: number,
     totalDistance: number
   ): TripStop[] {
-    console.log(`🗺️ REAL DESTINATIONS ONLY: Selecting from ${routeStops.length} real stops for ${travelDays} days`);
+    console.log(`🔍 ENHANCED STOP DISCOVERY: Comprehensive search for ${travelDays} days`);
 
     // Determine direction
     const isEastToWest = startStop.longitude < endStop.longitude;
     console.log(`📍 Direction: ${isEastToWest ? 'East to West' : 'West to East'}`);
 
-    // Filter and sort stops geographically to prevent ping-ponging
-    const progressiveStops = this.filterProgressiveStops(startStop, endStop, routeStops, isEastToWest);
-    
-    // Limit stops to prevent overcrowding
-    const limitedStops = progressiveStops.slice(0, this.MAX_STOPS_LIMIT);
-    
-    console.log(`🛣️ Progressive real stops (${limitedStops.length}):`, limitedStops.map(s => s.name));
+    // STEP 1: Primary heritage stops (existing logic but expanded)
+    const primaryStops = this.filterProgressiveStops(startStop, endStop, routeStops, isEastToWest);
+    console.log(`🏛️ Primary heritage stops found: ${primaryStops.length}`);
 
-    // Select up to (travelDays - 1) destinations with ULTRA STRICT validation
-    const maxDestinations = Math.min(travelDays - 1, limitedStops.length);
+    // STEP 2: Secondary category stops (new comprehensive search)
+    const secondaryStops = this.findSecondaryStops(startStop, endStop, routeStops, isEastToWest);
+    console.log(`🎯 Secondary category stops found: ${secondaryStops.length}`);
+
+    // STEP 3: Combine and prioritize all discovered stops
+    const allDiscoveredStops = [...primaryStops, ...secondaryStops];
+    const uniqueStops = this.deduplicateStops(allDiscoveredStops);
+    console.log(`🔄 Total unique stops after deduplication: ${uniqueStops.length}`);
+
+    // STEP 4: Enhanced selection algorithm
+    const selectedDestinations = this.enhancedStopSelection(
+      startStop,
+      endStop,
+      uniqueStops,
+      travelDays,
+      totalDistance
+    );
+
+    console.log(`✅ Enhanced discovery selected ${selectedDestinations.length} destinations for ${travelDays} days`);
+    return selectedDestinations;
+  }
+
+  /**
+   * Find secondary category stops for comprehensive coverage
+   */
+  private static findSecondaryStops(
+    startStop: TripStop,
+    endStop: TripStop,
+    routeStops: TripStop[],
+    isEastToWest: boolean
+  ): TripStop[] {
+    const secondaryCategories = [
+      'attraction',
+      'restaurant', 
+      'museum',
+      'landmark',
+      'scenic_spot',
+      'historic_site',
+      'cultural_site',
+      'drive_in_theater',
+      'gas_station',
+      'motel'
+    ];
+
+    return routeStops.filter(stop => {
+      // Must be geographically relevant
+      if (!this.isGeographicallyRelevant(stop, startStop, endStop, isEastToWest)) {
+        return false;
+      }
+
+      // Include secondary categories
+      const category = stop.category || '';
+      return secondaryCategories.some(cat => category.toLowerCase().includes(cat.toLowerCase()));
+    }).sort((a, b) => {
+      // Sort by geographic progression
+      return isEastToWest ? a.longitude - b.longitude : b.longitude - a.longitude;
+    });
+  }
+
+  /**
+   * Check if stop is geographically relevant with expanded radius
+   */
+  private static isGeographicallyRelevant(
+    stop: TripStop,
+    startStop: TripStop,
+    endStop: TripStop,
+    isEastToWest: boolean
+  ): boolean {
+    if (!stop.latitude || !stop.longitude) {
+      return true; // Include stops without coordinates by default
+    }
+
+    // Must be between start and end geographically
+    const isBetween = isEastToWest 
+      ? stop.longitude > startStop.longitude && stop.longitude < endStop.longitude
+      : stop.longitude < startStop.longitude && stop.longitude > endStop.longitude;
+    
+    if (!isBetween) return false;
+    
+    // Must be within expanded distance from direct route
+    const distanceFromRoute = this.calculateDistanceFromDirectRoute(startStop, endStop, stop);
+    return distanceFromRoute < this.EXPANDED_SEARCH_RADIUS; // Expanded from 150 to 200 miles
+  }
+
+  /**
+   * Enhanced stop selection algorithm with heritage prioritization
+   */
+  private static enhancedStopSelection(
+    startStop: TripStop,
+    endStop: TripStop,
+    availableStops: TripStop[],
+    travelDays: number,
+    totalDistance: number
+  ): TripStop[] {
+    console.log(`🎯 ENHANCED SELECTION: Choosing from ${availableStops.length} stops for ${travelDays} days`);
+
+    const maxDestinations = travelDays - 1; // One less than total days (start to end)
     const destinations: TripStop[] = [];
     
-    console.log(`🚨 REAL ONLY: Max ${this.MAX_DAILY_MILES} miles/day, ${this.ABSOLUTE_MAX_DRIVE_HOURS}h/day - selecting ${maxDestinations} real destinations`);
+    console.log(`🎯 Target: ${maxDestinations} real destinations (no artificial padding)`);
 
     let currentStop = startStop;
-    const remainingStops = [...limitedStops];
+    const remainingStops = [...availableStops];
+    const targetSegmentDistance = totalDistance / travelDays;
 
+    // Smart selection prioritizing heritage value and geographic progression
     for (let i = 0; i < maxDestinations && remainingStops.length > 0; i++) {
-      const targetDistance = totalDistance / travelDays; // Even distribution target
-      
-      const nextStop = this.findBestRealDestination(
+      const targetDistance = (i === maxDestinations - 1) 
+        ? null // Last segment - any reasonable distance to end
+        : targetSegmentDistance;
+
+      const nextStop = this.findOptimalNextStop(
         currentStop,
         endStop,
         remainingStops,
-        targetDistance
+        targetDistance,
+        i === maxDestinations - 1 // isLastSegment
       );
 
       if (nextStop) {
@@ -209,51 +304,52 @@ export class EnhancedHeritageCitiesService {
           nextStop.latitude, nextStop.longitude
         );
 
-        // ULTRA STRICT: Never allow segments that exceed limits
-        if (segmentDistance > this.MAX_DAILY_MILES) {
-          console.error(`🚨 REAL DESTINATION REJECTION: ${nextStop.name} would create ${segmentDistance.toFixed(1)}mi segment > ${this.MAX_DAILY_MILES}mi limit`);
+        // Validate constraints
+        if (segmentDistance <= this.MAX_DAILY_MILES) {
+          const driveTime = calculateRealisticDriveTime(segmentDistance);
+          
+          if (driveTime <= this.ABSOLUTE_MAX_DRIVE_HOURS) {
+            destinations.push(nextStop);
+            currentStop = nextStop;
+            
+            // Remove selected stop from remaining options
+            const stopIndex = remainingStops.findIndex(s => s.id === nextStop.id);
+            if (stopIndex >= 0) remainingStops.splice(stopIndex, 1);
+            
+            console.log(`✅ Selected destination ${i + 1}: ${nextStop.name} (+${segmentDistance.toFixed(0)}mi, ${driveTime.toFixed(1)}h)`);
+          } else {
+            console.warn(`⚠️ Skipping ${nextStop.name}: ${driveTime.toFixed(1)}h exceeds ${this.ABSOLUTE_MAX_DRIVE_HOURS}h limit`);
+            // Remove this stop and continue
+            const stopIndex = remainingStops.findIndex(s => s.id === nextStop.id);
+            if (stopIndex >= 0) remainingStops.splice(stopIndex, 1);
+            i--; // Retry this slot
+          }
+        } else {
+          console.warn(`⚠️ Skipping ${nextStop.name}: ${segmentDistance.toFixed(1)}mi exceeds ${this.MAX_DAILY_MILES}mi limit`);
           // Remove this stop and continue
           const stopIndex = remainingStops.findIndex(s => s.id === nextStop.id);
           if (stopIndex >= 0) remainingStops.splice(stopIndex, 1);
-          continue;
+          i--; // Retry this slot
         }
-
-        const driveTime = calculateRealisticDriveTime(segmentDistance);
-        
-        if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
-          console.error(`🚨 REAL DESTINATION REJECTION: ${nextStop.name} would create ${driveTime.toFixed(1)}h segment > 10h limit`);
-          // Remove this stop and continue
-          const stopIndex = remainingStops.findIndex(s => s.id === nextStop.id);
-          if (stopIndex >= 0) remainingStops.splice(stopIndex, 1);
-          continue;
-        }
-
-        destinations.push(nextStop);
-        currentStop = nextStop;
-        
-        // Remove selected stop from remaining options
-        const stopIndex = remainingStops.findIndex(s => s.id === nextStop.id);
-        if (stopIndex >= 0) remainingStops.splice(stopIndex, 1);
-        
-        console.log(`✅ Real destination ${i + 1}: ${nextStop.name} (+${segmentDistance.toFixed(0)}mi, ${driveTime.toFixed(1)}h) - APPROVED`);
       } else {
-        console.warn(`⚠️ No suitable real destination found for slot ${i + 1}`);
+        console.warn(`⚠️ No suitable destination found for slot ${i + 1}`);
         break;
       }
     }
 
-    console.log(`🏁 Selected ${destinations.length} real destinations (no waypoints)`);
+    console.log(`🏁 Enhanced selection result: ${destinations.length} real destinations found`);
     return destinations;
   }
 
   /**
-   * Find the best real destination that meets constraints
+   * Find optimal next stop with heritage prioritization
    */
-  private static findBestRealDestination(
+  private static findOptimalNextStop(
     currentStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[],
-    targetDistance: number
+    targetDistance: number | null,
+    isLastSegment: boolean
   ): TripStop | null {
     if (availableStops.length === 0) return null;
 
@@ -267,28 +363,44 @@ export class EnhancedHeritageCitiesService {
       );
 
       // Skip if distance exceeds safe limit
-      const safeLimit = this.MAX_DAILY_MILES * 0.9; // 90% of max for safety
-      if (distance > safeLimit) {
-        continue;
-      }
+      if (distance > this.MAX_DAILY_MILES * 0.9) continue;
 
       const driveTime = calculateRealisticDriveTime(distance);
-      
-      // Skip if drive time exceeds safe limit
-      const safeTimeLimit = this.ABSOLUTE_MAX_DRIVE_HOURS * 0.9; // 90% of max for safety
-      if (driveTime > safeTimeLimit) {
-        continue;
+      if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS * 0.9) continue;
+
+      // Calculate score based on multiple factors
+      let score = 0;
+
+      // Distance score
+      if (targetDistance) {
+        score += Math.abs(distance - targetDistance) * 0.5; // Moderate weight
+      } else {
+        score += distance * 0.1; // Slight preference for closer stops
       }
 
-      // Score based on distance to target and heritage value
-      const distanceScore = Math.abs(distance - targetDistance);
-      const heritageBonus = stop.heritage_value === 'high' ? -100 : 
-                           stop.heritage_value === 'medium' ? -50 : 0;
-      
-      const totalScore = distanceScore + heritageBonus;
+      // Heritage value bonus (negative score = better)
+      const heritageBonus = this.getHeritageBonus(stop);
+      score -= heritageBonus;
 
-      if (totalScore < bestScore) {
-        bestScore = totalScore;
+      // Category preference bonus
+      const categoryBonus = this.getCategoryBonus(stop);
+      score -= categoryBonus;
+
+      // Final segment consideration
+      if (isLastSegment) {
+        const distanceToEnd = DistanceCalculationService.calculateDistance(
+          stop.latitude, stop.longitude,
+          endStop.latitude, endStop.longitude
+        );
+        
+        // Prefer stops that don't create an extremely long final segment
+        if (distanceToEnd > this.MAX_DAILY_MILES * 0.8) {
+          score += 200; // Penalty for creating long final segment
+        }
+      }
+
+      if (score < bestScore) {
+        bestScore = score;
         bestStop = stop;
       }
     }
@@ -297,207 +409,142 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * FIXED: Create segments with GUARANTEED exact day count
+   * Get heritage value bonus for scoring
    */
-  private static createGuaranteedDaySegments(
+  private static getHeritageBonus(stop: TripStop): number {
+    const heritage = stop.heritage_value || '';
+    switch (heritage.toLowerCase()) {
+      case 'high': return 150;
+      case 'medium': return 75;
+      case 'low': return 25;
+      default: return 0;
+    }
+  }
+
+  /**
+   * Get category preference bonus for scoring
+   */
+  private static getCategoryBonus(stop: TripStop): number {
+    const category = (stop.category || '').toLowerCase();
+    
+    // Prioritize heritage and cultural sites
+    if (category.includes('heritage') || category.includes('historic')) return 100;
+    if (category.includes('museum') || category.includes('cultural')) return 80;
+    if (category.includes('landmark') || category.includes('attraction')) return 60;
+    if (category.includes('restaurant') || category.includes('drive_in')) return 40;
+    
+    return 0;
+  }
+
+  /**
+   * Remove duplicate stops based on proximity and name similarity
+   */
+  private static deduplicateStops(stops: TripStop[]): TripStop[] {
+    const unique: TripStop[] = [];
+    const PROXIMITY_THRESHOLD = 5; // 5 miles
+
+    for (const stop of stops) {
+      const isDuplicate = unique.some(existing => {
+        if (!stop.latitude || !stop.longitude || !existing.latitude || !existing.longitude) {
+          // Name-based comparison if coordinates missing
+          return stop.name.toLowerCase() === existing.name.toLowerCase();
+        }
+
+        const distance = DistanceCalculationService.calculateDistance(
+          stop.latitude, stop.longitude,
+          existing.latitude, existing.longitude
+        );
+
+        return distance < PROXIMITY_THRESHOLD && 
+               stop.name.toLowerCase().includes(existing.name.toLowerCase().split(' ')[0]);
+      });
+
+      if (!isDuplicate) {
+        unique.push(stop);
+      }
+    }
+
+    console.log(`🔄 Deduplication: ${stops.length} → ${unique.length} stops`);
+    return unique;
+  }
+
+  /**
+   * INTELLIGENT SEGMENT DISTRIBUTION - No artificial rest days, real stops only
+   */
+  private static intelligentSegmentDistribution(
     startStop: TripStop,
     endStop: TripStop,
     destinations: TripStop[],
     requestedDays: number,
     totalDistance: number
-  ): DailySegment[] {
-    console.log(`🛠️ FIXED: Creating EXACTLY ${requestedDays} segments with GUARANTEED day count`);
+  ): { segments: DailySegment[]; warningMessage?: string } {
+    console.log(`🧠 INTELLIGENT DISTRIBUTION: Creating ${requestedDays} segments from ${destinations.length} real destinations`);
 
     const segments: DailySegment[] = [];
-    const allStops = [startStop, ...destinations, endStop];
+    let warningMessage: string | undefined;
+
+    // Check if we have sufficient real destinations
+    const availableSegments = destinations.length + 1; // destinations + final segment to end
     
-    // Calculate total distance that needs to be covered
-    const actualTotalDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
-    );
-
-    console.log(`📏 Total distance to distribute: ${actualTotalDistance.toFixed(1)} miles across ${requestedDays} days`);
-
-    // STRATEGY 1: If we have enough stops for each day
-    if (allStops.length - 1 >= requestedDays) {
-      console.log(`✅ Strategy 1: Sufficient stops (${allStops.length - 1} segments available for ${requestedDays} days)`);
-      
-      // Distribute stops across the requested days
-      for (let day = 1; day <= requestedDays; day++) {
-        const fromIndex = Math.floor((day - 1) * (allStops.length - 1) / requestedDays);
-        const toIndex = Math.floor(day * (allStops.length - 1) / requestedDays);
-        
-        const currentStop = allStops[fromIndex];
-        const nextStop = allStops[toIndex];
-
-        const distance = DistanceCalculationService.calculateDistance(
-          currentStop.latitude, currentStop.longitude,
-          nextStop.latitude, nextStop.longitude
-        );
-
-        const clampedDistance = Math.min(distance, this.MAX_DAILY_MILES);
-        let driveTime = calculateRealisticDriveTime(clampedDistance);
-        
-        if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
-          driveTime = this.ABSOLUTE_MAX_DRIVE_HOURS;
-        }
-
-        const segment: DailySegment = {
-          day,
-          title: `Day ${day}: ${currentStop.city_name || currentStop.name} to ${nextStop.city_name || nextStop.name}`,
-          startCity: currentStop.city_name || currentStop.name,
-          endCity: nextStop.city_name || nextStop.name,
-          distance: Math.round(clampedDistance),
-          approximateMiles: Math.round(clampedDistance),
-          driveTimeHours: Math.round(driveTime * 10) / 10,
-          destination: {
-            city: nextStop.city_name || nextStop.name,
-            state: nextStop.state || 'Unknown'
-          },
-          recommendedStops: [],
-          attractions: [{
-            name: nextStop.name,
-            title: nextStop.name,
-            description: nextStop.description || `Historic Route 66 destination in ${nextStop.state}`,
-            city: nextStop.city_name || nextStop.name,
-            category: nextStop.category || 'heritage_site'
-          }]
-        };
-
-        segments.push(segment);
-        console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours`);
-      }
-    } 
-    // STRATEGY 2: Fewer stops than days - need to split long segments or add rest days
-    else {
-      console.log(`✅ Strategy 2: Distributing ${allStops.length - 1} stops across ${requestedDays} days`);
-      
-      const targetDailyDistance = actualTotalDistance / requestedDays;
-      console.log(`🎯 Target daily distance: ${targetDailyDistance.toFixed(1)} miles`);
-
-      let currentStop = startStop;
-      let remainingDistance = actualTotalDistance;
-      let stopIndex = 1; // Start from first destination
-
-      for (let day = 1; day <= requestedDays; day++) {
-        const isLastDay = day === requestedDays;
-        let targetDistance = isLastDay ? remainingDistance : targetDailyDistance;
-        
-        // Ensure we don't exceed daily limits
-        targetDistance = Math.min(targetDistance, this.MAX_DAILY_MILES);
-        
-        let dayDestination: TripStop;
-        let actualDistance: number;
-
-        if (isLastDay) {
-          // Last day always goes to end destination
-          dayDestination = endStop;
-          actualDistance = DistanceCalculationService.calculateDistance(
-            currentStop.latitude, currentStop.longitude,
-            endStop.latitude, endStop.longitude
-          );
-        } else if (stopIndex < allStops.length) {
-          // Use next available stop
-          dayDestination = allStops[stopIndex];
-          actualDistance = DistanceCalculationService.calculateDistance(
-            currentStop.latitude, currentStop.longitude,
-            dayDestination.latitude, dayDestination.longitude
-          );
-          stopIndex++;
-        } else {
-          // Create intermediate point if we've run out of stops but still have days
-          const progressRatio = day / requestedDays;
-          const intermediateLat = startStop.latitude + (endStop.latitude - startStop.latitude) * progressRatio;
-          const intermediateLng = startStop.longitude + (endStop.longitude - startStop.longitude) * progressRatio;
-          
-          dayDestination = {
-            ...endStop,
-            latitude: intermediateLat,
-            longitude: intermediateLng,
-            name: `Rest Day in ${endStop.state}`,
-            city_name: `Rest Day ${day}`
-          };
-          
-          actualDistance = targetDistance;
-        }
-
-        // Clamp distance and calculate drive time
-        const clampedDistance = Math.min(actualDistance, this.MAX_DAILY_MILES);
-        let driveTime = calculateRealisticDriveTime(clampedDistance);
-        
-        if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
-          driveTime = this.ABSOLUTE_MAX_DRIVE_HOURS;
-        }
-
-        const segment: DailySegment = {
-          day,
-          title: `Day ${day}: ${currentStop.city_name || currentStop.name} to ${dayDestination.city_name || dayDestination.name}`,
-          startCity: currentStop.city_name || currentStop.name,
-          endCity: dayDestination.city_name || dayDestination.name,
-          distance: Math.round(clampedDistance),
-          approximateMiles: Math.round(clampedDistance),
-          driveTimeHours: Math.round(driveTime * 10) / 10,
-          destination: {
-            city: dayDestination.city_name || dayDestination.name,
-            state: dayDestination.state || 'Unknown'
-          },
-          recommendedStops: [],
-          attractions: [{
-            name: dayDestination.name,
-            title: dayDestination.name,
-            description: dayDestination.description || `Historic Route 66 destination in ${dayDestination.state}`,
-            city: dayDestination.city_name || dayDestination.name,
-            category: dayDestination.category || 'heritage_site'
-          }]
-        };
-
-        segments.push(segment);
-        currentStop = dayDestination;
-        remainingDistance -= clampedDistance;
-        
-        console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours`);
-      }
+    if (availableSegments < requestedDays) {
+      const shortage = requestedDays - availableSegments;
+      warningMessage = `⚠️ Only ${destinations.length} heritage destinations found for ${requestedDays}-day trip. Consider extending your trip or choosing a longer route for more authentic Route 66 experiences.`;
+      console.warn(`⚠️ SHORTAGE: Need ${requestedDays} days but only ${availableSegments} real segments available`);
     }
 
-    // CRITICAL: Verify we have exactly the requested number of days
-    if (segments.length !== requestedDays) {
-      console.error(`🚨 CRITICAL: Generated ${segments.length} segments but requested ${requestedDays} days!`);
+    // Create segments using ONLY real destinations - no artificial padding
+    const segmentStops = [startStop, ...destinations, endStop];
+    const actualDays = Math.min(requestedDays, segmentStops.length - 1);
+
+    for (let day = 1; day <= actualDays; day++) {
+      const fromStop = segmentStops[day - 1];
+      const toStop = segmentStops[day];
+
+      const distance = DistanceCalculationService.calculateDistance(
+        fromStop.latitude, fromStop.longitude,
+        toStop.latitude, toStop.longitude
+      );
+
+      const clampedDistance = Math.min(distance, this.MAX_DAILY_MILES);
+      let driveTime = calculateRealisticDriveTime(clampedDistance);
       
-      // Emergency fix: pad with rest days if we're short
-      while (segments.length < requestedDays) {
-        const lastSegment = segments[segments.length - 1];
-        const restDay = requestedDays - segments.length + 1;
-        
-        const restSegment: DailySegment = {
-          day: segments.length + 1,
-          title: `Day ${segments.length + 1}: Rest Day in ${lastSegment.endCity}`,
-          startCity: lastSegment.endCity,
-          endCity: lastSegment.endCity,
-          distance: 0,
-          approximateMiles: 0,
-          driveTimeHours: 0,
-          destination: {
-            city: lastSegment.endCity,
-            state: lastSegment.destination.state
-          },
-          recommendedStops: [],
-          attractions: [{
-            name: `Rest Day ${restDay}`,
-            title: `Rest Day in ${lastSegment.endCity}`,
-            description: `Explore and rest in ${lastSegment.endCity}`,
-            city: lastSegment.endCity,
-            category: 'rest_day'
-          }]
-        };
-        
-        segments.push(restSegment);
-        console.log(`🛌 Added rest day ${restDay}: ${restSegment.title}`);
+      if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
+        driveTime = this.ABSOLUTE_MAX_DRIVE_HOURS;
       }
+
+      const segment: DailySegment = {
+        day,
+        title: `Day ${day}: ${fromStop.city_name || fromStop.name} to ${toStop.city_name || toStop.name}`,
+        startCity: fromStop.city_name || fromStop.name,
+        endCity: toStop.city_name || toStop.name,
+        distance: Math.round(clampedDistance),
+        approximateMiles: Math.round(clampedDistance),
+        driveTimeHours: Math.round(driveTime * 10) / 10,
+        destination: {
+          city: toStop.city_name || toStop.name,
+          state: toStop.state || 'Unknown'
+        },
+        recommendedStops: [],
+        attractions: [{
+          name: toStop.name,
+          title: toStop.name,
+          description: toStop.description || `Historic Route 66 destination in ${toStop.state}`,
+          city: toStop.city_name || toStop.name,
+          category: toStop.category || 'heritage_site'
+        }]
+      };
+
+      segments.push(segment);
+      console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours`);
     }
 
-    console.log(`✅ GUARANTEED: Created exactly ${segments.length} segments for ${requestedDays} requested days`);
-    return segments;
+    // If we created fewer segments than requested, enhance the warning
+    if (segments.length < requestedDays) {
+      warningMessage = `⚠️ Created ${segments.length}-day itinerary instead of ${requestedDays} days. Only ${destinations.length} authentic heritage destinations found along your route. For longer trips, consider choosing start/end points with more Route 66 destinations in between.`;
+    }
+
+    console.log(`✅ Intelligent distribution complete: ${segments.length} real segments (no artificial padding)`);
+    return { segments, warningMessage };
   }
 
   /**
@@ -520,7 +567,7 @@ export class EnhancedHeritageCitiesService {
         
         // Must be within reasonable distance from direct route (prevent major detours)
         const distanceFromRoute = this.calculateDistanceFromDirectRoute(startStop, endStop, stop);
-        return distanceFromRoute < 150; // Within 150 miles of direct route
+        return distanceFromRoute < this.EXPANDED_SEARCH_RADIUS; // Use expanded radius
       })
       .sort((a, b) => {
         // Sort by geographic progression
