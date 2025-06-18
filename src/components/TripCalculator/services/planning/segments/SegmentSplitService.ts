@@ -1,3 +1,4 @@
+
 import { DailySegment } from '../TripPlanTypes';
 import { TripStop } from '../../../types/TripStop';
 import { DistanceCalculationService } from '../../utils/DistanceCalculationService';
@@ -9,13 +10,13 @@ export class SegmentSplitService {
   /**
    * Attempt to split a long segment into multiple valid segments
    */
-  static attemptSegmentSplit(
+  static async attemptSegmentSplit(
     startStop: TripStop,
     endStop: TripStop,
     startingDay: number,
     styleConfig: TripStyleConfig,
     availableDestinations: TripStop[]
-  ): DailySegment[] {
+  ): Promise<DailySegment[]> {
     console.log(`🔧 ATTEMPTING SPLIT: ${startStop.name} → ${endStop.name}`);
     
     // Find intermediate destinations between start and end
@@ -45,18 +46,18 @@ export class SegmentSplitService {
 
     // Try the closest intermediate stop that creates valid segments
     for (const intermediate of intermediateStops) {
-      const firstSegmentValidation = DistanceValidationService.validateSegmentDistance(
+      const firstSegmentValidation = await DistanceValidationService.validateSegmentDistance(
         startStop, intermediate, styleConfig.maxDailyDriveHours
       );
-      const secondSegmentValidation = DistanceValidationService.validateSegmentDistance(
+      const secondSegmentValidation = await DistanceValidationService.validateSegmentDistance(
         intermediate, endStop, styleConfig.maxDailyDriveHours
       );
 
       if (firstSegmentValidation.isValid && secondSegmentValidation.isValid) {
         console.log(`✅ SPLIT POSSIBLE: Using ${intermediate.name} as intermediate`);
         
-        const firstSegment = SegmentCreationService.createValidatedSegment(startStop, intermediate, startingDay, styleConfig);
-        const secondSegment = SegmentCreationService.createValidatedSegment(intermediate, endStop, startingDay + 1, styleConfig);
+        const firstSegment = await SegmentCreationService.createValidatedSegment(startStop, intermediate, startingDay, styleConfig);
+        const secondSegment = await SegmentCreationService.createValidatedSegment(intermediate, endStop, startingDay + 1, styleConfig);
         
         if (firstSegment && secondSegment) {
           return [firstSegment, secondSegment];

@@ -1,3 +1,4 @@
+
 import { DailySegment } from '../TripPlanTypes';
 import { TripStop } from '../../../types/TripStop';
 import { DistanceCalculationService } from '../../utils/DistanceCalculationService';
@@ -9,11 +10,11 @@ export class EmergencyFallbackService {
   /**
    * Create emergency fallback segments when all else fails
    */
-  static createEmergencyFallbackSegments(
+  static async createEmergencyFallbackSegments(
     startStop: TripStop,
     endStop: TripStop,
     styleConfig: TripStyleConfig
-  ): DailySegment[] {
+  ): Promise<DailySegment[]> {
     console.log(`🚨 EMERGENCY FALLBACK: Creating minimal viable segments`);
     
     // Calculate minimum viable days
@@ -49,7 +50,7 @@ export class EmergencyFallbackService {
         longitude: segmentEndLng
       };
       
-      const segment = SegmentCreationService.createValidatedSegment(segmentStart, segmentEnd, day, styleConfig);
+      const segment = await SegmentCreationService.createValidatedSegment(segmentStart, segmentEnd, day, styleConfig);
       if (segment) {
         segments.push(segment);
       }

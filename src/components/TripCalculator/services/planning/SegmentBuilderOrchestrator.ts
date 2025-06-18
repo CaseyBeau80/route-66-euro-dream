@@ -10,7 +10,7 @@ export class SegmentBuilderOrchestrator {
   /**
    * Orchestrate the complete segment building process
    */
-  static orchestrateSegmentBuilding(
+  static async orchestrateSegmentBuilding(
     startStop: TripStop,
     destinations: TripStop[],
     allStops: TripStop[],
@@ -18,7 +18,7 @@ export class SegmentBuilderOrchestrator {
     driveTimeTargets: DriveTimeTarget[],
     balanceMetrics: any,
     endStop: TripStop
-  ): DailySegment[] {
+  ): Promise<DailySegment[]> {
     // Filter remaining stops to prevent duplication
     const remainingStops = SegmentValidationHelper.filterRemainingStops(
       allStops,
@@ -27,8 +27,8 @@ export class SegmentBuilderOrchestrator {
       destinations
     );
 
-    // Create all daily segments
-    const dailySegments = SegmentCreationLoop.createDailySegments(
+    // Create all daily segments - now with await
+    const dailySegments = await SegmentCreationLoop.createDailySegments(
       startStop,
       destinations,
       endStop,

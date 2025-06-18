@@ -11,7 +11,7 @@ export class SegmentCreationLoop {
   /**
    * Create all daily segments through iterative loop
    */
-  static createDailySegments(
+  static async createDailySegments(
     startStop: TripStop,
     destinations: TripStop[],
     endStop: TripStop,
@@ -19,7 +19,7 @@ export class SegmentCreationLoop {
     totalDistance: number,
     driveTimeTargets: DriveTimeTarget[],
     balanceMetrics: any
-  ): DailySegment[] {
+  ): Promise<DailySegment[]> {
     const dailySegments: DailySegment[] = [];
     let currentStop = startStop;
     let workingRemainingStops = [...remainingStops];
@@ -37,7 +37,7 @@ export class SegmentCreationLoop {
       }
 
       // Create the segment
-      const segment = this.createSingleSegment(
+      const segment = await this.createSingleSegment(
         currentStop,
         dayDestination,
         workingRemainingStops,
@@ -79,7 +79,7 @@ export class SegmentCreationLoop {
   /**
    * Create a single daily segment
    */
-  private static createSingleSegment(
+  private static async createSingleSegment(
     currentStop: TripStop,
     dayDestination: TripStop,
     remainingStops: TripStop[],
@@ -88,7 +88,7 @@ export class SegmentCreationLoop {
     day: number,
     driveTimeTarget: DriveTimeTarget,
     balanceMetrics: any
-  ): DailySegment | null {
+  ): Promise<DailySegment | null> {
     // Curate stops for this segment
     const { segmentStops, curatedSelection } = SegmentStopCurator.curateStopsForSegment(
       currentStop,
@@ -98,9 +98,9 @@ export class SegmentCreationLoop {
     
     console.log(`🎯 Day ${day} curated ${segmentStops.length} stops:`, segmentStops.map(s => s.name));
     
-    // Calculate segment timings and drive time
-    const { segmentTimings, totalSegmentDriveTime, segmentDistance } = 
-      SegmentTimingCalculator.calculateSegmentTimings(currentStop, dayDestination, segmentStops);
+    // Calculate segment timings and drive time - now with await
+    const { segmentTimings, totalSegmentDriveTime, segmentDistance, isGoogleMapsData, dataAccuracy } = 
+      await SegmentTimingCalculator.calculateSegmentTimings(currentStop, dayDestination, segmentStops);
 
     // Get drive time category for this segment
     const driveTimeCategory = SegmentTimingCalculator.getDriveTimeCategory(totalSegmentDriveTime) as DriveTimeCategory;
@@ -177,7 +177,9 @@ export class SegmentCreationLoop {
       destination: {
         city: dayDestination.name,
         state: dayDestination.state
-      }
+      },
+      isGoogleMapsData,
+      dataAccuracy
     };
   }
 

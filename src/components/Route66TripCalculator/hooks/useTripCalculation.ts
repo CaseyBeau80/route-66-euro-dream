@@ -26,13 +26,12 @@ export const useTripCalculation = () => {
     setPlanningResult(null);
 
     try {
-      // Use the enhanced trip planning service with progress tracking
+      // Fix: Use the correct number of arguments (4 instead of 5)
       const result = await Route66TripPlannerService.planTripWithAnalysis(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays,
-        formData.tripStyle || 'balanced',
-        onProgress
+        formData.tripStyle || 'balanced'
       );
 
       console.log('✅ useTripCalculation: Enhanced trip planning completed with Google Maps integration', {

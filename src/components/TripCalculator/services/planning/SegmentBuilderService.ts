@@ -8,7 +8,7 @@ export class SegmentBuilderService {
   /**
    * Build daily segments from optimized destinations with enhanced stop curation
    */
-  static buildSegmentsFromDestinations(
+  static async buildSegmentsFromDestinations(
     startStop: TripStop,
     destinations: TripStop[],
     allStops: TripStop[],
@@ -16,8 +16,8 @@ export class SegmentBuilderService {
     driveTimeTargets: DriveTimeTarget[],
     balanceMetrics: any,
     endStop: TripStop
-  ): DailySegment[] {
-    return SegmentBuilderOrchestrator.orchestrateSegmentBuilding(
+  ): Promise<DailySegment[]> {
+    return await SegmentBuilderOrchestrator.orchestrateSegmentBuilding(
       startStop,
       destinations,
       allStops,
