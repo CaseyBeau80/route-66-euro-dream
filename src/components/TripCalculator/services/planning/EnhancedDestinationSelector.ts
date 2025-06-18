@@ -30,14 +30,14 @@ export class EnhancedDestinationSelector {
       return [];
     }
 
-    // CRITICAL: Validate coordinates exist and are valid numbers
-    if (!this.hasValidCoordinates(startStop)) {
-      console.error('❌ CRITICAL: Invalid startStop coordinates', startStop);
+    // CRITICAL: Validate coordinates exist and are valid numbers - ENHANCED CHECKS
+    if (!this.isValidTripStop(startStop)) {
+      console.error('❌ CRITICAL: Invalid startStop:', startStop);
       return [];
     }
 
-    if (!this.hasValidCoordinates(endStop)) {
-      console.error('❌ CRITICAL: Invalid endStop coordinates', endStop);
+    if (!this.isValidTripStop(endStop)) {
+      console.error('❌ CRITICAL: Invalid endStop:', endStop);
       return [];
     }
     
@@ -51,37 +51,25 @@ export class EnhancedDestinationSelector {
       return [];
     }
     
-    // STEP 1: Filter to only valid stops with coordinates - ENHANCED SAFETY
+    // STEP 1: Filter to only valid stops with coordinates - COMPREHENSIVE SAFETY
     const validStops: TripStop[] = [];
     
     for (const stop of allStops) {
-      // Log before type checking to avoid type issues
-      const stopId = (stop as any)?.id;
-      const stopName = (stop as any)?.name;
-      const hasLatitude = typeof (stop as any)?.latitude === 'number';
-      const hasLongitude = typeof (stop as any)?.longitude === 'number';
-      const latitude = (stop as any)?.latitude;
-      const longitude = (stop as any)?.longitude;
-      
       if (!stop || typeof stop !== 'object') {
-        console.warn(`⚠️ SKIPPING invalid stop: not an object`);
+        console.warn(`⚠️ SKIPPING: stop is not a valid object`);
         continue;
       }
       
-      const isValid = this.hasValidCoordinates(stop);
-      if (!isValid) {
-        console.warn(`⚠️ SKIPPING invalid stop:`, { 
-          id: stopId, 
-          name: stopName, 
-          hasLatitude,
-          hasLongitude,
-          latitude,
-          longitude
+      if (this.isValidTripStop(stop)) {
+        validStops.push(stop);
+      } else {
+        console.warn(`⚠️ SKIPPING invalid stop:`, {
+          id: stop.id || 'no-id',
+          name: stop.name || 'no-name',
+          hasLatitude: typeof stop.latitude === 'number',
+          hasLongitude: typeof stop.longitude === 'number'
         });
-        continue;
       }
-      
-      validStops.push(stop);
     }
     
     console.log(`🛡️ SAFETY: Filtered ${allStops.length} stops to ${validStops.length} valid stops`);
@@ -111,24 +99,18 @@ export class EnhancedDestinationSelector {
       canonicalStops = destinationCities; // Fallback to all destination cities
     }
     
-    // STEP 4: Remove start and end cities with safe filtering - COMPLETELY RESTRUCTURED
+    // STEP 4: Remove start and end cities with safe filtering
     const availableCities: TripStop[] = [];
     
     for (const city of canonicalStops) {
-      // Log properties before type checking to avoid type issues
-      const cityId = (city as any)?.id;
-      const cityName = (city as any)?.name;
-      
-      // Explicit type check first - this ensures TypeScript knows city is TripStop
-      if (!this.hasValidCoordinates(city)) {
+      if (!this.isValidTripStop(city)) {
         console.warn(`⚠️ FILTERING OUT city: invalid coordinates`, {
-          id: cityId,
-          name: cityName
+          id: city?.id || 'no-id',
+          name: city?.name || 'no-name'
         });
         continue;
       }
       
-      // Now TypeScript knows city is a valid TripStop
       const isNotStartStop = city.id !== startStop.id;
       const isNotEndStop = city.id !== endStop.id;
       
@@ -166,7 +148,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 6: If we don't have enough cities, expand selection beyond canonical
-    let workingCities = sequenceValidCities.filter((city): city is TripStop => this.hasValidCoordinates(city));
+    let workingCities = sequenceValidCities.filter(city => this.isValidTripStop(city));
     
     if (workingCities.length < neededIntermediateDestinations) {
       console.log(`📈 Need more cities: expanding beyond canonical destinations`);
@@ -175,12 +157,10 @@ export class EnhancedDestinationSelector {
       const nonCanonicalDestinations: TripStop[] = [];
       
       for (const city of destinationCities) {
-        // Explicit type check first
-        if (!this.hasValidCoordinates(city)) {
+        if (!this.isValidTripStop(city)) {
           continue;
         }
         
-        // Now safe to access properties
         const isNotStartStop = city.id !== startStop.id;
         const isNotEndStop = city.id !== endStop.id;
         const isNotAlreadyCanonical = !canonicalStops.some(canonical => canonical && canonical.id === city.id);
@@ -196,7 +176,7 @@ export class EnhancedDestinationSelector {
           nonCanonicalDestinations,
           endStop
         );
-        const additionalValidCities = (additionalSequenceResult.validStops || []).filter((city): city is TripStop => this.hasValidCoordinates(city));
+        const additionalValidCities = (additionalSequenceResult.validStops || []).filter(city => this.isValidTripStop(city));
         console.log(`🏙️ Additional valid destination cities: ${additionalValidCities.length}`);
         
         // Combine canonical and additional cities
@@ -229,7 +209,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 9: Ensure we have exactly the right number of destinations
-    let finalSelection = enhancedSelection.filter((city): city is TripStop => this.hasValidCoordinates(city));
+    let finalSelection = enhancedSelection.filter(city => this.isValidTripStop(city));
     
     if (finalSelection.length > neededIntermediateDestinations) {
       // Too many - trim to the highest priority ones
@@ -246,28 +226,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 10: Final safety check - ensure all selected cities have valid coordinates
-    const safeFinalSelection: TripStop[] = [];
-    
-    for (const city of finalSelection) {
-      // Log properties before type checking to avoid type issues
-      const cityId = (city as any)?.id;
-      const cityName = (city as any)?.name;
-      const latitude = (city as any)?.latitude;
-      const longitude = (city as any)?.longitude;
-      
-      const isValid = this.hasValidCoordinates(city);
-      if (!isValid) {
-        console.warn(`⚠️ FINAL SAFETY: Removing city with invalid coordinates:`, {
-          id: cityId,
-          name: cityName,
-          latitude,
-          longitude
-        });
-        continue;
-      }
-      
-      safeFinalSelection.push(city);
-    }
+    const safeFinalSelection = finalSelection.filter(city => this.isValidTripStop(city));
     
     if (safeFinalSelection.length !== finalSelection.length) {
       console.warn(`⚠️ SAFETY: Removed ${finalSelection.length - safeFinalSelection.length} cities with invalid coordinates`);
@@ -297,19 +256,39 @@ export class EnhancedDestinationSelector {
   }
 
   /**
-   * Check if a stop has valid coordinates - properly typed as type predicate
+   * Enhanced validation to check if an object is a valid TripStop with coordinates
+   */
+  private static isValidTripStop(obj: any): obj is TripStop {
+    if (!obj || typeof obj !== 'object') {
+      return false;
+    }
+
+    // Check required string properties
+    if (typeof obj.id !== 'string' || !obj.id) {
+      return false;
+    }
+
+    if (typeof obj.name !== 'string' || !obj.name) {
+      return false;
+    }
+
+    // Check coordinate properties
+    if (typeof obj.latitude !== 'number' || isNaN(obj.latitude) || obj.latitude === 0) {
+      return false;
+    }
+
+    if (typeof obj.longitude !== 'number' || isNaN(obj.longitude) || obj.longitude === 0) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if a stop has valid coordinates - kept for compatibility
    */
   private static hasValidCoordinates(stop: any): stop is TripStop {
-    return stop && 
-           typeof stop === 'object' &&
-           typeof stop.id === 'string' &&
-           typeof stop.name === 'string' &&
-           typeof stop.latitude === 'number' &&
-           typeof stop.longitude === 'number' &&
-           !isNaN(stop.latitude) &&
-           !isNaN(stop.longitude) &&
-           stop.latitude !== 0 &&
-           stop.longitude !== 0;
+    return this.isValidTripStop(stop);
   }
 
   /**
@@ -323,7 +302,7 @@ export class EnhancedDestinationSelector {
     
     // Sort by canonical priority and take top N
     const prioritized = destinations
-      .filter((city): city is TripStop => this.hasValidCoordinates(city))
+      .filter(city => this.isValidTripStop(city))
       .map(city => {
         const canonicalInfo = CanonicalRoute66Cities.getDestinationInfo(
           city.city_name || city.name,
@@ -344,7 +323,7 @@ export class EnhancedDestinationSelector {
   }
 
   /**
-   * Expand selection to fill needed destinations - COMPLETELY RESTRUCTURED
+   * Expand selection to fill needed destinations
    */
   private static expandSelection(
     currentSelection: TripStop[],
@@ -359,12 +338,10 @@ export class EnhancedDestinationSelector {
     for (const city of availableCities) {
       if (expanded.length >= needed) break;
       
-      // Explicit type check first
-      if (!this.hasValidCoordinates(city)) {
+      if (!this.isValidTripStop(city)) {
         continue;
       }
       
-      // Now safe to access properties
       const isNotUsed = !usedIds.has(city.id);
       const isNotStartStop = city.id !== startStop.id;
       const isNotEndStop = city.id !== endStop.id;
@@ -394,7 +371,7 @@ export class EnhancedDestinationSelector {
     }
 
     // Filter to only cities with valid coordinates
-    const validCities = canonicalCities.filter((city): city is TripStop => this.hasValidCoordinates(city));
+    const validCities = canonicalCities.filter(city => this.isValidTripStop(city));
 
     if (validCities.length <= neededCities) {
       // Use all available canonical cities, sorted by sequence
@@ -454,7 +431,7 @@ export class EnhancedDestinationSelector {
   }
 
   private static getTripDirection(startStop: TripStop, endStop: TripStop): 'east-to-west' | 'west-to-east' {
-    if (!this.hasValidCoordinates(startStop) || !this.hasValidCoordinates(endStop)) {
+    if (!this.isValidTripStop(startStop) || !this.isValidTripStop(endStop)) {
       return 'east-to-west'; // Default direction
     }
 
