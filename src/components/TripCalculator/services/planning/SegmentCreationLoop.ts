@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
 import { DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming } from './TripPlanBuilder';
@@ -102,9 +103,8 @@ export class SegmentCreationLoop {
       await SegmentTimingCalculator.calculateSegmentTimings(currentStop, dayDestination, segmentStops);
 
     // Get drive time category for this segment - Fix type conversion
-    const driveTimeCategory = SegmentTimingCalculator.getDriveTimeCategory(
-      SegmentTimingCalculator.categorizedriveTime(totalSegmentDriveTime)
-    ) as DriveTimeCategory;
+    const rawCategory = SegmentTimingCalculator.categorizedriveTime(totalSegmentDriveTime);
+    const driveTimeCategory = SegmentTimingCalculator.getDriveTimeCategory(rawCategory) as DriveTimeCategory;
 
     // Calculate route progression metrics
     const { routeSection } = SegmentMetricsCalculator.calculateRouteMetrics(

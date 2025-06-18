@@ -1,5 +1,5 @@
+
 import { TripPlan } from './TripPlanTypes';
-import { TripStop } from '../../types/TripStop';
 import { DailySegment } from './TripPlanTypes';
 import { SupabaseDataService } from '../data/SupabaseDataService';
 import { TripBoundaryService } from './TripBoundaryService';
