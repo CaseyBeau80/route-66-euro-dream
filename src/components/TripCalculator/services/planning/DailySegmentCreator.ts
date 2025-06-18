@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -90,7 +91,7 @@ export class DailySegmentCreator {
     console.log(`🎯 STRICT: Selecting overnight stops from ${destinationCities.length} destination cities`);
     
     // Filter out start and end stops and ensure only destination cities
-    const availableStops = destinationCities.filter((stop: TripStop) => 
+    const availableStops: TripStop[] = destinationCities.filter((stop: TripStop) => 
       stop.id !== startStop.id && 
       stop.id !== endStop.id &&
       StrictDestinationCityEnforcer.isDestinationCity(stop)
@@ -99,7 +100,7 @@ export class DailySegmentCreator {
     console.log(`🏛️ STRICT: ${availableStops.length} available destination cities for overnight stops`);
     
     // Sort by distance from start to ensure geographic progression
-    const sortedStops = availableStops.sort((a: TripStop, b: TripStop) => {
+    const sortedStops: TripStop[] = availableStops.sort((a: TripStop, b: TripStop) => {
       const distA = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude, a.latitude, a.longitude
       );
@@ -138,21 +139,18 @@ export class DailySegmentCreator {
         }
       }
       
-      if (bestStop) {
-        // Double-check it's a destination city
-        if (StrictDestinationCityEnforcer.isDestinationCity(bestStop)) {
-          console.log(`🏛️ STRICT: Selected overnight destination: ${bestStop.name} (${bestStop.category})`);
-          overnightStops.push(bestStop);
-        } else {
-          console.warn(`⚠️ STRICT: Rejected non-destination city: ${bestStop.name} (${bestStop.category})`);
-        }
+      if (bestStop && StrictDestinationCityEnforcer.isDestinationCity(bestStop)) {
+        console.log(`🏛️ STRICT: Selected overnight destination: ${bestStop.name} (${bestStop.category})`);
+        overnightStops.push(bestStop);
+      } else if (bestStop) {
+        console.warn(`⚠️ STRICT: Rejected non-destination city: ${bestStop.name} (${bestStop.category})`);
       } else {
         console.warn(`⚠️ STRICT: Could not find suitable destination city for day ${i + 1}`);
       }
     }
     
     // Sort overnight stops by distance from start for proper sequence
-    const finalStops = overnightStops.sort((a: TripStop, b: TripStop) => {
+    const finalStops: TripStop[] = overnightStops.sort((a: TripStop, b: TripStop) => {
       const distA = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude, a.latitude, a.longitude
       );
@@ -249,7 +247,7 @@ export class DailySegmentCreator {
     );
     
     // Find stops along the route - EXCLUDE destination cities for attractions
-    const attractions = allStops.filter((stop: TripStop) => {
+    const attractions: TripStop[] = allStops.filter((stop: TripStop) => {
       // Skip start and end stops
       if (stop.id === startStop.id || stop.id === endStop.id) return false;
       
@@ -275,7 +273,7 @@ export class DailySegmentCreator {
     });
     
     // Sort by priority - attractions first, then historic sites
-    const sortedAttractions = attractions.sort((a: TripStop, b: TripStop) => {
+    const sortedAttractions: TripStop[] = attractions.sort((a: TripStop, b: TripStop) => {
       if (a.category === 'attraction' && b.category !== 'attraction') return -1;
       if (b.category === 'attraction' && a.category !== 'attraction') return 1;
       if (a.category === 'historic_site' && b.category !== 'historic_site') return -1;
