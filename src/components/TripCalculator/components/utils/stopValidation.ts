@@ -44,7 +44,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         return isValid;
       })
       .map((stop, index) => convertStopToTripStop(stop, index, 'recommended', segmentKey))
-      .filter((stop: TripStop): stop is TripStop => {
+      .filter((stop): stop is TripStop => {
         // STRICT: Only allow destination cities for overnight stops
         const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
         if (!isDestCity) {
@@ -74,7 +74,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         return isValid;
       })
       .map((attraction, index) => convertStopToTripStop(attraction, index, 'attraction', segmentKey))
-      .filter((stop: TripStop): stop is TripStop => {
+      .filter((stop): stop is TripStop => {
         // STRICT: For attractions, we can be less strict but still prefer destination cities
         const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
         if (isDestCity) {
