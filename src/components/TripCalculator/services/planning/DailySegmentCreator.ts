@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -39,9 +38,10 @@ export class DailySegmentCreator {
     
     // Strict validation of all selected overnight stops
     const warnings: string[] = [];
-    overnightStops.forEach((stop: TripStop, index: number) => {
-      if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
-        warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+    overnightStops.forEach((stop, index) => {
+      const typedStop = stop as TripStop; // Explicit type assertion
+      if (!StrictDestinationCityEnforcer.isDestinationCity(typedStop)) {
+        warnings.push(`${typedStop.name} is not a destination city and was removed from overnight stops`);
       }
     });
     
@@ -246,7 +246,7 @@ export class DailySegmentCreator {
       startStop.latitude, startStop.longitude, endStop.latitude, endStop.longitude
     );
     
-    // Find stops along the route - EXCLUDE destination cities for attractions
+    // Pre-filter to ensure valid coordinates and proper typing
     const validStops: TripStop[] = allStops.filter((stop: TripStop) => {
       return stop && 
              typeof stop.latitude === 'number' && 
@@ -255,6 +255,7 @@ export class DailySegmentCreator {
              !isNaN(stop.longitude);
     });
     
+    // Now filter for attractions with explicit type assertion for distance calculations
     const attractions: TripStop[] = validStops.filter((stop: TripStop) => {
       // Skip start and end stops
       if (stop.id === startStop.id || stop.id === endStop.id) return false;
@@ -265,12 +266,15 @@ export class DailySegmentCreator {
         return false;
       }
       
-      // Calculate if stop is along the route
+      // Calculate if stop is along the route with explicit type assertion
+      const typedStop = stop as TripStop;
+      const typedStartStop = startStop as TripStop;
+      
       const distFromStart = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude, stop.latitude, stop.longitude
+        typedStartStop.latitude, typedStartStop.longitude, typedStop.latitude, typedStop.longitude
       );
       const distToEnd = DistanceCalculationService.calculateDistance(
-        stop.latitude, stop.longitude, endStop.latitude, endStop.longitude
+        typedStop.latitude, typedStop.longitude, endStop.latitude, endStop.longitude
       );
       
       const routeDeviation = (distFromStart + distToEnd) - directDistance;
