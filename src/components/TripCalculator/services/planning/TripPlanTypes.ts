@@ -32,9 +32,19 @@ export interface TripPlan {
     startLocation: string;
     endLocation: string;
     totalDriveTime?: number;
+    totalDays?: number;
   };
   startCityImage?: string;
   endCityImage?: string;
+  
+  // PDF export properties
+  isEnriched?: boolean;
+  exportTimestamp?: number;
+  enrichmentStatus?: {
+    weatherData?: boolean;
+    stopsData?: boolean;
+    validationComplete?: boolean;
+  };
 }
 
 export interface DailySegment {
@@ -45,10 +55,16 @@ export interface DailySegment {
   distance: number;
   approximateMiles: number;
   driveTimeHours?: number;
+  drivingTime?: number; // Legacy property for backward compatibility
   destination: DestinationInfo;
   recommendedStops: any[];
   isGoogleMapsData?: boolean;
   attractions: Attraction[];
+  stops?: any[]; // For segments that have stop data
+  
+  // Weather data properties
+  weather?: any;
+  weatherData?: any;
   
   // Additional properties used by components
   driveTimeCategory?: {
@@ -78,7 +94,13 @@ export interface SubStopTiming {
   };
   distanceMiles: number;
   driveTimeHours: number;
+  // Legacy properties for backward compatibility
+  distance?: number;
+  drivingTime?: number;
 }
+
+// Alias for backward compatibility
+export type SegmentTiming = SubStopTiming;
 
 export interface DestinationInfo {
   city: string;
@@ -90,5 +112,19 @@ export interface Attraction {
   title: string;
   description: string;
   city: string;
-  category: string;
+  category: string; // Required property that was missing
+}
+
+// Additional type for drive time balance calculations
+export interface DriveTimeBalance {
+  totalHours: number;
+  averageHours: number;
+  maxHours: number;
+  minHours: number;
+  isBalanced: boolean;
+  segments: {
+    day: number;
+    hours: number;
+    category: 'light' | 'moderate' | 'heavy' | 'extreme';
+  }[];
 }
