@@ -1,46 +1,39 @@
 
 import { TripStop } from '../../types/TripStop';
-import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { convertToTripStop } from '../../types/TripStop';
 
 export class TripBoundaryService {
   /**
-   * Find boundary stops (start and end) and initial route stops
+   * Find start and end stops with intelligent matching and fallbacks
    */
   static findBoundaryStops(
     startLocation: string,
     endLocation: string,
-    allStops: TripStop[]
-  ): {
-    startStop: TripStop;
-    endStop: TripStop;
-    routeStops: TripStop[];
+    allStops: any[]
+  ): { 
+    startStop: TripStop; 
+    endStop: TripStop; 
+    routeStops: TripStop[] 
   } {
-    console.log('🎯 TripBoundaryService: Finding boundary stops', {
-      startLocation,
-      endLocation,
-      availableStops: allStops.length
+    console.log(`🎯 TripBoundaryService: Finding boundary stops for "${startLocation}" to "${endLocation}"`);
+    console.log(`📍 Available stops: ${allStops.length}`);
+
+    // Convert all stops to TripStop format
+    const tripStops = allStops.map(stop => convertToTripStop(stop));
+
+    // Find start stop with flexible matching
+    const startStop = this.findLocationWithFallback(startLocation, tripStops, 'start');
+    
+    // Find end stop with flexible matching
+    const endStop = this.findLocationWithFallback(endLocation, tripStops, 'end');
+
+    console.log(`✅ Boundary stops found:`, {
+      start: `${startStop.name} (${startStop.state})`,
+      end: `${endStop.name} (${endStop.state})`
     });
 
-    // Find start stop
-    const startStop = this.findStopByLocation(startLocation, allStops);
-    if (!startStop) {
-      throw new Error(`Start location "${startLocation}" not found in Route 66 stops`);
-    }
-
-    // Find end stop
-    const endStop = this.findStopByLocation(endLocation, allStops);
-    if (!endStop) {
-      throw new Error(`End location "${endLocation}" not found in Route 66 stops`);
-    }
-
-    // Get all stops that could be on the route between start and end
-    const routeStops = this.getRouteStops(startStop, endStop, allStops);
-
-    console.log('✅ TripBoundaryService: Boundary stops found', {
-      startStop: startStop.name,
-      endStop: endStop.name,
-      routeStopsCount: routeStops.length
-    });
+    // Filter stops to get the route between start and end
+    const routeStops = this.getRouteStops(startStop, endStop, tripStops);
 
     return {
       startStop,
@@ -50,94 +43,144 @@ export class TripBoundaryService {
   }
 
   /**
-   * Find a stop by location name (city name matching)
+   * Find location with flexible matching and intelligent fallbacks
    */
-  private static findStopByLocation(locationName: string, allStops: TripStop[]): TripStop | null {
-    const normalizedLocation = locationName.toLowerCase().trim();
-    
-    // Try exact city match first
+  private static findLocationWithFallback(
+    location: string,
+    allStops: TripStop[],
+    type: 'start' | 'end'
+  ): TripStop {
+    console.log(`🔍 Finding ${type} location: "${location}"`);
+
+    // Step 1: Try exact name match
     let match = allStops.find(stop => 
-      stop.city?.toLowerCase() === normalizedLocation ||
-      stop.city_name?.toLowerCase() === normalizedLocation ||
-      stop.name?.toLowerCase() === normalizedLocation
+      stop.name.toLowerCase() === location.toLowerCase() ||
+      stop.city_name?.toLowerCase() === location.toLowerCase() ||
+      stop.city?.toLowerCase() === location.toLowerCase()
     );
 
-    // Try partial match if exact match fails
-    if (!match) {
-      match = allStops.find(stop => 
-        stop.city?.toLowerCase().includes(normalizedLocation) ||
-        stop.city_name?.toLowerCase().includes(normalizedLocation) ||
-        stop.name?.toLowerCase().includes(normalizedLocation)
-      );
+    if (match) {
+      console.log(`✅ Exact match found: ${match.name}`);
+      return match;
     }
 
-    return match || null;
+    // Step 2: Try city, state format matching
+    const [cityPart, statePart] = location.split(',').map(s => s.trim());
+    if (cityPart && statePart) {
+      match = allStops.find(stop => {
+        const cityMatch = stop.city_name?.toLowerCase().includes(cityPart.toLowerCase()) ||
+                         stop.name.toLowerCase().includes(cityPart.toLowerCase()) ||
+                         stop.city?.toLowerCase().includes(cityPart.toLowerCase());
+        const stateMatch = stop.state?.toLowerCase() === statePart.toLowerCase() ||
+                          stop.state?.toLowerCase() === this.expandStateAbbreviation(statePart.toLowerCase());
+        return cityMatch && stateMatch;
+      });
+
+      if (match) {
+        console.log(`✅ City/State match found: ${match.name} (${match.state})`);
+        return match;
+      }
+    }
+
+    // Step 3: Try partial city name match
+    if (cityPart) {
+      match = allStops.find(stop => 
+        stop.city_name?.toLowerCase().includes(cityPart.toLowerCase()) ||
+        stop.name.toLowerCase().includes(cityPart.toLowerCase()) ||
+        stop.city?.toLowerCase().includes(cityPart.toLowerCase())
+      );
+
+      if (match) {
+        console.log(`✅ Partial city match found: ${match.name}`);
+        return match;
+      }
+    }
+
+    // Step 4: Geographic fallbacks based on known Route 66 endpoints
+    console.log(`⚠️ No match found for "${location}", using geographic fallback`);
+    
+    if (type === 'start') {
+      // For start locations, prefer Chicago area or eastern stops
+      const easternStops = allStops
+        .filter(stop => stop.longitude < -90) // East of -90 longitude
+        .sort((a, b) => a.longitude - b.longitude); // Sort by longitude (easternmost first)
+      
+      if (easternStops.length > 0) {
+        console.log(`🔄 Using eastern fallback: ${easternStops[0].name}`);
+        return easternStops[0];
+      }
+    } else {
+      // For end locations, prefer California or western stops
+      const westernStops = allStops
+        .filter(stop => stop.longitude > -115) // West of -115 longitude (California area)
+        .sort((a, b) => b.longitude - a.longitude); // Sort by longitude (westernmost first)
+      
+      if (westernStops.length > 0) {
+        console.log(`🔄 Using western fallback: ${westernStops[0].name}`);
+        return westernStops[0];
+      }
+    }
+
+    // Step 5: Last resort - use first or last stop
+    const fallbackStop = type === 'start' ? allStops[0] : allStops[allStops.length - 1];
+    console.log(`🚨 Last resort fallback: ${fallbackStop.name}`);
+    return fallbackStop;
   }
 
   /**
-   * Get stops that are roughly on the route between start and end
+   * Expand state abbreviations to full names
+   */
+  private static expandStateAbbreviation(abbrev: string): string {
+    const stateMap: { [key: string]: string } = {
+      'il': 'illinois',
+      'mo': 'missouri', 
+      'ks': 'kansas',
+      'ok': 'oklahoma',
+      'tx': 'texas',
+      'nm': 'new mexico',
+      'az': 'arizona',
+      'ca': 'california'
+    };
+    return stateMap[abbrev.toLowerCase()] || abbrev;
+  }
+
+  /**
+   * Get stops that form the route between start and end
    */
   private static getRouteStops(
     startStop: TripStop,
     endStop: TripStop,
     allStops: TripStop[]
   ): TripStop[] {
-    // Calculate direct distance between start and end
-    const directDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude,
-      startStop.longitude,
-      endStop.latitude,
-      endStop.longitude
+    // Determine trip direction
+    const isEastToWest = startStop.longitude < endStop.longitude;
+    
+    // Filter stops that are geographically between start and end
+    const minLat = Math.min(startStop.latitude, endStop.latitude) - 2; // Add buffer
+    const maxLat = Math.max(startStop.latitude, endStop.latitude) + 2;
+    const minLng = Math.min(startStop.longitude, endStop.longitude) - 2;
+    const maxLng = Math.max(startStop.longitude, endStop.longitude) + 2;
+
+    const routeStops = allStops.filter(stop => 
+      stop.id !== startStop.id &&
+      stop.id !== endStop.id &&
+      stop.latitude >= minLat &&
+      stop.latitude <= maxLat &&
+      stop.longitude >= minLng &&
+      stop.longitude <= maxLng
     );
 
-    // Filter stops that are roughly on the route
-    const routeStops = allStops.filter(stop => {
-      // Skip start and end stops
-      if (stop.id === startStop.id || stop.id === endStop.id) {
-        return false;
-      }
-
-      // Calculate distance from start to this stop, and from this stop to end
-      const startToStop = DistanceCalculationService.calculateDistance(
-        startStop.latitude,
-        startStop.longitude,
-        stop.latitude,
-        stop.longitude
-      );
-
-      const stopToEnd = DistanceCalculationService.calculateDistance(
-        stop.latitude,
-        stop.longitude,
-        endStop.latitude,
-        endStop.longitude
-      );
-
-      // If going through this stop doesn't add too much distance, it's on the route
-      const totalThroughStop = startToStop + stopToEnd;
-      const detourFactor = totalThroughStop / directDistance;
-
-      // Allow up to 30% detour to include stops that are roughly on the route
-      return detourFactor <= 1.3;
-    });
-
-    // Sort by distance from start to maintain rough route order
+    // Sort by longitude to follow Route 66's east-west progression
     routeStops.sort((a, b) => {
-      const distA = DistanceCalculationService.calculateDistance(
-        startStop.latitude,
-        startStop.longitude,
-        a.latitude,
-        a.longitude
-      );
-      const distB = DistanceCalculationService.calculateDistance(
-        startStop.latitude,
-        startStop.longitude,
-        b.latitude,
-        b.longitude
-      );
-      return distA - distB;
+      if (isEastToWest) {
+        return a.longitude - b.longitude; // Sort west (ascending longitude)
+      } else {
+        return b.longitude - a.longitude; // Sort east (descending longitude)
+      }
     });
 
-    // Include start and end stops in the final array
-    return [startStop, ...routeStops, endStop];
+    console.log(`🛣️ Route stops found: ${routeStops.length} stops between ${startStop.name} and ${endStop.name}`);
+    
+    return routeStops;
   }
 }
