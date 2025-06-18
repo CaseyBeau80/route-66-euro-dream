@@ -3,8 +3,8 @@ import React from 'react';
 import { Gauge } from 'lucide-react';
 
 interface TripStyleSectionProps {
-  tripStyle: 'balanced' | 'destination-focused';
-  onTripStyleChange: (style: 'balanced' | 'destination-focused') => void;
+  tripStyle: 'destination-focused';
+  onTripStyleChange: (style: 'destination-focused') => void;
 }
 
 const TripStyleSection: React.FC<TripStyleSectionProps> = ({
@@ -17,22 +17,7 @@ const TripStyleSection: React.FC<TripStyleSectionProps> = ({
         <Gauge className="inline w-4 h-4 mr-1" />
         Trip Style
       </label>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <button
-          type="button"
-          onClick={() => onTripStyleChange('balanced')}
-          className={`p-4 border rounded-lg text-left transition-colors ${
-            tripStyle === 'balanced'
-              ? 'border-route66-primary bg-route66-primary/10 text-route66-primary'
-              : 'border-route66-border hover:border-route66-primary/50'
-          }`}
-        >
-          <div className="font-medium">Even Pacing</div>
-          <div className="text-sm text-route66-text-secondary mt-1">
-            Consistent drive times with diverse stops
-          </div>
-        </button>
-        
+      <div className="grid grid-cols-1 gap-3">
         <button
           type="button"
           onClick={() => onTripStyleChange('destination-focused')}
@@ -44,7 +29,7 @@ const TripStyleSection: React.FC<TripStyleSectionProps> = ({
         >
           <div className="font-medium">Heritage Cities</div>
           <div className="text-sm text-route66-text-secondary mt-1">
-            Prioritizes iconic Route 66 heritage locations
+            Prioritizes iconic Route 66 heritage locations with optimized drive times
           </div>
         </button>
       </div>

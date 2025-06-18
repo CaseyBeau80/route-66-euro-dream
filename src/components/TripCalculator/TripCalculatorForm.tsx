@@ -26,7 +26,7 @@ interface TripCalculatorFormProps {
   isCalculating: boolean;
   tripPlan?: TripPlan;
   shareUrl?: string | null;
-  onTripStyleChange?: (style: 'balanced' | 'destination-focused') => void;
+  onTripStyleChange?: (style: 'destination-focused') => void;
 }
 
 const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
@@ -67,34 +67,25 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
     }
   };
 
-  const handleTripStyleChange = (style: 'balanced' | 'destination-focused') => {
+  const handleTripStyleChange = (style: 'destination-focused') => {
     console.log(`🎨 Trip style changed to: ${style}, triggering re-plan if trip exists`);
     
-    // If we have a valid trip plan and the style actually changed, trigger re-planning
-    if (tripPlan && formData.tripStyle !== style && isFormValid) {
-      console.log(`🔄 Trip style changed from ${formData.tripStyle} to ${style}, re-planning...`);
-      
-      // Update form data first
-      setFormData({
-        ...formData,
-        tripStyle: style
-      });
-      
-      // Call external handler if provided
-      if (onTripStyleChange) {
-        onTripStyleChange(style);
-      }
-      
-      // Trigger recalculation after a short delay to ensure state update
+    // Update form data first
+    setFormData({
+      ...formData,
+      tripStyle: style
+    });
+    
+    // Call external handler if provided
+    if (onTripStyleChange) {
+      onTripStyleChange(style);
+    }
+    
+    // Trigger recalculation if we have a valid trip plan
+    if (tripPlan && isFormValid) {
       setTimeout(() => {
         onCalculate();
       }, 100);
-    } else {
-      // Just update form data if no trip exists yet
-      setFormData({
-        ...formData,
-        tripStyle: style
-      });
     }
   };
 
@@ -110,7 +101,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       {/* Data Source Status Indicator */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Plan your Route 66 adventure
+          Plan your Route 66 heritage adventure
         </div>
         <DataSourceIndicator showDetails={true} className="text-xs" />
       </div>
@@ -122,14 +113,14 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         availableEndLocations={availableEndLocations}
       />
 
-      {/* Trip Style Selector with change handler */}
+      {/* Trip Style Selector - Heritage Cities Only */}
       <TripStyleSelector 
         formData={formData}
         setFormData={setFormData}
         onTripStyleChange={handleTripStyleChange}
       />
 
-      {/* Trip Duration - moved above Trip Start Date */}
+      {/* Trip Duration */}
       <TripDurationForm 
         formData={formData}
         setFormData={setFormData}
@@ -146,16 +137,16 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         <UnitSelector />
       </div>
 
-      {/* Cost Estimator Section - Pass tripPlan for real data */}
+      {/* Cost Estimator Section */}
       <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
 
-      {/* Form Validation Helper - moved above Plan button */}
+      {/* Form Validation Helper */}
       <FormValidationHelper 
         formData={formData}
         isFormValid={isFormValid}
       />
 
-      {/* Enhanced Plan Button - Maximum Attention */}
+      {/* Enhanced Plan Button */}
       <div className="relative">
         {/* Animated background glow */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 rounded-xl opacity-20 animate-pulse blur-lg"></div>
@@ -197,10 +188,10 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       {/* Call-to-action text below button */}
       <div className="text-center">
         <p className="text-lg font-semibold text-blue-700 animate-pulse">
-          ✨ Start Your Epic Journey on America's Most Famous Highway! ✨
+          ✨ Start Your Epic Heritage Cities Journey! ✨
         </p>
         <p className="text-sm text-gray-600 mt-1">
-          Free planning • Instant results • Customizable itinerary
+          Free planning • Optimized drive times • Heritage destinations
         </p>
       </div>
 

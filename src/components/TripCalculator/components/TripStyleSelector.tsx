@@ -3,14 +3,14 @@ import React from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Clock } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { TripFormData } from '../types/tripCalculator';
 import TripStyleHelperMessage from './TripStyleHelperMessage';
 
 interface TripStyleSelectorProps {
   formData: TripFormData;
   setFormData: (data: TripFormData) => void;
-  onTripStyleChange?: (style: 'balanced' | 'destination-focused') => void;
+  onTripStyleChange?: (style: 'destination-focused') => void;
 }
 
 const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
@@ -18,7 +18,7 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
   setFormData,
   onTripStyleChange
 }) => {
-  const handleTripStyleChange = (value: 'balanced' | 'destination-focused') => {
+  const handleTripStyleChange = (value: 'destination-focused') => {
     console.log(`🎨 Trip style changed to: ${value}`);
     
     // Update form data
@@ -49,7 +49,7 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
           Trip Style
         </CardTitle>
         <p className="text-sm text-route66-text-secondary">
-          Choose how to balance driving time and destinations
+          Heritage Cities experience with optimized drive times
         </p>
       </CardHeader>
       <CardContent>
@@ -59,31 +59,16 @@ const TripStyleSelector: React.FC<TripStyleSelectorProps> = ({
           className="space-y-4"
         >
           <div className="flex items-start space-x-3 p-3 rounded-lg border border-route66-border hover:bg-route66-background-alt transition-colors">
-            <RadioGroupItem value="balanced" id="balanced" className="mt-1" />
-            <div className="flex-1">
-              <Label htmlFor="balanced" className="text-route66-text-primary font-medium cursor-pointer">
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="h-4 w-4 text-route66-primary" />
-                  Balanced Experience
-                </div>
-              </Label>
-              <p className="text-sm text-route66-text-secondary">
-                Evenly distributes driving time (max 6h/day). Uses all types of stops for variety and exploration.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-3 p-3 rounded-lg border border-route66-border hover:bg-route66-background-alt transition-colors">
             <RadioGroupItem value="destination-focused" id="destination-focused" className="mt-1" />
             <div className="flex-1">
               <Label htmlFor="destination-focused" className="text-route66-text-primary font-medium cursor-pointer">
                 <div className="flex items-center gap-2 mb-1">
                   <MapPin className="h-4 w-4 text-route66-primary" />
-                  Destination-Focused
+                  Heritage Cities Experience
                 </div>
               </Label>
               <p className="text-sm text-route66-text-secondary">
-                Prioritizes major Route 66 heritage cities (max 10h/day). Fewer stops, but iconic destinations.
+                Prioritizes major Route 66 heritage cities with optimized drive times (max 10h/day). Focus on iconic destinations with manageable daily drives.
               </p>
             </div>
           </div>

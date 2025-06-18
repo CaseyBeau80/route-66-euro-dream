@@ -1,13 +1,13 @@
 
 export interface TripStyleConfig {
   name: string;
-  style: 'balanced' | 'destination-focused'; // Add missing style property
+  style: 'destination-focused';
   maxDailyDriveTime: number;
-  maxDailyDriveHours: number; // New property that other services expect
+  maxDailyDriveHours: number;
   preferredDailyDistance: number;
-  preferredDriveTime: number; // New property for drive time preferences
-  minDailyDriveHours: number; // New property for minimum drive hours
-  flexibility: number; // New property for flexibility score (0-1)
+  preferredDriveTime: number;
+  minDailyDriveHours: number;
+  flexibility: number;
   prioritizeDestinationCities: boolean;
   allowLongerDrivesForBetterDestinations: boolean;
   balanceFactors: {
@@ -19,55 +19,34 @@ export interface TripStyleConfig {
 
 export class TripStyleLogic {
   /**
-   * Configure trip style parameters
+   * Configure trip style parameters - now only supports destination-focused
    */
-  static configureTripStyle(tripStyle: 'balanced' | 'destination-focused'): TripStyleConfig {
-    console.log(`🎨 TripStyleLogic: Configuring ${tripStyle} trip style`);
+  static configureTripStyle(tripStyle: 'destination-focused'): TripStyleConfig {
+    console.log(`🎨 TripStyleLogic: Configuring ${tripStyle} trip style with 10h max drive time`);
 
-    if (tripStyle === 'destination-focused') {
-      return {
-        name: 'Destination-Focused',
-        style: 'destination-focused', // Add the style property
-        maxDailyDriveTime: 10,
-        maxDailyDriveHours: 10,
-        preferredDailyDistance: 350,
-        preferredDriveTime: 6,
-        minDailyDriveHours: 3,
-        flexibility: 0.8,
-        prioritizeDestinationCities: true,
-        allowLongerDrivesForBetterDestinations: true,
-        balanceFactors: {
-          distance: 0.3,
-          driveTime: 0.2,
-          destinations: 0.5
-        }
-      };
-    } else {
-      // Default to balanced
-      return {
-        name: 'Balanced',
-        style: 'balanced', // Add the style property
-        maxDailyDriveTime: 7,
-        maxDailyDriveHours: 7,
-        preferredDailyDistance: 300,
-        preferredDriveTime: 5,
-        minDailyDriveHours: 2,
-        flexibility: 0.6,
-        prioritizeDestinationCities: false,
-        allowLongerDrivesForBetterDestinations: false,
-        balanceFactors: {
-          distance: 0.4,
-          driveTime: 0.4,
-          destinations: 0.2
-        }
-      };
-    }
+    return {
+      name: 'Heritage Cities',
+      style: 'destination-focused',
+      maxDailyDriveTime: 10, // Enforced 10-hour limit
+      maxDailyDriveHours: 10, // Enforced 10-hour limit
+      preferredDailyDistance: 400, // Increased to accommodate longer drives
+      preferredDriveTime: 7, // Preferred 7 hours
+      minDailyDriveHours: 3,
+      flexibility: 0.8,
+      prioritizeDestinationCities: true,
+      allowLongerDrivesForBetterDestinations: true,
+      balanceFactors: {
+        distance: 0.3,
+        driveTime: 0.2,
+        destinations: 0.5
+      }
+    };
   }
 
   /**
    * Get style configuration for validation purposes
    */
-  static getStyleConfig(tripStyle: 'balanced' | 'destination-focused'): TripStyleConfig {
+  static getStyleConfig(tripStyle: 'destination-focused'): TripStyleConfig {
     return this.configureTripStyle(tripStyle);
   }
 }

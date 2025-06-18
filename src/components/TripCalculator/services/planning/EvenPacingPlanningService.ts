@@ -10,42 +10,43 @@ export class EvenPacingPlanningService {
     travelDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log('⚖️ EvenPacingPlanningService: Starting even pacing trip planning', {
+    console.log('⚖️ EvenPacingPlanningService: Redirecting to heritage cities planning', {
       startLocation,
       endLocation,
       travelDays,
-      note: 'MUST respect the requested travel days exactly'
+      note: 'Now using destination-focused approach with 10h drive limits'
     });
     
     try {
-      // Use the orchestrator to handle the complete planning process
+      // Use the orchestrator with destination-focused style (heritage cities)
       const orchestrationData = await TripPlanningOrchestrator.orchestrateTripPlanning(
         startLocation,
         endLocation,
         travelDays,
-        'balanced'
+        'destination-focused'
       );
 
-      // Build the final trip plan using the orchestration data - CRITICAL: pass travelDays
+      // Build the final trip plan - CRITICAL: pass exact travelDays
       const tripPlan = await TripPlanningOrchestrator.buildTripPlan(
         orchestrationData,
         startLocation,
         endLocation,
-        travelDays, // This MUST be respected
-        'balanced'
+        travelDays, // MUST be respected exactly
+        'destination-focused'
       );
 
       // Validate the result
       if (tripPlan.segments.length !== travelDays) {
         console.error(`❌ CRITICAL: EvenPacingPlanningService generated ${tripPlan.segments.length} days instead of ${travelDays}`);
       } else {
-        console.log(`✅ EvenPacingPlanningService: Successfully created ${travelDays}-day trip`);
+        console.log(`✅ EvenPacingPlanningService: Successfully created ${travelDays}-day heritage cities trip`);
       }
 
-      console.log('✅ EvenPacingPlanningService: Trip planning completed', {
+      console.log('✅ Heritage Cities Planning completed', {
         requestedDays: travelDays,
         actualDays: tripPlan.segments?.length,
         totalDistance: tripPlan.totalDistance,
+        maxDriveTime: Math.max(...tripPlan.segments.map(s => s.driveTimeHours)),
         segments: tripPlan.segments.map(s => ({
           day: s.day,
           distance: s.distance.toFixed(0),
@@ -58,9 +59,9 @@ export class EvenPacingPlanningService {
     } catch (error) {
       console.error('❌ EvenPacingPlanningService: Planning failed', error);
       
-      // Return a fallback plan rather than throwing
+      // Return a fallback plan
       return {
-        id: `even-pacing-fallback-${Date.now()}`,
+        id: `heritage-fallback-${Date.now()}`,
         startCity: startLocation,
         endCity: endLocation,
         startLocation,
@@ -78,7 +79,7 @@ export class EvenPacingPlanningService {
           totalDriveTime: 40,
           startLocation,
           endLocation,
-          tripStyle: 'balanced'
+          tripStyle: 'destination-focused'
         }
       };
     }
