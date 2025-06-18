@@ -1,3 +1,4 @@
+
 // Calculate distance between two points using Haversine formula
 export const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
   const R = 3959; // Earth's radius in miles
@@ -17,64 +18,61 @@ export const formatTime = (hours: number): string => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-// STRICT 8-HOUR ENFORCEMENT: No drive time can exceed 8 hours for Route 66 trips
+// BALANCED DRIVE TIME CALCULATION: Ensures realistic and safe daily drives
 export const calculateRealisticDriveTime = (distance: number): number => {
-  console.log(`🚨 STRICT 8H ENFORCEMENT: Calculating drive time for ${distance.toFixed(1)} miles`);
+  console.log(`🚨 BALANCED CALCULATION: Computing drive time for ${distance.toFixed(1)} miles`);
   
-  // ABSOLUTE MAXIMUM: 8 hours for Route 66 trips - no exceptions
-  const ABSOLUTE_MAX_HOURS = 8;
-  const ABSOLUTE_MAX_DISTANCE = 450; // Maximum miles per day
+  // Constants for balanced trip planning
+  const MIN_DAILY_DISTANCE = 150; // Minimum for meaningful progress
+  const MAX_DAILY_DISTANCE = 400; // Maximum for safety and enjoyment
+  const PREFERRED_DAILY_DISTANCE = 300; // Sweet spot for Route 66
+  const MAX_DRIVE_HOURS = 8; // Absolute maximum per day
   
-  // Handle all edge cases
+  // Handle edge cases
   if (distance <= 0 || !isFinite(distance) || isNaN(distance)) {
     console.log(`🚨 Invalid distance ${distance}, returning 0.5h`);
     return 0.5;
   }
   
-  // Cap distance at absolute maximum
-  const cappedDistance = Math.min(distance, ABSOLUTE_MAX_DISTANCE);
-  const wasDistanceCapped = distance > ABSOLUTE_MAX_DISTANCE;
-  
-  if (wasDistanceCapped) {
-    console.warn(`🚨 DISTANCE CAPPED: ${distance.toFixed(1)}mi capped to ${ABSOLUTE_MAX_DISTANCE}mi`);
+  // Warn about distances outside preferred range
+  if (distance < MIN_DAILY_DISTANCE) {
+    console.warn(`⚠️ SHORT DAY: ${distance.toFixed(1)}mi is below recommended minimum ${MIN_DAILY_DISTANCE}mi`);
+  } else if (distance > MAX_DAILY_DISTANCE) {
+    console.warn(`⚠️ LONG DAY: ${distance.toFixed(1)}mi exceeds recommended maximum ${MAX_DAILY_DISTANCE}mi`);
   }
   
-  // Calculate base drive time with realistic Route 66 speeds
+  // Calculate realistic Route 66 speed based on distance
   let avgSpeed: number;
   
-  if (cappedDistance < 50) {
-    avgSpeed = 45; // City driving, stops
-  } else if (cappedDistance < 150) {
-    avgSpeed = 50; // Mixed driving
-  } else if (cappedDistance < 300) {
-    avgSpeed = 55; // Highway driving
+  if (distance < 100) {
+    avgSpeed = 40; // City driving, frequent stops
+  } else if (distance < 200) {
+    avgSpeed = 45; // Mixed driving
+  } else if (distance < 300) {
+    avgSpeed = 50; // Mostly highway
   } else {
-    avgSpeed = 60; // Long highway stretches
+    avgSpeed = 55; // Long highway stretches
   }
   
-  const baseTime = cappedDistance / avgSpeed;
+  const baseTime = distance / avgSpeed;
   
-  // Add buffer for stops, traffic, etc. (but keep reasonable)
-  const bufferMultiplier = 1.1; // Only 10% buffer
+  // Add realistic buffer for Route 66 experience (stops, sightseeing, photos)
+  const bufferMultiplier = 1.15; // 15% buffer for Route 66 attractions
   const calculatedTime = baseTime * bufferMultiplier;
   
-  // CRITICAL: NEVER exceed 8 hours under any circumstances
-  const finalTime = Math.min(calculatedTime, ABSOLUTE_MAX_HOURS);
+  // Never exceed maximum safe drive time
+  const finalTime = Math.min(calculatedTime, MAX_DRIVE_HOURS);
   
-  // If the calculated time would exceed 8 hours, we need to flag this
-  if (calculatedTime > ABSOLUTE_MAX_HOURS) {
-    console.warn(`🚨 DRIVE TIME CAPPED: ${cappedDistance.toFixed(1)}mi would require ${calculatedTime.toFixed(1)}h - FORCED to ${ABSOLUTE_MAX_HOURS}h`);
-  }
-  
-  console.log(`✅ Drive time calculation complete:`, {
-    originalDistance: distance.toFixed(1),
-    cappedDistance: cappedDistance.toFixed(1),
+  // Log calculation details
+  console.log(`✅ Balanced drive time calculation:`, {
+    distance: distance.toFixed(1),
     avgSpeed,
     baseTime: baseTime.toFixed(1),
-    calculatedTime: calculatedTime.toFixed(1),
+    withBuffer: calculatedTime.toFixed(1),
     finalTime: finalTime.toFixed(1),
-    wasDistanceCapped,
-    wasDriveTimeCapped: calculatedTime > ABSOLUTE_MAX_HOURS
+    wasCapped: calculatedTime > MAX_DRIVE_HOURS,
+    category: distance < MIN_DAILY_DISTANCE ? 'short' : 
+              distance > MAX_DAILY_DISTANCE ? 'long' : 'balanced'
   });
   
   // Ensure minimum time and return
