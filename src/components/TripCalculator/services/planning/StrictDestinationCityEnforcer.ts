@@ -1,5 +1,6 @@
 
 import { TripStop } from '../../types/TripStop';
+import { DailySegment } from './TripPlanBuilder';
 
 export class StrictDestinationCityEnforcer {
   /**
@@ -42,6 +43,13 @@ export class StrictDestinationCityEnforcer {
   }
 
   /**
+   * Check if a stop is a destination city (alias for isValidDestinationCity for backward compatibility)
+   */
+  static isDestinationCity(stop: any): stop is TripStop {
+    return this.isValidDestinationCity(stop);
+  }
+
+  /**
    * Validate that a stop is a proper destination city
    */
   static isValidDestinationCity(stop: any): stop is TripStop {
@@ -54,5 +62,65 @@ export class StrictDestinationCityEnforcer {
            !isNaN(stop.latitude) &&
            !isNaN(stop.longitude) &&
            stop.category === 'destination_city';
+  }
+
+  /**
+   * Validate that all stops in a trip plan are destination cities
+   */
+  static validateTripPlan(segments: DailySegment[]): { isValid: boolean; violations: string[] } {
+    const violations: string[] = [];
+
+    if (!segments || !Array.isArray(segments)) {
+      violations.push('Invalid segments parameter');
+      return { isValid: false, violations };
+    }
+
+    segments.forEach((segment, index) => {
+      if (!segment) {
+        violations.push(`Segment ${index + 1} is null/undefined`);
+        return;
+      }
+
+      if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
+        segment.recommendedStops.forEach((stop, stopIndex) => {
+          if (!this.isDestinationCity(stop)) {
+            violations.push(`Day ${segment.day}, Stop ${stopIndex + 1}: ${stop?.name || 'unnamed'} is not a destination city`);
+          }
+        });
+      }
+    });
+
+    return {
+      isValid: violations.length === 0,
+      violations
+    };
+  }
+
+  /**
+   * Sanitize trip plan to remove non-destination cities
+   */
+  static sanitizeTripPlan(segments: DailySegment[]): DailySegment[] {
+    if (!segments || !Array.isArray(segments)) {
+      console.error('❌ StrictDestinationCityEnforcer: Invalid segments parameter for sanitization');
+      return [];
+    }
+
+    return segments.map(segment => {
+      if (!segment) return segment;
+
+      const sanitizedSegment = { ...segment };
+
+      if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
+        sanitizedSegment.recommendedStops = segment.recommendedStops.filter(stop => {
+          const isDestCity = this.isDestinationCity(stop);
+          if (!isDestCity) {
+            console.log(`🧹 Sanitized out non-destination city: ${stop?.name || 'unnamed'} (${stop?.category || 'unknown'})`);
+          }
+          return isDestCity;
+        });
+      }
+
+      return sanitizedSegment;
+    });
   }
 }

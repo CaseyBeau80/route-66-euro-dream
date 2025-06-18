@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
