@@ -20,8 +20,7 @@ export class DriveTimeEnforcementService {
         console.warn(`Capping drive time for day ${segment.day} from ${segment.driveTimeHours}h to ${styleConfig.maxDailyDriveHours}h`);
         return {
           ...segment,
-          driveTimeHours: styleConfig.maxDailyDriveHours,
-          drivingTime: styleConfig.maxDailyDriveHours
+          driveTimeHours: styleConfig.maxDailyDriveHours
         };
       }
       return segment;
@@ -42,8 +41,7 @@ export class DriveTimeEnforcementService {
         ...segment,
         distance: maxDistance,
         approximateMiles: maxDistance,
-        driveTimeHours: styleConfig.maxDailyDriveHours,
-        drivingTime: styleConfig.maxDailyDriveHours
+        driveTimeHours: styleConfig.maxDailyDriveHours
       };
     }
     

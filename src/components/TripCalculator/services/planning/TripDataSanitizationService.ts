@@ -25,7 +25,6 @@ export class TripDataSanitizationService {
       distance: segment.distance || 0,
       approximateMiles: segment.approximateMiles || 0,
       driveTimeHours: segment.driveTimeHours || 0,
-      drivingTime: segment.drivingTime || 0,
       stops: segment.stops || [],
       recommendedStops: segment.recommendedStops || [],
       attractions: segment.attractions || [],
@@ -34,7 +33,9 @@ export class TripDataSanitizationService {
       driveTimeCategory: segment.driveTimeCategory || { category: 'optimal', message: 'Optimal Drive Time' },
       destination: segment.destination || { city: 'Unknown', state: 'Unknown' },
       isGoogleMapsData: segment.isGoogleMapsData || false,
-      dataAccuracy: segment.dataAccuracy || 'Unknown'
+      dataAccuracy: segment.dataAccuracy || 'Unknown',
+      notes: segment.notes || '',
+      recommendations: segment.recommendations || []
     };
   }
 
@@ -56,7 +57,8 @@ export class TripDataSanitizationService {
         segments: [],
         dailySegments: [],
         stops: [],
-        lastUpdated: new Date()
+        lastUpdated: new Date(),
+        tripStyle: 'balanced'
       };
     }
 
@@ -79,7 +81,8 @@ export class TripDataSanitizationService {
       segments: (tripPlan.segments || []).map((segment: any) => this.sanitizeSegment(segment)),
       dailySegments: (tripPlan.dailySegments || tripPlan.segments || []).map((segment: any) => this.sanitizeSegment(segment)),
       stops: tripPlan.stops || [],
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      tripStyle: tripPlan.tripStyle === 'destination-focused' ? 'destination-focused' : 'balanced'
     };
   }
 
@@ -122,7 +125,8 @@ export class TripDataSanitizationService {
       segments: [],
       dailySegments: [],
       stops: [],
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      tripStyle: 'balanced'
     };
   }
 

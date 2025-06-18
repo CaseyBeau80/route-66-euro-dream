@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
-import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
+import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { EnhancedTripPlanResult } from '../../TripCalculator/services/Route66TripPlannerService';
 import { Route66TripPlannerService } from '../../TripCalculator/services/Route66TripPlannerService';
 import { GoogleMapsIntegrationService } from '../../TripCalculator/services/GoogleMapsIntegrationService';
@@ -26,12 +26,14 @@ export const useTripCalculation = () => {
     setPlanningResult(null);
 
     try {
-      // Fix: Use the correct number of arguments (4 instead of 5)
+      // Fix: Use the correct number of arguments and ensure tripStyle is properly typed
+      const tripStyle: 'balanced' | 'destination-focused' = formData.tripStyle === 'destination-focused' ? 'destination-focused' : 'balanced';
+      
       const result = await Route66TripPlannerService.planTripWithAnalysis(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays,
-        formData.tripStyle || 'balanced'
+        tripStyle
       );
 
       console.log('✅ useTripCalculation: Enhanced trip planning completed with Google Maps integration', {
@@ -44,28 +46,11 @@ export const useTripCalculation = () => {
       });
 
       if (result.tripPlan) {
-        // Create a properly structured TripPlan that matches our unified type
+        // Ensure the trip plan has the required title property
         const unifiedTripPlan: TripPlan = {
-          // Core required properties
-          id: result.tripPlan.id || `trip-${Date.now()}`,
-          startLocation: result.tripPlan.startLocation || formData.startLocation,
-          endLocation: result.tripPlan.endLocation || formData.endLocation,
-          totalDistance: result.tripPlan.totalDistance,
-          totalDays: result.tripPlan.totalDays,
-          segments: result.tripPlan.segments || [],
-          stops: result.tripPlan.stops || [],
-          
-          // Additional properties that components expect
-          startCity: result.tripPlan.startCity || result.tripPlan.segments?.[0]?.startCity || formData.startLocation,
-          endCity: result.tripPlan.endCity || result.tripPlan.segments?.[result.tripPlan.segments.length - 1]?.endCity || formData.endLocation,
-          startDate: result.tripPlan.startDate || new Date(),
-          totalMiles: result.tripPlan.totalMiles || result.tripPlan.totalDistance,
-          totalDrivingTime: result.tripPlan.totalDrivingTime || result.tripPlan.segments?.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0),
-          dailySegments: result.tripPlan.dailySegments || result.tripPlan.segments || [],
+          ...result.tripPlan,
           title: result.tripPlan.title || `${formData.startLocation} to ${formData.endLocation} Route 66 Adventure`,
-          tripStyle: result.tripPlan.tripStyle || formData.tripStyle,
-          // Copy any other properties that might exist
-          ...result.tripPlan
+          tripStyle: tripStyle
         };
         
         setTripPlan(unifiedTripPlan);

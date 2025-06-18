@@ -79,14 +79,11 @@ export class TripPlanDataValidator {
       ...segment,
       distance: isNaN(segment.distance) ? 0 : Math.max(0, segment.distance),
       driveTimeHours: isNaN(segment.driveTimeHours) ? 0 : Math.max(0, segment.driveTimeHours),
-      drivingTime: segment.drivingTime || segment.driveTimeHours,
       startCity: segment.startCity || 'Unknown',
       endCity: segment.endCity || getDestinationCityName(segment.destination) || 'Unknown',
       approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0),
       recommendedStops: segment.recommendedStops || [],
-      attractions: segment.attractions || [],
-      notes: segment.notes || '',
-      recommendations: segment.recommendations || []
+      attractions: segment.attractions || []
     };
   }
   

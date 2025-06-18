@@ -26,8 +26,7 @@ export class SegmentSanitizer {
         state: 'Unknown'
       },
       distance: DataSanitizationUtils.sanitizeNumber(segment.distance || segment.approximateMiles, 0),
-      driveTimeHours: DataSanitizationUtils.sanitizeNumber(segment.driveTimeHours || segment.drivingTime, 0),
-      drivingTime: DataSanitizationUtils.sanitizeNumber(segment.drivingTime || segment.driveTimeHours, 0),
+      driveTimeHours: DataSanitizationUtils.sanitizeNumber(segment.driveTimeHours, 0),
       approximateMiles: DataSanitizationUtils.sanitizeNumber(segment.approximateMiles || segment.distance, 0),
       stops: Array.isArray(segment.stops) ? segment.stops : [], // Add required stops property
       recommendedStops: Array.isArray(segment.recommendedStops) ? segment.recommendedStops : (Array.isArray(segment.stops) ? segment.stops : []),
@@ -63,7 +62,6 @@ export class SegmentSanitizer {
       },
       distance: 0,
       driveTimeHours: 0,
-      drivingTime: 0,
       approximateMiles: 0,
       stops: [], // Add required stops property
       recommendedStops: [],

@@ -26,7 +26,6 @@ export class SegmentCreationService {
       distance,
       approximateMiles: distance,
       driveTimeHours: driveTime,
-      drivingTime: driveTime,
       destination: {
         city: endStop.name,
         state: endStop.state || 'Unknown'
@@ -53,7 +52,6 @@ export class SegmentCreationService {
       distance: cappedDistance,
       approximateMiles: cappedDistance,
       driveTimeHours: styleConfig.maxDailyDriveHours,
-      drivingTime: styleConfig.maxDailyDriveHours,
       destination: {
         city: endStop.name,
         state: endStop.state || 'Unknown'
