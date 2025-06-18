@@ -80,7 +80,7 @@ export class EnhancedTripPlanningService {
         lastUpdated: new Date()
       };
 
-      // 10. Analyze trip completion - Fix: Use only one argument
+      // 10. Analyze trip completion
       const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
       console.log('✅ Trip Completion Analysis:', completionAnalysis);
 
@@ -129,7 +129,7 @@ export class EnhancedTripPlanningService {
         const isLastDay = day === travelDays;
         const dayEndStop = isLastDay ? endStop : null;
 
-        // 4. Create validated segment
+        // 4. Create validated segment - Fix: Use only required arguments
         let segment = await SegmentCreationService.createValidatedSegment(
           currentStop,
           dayEndStop || endStop,
@@ -138,12 +138,11 @@ export class EnhancedTripPlanningService {
         );
 
         if (!segment) {
-          // 5. If validation fails, create capped segment
+          // 5. If validation fails, create capped segment - Fix: Use only required arguments
           segment = await SegmentCreationService.createCappedSegment(
             currentStop,
             endStop,
-            day,
-            styleConfig
+            day
           );
         }
 
@@ -189,7 +188,7 @@ export class EnhancedTripPlanningService {
         lastUpdated: new Date()
       };
 
-      // 10. Analyze trip completion - Fix: Use only one argument
+      // 10. Analyze trip completion
       const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
       console.log('✅ Trip Completion Analysis:', completionAnalysis);
 
