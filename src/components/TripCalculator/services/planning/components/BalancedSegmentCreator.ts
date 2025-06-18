@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../../types/TripStop';
 import { DailySegment, DriveTimeCategory } from '../TripPlanTypes';
 import { DistanceCalculationService } from '../../utils/DistanceCalculationService';
@@ -64,7 +65,8 @@ export class BalancedSegmentCreator {
           name: stop.name,
           title: stop.name,
           description: stop.description,
-          city: stop.city || stop.city_name
+          city: stop.city || stop.city_name,
+          category: stop.category || 'attraction' // Add required category property
         })),
         driveTimeCategory,
         routeSection: day <= Math.ceil(totalDays / 3) ? 'Early Route' : 

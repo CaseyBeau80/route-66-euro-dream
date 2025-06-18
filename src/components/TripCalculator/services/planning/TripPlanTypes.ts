@@ -183,13 +183,14 @@ export interface DriveTimeCategory {
 // Additional type for drive time balance calculations
 export interface DriveTimeBalance {
   totalHours: number;
-  averageHours: number;
   averageDriveTime: number; // Add missing property
+  averageHours: number;
   maxHours: number;
   minHours: number;
   isBalanced: boolean;
   variance?: number; // Add missing variance property
   driveTimeRange: { min: number; max: number }; // Add missing driveTimeRange property
+  balanceQuality?: 'excellent' | 'good' | 'fair' | 'poor'; // Add missing balanceQuality property
   segments: {
     day: number;
     hours: number;
