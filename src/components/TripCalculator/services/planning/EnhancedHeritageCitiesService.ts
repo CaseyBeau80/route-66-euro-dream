@@ -81,8 +81,8 @@ export class EnhancedHeritageCitiesService {
         destinationCities.splice(0, destinationCities.length, ...fixedDestinations);
       }
 
-      // Create segments with REAL destinations only - NO WAYPOINTS
-      const segments = this.createRealDestinationSegments(
+      // FIXED: Create segments with GUARANTEED exact day count
+      const segments = this.createGuaranteedDaySegments(
         startStop,
         endStop,
         destinationCities,
@@ -141,14 +141,15 @@ export class EnhancedHeritageCitiesService {
         limitMessage
       };
 
-      console.log(`✅ Enhanced Heritage trip complete (NO WAYPOINTS):`, {
+      console.log(`✅ Enhanced Heritage trip complete (GUARANTEED ${travelDays} DAYS):`, {
         segments: segments.length,
         totalDistance: actualTotalDistance.toFixed(1),
         totalDrivingTime: totalDrivingTime.toFixed(1),
         maxDailyDriveTime: Math.max(...segments.map(s => s.driveTimeHours || 0)).toFixed(1),
         maxDailyDistance: Math.max(...segments.map(s => s.distance || 0)).toFixed(1),
         stopsLimited,
-        realDestinationsOnly: true
+        realDestinationsOnly: true,
+        exactDayCount: segments.length === travelDays
       });
 
       return tripPlan;
@@ -296,80 +297,39 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Create segments using REAL destinations only - NO waypoints
+   * FIXED: Create segments with GUARANTEED exact day count
    */
-  private static createRealDestinationSegments(
+  private static createGuaranteedDaySegments(
     startStop: TripStop,
     endStop: TripStop,
     destinations: TripStop[],
-    totalDays: number,
+    requestedDays: number,
     totalDistance: number
   ): DailySegment[] {
-    console.log(`🛠️ Creating ${totalDays} segments with REAL destinations only (10h/500mi HARD LIMITS)`);
+    console.log(`🛠️ FIXED: Creating EXACTLY ${requestedDays} segments with GUARANTEED day count`);
 
     const segments: DailySegment[] = [];
     const allStops = [startStop, ...destinations, endStop];
     
-    // If we have fewer stops than days, we need to distribute the journey differently
-    if (allStops.length <= totalDays) {
-      // Each stop becomes a day's destination
-      for (let day = 1; day <= totalDays && day < allStops.length; day++) {
-        const currentStop = allStops[day - 1];
-        const nextStop = allStops[day];
+    // Calculate total distance that needs to be covered
+    const actualTotalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
 
-        const distance = DistanceCalculationService.calculateDistance(
-          currentStop.latitude, currentStop.longitude,
-          nextStop.latitude, nextStop.longitude
-        );
+    console.log(`📏 Total distance to distribute: ${actualTotalDistance.toFixed(1)} miles across ${requestedDays} days`);
 
-        // Force distance within limits
-        const clampedDistance = Math.min(distance, this.MAX_DAILY_MILES);
-        let driveTime = calculateRealisticDriveTime(clampedDistance);
-        
-        // Force drive time within limits
-        if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
-          console.error(`🚨 EMERGENCY: Day ${day} drive time ${driveTime.toFixed(1)}h > 10h - FORCING to 10h`);
-          driveTime = this.ABSOLUTE_MAX_DRIVE_HOURS;
-        }
-
-        const segment: DailySegment = {
-          day,
-          title: `Day ${day}: ${currentStop.city_name || currentStop.name} to ${nextStop.city_name || nextStop.name}`,
-          startCity: currentStop.city_name || currentStop.name,
-          endCity: nextStop.city_name || nextStop.name,
-          distance: Math.round(clampedDistance),
-          approximateMiles: Math.round(clampedDistance),
-          driveTimeHours: Math.round(driveTime * 10) / 10,
-          destination: {
-            city: nextStop.city_name || nextStop.name,
-            state: nextStop.state || 'Unknown'
-          },
-          recommendedStops: [],
-          attractions: [{
-            name: nextStop.name,
-            title: nextStop.name,
-            description: nextStop.description || `Historic Route 66 destination in ${nextStop.state}`,
-            city: nextStop.city_name || nextStop.name,
-            category: nextStop.category || 'heritage_site'
-          }]
-        };
-
-        segments.push(segment);
-        
-        console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours ✅`);
-      }
-    } else {
-      // More stops than days - need to group some stops
-      const stopsPerDay = Math.ceil(allStops.length / totalDays);
+    // STRATEGY 1: If we have enough stops for each day
+    if (allStops.length - 1 >= requestedDays) {
+      console.log(`✅ Strategy 1: Sufficient stops (${allStops.length - 1} segments available for ${requestedDays} days)`);
       
-      for (let day = 1; day <= totalDays; day++) {
-        const startIndex = (day - 1) * stopsPerDay;
-        const endIndex = Math.min(day * stopsPerDay, allStops.length - 1);
+      // Distribute stops across the requested days
+      for (let day = 1; day <= requestedDays; day++) {
+        const fromIndex = Math.floor((day - 1) * (allStops.length - 1) / requestedDays);
+        const toIndex = Math.floor(day * (allStops.length - 1) / requestedDays);
         
-        if (startIndex >= allStops.length - 1) break;
-        
-        const currentStop = allStops[startIndex];
-        const nextStop = allStops[endIndex];
+        const currentStop = allStops[fromIndex];
+        const nextStop = allStops[toIndex];
 
         const distance = DistanceCalculationService.calculateDistance(
           currentStop.latitude, currentStop.longitude,
@@ -406,9 +366,137 @@ export class EnhancedHeritageCitiesService {
         };
 
         segments.push(segment);
+        console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours`);
+      }
+    } 
+    // STRATEGY 2: Fewer stops than days - need to split long segments or add rest days
+    else {
+      console.log(`✅ Strategy 2: Distributing ${allStops.length - 1} stops across ${requestedDays} days`);
+      
+      const targetDailyDistance = actualTotalDistance / requestedDays;
+      console.log(`🎯 Target daily distance: ${targetDailyDistance.toFixed(1)} miles`);
+
+      let currentStop = startStop;
+      let remainingDistance = actualTotalDistance;
+      let stopIndex = 1; // Start from first destination
+
+      for (let day = 1; day <= requestedDays; day++) {
+        const isLastDay = day === requestedDays;
+        let targetDistance = isLastDay ? remainingDistance : targetDailyDistance;
+        
+        // Ensure we don't exceed daily limits
+        targetDistance = Math.min(targetDistance, this.MAX_DAILY_MILES);
+        
+        let dayDestination: TripStop;
+        let actualDistance: number;
+
+        if (isLastDay) {
+          // Last day always goes to end destination
+          dayDestination = endStop;
+          actualDistance = DistanceCalculationService.calculateDistance(
+            currentStop.latitude, currentStop.longitude,
+            endStop.latitude, endStop.longitude
+          );
+        } else if (stopIndex < allStops.length) {
+          // Use next available stop
+          dayDestination = allStops[stopIndex];
+          actualDistance = DistanceCalculationService.calculateDistance(
+            currentStop.latitude, currentStop.longitude,
+            dayDestination.latitude, dayDestination.longitude
+          );
+          stopIndex++;
+        } else {
+          // Create intermediate point if we've run out of stops but still have days
+          const progressRatio = day / requestedDays;
+          const intermediateLat = startStop.latitude + (endStop.latitude - startStop.latitude) * progressRatio;
+          const intermediateLng = startStop.longitude + (endStop.longitude - startStop.longitude) * progressRatio;
+          
+          dayDestination = {
+            ...endStop,
+            latitude: intermediateLat,
+            longitude: intermediateLng,
+            name: `Rest Day in ${endStop.state}`,
+            city_name: `Rest Day ${day}`
+          };
+          
+          actualDistance = targetDistance;
+        }
+
+        // Clamp distance and calculate drive time
+        const clampedDistance = Math.min(actualDistance, this.MAX_DAILY_MILES);
+        let driveTime = calculateRealisticDriveTime(clampedDistance);
+        
+        if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
+          driveTime = this.ABSOLUTE_MAX_DRIVE_HOURS;
+        }
+
+        const segment: DailySegment = {
+          day,
+          title: `Day ${day}: ${currentStop.city_name || currentStop.name} to ${dayDestination.city_name || dayDestination.name}`,
+          startCity: currentStop.city_name || currentStop.name,
+          endCity: dayDestination.city_name || dayDestination.name,
+          distance: Math.round(clampedDistance),
+          approximateMiles: Math.round(clampedDistance),
+          driveTimeHours: Math.round(driveTime * 10) / 10,
+          destination: {
+            city: dayDestination.city_name || dayDestination.name,
+            state: dayDestination.state || 'Unknown'
+          },
+          recommendedStops: [],
+          attractions: [{
+            name: dayDestination.name,
+            title: dayDestination.name,
+            description: dayDestination.description || `Historic Route 66 destination in ${dayDestination.state}`,
+            city: dayDestination.city_name || dayDestination.name,
+            category: dayDestination.category || 'heritage_site'
+          }]
+        };
+
+        segments.push(segment);
+        currentStop = dayDestination;
+        remainingDistance -= clampedDistance;
+        
+        console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours`);
       }
     }
 
+    // CRITICAL: Verify we have exactly the requested number of days
+    if (segments.length !== requestedDays) {
+      console.error(`🚨 CRITICAL: Generated ${segments.length} segments but requested ${requestedDays} days!`);
+      
+      // Emergency fix: pad with rest days if we're short
+      while (segments.length < requestedDays) {
+        const lastSegment = segments[segments.length - 1];
+        const restDay = requestedDays - segments.length + 1;
+        
+        const restSegment: DailySegment = {
+          day: segments.length + 1,
+          title: `Day ${segments.length + 1}: Rest Day in ${lastSegment.endCity}`,
+          startCity: lastSegment.endCity,
+          endCity: lastSegment.endCity,
+          distance: 0,
+          approximateMiles: 0,
+          driveTimeHours: 0,
+          destination: {
+            city: lastSegment.endCity,
+            state: lastSegment.destination.state
+          },
+          recommendedStops: [],
+          attractions: [{
+            name: `Rest Day ${restDay}`,
+            title: `Rest Day in ${lastSegment.endCity}`,
+            description: `Explore and rest in ${lastSegment.endCity}`,
+            city: lastSegment.endCity,
+            category: 'rest_day'
+          }]
+        };
+        
+        segments.push(restSegment);
+        console.log(`🛌 Added rest day ${restDay}: ${restSegment.title}`);
+      }
+    }
+
+    console.log(`✅ GUARANTEED: Created exactly ${segments.length} segments for ${requestedDays} requested days`);
     return segments;
   }
 
