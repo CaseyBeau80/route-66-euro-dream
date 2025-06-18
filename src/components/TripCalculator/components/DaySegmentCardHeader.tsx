@@ -1,14 +1,12 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { Calendar, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 
 interface DaySegmentCardHeaderProps {
   segment: DailySegment;
-  segmentDate?: Date | null;
+  segmentDate?: Date;
   driveTimeStyle: {
     bg: string;
     text: string;
@@ -23,63 +21,46 @@ const DaySegmentCardHeader: React.FC<DaySegmentCardHeaderProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      {/* Consistent Header Format: Day X • City Name */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs font-medium border-route66-border">
+      {/* Blue Badge Header - Matching Preview Style */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded">
             Day {segment.day}
-          </Badge>
-          <span className="text-gray-300">•</span>
-          <h4 className="font-route66 text-base text-route66-text-primary font-semibold">
+          </span>
+          <span className="text-red-600">•</span>
+          <h4 className="text-lg font-semibold text-gray-800">
             {segment.endCity}
           </h4>
+          
+          {/* Google Maps Data Indicator */}
+          {segment.isGoogleMapsData && (
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+              🗺️ Enhanced
+            </span>
+          )}
         </div>
         
-        <div className="flex items-center gap-2">
-          {segmentDate && (
-            <div className="flex items-center gap-1 text-xs text-route66-text-secondary">
-              <Calendar className="h-3 w-3" />
-              {format(segmentDate, 'EEE, MMM d')}
-            </div>
-          )}
-          
-          {segment.routeSection && (
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge 
-                  variant="outline" 
-                  className="text-xs border-route66-accent-light text-route66-text-secondary"
-                >
-                  {segment.routeSection}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Route section on historic Route 66</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          
-          {/* Drive Time Status Pill */}
-          {segment.driveTimeCategory && (
-            <Tooltip>
-              <TooltipTrigger>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${driveTimeStyle.bg} ${driveTimeStyle.text} ${driveTimeStyle.border}`}>
-                  <Clock className="h-3 w-3" />
-                  <span className="capitalize">{segment.driveTimeCategory.category}</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{segment.driveTimeCategory.message}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
+        {/* Drive Time Warning */}
+        {segment.driveTimeHours > 7 && (
+          <div className="flex items-center gap-1 text-orange-600">
+            <AlertTriangle className="h-4 w-4" />
+            <span className="text-xs font-medium">Long Drive Day</span>
+          </div>
+        )}
       </div>
 
-      {/* Route Title with Consistent Format */}
-      <h5 className="font-route66 text-sm text-route66-text-primary font-medium">
-        {segment.startCity} → {segment.endCity}
-      </h5>
+      {/* Date Display */}
+      {segmentDate && (
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Calendar className="h-4 w-4" />
+          <span>📅 {format(segmentDate, 'EEEE, MMMM d')}</span>
+        </div>
+      )}
+      
+      {/* Route Description */}
+      <div className="text-sm text-gray-600">
+        <strong>Route:</strong> {segment.startCity} → {segment.endCity}
+      </div>
     </div>
   );
 };

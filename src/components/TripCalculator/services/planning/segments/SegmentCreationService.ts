@@ -1,3 +1,4 @@
+
 import { DailySegment, RecommendedStop } from '../TripPlanTypes';
 import { TripStop } from '../../../types/TripStop';
 import { DistanceCalculationService } from '../../utils/DistanceCalculationService';
@@ -5,28 +6,27 @@ import { CityDisplayService } from '../../utils/CityDisplayService';
 import { TripPlanUtils } from '../TripPlanUtils';
 import { TripStyleConfig } from '../TripStyleLogic';
 import { DriveTimeEnforcementService } from '../DriveTimeEnforcementService';
+import { EnhancedDistanceService } from '../../EnhancedDistanceService';
 
 export class SegmentCreationService {
   /**
-   * Create a validated segment that meets all constraints
+   * Create a validated segment with Google Maps integration
    */
-  static createValidatedSegment(
+  static async createValidatedSegment(
     startStop: TripStop,
     endStop: TripStop,
     day: number,
     styleConfig: TripStyleConfig
-  ): DailySegment | null {
-    const distance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
+  ): Promise<DailySegment | null> {
+    // Use EnhancedDistanceService for Google Maps integration
+    const distanceResult = await EnhancedDistanceService.calculateDistance(
+      startStop,
+      endStop
     );
 
-    // Use the enforced drive time calculation
-    const driveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(distance);
-
     // Final safety check - this should never fail with our new logic
-    if (driveTime > styleConfig.maxDailyDriveHours) {
-      console.error(`❌ CRITICAL: Validated segment still exceeds limit: ${driveTime.toFixed(1)}h`);
+    if (distanceResult.driveTimeHours > styleConfig.maxDailyDriveHours) {
+      console.error(`❌ CRITICAL: Validated segment still exceeds limit: ${distanceResult.driveTimeHours.toFixed(1)}h`);
       return null;
     }
 
@@ -48,10 +48,10 @@ export class SegmentCreationService {
       title: `Day ${day}: ${startStop.city_name || startStop.name} to ${endStop.city_name || endStop.name}`,
       startCity: CityDisplayService.getCityDisplayName(startStop),
       endCity: CityDisplayService.getCityDisplayName(endStop),
-      distance,
-      approximateMiles: Math.round(distance),
-      driveTimeHours: driveTime,
-      stops: [startStop, endStop], // Add required stops property
+      distance: distanceResult.distance,
+      approximateMiles: Math.round(distanceResult.distance),
+      driveTimeHours: distanceResult.driveTimeHours,
+      stops: [startStop, endStop],
       destination: {
         city: endStop.city_name || endStop.name,
         state: endStop.state
@@ -63,44 +63,47 @@ export class SegmentCreationService {
         description: stop.description,
         city: stop.city
       })),
-      driveTimeCategory: TripPlanUtils.getDriveTimeCategory(driveTime),
-      routeSection: TripPlanUtils.getRouteSection(day, 14)
+      driveTimeCategory: TripPlanUtils.getDriveTimeCategory(distanceResult.driveTimeHours),
+      routeSection: TripPlanUtils.getRouteSection(day, 14),
+      isGoogleMapsData: distanceResult.isGoogleData,
+      dataAccuracy: distanceResult.accuracy
     };
 
     return segment;
   }
 
   /**
-   * Create a capped segment as last resort
+   * Create a capped segment as last resort with Google Maps data
    */
-  static createCappedSegment(
+  static async createCappedSegment(
     startStop: TripStop,
     endStop: TripStop,
     day: number,
     styleConfig: TripStyleConfig
-  ): DailySegment {
-    const distance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, startStop.longitude,
-      endStop.latitude, endStop.longitude
+  ): Promise<DailySegment> {
+    // Use EnhancedDistanceService for Google Maps integration
+    const distanceResult = await EnhancedDistanceService.calculateDistance(
+      startStop,
+      endStop
     );
 
     // Force cap the drive time
     const cappedDriveTime = Math.min(
-      DriveTimeEnforcementService.calculateRealisticDriveTime(distance),
+      distanceResult.driveTimeHours,
       styleConfig.maxDailyDriveHours
     );
 
-    console.log(`🚨 CAPPED SEGMENT: Day ${day} - Forcing ${cappedDriveTime}h (was ${DriveTimeEnforcementService.calculateRealisticDriveTime(distance).toFixed(1)}h)`);
+    console.log(`🚨 CAPPED SEGMENT: Day ${day} - Forcing ${cappedDriveTime}h (was ${distanceResult.driveTimeHours.toFixed(1)}h)`);
 
     const segment: DailySegment = {
       day,
       title: `Day ${day}: ${startStop.city_name || startStop.name} to ${endStop.city_name || endStop.name}`,
       startCity: CityDisplayService.getCityDisplayName(startStop),
       endCity: CityDisplayService.getCityDisplayName(endStop),
-      distance,
-      approximateMiles: Math.round(distance),
+      distance: distanceResult.distance,
+      approximateMiles: Math.round(distanceResult.distance),
       driveTimeHours: cappedDriveTime,
-      stops: [startStop, endStop], // Add required stops property
+      stops: [startStop, endStop],
       destination: {
         city: endStop.city_name || endStop.name,
         state: endStop.state
@@ -125,7 +128,9 @@ export class SegmentCreationService {
       }],
       driveTimeCategory: TripPlanUtils.getDriveTimeCategory(cappedDriveTime),
       routeSection: TripPlanUtils.getRouteSection(day, 14),
-      driveTimeWarning: `Drive time capped at ${cappedDriveTime}h due to excessive distance (${distance.toFixed(0)}mi). Consider extending trip duration.`
+      driveTimeWarning: `Drive time capped at ${cappedDriveTime}h due to excessive distance (${distanceResult.distance.toFixed(0)}mi). Consider extending trip duration.`,
+      isGoogleMapsData: distanceResult.isGoogleData,
+      dataAccuracy: distanceResult.accuracy
     };
 
     return segment;

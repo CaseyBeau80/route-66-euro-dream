@@ -31,6 +31,8 @@ const Route66TripCalculator: React.FC = () => {
     setHasGoogleMapsApi(hasKey);
     if (hasKey) {
       console.log('🗺️ Google Maps API connected - enhanced accuracy enabled');
+      // Clear cache when API key changes
+      GoogleMapsIntegrationService.clearCache();
     } else {
       console.log('📐 Google Maps API disconnected - using estimated calculations');
     }
@@ -52,8 +54,15 @@ const Route66TripCalculator: React.FC = () => {
     });
 
     try {
-      // Start the trip calculation
-      await calculateTrip(formData);
+      // Start the trip calculation with progress tracking
+      await calculateTrip(formData, (current: number, total: number, currentSegment?: string) => {
+        setCalculationProgress(prev => ({
+          ...prev,
+          current,
+          total,
+          currentSegment: currentSegment || prev.currentSegment
+        }));
+      });
       
       // Hide progress after completion
       setTimeout(() => {

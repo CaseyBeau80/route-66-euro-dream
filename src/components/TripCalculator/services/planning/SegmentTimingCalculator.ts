@@ -5,40 +5,40 @@ import { SubStopTimingCalculator, SegmentTiming } from './SubStopTimingCalculato
 import { DriveTimeBalancingService } from './DriveTimeBalancingService';
 import { DriveTimeCategory } from './TripPlanBuilder';
 import { DriveTimeEnforcementService } from './DriveTimeEnforcementService';
+import { EnhancedDistanceService } from '../EnhancedDistanceService';
 
 export class SegmentTimingCalculator {
   /**
-   * FIXED: Calculate segment timings with ABSOLUTE drive time enforcement
+   * Calculate segment timings with Google Maps integration and ABSOLUTE drive time enforcement
    */
-  static calculateSegmentTimings(
+  static async calculateSegmentTimings(
     currentStop: TripStop,
     dayDestination: TripStop,
     segmentStops: TripStop[]
-  ): {
+  ): Promise<{
     segmentTimings: SegmentTiming[];
     totalSegmentDriveTime: number;
     segmentDistance: number;
-  } {
-    // Calculate direct distance between current stop and destination
-    const segmentDistance = DistanceCalculationService.calculateDistance(
-      currentStop.latitude, currentStop.longitude,
-      dayDestination.latitude, dayDestination.longitude
+    isGoogleMapsData: boolean;
+    dataAccuracy: string;
+  }> {
+    // Use EnhancedDistanceService for Google Maps integration
+    const distanceResult = await EnhancedDistanceService.calculateDistance(
+      currentStop,
+      dayDestination
     );
 
-    // ABSOLUTE FIX: ALWAYS use DriveTimeEnforcementService - no exceptions
-    const totalSegmentDriveTime = DriveTimeEnforcementService.calculateRealisticDriveTime(segmentDistance);
-
-    console.log(`🚗 ABSOLUTE SEGMENT FIX: ${currentStop.name} → ${dayDestination.name}:`, {
-      segmentDistance: segmentDistance.toFixed(1),
-      absoluteEnforcedDriveTime: totalSegmentDriveTime.toFixed(1),
-      maxAllowed: 10,
-      isCompliant: totalSegmentDriveTime <= 10,
-      enforcementMethod: 'DriveTimeEnforcementService - ABSOLUTE'
+    console.log(`🚗 ENHANCED SEGMENT: ${currentStop.name} → ${dayDestination.name}:`, {
+      distance: distanceResult.distance.toFixed(1),
+      driveTimeHours: distanceResult.driveTimeHours.toFixed(1),
+      isGoogleData: distanceResult.isGoogleData,
+      accuracy: distanceResult.accuracy,
+      enforcementMethod: 'EnhancedDistanceService with Google Maps'
     });
 
     // CRITICAL VALIDATION: Verify we never exceed 10 hours
-    if (totalSegmentDriveTime > 10) {
-      console.error(`❌ CRITICAL ERROR: SegmentTimingCalculator STILL producing drive time > 10h: ${totalSegmentDriveTime.toFixed(1)}h`);
+    if (distanceResult.driveTimeHours > 10) {
+      console.error(`❌ CRITICAL ERROR: SegmentTimingCalculator STILL producing drive time > 10h: ${distanceResult.driveTimeHours.toFixed(1)}h`);
       console.error(`❌ This should be IMPOSSIBLE with DriveTimeEnforcementService!`);
     }
 
@@ -51,8 +51,10 @@ export class SegmentTimingCalculator {
 
     return {
       segmentTimings,
-      totalSegmentDriveTime, // ALWAYS use the enforced time
-      segmentDistance
+      totalSegmentDriveTime: distanceResult.driveTimeHours,
+      segmentDistance: distanceResult.distance,
+      isGoogleMapsData: distanceResult.isGoogleData,
+      dataAccuracy: distanceResult.accuracy
     };
   }
 
