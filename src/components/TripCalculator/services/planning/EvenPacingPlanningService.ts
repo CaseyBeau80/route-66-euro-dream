@@ -13,7 +13,8 @@ export class EvenPacingPlanningService {
     console.log('⚖️ EvenPacingPlanningService: Starting even pacing trip planning', {
       startLocation,
       endLocation,
-      travelDays
+      travelDays,
+      note: 'MUST respect the requested travel days exactly'
     });
     
     try {
@@ -25,19 +26,31 @@ export class EvenPacingPlanningService {
         'balanced'
       );
 
-      // Build the final trip plan using the orchestration data
+      // Build the final trip plan using the orchestration data - CRITICAL: pass travelDays
       const tripPlan = await TripPlanningOrchestrator.buildTripPlan(
         orchestrationData,
         startLocation,
         endLocation,
-        travelDays,
+        travelDays, // This MUST be respected
         'balanced'
       );
 
+      // Validate the result
+      if (tripPlan.segments.length !== travelDays) {
+        console.error(`❌ CRITICAL: EvenPacingPlanningService generated ${tripPlan.segments.length} days instead of ${travelDays}`);
+      } else {
+        console.log(`✅ EvenPacingPlanningService: Successfully created ${travelDays}-day trip`);
+      }
+
       console.log('✅ EvenPacingPlanningService: Trip planning completed', {
-        segmentCount: tripPlan.segments?.length,
+        requestedDays: travelDays,
+        actualDays: tripPlan.segments?.length,
         totalDistance: tripPlan.totalDistance,
-        totalDays: tripPlan.totalDays
+        segments: tripPlan.segments.map(s => ({
+          day: s.day,
+          distance: s.distance.toFixed(0),
+          driveTime: s.driveTimeHours.toFixed(1) + 'h'
+        }))
       });
 
       return tripPlan;
@@ -53,7 +66,7 @@ export class EvenPacingPlanningService {
         startLocation,
         endLocation,
         startDate: new Date(),
-        totalDays: travelDays,
+        totalDays: travelDays, // Use the requested days
         totalDistance: 2400,
         totalDrivingTime: 40,
         segments: [],
