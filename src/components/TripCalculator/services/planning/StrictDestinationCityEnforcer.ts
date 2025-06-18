@@ -12,7 +12,7 @@ export class StrictDestinationCityEnforcer {
       return [];
     }
 
-    const destinationCities: TripStop[] = allStops.filter((stop: TripStop): stop is TripStop => {
+    const destinationCities: TripStop[] = allStops.filter((stop): stop is TripStop => {
       // Comprehensive null safety check
       if (!stop || typeof stop !== 'object') {
         console.warn('⚠️ Filtering out null/undefined stop');
@@ -43,14 +43,14 @@ export class StrictDestinationCityEnforcer {
   }
 
   /**
-   * Check if a stop is a destination city (alias for isValidDestinationCity for backward compatibility)
+   * Check if a stop is a destination city - proper type guard
    */
   static isDestinationCity(stop: any): stop is TripStop {
     return this.isValidDestinationCity(stop);
   }
 
   /**
-   * Validate that a stop is a proper destination city
+   * Validate that a stop is a proper destination city - proper type guard
    */
   static isValidDestinationCity(stop: any): stop is TripStop {
     return stop && 

@@ -1,4 +1,5 @@
 
+
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -18,11 +19,11 @@ export class DailySegmentCreator {
   ): DailySegment[] {
     console.log(`🏗️ STRICT: Creating ${totalDays} daily segments with destination city enforcement`);
     
-    // FIXED: Filter to only use destination cities for overnight stops
+    // FIXED: Filter to only use destination cities for overnight stops with proper typing
     const destinationCities: TripStop[] = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
     
     console.log(`🏛️ STRICT: Available destination cities for overnight stops: ${destinationCities.length}`);
-    console.log(`🏛️ STRICT: Destination cities: ${destinationCities.map(stop => stop.name).join(', ')}`);
+    console.log(`🏛️ STRICT: Destination cities: ${destinationCities.map((stop: TripStop) => stop.name).join(', ')}`);
     
     // Calculate average distance per day
     const avgDistancePerDay = totalDistance / totalDays;
@@ -91,7 +92,7 @@ export class DailySegmentCreator {
     console.log(`🎯 STRICT: Selecting overnight stops from ${destinationCities.length} destination cities`);
     
     // Filter out start and end stops and ensure only destination cities
-    const availableStops: TripStop[] = destinationCities.filter((stop: TripStop) => 
+    const availableStops: TripStop[] = destinationCities.filter((stop: TripStop): stop is TripStop => 
       stop.id !== startStop.id && 
       stop.id !== endStop.id &&
       StrictDestinationCityEnforcer.isDestinationCity(stop)
@@ -247,7 +248,7 @@ export class DailySegmentCreator {
     );
     
     // Find stops along the route - EXCLUDE destination cities for attractions
-    const attractions: TripStop[] = allStops.filter((stop: TripStop) => {
+    const attractions: TripStop[] = allStops.filter((stop: TripStop): stop is TripStop => {
       // Skip start and end stops
       if (stop.id === startStop.id || stop.id === endStop.id) return false;
       
