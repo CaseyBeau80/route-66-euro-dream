@@ -102,10 +102,13 @@ export class SegmentCreationLoop {
     const { segmentTimings, totalSegmentDriveTime, segmentDistance, isGoogleMapsData, dataAccuracy } = 
       await SegmentTimingCalculator.calculateSegmentTimings(currentStop, dayDestination, segmentStops);
 
-    // Get drive time category for this segment - Fix type conversion by ensuring proper type handling
-    const rawCategory = SegmentTimingCalculator.categorizedriveTime(totalSegmentDriveTime);
-    // Since categorizedriveTime already returns DriveTimeCategory, we don't need getDriveTimeCategory
-    const driveTimeCategory = rawCategory;
+    // Get drive time category for this segment - Fix type by creating proper DriveTimeCategory object
+    const categoryType = SegmentTimingCalculator.categorizedriveTime(totalSegmentDriveTime);
+    const driveTimeCategory: DriveTimeCategory = {
+      category: categoryType,
+      message: this.getDriveTimeMessage(categoryType),
+      color: this.getDriveTimeColor(categoryType)
+    };
 
     // Calculate route progression metrics
     const { routeSection } = SegmentMetricsCalculator.calculateRouteMetrics(
@@ -183,6 +186,42 @@ export class SegmentCreationLoop {
       isGoogleMapsData,
       dataAccuracy
     };
+  }
+
+  /**
+   * Get drive time message based on category
+   */
+  private static getDriveTimeMessage(category: 'short' | 'optimal' | 'long' | 'extreme'): string {
+    switch (category) {
+      case 'short':
+        return 'Comfortable driving day with plenty of time for exploration';
+      case 'optimal':
+        return 'Well-balanced driving time with good sightseeing opportunities';
+      case 'long':
+        return 'Extended driving day - plan for fewer stops';
+      case 'extreme':
+        return 'Very long driving day - consider splitting the route';
+      default:
+        return 'Moderate driving time';
+    }
+  }
+
+  /**
+   * Get drive time color based on category
+   */
+  private static getDriveTimeColor(category: 'short' | 'optimal' | 'long' | 'extreme'): string {
+    switch (category) {
+      case 'short':
+        return 'green';
+      case 'optimal':
+        return 'blue';
+      case 'long':
+        return 'orange';
+      case 'extreme':
+        return 'red';
+      default:
+        return 'gray';
+    }
   }
 
   /**

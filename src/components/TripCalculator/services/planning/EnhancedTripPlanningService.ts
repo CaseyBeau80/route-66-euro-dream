@@ -126,7 +126,8 @@ export class EnhancedTripPlanningService {
       const dailySegments: DailySegment[] = [];
 
       for (let day = 1; day <= travelDays; day++) {
-        const dayEndStop = (day === travelDays) ? endStop : null;
+        const isLastDay = day === travelDays;
+        const dayEndStop = isLastDay ? endStop : null;
 
         // 4. Create validated segment
         let segment = await SegmentCreationService.createValidatedSegment(
