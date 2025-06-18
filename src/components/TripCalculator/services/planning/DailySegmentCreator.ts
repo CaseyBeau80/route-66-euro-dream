@@ -36,14 +36,17 @@ export class DailySegmentCreator {
       totalDistance
     );
     
-    // Strict validation of all selected overnight stops
+    // Strict validation of all selected overnight stops with proper typing
     const warnings: string[] = [];
-    overnightStops.forEach((stop, index) => {
-      const typedStop = stop as TripStop; // Explicit type assertion
-      if (!StrictDestinationCityEnforcer.isDestinationCity(typedStop)) {
-        warnings.push(`${typedStop.name} is not a destination city and was removed from overnight stops`);
-      }
-    });
+    if (overnightStops && Array.isArray(overnightStops)) {
+      overnightStops.forEach((stop: TripStop) => {
+        if (stop && typeof stop === 'object' && 'name' in stop) {
+          if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
+            warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+          }
+        }
+      });
+    }
     
     if (warnings.length > 0) {
       console.warn('🛡️ STRICT: Overnight stop validation warnings:', warnings);
@@ -92,7 +95,8 @@ export class DailySegmentCreator {
     
     // Filter out start and end stops - ensure proper typing
     const availableStops: TripStop[] = destinationCities.filter((stop: TripStop) => {
-      return stop.id !== startStop.id && 
+      return stop && 
+             stop.id !== startStop.id && 
              stop.id !== endStop.id &&
              StrictDestinationCityEnforcer.isDestinationCity(stop);
     });
