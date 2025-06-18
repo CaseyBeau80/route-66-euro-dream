@@ -48,7 +48,7 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         // STRICT: Only allow destination cities for overnight stops
         const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
         if (!isDestCity) {
-          console.log(`🚫 STRICT: Filtered out non-destination city: ${stop.name} (${stop.category})`);
+          console.log(`🚫 STRICT: Filtered out non-destination city: ${(stop as TripStop).name} (${(stop as TripStop).category})`);
         }
         return isDestCity;
       });
@@ -78,11 +78,11 @@ export const getValidatedStops = (segment: DailySegment): TripStop[] => {
         // STRICT: For attractions, we can be less strict but still prefer destination cities
         const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
         if (isDestCity) {
-          console.log(`🏛️ STRICT: Keeping destination city attraction: ${stop.name}`);
+          console.log(`🏛️ STRICT: Keeping destination city attraction: ${(stop as TripStop).name}`);
           return true;
         } else {
           // For now, allow non-destination attractions but log them
-          console.log(`📍 STRICT: Allowing non-destination attraction: ${stop.name} (${stop.category})`);
+          console.log(`📍 STRICT: Allowing non-destination attraction: ${(stop as TripStop).name} (${(stop as TripStop).category})`);
           return true;
         }
       });

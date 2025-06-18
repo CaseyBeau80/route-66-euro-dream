@@ -22,7 +22,7 @@ export class DailySegmentCreator {
     const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
     
     console.log(`🏛️ STRICT: Available destination cities for overnight stops: ${destinationCities.length}`);
-    console.log(`🏛️ STRICT: Destination cities: ${destinationCities.map((s: TripStop) => s.name).join(', ')}`);
+    console.log(`🏛️ STRICT: Destination cities: ${destinationCities.map((s: TripStop) => (s as TripStop).name).join(', ')}`);
     
     // Calculate average distance per day
     const avgDistancePerDay = totalDistance / totalDays;
@@ -142,10 +142,10 @@ export class DailySegmentCreator {
       if (bestStop) {
         // Double-check it's a destination city
         if (StrictDestinationCityEnforcer.isDestinationCity(bestStop)) {
-          console.log(`🏛️ STRICT: Selected overnight destination: ${bestStop.name} (${bestStop.category})`);
+          console.log(`🏛️ STRICT: Selected overnight destination: ${(bestStop as TripStop).name} (${(bestStop as TripStop).category})`);
           overnightStops.push(bestStop);
         } else {
-          console.warn(`⚠️ STRICT: Rejected non-destination city: ${bestStop.name} (${bestStop.category})`);
+          console.warn(`⚠️ STRICT: Rejected non-destination city: ${(bestStop as TripStop).name} (${(bestStop as TripStop).category})`);
         }
       } else {
         console.warn(`⚠️ STRICT: Could not find suitable destination city for day ${i + 1}`);
@@ -163,7 +163,7 @@ export class DailySegmentCreator {
       return distA - distB;
     });
     
-    console.log(`🏛️ STRICT: Final overnight destinations: ${finalStops.map((s: TripStop) => s.name).join(' → ')}`);
+    console.log(`🏛️ STRICT: Final overnight destinations: ${finalStops.map((s: TripStop) => (s as TripStop).name).join(' → ')}`);
     return finalStops;
   }
   
@@ -262,10 +262,10 @@ export class DailySegmentCreator {
       
       // Calculate if stop is along the route
       const distFromStart = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude, stop.latitude, stop.longitude
+        startStop.latitude, startStop.longitude, (stop as TripStop).latitude, (stop as TripStop).longitude
       );
       const distToEnd = DistanceCalculationService.calculateDistance(
-        stop.latitude, stop.longitude, endStop.latitude, endStop.longitude
+        (stop as TripStop).latitude, (stop as TripStop).longitude, endStop.latitude, endStop.longitude
       );
       
       const routeDeviation = (distFromStart + distToEnd) - directDistance;

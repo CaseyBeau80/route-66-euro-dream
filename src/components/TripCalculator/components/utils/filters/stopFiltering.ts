@@ -9,13 +9,13 @@ export const isUserRelevantStop = (stop: TripStop): stop is TripStop => {
     return false;
   }
 
-  console.log(`🔍 STRICT FILTER: Checking ${stop.name} (${stop.category})`);
+  console.log(`🔍 STRICT FILTER: Checking ${(stop as TripStop).name} (${(stop as TripStop).category})`);
   const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
   
   if (!isDestCity) {
-    console.log(`🚫 STRICT FILTER: Rejected ${stop.name} - not a destination city`);
+    console.log(`🚫 STRICT FILTER: Rejected ${(stop as TripStop).name} - not a destination city`);
   } else {
-    console.log(`✅ STRICT FILTER: Approved ${stop.name} - destination city`);
+    console.log(`✅ STRICT FILTER: Approved ${(stop as TripStop).name} - destination city`);
   }
   
   return isDestCity;
@@ -64,13 +64,13 @@ export const validateStopForTripPlanning = (stop: TripStop, context: string = 'p
     return false;
   }
 
-  console.log(`🛡️ STRICT VALIDATION: Validating ${stop.name} for ${context}`);
+  console.log(`🛡️ STRICT VALIDATION: Validating ${(stop as TripStop).name} for ${context}`);
   
   if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
-    console.warn(`⚠️ STRICT VALIDATION: ${stop.name} rejected for ${context} - not a destination city`);
+    console.warn(`⚠️ STRICT VALIDATION: ${(stop as TripStop).name} rejected for ${context} - not a destination city`);
     return false;
   }
   
-  console.log(`✅ STRICT VALIDATION: ${stop.name} approved for ${context}`);
+  console.log(`✅ STRICT VALIDATION: ${(stop as TripStop).name} approved for ${context}`);
   return true;
 };
