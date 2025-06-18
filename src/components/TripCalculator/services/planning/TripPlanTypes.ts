@@ -35,6 +35,7 @@ export interface TripPlan {
     totalDriveTime?: number;
     totalDays?: number;
     totalDistance?: number;
+    tripStyle?: string; // Add missing tripStyle property
   };
   startCityImage?: string;
   endCityImage?: string;
@@ -103,8 +104,8 @@ export interface SubStopTiming {
   };
   distanceMiles: number;
   driveTimeHours: number;
-  // Legacy properties for backward compatibility
-  distance?: number;
+  // Legacy properties for backward compatibility - make distance required to match SegmentTiming
+  distance: number; // Changed from optional to required
   drivingTime?: number;
 }
 
@@ -124,13 +125,41 @@ export interface Attraction {
   category: string; // Required property that was missing
 }
 
-// Export missing types that other files are importing
+// Enhanced WeatherData interface with all the properties used in the codebase
 export interface WeatherData {
   temperature?: number;
   condition?: string;
   humidity?: number;
   windSpeed?: number;
   forecast?: any[];
+  
+  // Additional weather properties used in PDF components
+  main?: {
+    temp?: number;
+    temp_min?: number;
+    temp_max?: number;
+    humidity?: number;
+  };
+  temp?: {
+    day?: number;
+    min?: number;
+    max?: number;
+  };
+  weather?: Array<{
+    main?: string;
+    description?: string;
+    icon?: string;
+  }>;
+  description?: string;
+  icon?: string;
+  isActualForecast?: boolean;
+  
+  // High/low temperature properties
+  highTemp?: number;
+  lowTemp?: number;
+  
+  // City name for weather data
+  cityName?: string;
 }
 
 export interface RecommendedStop {
@@ -160,6 +189,7 @@ export interface DriveTimeBalance {
   maxHours: number;
   minHours: number;
   isBalanced: boolean;
+  variance?: number; // Add missing variance property
   segments: {
     day: number;
     hours: number;
