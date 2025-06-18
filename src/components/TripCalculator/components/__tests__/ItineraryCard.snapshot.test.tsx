@@ -23,13 +23,16 @@ describe('ItineraryCard Snapshots', () => {
     title: 'Chicago to Los Angeles Route 66 Trip',
     startCity: 'Chicago, IL',
     endCity: 'Los Angeles, CA',
+    startLocation: 'Chicago, IL',
+    endLocation: 'Los Angeles, CA',
     startDate: new Date('2024-06-01'),
     totalDays: 7,
     totalDistance: 2400,
     totalDrivingTime: 36,
     totalMiles: 2400,
     segments: [],
-    dailySegments: []
+    dailySegments: [],
+    stops: []
   };
 
   it('renders basic itinerary card correctly', () => {

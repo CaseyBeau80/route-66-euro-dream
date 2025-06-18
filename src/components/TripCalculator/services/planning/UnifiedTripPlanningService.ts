@@ -1,4 +1,3 @@
-
 import { TripPlan } from './TripPlanBuilder';
 import { TripPlanValidator } from '../../planning/TripPlanValidator';
 import { EnhancedSupabaseDataService } from '../data/EnhancedSupabaseDataService';
@@ -144,5 +143,38 @@ export class UnifiedTripPlanningService {
         tripStyle
       };
     }
+  }
+
+  private static createUnifiedTripPlan(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused',
+    segments: any,
+    totalDistance: any,
+    totalDrivingTime: any
+  ): TripPlan {
+    return {
+      id: `unified-${Date.now()}`,
+      startCity: startLocation,
+      endCity: endLocation,
+      startLocation,
+      endLocation,
+      startDate: new Date(),
+      segments,
+      dailySegments: segments,
+      totalDays: travelDays,
+      totalDistance,
+      totalDrivingTime,
+      stops: [],
+      summary: {
+        totalDays: travelDays,
+        totalDistance,
+        totalDriveTime: totalDrivingTime,
+        startLocation,
+        endLocation,
+        tripStyle
+      }
+    };
   }
 }

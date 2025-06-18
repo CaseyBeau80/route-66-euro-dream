@@ -70,4 +70,33 @@ export class TripPlanningService {
       lastUpdated: new Date()
     };
   }
+
+  private static createTripPlan(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    segments: any[],
+    totalDistance: number,
+    totalDrivingTime: any,
+    tripStyle: 'balanced' | 'destination-focused'
+  ): TripPlan {
+    return {
+      id: `trip-${Date.now()}`,
+      title: `${startLocation} to ${endLocation} Route 66 Adventure`,
+      startCity: startLocation,
+      endCity: endLocation,
+      startLocation,
+      endLocation,
+      startDate: new Date(),
+      totalDays: travelDays,
+      totalDistance,
+      totalMiles: Math.round(totalDistance),
+      totalDrivingTime,
+      segments,
+      dailySegments: segments,
+      tripStyle,
+      stops: [],
+      lastUpdated: new Date()
+    };
+  }
 }

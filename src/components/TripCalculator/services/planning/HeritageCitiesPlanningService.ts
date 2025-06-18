@@ -76,19 +76,14 @@ export class HeritageCitiesPlanningService {
     const totalDistance = this.calculateTotalDistance(startStop, endStop);
     const totalDrivingTime = segments.reduce((total, seg) => total + seg.driveTimeHours, 0);
 
-    return {
-      id: `trip-${Date.now()}`,
-      startCity: startCityName,
-      endCity: endCityName,
-      startDate: new Date(),
-      totalDays: tripDays,
-      totalDistance,
-      totalMiles: Math.round(totalDistance),
-      totalDrivingTime,
+    return this.createTripPlan(
+      startCityName,
+      endCityName,
+      tripDays,
       segments,
-      dailySegments: segments,
-      lastUpdated: new Date()
-    };
+      totalDistance,
+      totalDrivingTime
+    );
   }
 
   /**
@@ -264,5 +259,31 @@ export class HeritageCitiesPlanningService {
 
   private static toRad(deg: number): number {
     return deg * (Math.PI / 180);
+  }
+
+  private static createTripPlan(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    segments: DailySegment[],
+    totalDistance: number,
+    totalDrivingTime: number
+  ): TripPlan {
+    return {
+      id: `heritage-cities-${Date.now()}`,
+      startCity: startLocation,
+      endCity: endLocation,
+      startLocation,
+      endLocation,
+      startDate: new Date(),
+      totalDays: travelDays,
+      totalDistance,
+      totalMiles: Math.round(totalDistance),
+      totalDrivingTime,
+      segments,
+      dailySegments: segments,
+      stops: [],
+      lastUpdated: new Date()
+    };
   }
 }

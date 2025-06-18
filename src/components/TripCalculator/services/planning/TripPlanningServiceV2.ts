@@ -6,6 +6,9 @@ import { TripSegmentBuilderV2 } from './TripSegmentBuilderV2';
 import { TripPlanUtils } from './TripPlanUtils';
 import { TripStyleLogic } from './TripStyleLogic';
 import { DistanceValidationService } from './DistanceValidationService';
+import { SupabaseDataService } from './SupabaseDataService';
+import { SegmentBuilderService } from './SegmentBuilderService';
+import { TripBoundaryService } from './TripBoundaryService';
 
 export class TripPlanningServiceV2 {
   /**
@@ -115,5 +118,64 @@ export class TripPlanningServiceV2 {
     });
 
     return violations;
+  }
+
+  /**
+   * Plan a trip with ABSOLUTE drive time enforcement from the start
+   */
+  static async planTrip(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused'
+  ): Promise<TripPlan> {
+    console.log(`🚗 V2 PLANNING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle}`);
+
+    try {
+      // Load and prepare data
+      const allStops = await SupabaseDataService.fetchAllStops();
+      const { startStop, endStop, routeStops } = TripBoundaryService.findBoundaryStops(
+        startLocation,
+        endLocation,
+        allStops
+      );
+
+      // Use proper await for the async method
+      const segments = await SegmentBuilderService.buildSegmentsFromDestinations(
+        startStop,
+        [], // destinations will be determined internally
+        routeStops,
+        0, // totalDistance will be calculated
+        [], // driveTimeTargets will be generated
+        {}, // balanceMetrics
+        endStop
+      );
+
+      const totalDistance = segments.reduce((sum, seg) => sum + seg.distance, 0);
+      const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
+
+      return {
+        id: `v2-trip-${Date.now()}`,
+        title: `${startLocation} to ${endLocation} Route 66 Adventure`,
+        startCity: startLocation,
+        endCity: endLocation,
+        startLocation,
+        endLocation,
+        startDate: new Date(),
+        totalDays: travelDays,
+        totalDistance,
+        totalMiles: Math.round(totalDistance),
+        totalDrivingTime,
+        segments,
+        dailySegments: segments,
+        tripStyle,
+        stops: [],
+        lastUpdated: new Date()
+      };
+
+    } catch (error) {
+      console.error('❌ V2 Trip planning failed:', error);
+      throw error;
+    }
   }
 }

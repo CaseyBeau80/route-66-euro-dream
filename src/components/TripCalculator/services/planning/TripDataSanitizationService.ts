@@ -1,88 +1,81 @@
-
 import { TripPlan, DailySegment } from './TripPlanTypes';
-import { CircularReferenceRemover } from './utils/CircularReferenceRemover';
-import { SegmentSanitizer } from './utils/SegmentSanitizer';
-import { DataSanitizationUtils } from './utils/DataSanitizationUtils';
-
-export interface SanitizationReport {
-  hasCircularReferences: boolean;
-  circularPaths: string[];
-  missingFields: string[];
-  sanitizedFields: string[];
-  warnings: string[];
-}
 
 export class TripDataSanitizationService {
-  /**
-   * Deep sanitize trip data to remove circular references and fix data integrity issues
-   */
-  static sanitizeTripData(data: any): { sanitizedData: TripPlan; report: SanitizationReport } {
-    console.log('🧹 TripDataSanitizationService: Starting deep sanitization', data);
-    
-    const report: SanitizationReport = {
-      hasCircularReferences: false,
-      circularPaths: [],
-      missingFields: [],
-      sanitizedFields: [],
-      warnings: []
+  static sanitizeSegment(segment: any): DailySegment {
+    return {
+      day: segment.day || 1,
+      title: segment.title || 'Unknown Segment',
+      startCity: segment.startCity || 'Unknown',
+      endCity: segment.endCity || 'Unknown',
+      distance: segment.distance || 0,
+      approximateMiles: segment.approximateMiles || 0,
+      driveTimeHours: segment.driveTimeHours || 0,
+      drivingTime: segment.drivingTime || 0,
+      stops: segment.stops || [],
+      recommendedStops: segment.recommendedStops || [],
+      attractions: segment.attractions || [],
+      subStopTimings: segment.subStopTimings || [],
+      routeSection: segment.routeSection || 'Unknown',
+      driveTimeCategory: segment.driveTimeCategory || { category: 'optimal', message: 'Optimal Drive Time' },
+      destination: segment.destination || { city: 'Unknown', state: 'Unknown' },
+      isGoogleMapsData: segment.isGoogleMapsData || false,
+      dataAccuracy: segment.dataAccuracy || 'Unknown'
     };
-
-    if (!data) {
-      report.warnings.push('No data provided for sanitization');
-      return { sanitizedData: this.createEmptyTripPlan(), report };
-    }
-
-    try {
-      // First, detect and remove circular references
-      const deCircularized = CircularReferenceRemover.removeCircularReferences(data, report);
-      
-      // Then sanitize the structure
-      const sanitized = this.sanitizeTripPlan(deCircularized, report);
-      
-      console.log('✅ TripDataSanitizationService: Sanitization complete', { report, sanitized });
-      return { sanitizedData: sanitized, report };
-      
-    } catch (error) {
-      console.error('❌ TripDataSanitizationService: Sanitization failed', error);
-      report.warnings.push(`Sanitization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      return { sanitizedData: this.createEmptyTripPlan(), report };
-    }
   }
 
-  /**
-   * Sanitize trip plan structure and ensure all required fields are present
-   */
-  private static sanitizeTripPlan(data: any, report: SanitizationReport): TripPlan {
-    const sanitized: TripPlan = {
-      id: DataSanitizationUtils.sanitizeString(data?.id, `trip-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`),
-      title: DataSanitizationUtils.sanitizeString(data?.title, 'Untitled Route 66 Adventure'),
-      startCity: DataSanitizationUtils.sanitizeString(data?.startCity, 'Unknown Start'),
-      endCity: DataSanitizationUtils.sanitizeString(data?.endCity, 'Unknown End'),
-      startDate: data?.startDate ? new Date(data.startDate) : new Date(),
-      totalDays: DataSanitizationUtils.sanitizeNumber(data?.totalDays, 1),
-      totalDistance: DataSanitizationUtils.sanitizeNumber(data?.totalDistance, 0),
-      totalMiles: DataSanitizationUtils.sanitizeNumber(data?.totalMiles || data?.totalDistance, 0),
-      totalDrivingTime: DataSanitizationUtils.sanitizeNumber(data?.totalDrivingTime, 0),
-      segments: SegmentSanitizer.sanitizeSegments(data?.segments || data?.dailySegments, report),
-      dailySegments: SegmentSanitizer.sanitizeSegments(data?.dailySegments || data?.segments, report),
+  static sanitizeTripPlan(tripPlan: any): TripPlan {
+    if (!tripPlan) {
+      console.error('Cannot sanitize null trip plan');
+      return {
+        id: `sanitized-${Date.now()}`,
+        title: 'Unknown Trip',
+        startCity: 'Unknown',
+        endCity: 'Unknown',
+        startLocation: 'Unknown',
+        endLocation: 'Unknown',
+        startDate: new Date(),
+        totalDays: 0,
+        totalDistance: 0,
+        totalMiles: 0,
+        totalDrivingTime: 0,
+        segments: [],
+        dailySegments: [],
+        stops: [],
+        lastUpdated: new Date()
+      };
+    }
+
+    // Calculate total driving time if not present
+    const totalDrivingTime = tripPlan.totalDrivingTime || 
+      tripPlan.segments?.reduce((total: number, segment: any) => total + (segment.driveTimeHours || 0), 0) || 0;
+
+    return {
+      id: tripPlan.id || `sanitized-${Date.now()}`,
+      title: tripPlan.title || 'Route 66 Adventure',
+      startCity: tripPlan.startCity || tripPlan.startLocation || 'Unknown',
+      endCity: tripPlan.endCity || tripPlan.endLocation || 'Unknown',
+      startLocation: tripPlan.startLocation || tripPlan.startCity || 'Unknown',
+      endLocation: tripPlan.endLocation || tripPlan.endCity || 'Unknown',
+      startDate: tripPlan.startDate || new Date(),
+      totalDays: isNaN(tripPlan.totalDays) ? 1 : Math.max(1, tripPlan.totalDays),
+      totalDistance: isNaN(tripPlan.totalDistance) ? 0 : Math.max(0, tripPlan.totalDistance),
+      totalMiles: tripPlan.totalMiles || Math.round(tripPlan.totalDistance || 0),
+      totalDrivingTime,
+      segments: (tripPlan.segments || []).map((segment: any) => this.sanitizeSegment(segment)),
+      dailySegments: (tripPlan.dailySegments || tripPlan.segments || []).map((segment: any) => this.sanitizeSegment(segment)),
+      stops: tripPlan.stops || [],
       lastUpdated: new Date()
     };
-
-    // Track what we had to sanitize
-    if (data?.title !== sanitized.title) report.sanitizedFields.push('title');
-    if (data?.startCity !== sanitized.startCity) report.sanitizedFields.push('startCity');
-    if (data?.endCity !== sanitized.endCity) report.sanitizedFields.push('endCity');
-    if (data?.totalDays !== sanitized.totalDays) report.sanitizedFields.push('totalDays');
-
-    return sanitized;
   }
 
-  private static createEmptyTripPlan(): TripPlan {
+  static createEmptyTripPlan(): TripPlan {
     return {
-      id: `empty-trip-${Date.now()}`,
-      title: 'Invalid Trip Data',
-      startCity: 'Unknown',
-      endCity: 'Unknown',
+      id: `empty-${Date.now()}`,
+      title: 'New Trip',
+      startCity: '',
+      endCity: '',
+      startLocation: '',
+      endLocation: '',
       startDate: new Date(),
       totalDays: 0,
       totalDistance: 0,
@@ -90,6 +83,7 @@ export class TripDataSanitizationService {
       totalDrivingTime: 0,
       segments: [],
       dailySegments: [],
+      stops: [],
       lastUpdated: new Date()
     };
   }

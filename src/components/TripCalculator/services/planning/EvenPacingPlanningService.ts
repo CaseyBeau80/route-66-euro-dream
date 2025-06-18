@@ -80,19 +80,14 @@ export class EvenPacingPlanningService {
 
     const totalDrivingTime = segments.reduce((total, seg) => total + seg.driveTimeHours, 0);
 
-    return {
-      id: `trip-${Date.now()}`,
-      startCity: startCityName,
-      endCity: endCityName,
-      startDate: new Date(),
-      totalDays: tripDays,
-      totalDistance,
-      totalMiles: Math.round(totalDistance),
-      totalDrivingTime,
+    return this.createTripPlan(
+      startCityName,
+      endCityName,
+      tripDays,
       segments,
-      dailySegments: segments,
-      lastUpdated: new Date()
-    };
+      totalDistance,
+      totalDrivingTime
+    );
   }
 
   /**
@@ -343,6 +338,32 @@ export class EvenPacingPlanningService {
     }
 
     return segments;
+  }
+
+  private static createTripPlan(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    segments: DailySegment[],
+    totalDistance: number,
+    totalDrivingTime: number
+  ): TripPlan {
+    return {
+      id: `even-pacing-${Date.now()}`,
+      startCity: startLocation,
+      endCity: endLocation,
+      startLocation,
+      endLocation,
+      startDate: new Date(),
+      totalDays: travelDays,
+      totalDistance,
+      totalMiles: Math.round(totalDistance),
+      totalDrivingTime,
+      segments,
+      dailySegments: segments,
+      stops: [],
+      lastUpdated: new Date()
+    };
   }
 
   private static calculateTotalDistance(startStop: TripStop, endStop: TripStop): number {

@@ -1,300 +1,212 @@
+import { TripPlan } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
-import { DailySegment, DriveTimeCategory } from './TripPlanTypes';
-import { Route66SequenceEnforcer } from './Route66SequenceEnforcer';
-import { DriveTimeConstraintEnforcer, DriveTimeConstraint } from './DriveTimeConstraintEnforcer';
-import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
-import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { TripSegmentBuilderV2 } from './TripSegmentBuilderV2';
-
-export interface TripPlanningResult {
-  segments: DailySegment[];
-  isValid: boolean;
-  validationResults: {
-    sequenceValidation: any;
-    driveTimeValidation: any;
-    feasibilityCheck: any;
-  };
-  adjustedTripDays: number;
-  warnings: string[];
-  debugInfo: any;
-}
+import { DailySegment } from './TripPlanTypes';
+import { SupabaseDataService } from '../data/SupabaseDataService';
+import { TripBoundaryService } from './TripBoundaryService';
+import { SegmentBuilderService } from './SegmentBuilderService';
+import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
+import { TripDataSanitizationService } from './TripDataSanitizationService';
+import { SegmentCreationService } from './segments/SegmentCreationService';
+import { TripStyleConfig, TripStyleLogic } from './TripStyleLogic';
+import { SegmentEnrichmentService } from './SegmentEnrichmentService';
+import { DriveTimeEnforcementService } from './DriveTimeEnforcementService';
+import { SegmentValidationService } from './SegmentValidationService';
+import { TripCompletionService } from './TripCompletionService';
+import { GoogleMapsIntegrationService } from '../GoogleMapsIntegrationService';
 
 export class EnhancedTripPlanningService {
   /**
-   * Plan a Route 66 trip with absolute constraint enforcement
+   * Plan a trip with enhanced logic, Google Maps integration, and data validation
    */
-  static planTripWithConstraints(
+  static async planEnhancedTrip(
     startLocation: string,
     endLocation: string,
-    requestedDays: number,
-    tripStyle: string,
-    allStops: TripStop[]
-  ): TripPlanningResult {
-    console.log(`🚀 ENHANCED TRIP PLANNING: ${startLocation} → ${endLocation}, ${requestedDays} days, ${tripStyle} style`);
-    
-    const constraints = DriveTimeConstraintEnforcer.createConstraintsForTripStyle(tripStyle);
-    const warnings: string[] = [];
-    const debugInfo: any = {
-      originalRequest: { startLocation, endLocation, requestedDays, tripStyle },
-      constraints,
-      steps: []
-    };
-    
-    // STEP 1: Find and validate start/end stops
-    const { startStop, endStop } = this.findAndValidateEndpoints(startLocation, endLocation, allStops);
-    debugInfo.steps.push({ step: 'endpoints', startStop: startStop.name, endStop: endStop.name });
-    
-    // STEP 2: Check trip feasibility
-    const feasibilityCheck = DriveTimeConstraintEnforcer.calculateMinimumTripDays(startStop, endStop, constraints);
-    debugInfo.steps.push({ step: 'feasibility', ...feasibilityCheck });
-    
-    let adjustedTripDays = requestedDays;
-    if (requestedDays < feasibilityCheck.minimumDays) {
-      adjustedTripDays = feasibilityCheck.minimumDays;
-      warnings.push(`Trip extended from ${requestedDays} to ${adjustedTripDays} days to meet drive time constraints`);
-      console.log(`⚠️ TRIP EXTENDED: ${requestedDays} → ${adjustedTripDays} days for feasibility`);
-    }
-    
-    // STEP 3: Filter to destination cities only
-    const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
-    debugInfo.steps.push({ step: 'destinationCities', count: destinationCities.length });
-    
-    // STEP 4: Enforce Route 66 sequence direction
-    const sequenceResult = Route66SequenceEnforcer.enforceSequenceDirection(startStop, endStop, destinationCities);
-    debugInfo.steps.push({ step: 'sequenceEnforcement', ...sequenceResult });
-    
-    // STEP 5: Enforce drive time constraints
-    const driveTimeResult = DriveTimeConstraintEnforcer.filterDestinationsByDriveTime(
-      startStop, sequenceResult.validStops, constraints
-    );
-    debugInfo.steps.push({ step: 'driveTimeConstraints', ...driveTimeResult });
-    
-    // STEP 6: Select optimal destinations
-    const selectedDestinations = this.selectOptimalDestinations(
-      startStop, endStop, driveTimeResult.validDestinations, adjustedTripDays - 1, constraints
-    );
-    debugInfo.steps.push({ step: 'destinationSelection', count: selectedDestinations.length });
-    
-    // STEP 7: Build segments with validated constraints
-    const segments = this.buildValidatedSegments(
-      startStop, endStop, selectedDestinations, adjustedTripDays, constraints
-    );
-    debugInfo.steps.push({ step: 'segmentBuilding', segmentCount: segments.length });
-    
-    // STEP 8: Final validation
-    const finalValidation = this.performFinalValidation(segments, constraints);
-    debugInfo.steps.push({ step: 'finalValidation', ...finalValidation });
-    
-    if (!finalValidation.isValid) {
-      warnings.push(...finalValidation.violations);
-    }
-    
-    console.log(`✅ ENHANCED PLANNING COMPLETE: ${segments.length} segments, ${warnings.length} warnings`);
-    
-    return {
-      segments,
-      isValid: finalValidation.isValid,
-      validationResults: {
-        sequenceValidation: Route66SequenceEnforcer.validateTripSequence(segments),
-        driveTimeValidation: finalValidation,
-        feasibilityCheck
-      },
-      adjustedTripDays,
-      warnings,
-      debugInfo
-    };
-  }
-  
-  /**
-   * Find and validate start/end stops
-   */
-  private static findAndValidateEndpoints(
-    startLocation: string,
-    endLocation: string,
-    allStops: TripStop[]
-  ): { startStop: TripStop; endStop: TripStop } {
-    const startStop = allStops.find(stop => 
-      stop.city_name?.toLowerCase().includes(startLocation.toLowerCase()) ||
-      stop.name.toLowerCase().includes(startLocation.toLowerCase())
-    );
-    
-    const endStop = allStops.find(stop => 
-      stop.city_name?.toLowerCase().includes(endLocation.toLowerCase()) ||
-      stop.name.toLowerCase().includes(endLocation.toLowerCase())
-    );
-    
-    if (!startStop) {
-      throw new Error(`Start location "${startLocation}" not found in Route 66 stops`);
-    }
-    
-    if (!endStop) {
-      throw new Error(`End location "${endLocation}" not found in Route 66 stops`);
-    }
-    
-    console.log(`🎯 ENDPOINTS: ${startStop.name} → ${endStop.name}`);
-    return { startStop, endStop };
-  }
-  
-  /**
-   * Select optimal destinations with constraint validation
-   */
-  private static selectOptimalDestinations(
-    startStop: TripStop,
-    endStop: TripStop,
-    validDestinations: TripStop[],
-    neededDestinations: number,
-    constraints: DriveTimeConstraint
-  ): TripStop[] {
-    console.log(`🎯 SELECTING: ${neededDestinations} destinations from ${validDestinations.length} valid options`);
-    
-    if (validDestinations.length === 0) {
-      console.warn(`⚠️ NO VALID DESTINATIONS - returning empty array`);
-      return [];
-    }
-    
-    // Sort by distance from start to get good progression
-    const sortedDestinations = validDestinations.sort((a, b) => {
-      const distA = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude, a.latitude, a.longitude
-      );
-      const distB = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude, b.latitude, b.longitude
-      );
-      return distA - distB;
-    });
-    
-    // Select destinations with progressive distance validation
-    const selectedDestinations: TripStop[] = [];
-    let currentStop = startStop;
-    
-    for (let i = 0; i < neededDestinations && sortedDestinations.length > 0; i++) {
-      // Find the best next destination that maintains constraints
-      const nextDestination = sortedDestinations.find(dest => {
-        const validation = DriveTimeConstraintEnforcer.enforceAbsoluteMaxDriveTime(
-          currentStop, dest, constraints
-        );
-        return validation.isValid && !selectedDestinations.some(selected => selected.id === dest.id);
-      });
-      
-      if (nextDestination) {
-        selectedDestinations.push(nextDestination);
-        currentStop = nextDestination;
-        console.log(`✅ SELECTED: ${nextDestination.name} for day ${i + 2}`);
-      } else {
-        console.warn(`⚠️ No valid destination found for day ${i + 2}`);
-        break;
-      }
-    }
-    
-    return selectedDestinations;
-  }
-  
-  /**
-   * Build segments with validation
-   */
-  private static buildValidatedSegments(
-    startStop: TripStop,
-    endStop: TripStop,
-    destinations: TripStop[],
-    tripDays: number,
-    constraints: DriveTimeConstraint
-  ): DailySegment[] {
-    console.log(`🏗️ BUILDING SEGMENTS: ${destinations.length + 1} segments for ${tripDays} days`);
-    
-    const segments: DailySegment[] = [];
-    const allStops = [startStop, ...destinations, endStop];
-    
-    for (let i = 0; i < allStops.length - 1; i++) {
-      const currentStop = allStops[i];
-      const nextStop = allStops[i + 1];
-      const day = i + 1;
-      
-      const distance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        nextStop.latitude, nextStop.longitude
-      );
-      
-      const driveTime = Math.min(
-        distance / 60, // Conservative speed estimate
-        constraints.maxDailyHours
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused'
+  ): Promise<TripPlan> {
+    console.log(`🚗 ENHANCED PLANNING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle}`);
+
+    try {
+      // 0. Load all stops and configure trip style
+      const allStops = await SupabaseDataService.fetchAllStops();
+      const styleConfig: TripStyleConfig = TripStyleLogic.configureTripStyle(tripStyle);
+
+      // 1. Identify boundary stops and initial route stops
+      const { startStop, endStop, routeStops } = TripBoundaryService.findBoundaryStops(
+        startLocation,
+        endLocation,
+        allStops
       );
 
-      // Create proper DriveTimeCategory object instead of string
-      const driveTimeCategory: DriveTimeCategory = {
-        category: driveTime <= 6 ? 'comfortable' : driveTime <= 8 ? 'moderate' : 'extended',
-        message: driveTime <= 6 ? 'Comfortable drive' : driveTime <= 8 ? 'Moderate drive' : 'Extended drive',
-        color: driveTime <= 6 ? 'green' : driveTime <= 8 ? 'yellow' : 'red'
+      // 2. Determine drive time targets and balance metrics
+      const { driveTimeTargets, balanceMetrics } = DriveTimeBalancingService.calculateDriveTimeTargets(
+        travelDays,
+        styleConfig
+      );
+
+      // 3. Build initial segments from optimized destinations
+      const destinations = routeStops.slice(1, -1); // Remove start and end stops
+      const segments = await SegmentBuilderService.buildSegmentsFromDestinations(
+        startStop,
+        destinations,
+        routeStops,
+        0, // totalDistance will be calculated later
+        driveTimeTargets,
+        balanceMetrics,
+        endStop
+      );
+
+      // 4. Calculate total distance and driving time
+      const totalDistance = segments.reduce((sum, seg) => sum + seg.distance, 0);
+      const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
+
+      // 5. Create the trip plan
+      const tripPlan: TripPlan = {
+        id: `enhanced-trip-${Date.now()}`,
+        title: `${startLocation} to ${endLocation} Route 66 Adventure`,
+        startCity: startLocation,
+        endCity: endLocation,
+        startLocation,
+        endLocation,
+        startDate: new Date(),
+        totalDays: travelDays,
+        totalDistance,
+        totalMiles: Math.round(totalDistance),
+        totalDrivingTime,
+        segments,
+        dailySegments: segments,
+        tripStyle,
+        stops: [],
+        lastUpdated: new Date()
       };
-      
-      const segment: DailySegment = {
-        day,
-        title: `Day ${day}: ${currentStop.name} to ${nextStop.name}`,
-        startCity: currentStop.city_name || currentStop.name,
-        endCity: nextStop.city_name || nextStop.name,
-        distance,
-        approximateMiles: Math.round(distance),
-        driveTimeHours: driveTime,
-        destination: {
-          city: nextStop.city_name || nextStop.name,
-          state: nextStop.state
-        },
-        recommendedStops: [{
-          stopId: nextStop.id,
-          id: nextStop.id,
-          name: nextStop.name,
-          description: nextStop.description,
-          latitude: nextStop.latitude,
-          longitude: nextStop.longitude,
-          category: nextStop.category,
-          city_name: nextStop.city_name,
-          state: nextStop.state,
-          city: nextStop.city || nextStop.city_name || 'Unknown'
-        }],
-        attractions: [],
-        driveTimeCategory,
-        routeSection: `Section ${Math.ceil(day / 3)}`
-      };
-      
-      segments.push(segment);
+
+      return tripPlan;
+
+    } catch (error) {
+      console.error('❌ ENHANCED Trip planning failed:', error);
+      throw error;
     }
-    
-    return segments;
   }
-  
+
   /**
-   * Perform final validation of the complete trip
+   * Plan a trip with validated segments and Google Maps integration
    */
-  private static performFinalValidation(
-    segments: DailySegment[],
-    constraints: DriveTimeConstraint
-  ): {
-    isValid: boolean;
-    violations: string[];
-    totalDriveTime: number;
-    maxDailyDriveTime: number;
-  } {
-    const violations: string[] = [];
-    let totalDriveTime = 0;
-    let maxDailyDriveTime = 0;
-    
-    for (const segment of segments) {
-      totalDriveTime += segment.driveTimeHours;
-      maxDailyDriveTime = Math.max(maxDailyDriveTime, segment.driveTimeHours);
-      
-      if (segment.driveTimeHours > constraints.maxDailyHours) {
-        violations.push(`Day ${segment.day}: ${segment.driveTimeHours.toFixed(1)}h exceeds ${constraints.maxDailyHours}h limit`);
+  static async planTripWithGoogleMaps(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused'
+  ): Promise<TripPlan> {
+    console.log(`🚗 GOOGLE MAPS PLANNING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle}`);
+
+    try {
+      // 0. Load all stops and configure trip style
+      const allStops = await SupabaseDataService.fetchAllStops();
+      const styleConfig: TripStyleConfig = TripStyleLogic.configureTripStyle(tripStyle);
+
+      // 1. Identify boundary stops
+      const { startStop, endStop } = TripBoundaryService.findExactBoundaryStops(
+        startLocation,
+        endLocation,
+        allStops
+      );
+
+      // 2. Calculate drive time targets
+      const driveTimeTargets: DriveTimeTarget[] = DriveTimeBalancingService.generateDriveTimeTargets(
+        travelDays,
+        styleConfig
+      );
+
+      // 3. Initial segment - validated with Google Maps
+      let currentStop = startStop;
+      const dailySegments: DailySegment[] = [];
+
+      for (let day = 1; day <= travelDays; day++) {
+        const dayEndStop = (day === travelDays) ? endStop : null;
+
+        // 4. Create validated segment
+        let segment = await SegmentCreationService.createValidatedSegment(
+          currentStop,
+          dayEndStop || endStop,
+          day,
+          styleConfig
+        );
+
+        if (!segment) {
+          // 5. If validation fails, create capped segment
+          segment = await SegmentCreationService.createCappedSegment(
+            currentStop,
+            endStop,
+            day,
+            styleConfig
+          );
+        }
+
+        dailySegments.push(segment);
+        currentStop = endStop;
       }
+
+      // 6. Enforce drive time limits
+      const enforcedSegments = DriveTimeEnforcementService.enforceDriveTimeLimits(
+        dailySegments,
+        styleConfig
+      );
+
+      // 7. Enrich segments with additional data
+      const enrichedSegments = await SegmentEnrichmentService.enrichSegments(
+        enforcedSegments,
+        allStops
+      );
+
+      // 8. Validate final segments
+      const validationResult = SegmentValidationService.validateSegments(enrichedSegments);
+
+      // 9. Create the trip plan
+      const totalDistance = enrichedSegments.reduce((sum, seg) => sum + seg.distance, 0);
+      const totalDrivingTime = enrichedSegments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
+
+      const tripPlan: TripPlan = {
+        id: `google-maps-trip-${Date.now()}`,
+        title: `${startLocation} to ${endLocation} Route 66 Adventure`,
+        startCity: startLocation,
+        endCity: endLocation,
+        startLocation,
+        endLocation,
+        startDate: new Date(),
+        totalDays: travelDays,
+        totalDistance,
+        totalMiles: Math.round(totalDistance),
+        totalDrivingTime,
+        segments: enrichedSegments,
+        dailySegments: enrichedSegments,
+        tripStyle,
+        stops: [],
+        lastUpdated: new Date()
+      };
+
+      // 10. Analyze trip completion
+      const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
+      console.log('✅ Trip Completion Analysis:', completionAnalysis);
+
+      return tripPlan;
+
+    } catch (error) {
+      console.error('❌ GOOGLE MAPS Trip planning failed:', error);
+      throw error;
     }
-    
-    const isValid = violations.length === 0;
-    
-    console.log(`🔍 FINAL VALIDATION: ${isValid ? 'PASSED' : 'FAILED'} - ${violations.length} violations`);
-    
-    return {
-      isValid,
-      violations,
-      totalDriveTime,
-      maxDailyDriveTime
-    };
   }
+
+  // Replace the problematic category assignment with proper mapping
+private static mapDriveTimeCategory(category: string): 'short' | 'optimal' | 'long' | 'extreme' {
+  switch (category) {
+    case 'moderate':
+      return 'optimal';
+    case 'comfortable':
+      return 'short';
+    case 'extended':
+      return 'long';
+    default:
+      return 'optimal';
+  }
+}
 }
