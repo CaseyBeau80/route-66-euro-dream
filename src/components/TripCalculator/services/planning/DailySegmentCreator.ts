@@ -76,7 +76,7 @@ export class DailySegmentCreator {
   }
   
   /**
-   * Validate overnight stops and return warnings - fixed type narrowing
+   * Validate overnight stops and return warnings - fixed type narrowing issue
    */
   private static validateOvernightStops(overnightStops: TripStop[]): string[] {
     const warnings: string[] = [];
@@ -87,8 +87,12 @@ export class DailySegmentCreator {
         return;
       }
       
-      if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
-        warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+      // Check destination city status without type guard narrowing
+      const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
+      if (!isDestCity) {
+        // Access name property safely since we know stop is a valid TripStop
+        const stopName = stop.name || 'Unknown Stop';
+        warnings.push(`${stopName} is not a destination city and was removed from overnight stops`);
       }
     });
     
