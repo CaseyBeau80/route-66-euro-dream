@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { TripPlan } from '../../services/planning/TripPlanTypes';
 import { GoogleCalendarService } from '../../services/GoogleCalendarService';
 import { CalendarExportService } from '../../services/CalendarExportService';
 import { toast } from '@/hooks/use-toast';

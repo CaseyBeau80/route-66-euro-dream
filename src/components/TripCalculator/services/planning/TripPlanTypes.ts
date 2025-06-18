@@ -1,5 +1,4 @@
 
-
 export interface TripPlan {
   id: string;
   title: string;
@@ -136,4 +135,3 @@ export interface DailySegment {
   };
   driveTimeWarning?: string;
 }
-

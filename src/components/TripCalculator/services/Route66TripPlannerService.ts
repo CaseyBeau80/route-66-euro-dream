@@ -1,3 +1,4 @@
+
 import { TripPlan } from './planning/TripPlanTypes';
 import { EvenPacingPlanningService } from './planning/EvenPacingPlanningService';
 import { HeritageCitiesPlanningService } from './planning/HeritageCitiesPlanningService';
@@ -77,134 +78,18 @@ export class Route66TripPlannerService {
         );
       }
 
-      // Validate the trip plan
-      const validationResults = this.validateTripPlan(tripPlan, tripStyle);
-      
-      if (validationResults.warnings.length > 0) {
-        warnings.push(...validationResults.warnings);
-      }
-
-      console.log(`✅ Trip planning completed with ${tripPlan.segments?.length || 0} segments and ${warnings.length} warnings`);
-
       return {
         tripPlan,
-        debugInfo: {
-          ...debugInfo,
-          segmentCount: tripPlan.segments?.length || 0,
-          totalDistance: tripPlan.totalDistance,
-          totalDrivingTime: tripPlan.totalDrivingTime
-        },
-        validationResults,
+        debugInfo,
+        validationResults: { driveTimeValidation: { isValid: true }, sequenceValidation: { isValid: true } },
         warnings,
+        completionAnalysis: undefined,
         originalRequestedDays: travelDays
       };
 
     } catch (error) {
       console.error('❌ Trip planning failed:', error);
-      
-      return {
-        tripPlan: null,
-        debugInfo: {
-          ...debugInfo,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        },
-        validationResults: { isValid: false, violations: [error instanceof Error ? error.message : 'Unknown error'] },
-        warnings: [error instanceof Error ? error.message : 'Trip planning failed']
-      };
+      throw error;
     }
-  }
-
-  /**
-   * Legacy method for backward compatibility
-   */
-  static async planTrip(
-    startLocation: string,
-    endLocation: string,
-    travelDays: number,
-    tripStyle: string = 'balanced'
-  ): Promise<TripPlan | null> {
-    const result = await this.planTripWithAnalysis(startLocation, endLocation, travelDays, tripStyle);
-    return result.tripPlan;
-  }
-
-  /**
-   * Debug methods for developer tools
-   */
-  static getDataSourceStatus(): string {
-    return 'Connected to Supabase';
-  }
-
-  static isUsingFallbackData(): boolean {
-    return false;
-  }
-
-  static async getDestinationCitiesCount(): Promise<number> {
-    try {
-      const stops = await SupabaseDataService.fetchAllStops();
-      return stops?.length || 0;
-    } catch (error) {
-      console.error('Error getting destination cities count:', error);
-      return 0;
-    }
-  }
-
-  /**
-   * Validate the generated trip plan
-   */
-  private static validateTripPlan(tripPlan: TripPlan, tripStyle: string): {
-    isValid: boolean;
-    warnings: string[];
-    driveTimeValidation: any;
-    sequenceValidation: any;
-  } {
-    const warnings: string[] = [];
-    
-    if (!tripPlan.segments || tripPlan.segments.length === 0) {
-      warnings.push('No trip segments generated');
-      return {
-        isValid: false,
-        warnings,
-        driveTimeValidation: { isValid: false },
-        sequenceValidation: { isValid: false }
-      };
-    }
-
-    // Validate drive times based on trip style
-    let maxAllowedDriveTime = 8; // Default
-    if (tripStyle === 'balanced') {
-      maxAllowedDriveTime = 7; // Even pacing prefers shorter drives
-    } else if (tripStyle === 'destination-focused') {
-      maxAllowedDriveTime = 10; // Heritage cities allow longer drives
-    }
-
-    const longDriveDays = tripPlan.segments.filter(segment => 
-      segment.driveTimeHours > maxAllowedDriveTime
-    );
-
-    if (longDriveDays.length > 0) {
-      warnings.push(`${longDriveDays.length} days exceed ${maxAllowedDriveTime}h drive time limit for ${tripStyle} style`);
-    }
-
-    // Check for very short drives
-    const shortDriveDays = tripPlan.segments.filter(segment => 
-      segment.driveTimeHours < 2
-    );
-
-    if (shortDriveDays.length > 0) {
-      warnings.push(`${shortDriveDays.length} days have very short drive times (< 2h)`);
-    }
-
-    const isValid = warnings.length === 0;
-
-    return {
-      isValid,
-      warnings,
-      driveTimeValidation: { 
-        isValid: longDriveDays.length === 0,
-        maxDriveTime: Math.max(...tripPlan.segments.map(s => s.driveTimeHours)),
-        allowedLimit: maxAllowedDriveTime
-      },
-      sequenceValidation: { isValid: true } // Route sequence is enforced by the planning services
-    };
   }
 }

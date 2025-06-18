@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Share2, Download, Link2, Mail, RefreshCw } from 'lucide-react';
-import { TripPlan } from '../services/planning/TripPlanBuilder';
+import { TripPlan } from '../services/planning/TripPlanTypes';
 import ShareTripModal from './ShareTripModal';
 import { TripService } from '../services/TripService';
 import { toast } from '@/hooks/use-toast';

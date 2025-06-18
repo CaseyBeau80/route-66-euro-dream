@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { TripPlan } from '../../services/planning/TripPlanTypes';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
 import SharedTripOverview from './SharedTripOverview';
 import SharedDailyItinerary from './SharedDailyItinerary';

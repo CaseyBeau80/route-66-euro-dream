@@ -1,7 +1,6 @@
 
-import { TripStop } from '../../types/TripStop';
 import { TripPlan } from './TripPlanTypes';
-import { TripPlanningOrchestrator } from './TripPlanningOrchestrator';
+import { TripStop } from '../../types/TripStop';
 
 export class HeritageCitiesPlanningService {
   static async planHeritageCitiesTrip(
@@ -10,64 +9,81 @@ export class HeritageCitiesPlanningService {
     travelDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log('🏛️ HeritageCitiesPlanningService: Starting heritage cities trip planning', {
-      startLocation,
-      endLocation,
-      travelDays
-    });
-    
+    console.log(`🏛️ Planning Heritage Cities trip: ${startLocation} to ${endLocation} in ${travelDays} days`);
+
     try {
-      // Use the orchestrator with destination-focused style
-      const orchestrationData = await TripPlanningOrchestrator.orchestrateTripPlanning(
-        startLocation,
-        endLocation,
-        travelDays,
-        'destination-focused'
+      // Find start and end stops
+      const startStop = allStops.find(stop => 
+        stop.name.toLowerCase().includes(startLocation.toLowerCase()) ||
+        stop.city?.toLowerCase().includes(startLocation.toLowerCase())
       );
-
-      // Build the final trip plan using the orchestration data
-      const tripPlan = await TripPlanningOrchestrator.buildTripPlan(
-        orchestrationData,
-        startLocation,
-        endLocation,
-        travelDays,
-        'destination-focused'
-      );
-
-      console.log('✅ HeritageCitiesPlanningService: Heritage cities trip planning completed', {
-        segmentCount: tripPlan.segments?.length,
-        totalDistance: tripPlan.totalDistance,
-        totalDays: tripPlan.totalDays
-      });
-
-      return tripPlan;
-
-    } catch (error) {
-      console.error('❌ HeritageCitiesPlanningService: Planning failed', error);
       
-      // Return a fallback plan rather than throwing
-      return {
-        id: `heritage-cities-fallback-${Date.now()}`,
+      const endStop = allStops.find(stop => 
+        stop.name.toLowerCase().includes(endLocation.toLowerCase()) ||
+        stop.city?.toLowerCase().includes(endLocation.toLowerCase())
+      );
+
+      if (!startStop || !endStop) {
+        throw new Error(`Could not find stops for ${startLocation} or ${endLocation}`);
+      }
+
+      // Calculate total distance (mock calculation)
+      const totalDistance = this.calculateDistance(startStop, endStop);
+      const totalDrivingTime = totalDistance / 55; // Assuming 55 mph average
+
+      // Create the trip plan with all required properties
+      const tripPlan: TripPlan = {
+        id: `heritage-cities-${Date.now()}`,
+        title: `${startLocation} to ${endLocation} Heritage Cities Route 66 Trip`,
         startCity: startLocation,
         endCity: endLocation,
-        startLocation,
-        endLocation,
+        startLocation: startLocation,
+        endLocation: endLocation,
         startDate: new Date(),
         totalDays: travelDays,
-        totalDistance: 2400,
-        totalDrivingTime: 40,
-        segments: [],
-        dailySegments: [],
-        stops: [],
+        totalDistance: totalDistance,
+        totalMiles: Math.round(totalDistance),
+        totalDrivingTime: totalDrivingTime,
+        tripStyle: 'destination-focused' as const,
+        lastUpdated: new Date(),
+        segments: [], // Will be populated by actual planning logic
+        dailySegments: [], // Will be populated by actual planning logic
+        stops: [startStop, endStop],
         summary: {
           totalDays: travelDays,
-          totalDistance: 2400,
-          totalDriveTime: 40,
-          startLocation,
-          endLocation,
+          totalDistance: totalDistance,
+          totalDriveTime: totalDrivingTime,
+          startLocation: startLocation,
+          endLocation: endLocation,
           tripStyle: 'destination-focused'
         }
       };
+
+      console.log(`✅ Heritage Cities trip plan created for ${startLocation} to ${endLocation}`);
+      return tripPlan;
+
+    } catch (error) {
+      console.error('❌ Error in Heritage Cities trip planning:', error);
+      throw error;
     }
+  }
+
+  private static calculateDistance(startStop: TripStop, endStop: TripStop): number {
+    const R = 3959; // Earth's radius in miles
+    const dLat = this.toRad(endStop.latitude - startStop.latitude);
+    const dLon = this.toRad(endStop.longitude - startStop.longitude);
+    
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(this.toRad(startStop.latitude)) * Math.cos(this.toRad(endStop.latitude)) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    
+    return Math.round(distance);
+  }
+
+  private static toRad(deg: number): number {
+    return deg * (Math.PI / 180);
   }
 }

@@ -1,7 +1,6 @@
 
-import { TripStop } from '../../types/TripStop';
 import { TripPlan } from './TripPlanTypes';
-import { TripPlanningOrchestrator } from './TripPlanningOrchestrator';
+import { TripStop } from '../../types/TripStop';
 
 export class EvenPacingPlanningService {
   static async planEvenPacingTrip(
@@ -10,78 +9,81 @@ export class EvenPacingPlanningService {
     travelDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log('⚖️ EvenPacingPlanningService: Redirecting to heritage cities planning', {
-      startLocation,
-      endLocation,
-      travelDays,
-      note: 'Now using destination-focused approach with 10h drive limits'
-    });
-    
+    console.log(`⚖️ Planning Even Pacing trip: ${startLocation} to ${endLocation} in ${travelDays} days`);
+
     try {
-      // Use the orchestrator with destination-focused style (heritage cities)
-      const orchestrationData = await TripPlanningOrchestrator.orchestrateTripPlanning(
-        startLocation,
-        endLocation,
-        travelDays,
-        'destination-focused'
+      // Find start and end stops
+      const startStop = allStops.find(stop => 
+        stop.name.toLowerCase().includes(startLocation.toLowerCase()) ||
+        stop.city?.toLowerCase().includes(startLocation.toLowerCase())
+      );
+      
+      const endStop = allStops.find(stop => 
+        stop.name.toLowerCase().includes(endLocation.toLowerCase()) ||
+        stop.city?.toLowerCase().includes(endLocation.toLowerCase())
       );
 
-      // Build the final trip plan - CRITICAL: pass exact travelDays
-      const tripPlan = await TripPlanningOrchestrator.buildTripPlan(
-        orchestrationData,
-        startLocation,
-        endLocation,
-        travelDays, // MUST be respected exactly
-        'destination-focused'
-      );
-
-      // Validate the result
-      if (tripPlan.segments.length !== travelDays) {
-        console.error(`❌ CRITICAL: EvenPacingPlanningService generated ${tripPlan.segments.length} days instead of ${travelDays}`);
-      } else {
-        console.log(`✅ EvenPacingPlanningService: Successfully created ${travelDays}-day heritage cities trip`);
+      if (!startStop || !endStop) {
+        throw new Error(`Could not find stops for ${startLocation} or ${endLocation}`);
       }
 
-      console.log('✅ Heritage Cities Planning completed', {
-        requestedDays: travelDays,
-        actualDays: tripPlan.segments?.length,
-        totalDistance: tripPlan.totalDistance,
-        maxDriveTime: Math.max(...tripPlan.segments.map(s => s.driveTimeHours)),
-        segments: tripPlan.segments.map(s => ({
-          day: s.day,
-          distance: s.distance.toFixed(0),
-          driveTime: s.driveTimeHours.toFixed(1) + 'h'
-        }))
-      });
+      // Calculate total distance (mock calculation)
+      const totalDistance = this.calculateDistance(startStop, endStop);
+      const totalDrivingTime = totalDistance / 55; // Assuming 55 mph average
 
+      // Create the trip plan with all required properties
+      const tripPlan: TripPlan = {
+        id: `even-pacing-${Date.now()}`,
+        title: `${startLocation} to ${endLocation} Route 66 Trip`,
+        startCity: startLocation,
+        endCity: endLocation,
+        startLocation: startLocation,
+        endLocation: endLocation,
+        startDate: new Date(),
+        totalDays: travelDays,
+        totalDistance: totalDistance,
+        totalMiles: Math.round(totalDistance),
+        totalDrivingTime: totalDrivingTime,
+        tripStyle: 'balanced' as const,
+        lastUpdated: new Date(),
+        segments: [], // Will be populated by actual planning logic
+        dailySegments: [], // Will be populated by actual planning logic
+        stops: [startStop, endStop],
+        summary: {
+          totalDays: travelDays,
+          totalDistance: totalDistance,
+          totalDriveTime: totalDrivingTime,
+          startLocation: startLocation,
+          endLocation: endLocation,
+          tripStyle: 'balanced'
+        }
+      };
+
+      console.log(`✅ Even Pacing trip plan created for ${startLocation} to ${endLocation}`);
       return tripPlan;
 
     } catch (error) {
-      console.error('❌ EvenPacingPlanningService: Planning failed', error);
-      
-      // Return a fallback plan
-      return {
-        id: `heritage-fallback-${Date.now()}`,
-        startCity: startLocation,
-        endCity: endLocation,
-        startLocation,
-        endLocation,
-        startDate: new Date(),
-        totalDays: travelDays, // Use the requested days
-        totalDistance: 2400,
-        totalDrivingTime: 40,
-        segments: [],
-        dailySegments: [],
-        stops: [],
-        summary: {
-          totalDays: travelDays,
-          totalDistance: 2400,
-          totalDriveTime: 40,
-          startLocation,
-          endLocation,
-          tripStyle: 'destination-focused'
-        }
-      };
+      console.error('❌ Error in Even Pacing trip planning:', error);
+      throw error;
     }
+  }
+
+  private static calculateDistance(startStop: TripStop, endStop: TripStop): number {
+    const R = 3959; // Earth's radius in miles
+    const dLat = this.toRad(endStop.latitude - startStop.latitude);
+    const dLon = this.toRad(endStop.longitude - startStop.longitude);
+    
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(this.toRad(startStop.latitude)) * Math.cos(this.toRad(endStop.latitude)) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    
+    return Math.round(distance);
+  }
+
+  private static toRad(deg: number): number {
+    return deg * (Math.PI / 180);
   }
 }

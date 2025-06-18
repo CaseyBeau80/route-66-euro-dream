@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { TripPlan } from '../../services/planning/TripPlanTypes';
 import { Calendar, MapPin, Clock, Route } from 'lucide-react';
 import { format } from 'date-fns';
 

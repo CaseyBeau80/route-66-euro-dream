@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { TripPlan } from '../../services/planning/TripPlanTypes';
 import { ShareTripOptions } from '../../hooks/useShareTripOptions';
 import { TripService } from '../../services/TripService';
 import { toast } from '@/hooks/use-toast';

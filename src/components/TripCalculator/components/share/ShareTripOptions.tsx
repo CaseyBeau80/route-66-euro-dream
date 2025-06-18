@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { TripPlan } from '../../services/planning/TripPlanTypes';
 import { Copy, Mail, Link, Save, ExternalLink } from 'lucide-react';
 
 interface ShareTripOptionsProps {
