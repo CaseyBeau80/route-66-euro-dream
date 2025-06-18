@@ -1,5 +1,4 @@
 
-
 import { PlanningAdjustment } from './PlanningPolicy';
 import { TripAdjustmentNotice } from './TripAdjustmentService';
 
@@ -104,9 +103,9 @@ export interface SubStopTiming {
   };
   distanceMiles: number;
   driveTimeHours: number;
-  // Legacy properties for backward compatibility - make distance required to match SegmentTiming
-  distance: number; // Changed from optional to required
-  drivingTime?: number;
+  // Legacy properties for backward compatibility - make both required to match SegmentTiming
+  distance: number; // Required
+  drivingTime: number; // Changed from optional to required
 }
 
 // Alias for backward compatibility
@@ -190,10 +189,10 @@ export interface DriveTimeBalance {
   minHours: number;
   isBalanced: boolean;
   variance?: number; // Add missing variance property
+  driveTimeRange: { min: number; max: number }; // Add missing driveTimeRange property
   segments: {
     day: number;
     hours: number;
     category: 'light' | 'moderate' | 'heavy' | 'extreme';
   }[];
 }
-

@@ -129,7 +129,8 @@ export class BasicTripPlanner {
           name: stop.name,
           title: stop.name,
           description: stop.description,
-          city: stop.city_name || stop.name
+          city: stop.city_name || stop.name,
+          category: stop.category || 'attraction' // Add required category property
         }))
       };
 

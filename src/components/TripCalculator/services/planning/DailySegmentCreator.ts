@@ -227,7 +227,8 @@ export class DailySegmentCreator {
         name: stop.name,
         title: stop.name,
         description: stop.description,
-        city: stop.city || stop.city_name || 'Unknown'
+        city: stop.city || stop.city_name || 'Unknown',
+        category: stop.category || 'attraction' // Add required category property
       })),
       driveTimeCategory: driveTimeCategory,
       routeSection: day <= Math.ceil(3) ? 'Early Route' : 
