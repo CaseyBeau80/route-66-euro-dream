@@ -1,7 +1,7 @@
 
 import { TripStop } from '../../types/TripStop';
-
-export type DriveTimeCategory = 'short' | 'optimal' | 'long' | 'extreme';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
 
 export interface SubStopTiming {
   fromStop: TripStop;
@@ -12,84 +12,78 @@ export interface SubStopTiming {
   distanceMiles: number;
 }
 
+export interface SegmentTimingResult {
+  segmentTimings: SubStopTiming[];
+  totalSegmentDriveTime: number;
+  segmentDistance: number;
+  isGoogleMapsData: boolean;
+  dataAccuracy: string;
+}
+
 export class SegmentTimingCalculator {
-  static calculateOptimalTiming(segments: any[]): any {
-    console.log('⏱️ SegmentTimingCalculator: calculateOptimalTiming stub');
-    return { optimizedSegments: segments };
-  }
-
-  static categorizedriveTime(driveTime: number): DriveTimeCategory {
-    if (driveTime <= 3) return 'short';
-    if (driveTime <= 6) return 'optimal';
-    if (driveTime <= 9) return 'long';
-    return 'extreme';
-  }
-
-  static getDriveTimeCategory(category: string): DriveTimeCategory {
-    // Fix type conversion with proper validation
-    const validCategories: DriveTimeCategory[] = ['short', 'optimal', 'long', 'extreme'];
-    return validCategories.includes(category as DriveTimeCategory) 
-      ? (category as DriveTimeCategory)
-      : 'optimal';
-  }
-
+  /**
+   * Calculate segment timings including all sub-stops
+   */
   static async calculateSegmentTimings(
     startStop: TripStop,
     endStop: TripStop,
     segmentStops: TripStop[]
-  ): Promise<{
-    segmentTimings: SubStopTiming[];
-    totalSegmentDriveTime: number;
-    segmentDistance: number;
-    isGoogleMapsData: boolean;
-    dataAccuracy: string;
-  }> {
-    const segmentTimings: SubStopTiming[] = [];
-    let totalDistance = 0;
-    let totalDriveTime = 0;
+  ): Promise<SegmentTimingResult> {
+    console.log(`⏱️ SegmentTimingCalculator: Calculating timings for segment ${startStop.name} → ${endStop.name}`);
 
-    // Create timings between consecutive stops
-    const allStops = [startStop, ...segmentStops, endStop];
-    
-    for (let i = 0; i < allStops.length - 1; i++) {
-      const fromStop = allStops[i];
-      const toStop = allStops[i + 1];
-      
-      // Mock distance calculation
-      const distance = this.calculateDistance(fromStop, toStop);
-      const driveTime = distance / 50; // 50 mph average
-      
-      segmentTimings.push({
+    const segmentTimings: SubStopTiming[] = [];
+    let totalSegmentDriveTime = 0;
+    let segmentDistance = 0;
+
+    // Create the complete route: start → intermediate stops → end
+    const completeRoute = [startStop, ...segmentStops, endStop];
+
+    // Calculate timing for each leg of the journey
+    for (let i = 0; i < completeRoute.length - 1; i++) {
+      const fromStop = completeRoute[i];
+      const toStop = completeRoute[i + 1];
+
+      const distance = DistanceCalculationService.calculateDistance(
+        fromStop.latitude,
+        fromStop.longitude,
+        toStop.latitude,
+        toStop.longitude
+      );
+
+      const driveTimeHours = calculateRealisticDriveTime(distance);
+
+      const timing: SubStopTiming = {
         fromStop,
         toStop,
         distance,
-        driveTimeHours: driveTime,
-        drivingTime: driveTime,
-        distanceMiles: distance
-      });
-      
-      totalDistance += distance;
-      totalDriveTime += driveTime;
+        driveTimeHours,
+        drivingTime: driveTimeHours,
+        distanceMiles: Math.round(distance)
+      };
+
+      segmentTimings.push(timing);
+      totalSegmentDriveTime += driveTimeHours;
+      segmentDistance += distance;
     }
+
+    console.log(`✅ SegmentTimingCalculator: Segment complete - ${segmentDistance.toFixed(0)}mi, ${totalSegmentDriveTime.toFixed(1)}h`);
 
     return {
       segmentTimings,
-      totalSegmentDriveTime: totalDriveTime,
-      segmentDistance: totalDistance,
-      isGoogleMapsData: false,
+      totalSegmentDriveTime,
+      segmentDistance,
+      isGoogleMapsData: false, // Using calculated estimates
       dataAccuracy: 'estimated'
     };
   }
 
-  private static calculateDistance(stop1: TripStop, stop2: TripStop): number {
-    // Simple distance calculation using Haversine formula
-    const R = 3959; // Earth's radius in miles
-    const dLat = (stop2.latitude - stop1.latitude) * Math.PI / 180;
-    const dLon = (stop2.longitude - stop1.longitude) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(stop1.latitude * Math.PI / 180) * Math.cos(stop2.latitude * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
+  /**
+   * Categorize drive time into ranges
+   */
+  static categorizedriveTime(driveTimeHours: number): 'short' | 'optimal' | 'long' | 'extreme' {
+    if (driveTimeHours < 3) return 'short';
+    if (driveTimeHours <= 6) return 'optimal';
+    if (driveTimeHours <= 8) return 'long';
+    return 'extreme';
   }
 }
