@@ -3,12 +3,12 @@ import { TripPlan } from './TripPlanTypes';
 import { DailySegment } from './TripPlanTypes';
 import { SupabaseDataService } from '../data/SupabaseDataService';
 import { TripBoundaryService } from './TripBoundaryService';
-import { SegmentBuilderService } from './SegmentBuilderService';
 import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancingService';
 import { TripStyleConfig, TripStyleLogic } from './TripStyleLogic';
 import { TripCompletionService } from './TripCompletionService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
-import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
+import { calculateRealisticDriveTime, validateGeographicProgression } from '../../utils/distanceCalculator';
+import { EnhancedHeritageCitiesService } from './EnhancedHeritageCitiesService';
 
 export interface OrchestrationData {
   allStops: any[];
@@ -23,12 +23,13 @@ export interface OrchestrationData {
 }
 
 export class TripPlanningOrchestrator {
-  // CRITICAL: Maximum stops limit to prevent overcrowded itineraries
-  private static readonly MAX_STOPS_LIMIT = 12;
-  private static readonly OPTIMAL_DAYS_PER_STOP = 1.2;
+  // STRICT LIMITS - Enforced absolutely
+  private static readonly MAX_STOPS_LIMIT = 8;
+  private static readonly ABSOLUTE_MAX_DRIVE_HOURS = 10;
+  private static readonly OPTIMAL_DAYS_PER_STOP = 1.5;
 
   /**
-   * Orchestrate the complete trip planning process
+   * Orchestrate enhanced trip planning with strict constraints
    */
   static async orchestrateTripPlanning(
     startLocation: string,
@@ -36,31 +37,38 @@ export class TripPlanningOrchestrator {
     travelDays: number,
     tripStyle: 'destination-focused'
   ): Promise<OrchestrationData> {
-    console.log(`🚗 ORCHESTRATING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle}`);
+    console.log(`🚗 ENHANCED ORCHESTRATING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle}`);
 
-    // 1. Load all stops and configure trip style
+    // FIX 0-DAY BUG: Validate and fix travel days
+    const validatedTravelDays = Math.max(1, Math.floor(travelDays));
+    if (validatedTravelDays !== travelDays) {
+      console.warn(`⚠️ FIXED 0-DAY BUG: ${travelDays} → ${validatedTravelDays} days`);
+    }
+
+    // Load data and configure style
     const allStops = await SupabaseDataService.fetchAllStops();
     const styleConfig: TripStyleConfig = TripStyleLogic.configureTripStyle(tripStyle);
 
-    // 2. Identify boundary stops and initial route stops
+    // Find boundary stops
     const { startStop, endStop, routeStops } = TripBoundaryService.findBoundaryStops(
       startLocation,
       endLocation,
       allStops
     );
 
-    // 3. CRITICAL: Check if we need to limit stops due to too many days
-    const { shouldLimit, limitMessage } = this.checkStopsLimit(travelDays, routeStops.length);
-    let finalRouteStops = routeStops;
+    // CRITICAL CONSTRAINT CHECKING
+    const constraintCheck = this.checkCriticalConstraints(startStop, endStop, validatedTravelDays, routeStops.length);
     
-    if (shouldLimit) {
-      console.warn(`⚠️ STOPS LIMITED: ${travelDays} days requires limiting stops to ${this.MAX_STOPS_LIMIT}`);
-      finalRouteStops = this.limitStopsForManyDays(routeStops, startStop, endStop);
+    // Apply stops limitation if needed
+    let finalRouteStops = routeStops;
+    if (constraintCheck.shouldLimitStops) {
+      console.warn(`⚠️ STOPS LIMITED: ${constraintCheck.limitMessage}`);
+      finalRouteStops = this.limitStopsIntelligently(routeStops, startStop, endStop);
     }
 
-    // 4. Determine drive time targets and balance metrics
+    // Calculate drive time targets with strict enforcement
     const { driveTimeTargets, balanceMetrics } = DriveTimeBalancingService.calculateDriveTimeTargets(
-      travelDays,
+      validatedTravelDays,
       styleConfig
     );
 
@@ -72,60 +80,179 @@ export class TripPlanningOrchestrator {
       routeStops: finalRouteStops,
       driveTimeTargets,
       balanceMetrics,
-      stopsLimited: shouldLimit,
-      limitMessage: shouldLimit ? limitMessage : undefined
+      stopsLimited: constraintCheck.shouldLimitStops,
+      limitMessage: constraintCheck.shouldLimitStops ? constraintCheck.limitMessage : undefined
     };
   }
 
   /**
-   * Check if stops need to be limited due to too many days
+   * Check critical constraints and determine if stops should be limited
    */
-  private static checkStopsLimit(travelDays: number, availableStops: number): { shouldLimit: boolean; limitMessage: string } {
+  private static checkCriticalConstraints(
+    startStop: any,
+    endStop: any,
+    travelDays: number,
+    availableStops: number
+  ): { shouldLimitStops: boolean; limitMessage: string; feasibilityWarning?: string } {
+    
+    // Calculate total distance and basic feasibility
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
+
+    const avgDailyDistance = totalDistance / travelDays;
+    const avgDailyDriveTime = calculateRealisticDriveTime(avgDailyDistance);
+    
+    // Check if trip is fundamentally feasible
+    let feasibilityWarning = '';
+    if (avgDailyDriveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
+      const minRequiredDays = Math.ceil(totalDistance / (this.ABSOLUTE_MAX_DRIVE_HOURS * 50));
+      feasibilityWarning = `⚠️ ${travelDays} days may require ${avgDailyDriveTime.toFixed(1)}h/day. Consider ${minRequiredDays}+ days.`;
+    }
+
+    // Determine if we should limit stops
     const optimalStops = Math.ceil(travelDays / this.OPTIMAL_DAYS_PER_STOP);
-    const effectiveStops = Math.min(availableStops, this.MAX_STOPS_LIMIT);
-    
-    if (travelDays > 10 && availableStops > this.MAX_STOPS_LIMIT) {
-      return {
-        shouldLimit: true,
-        limitMessage: `⚠️ Limited to ${this.MAX_STOPS_LIMIT} major stops for ${travelDays}-day trip to maintain quality experience. Consider fewer days for more comprehensive coverage.`
-      };
+    const shouldLimitStops = availableStops > this.MAX_STOPS_LIMIT || 
+                            (travelDays > 6 && availableStops > optimalStops);
+
+    let limitMessage = '';
+    if (shouldLimitStops) {
+      if (availableStops > this.MAX_STOPS_LIMIT) {
+        limitMessage = `🎯 Limited to ${this.MAX_STOPS_LIMIT} major destinations for optimal ${travelDays}-day experience. Focus on quality over quantity.`;
+      } else {
+        limitMessage = `🎯 ${travelDays} days allows for leisurely exploration of ${Math.min(availableStops, optimalStops)} destinations with extra time at each location.`;
+      }
     }
-    
-    if (travelDays > 8 && optimalStops > effectiveStops) {
-      return {
-        shouldLimit: true,
-        limitMessage: `ℹ️ ${travelDays} days allows for leisurely exploration of ${effectiveStops} major Route 66 destinations with extra time at each location.`
-      };
-    }
-    
-    return { shouldLimit: false, limitMessage: '' };
+
+    console.log(`🔍 Constraint check:`, {
+      totalDistance: totalDistance.toFixed(1),
+      travelDays,
+      avgDailyDistance: avgDailyDistance.toFixed(1),
+      avgDailyDriveTime: avgDailyDriveTime.toFixed(1),
+      availableStops,
+      shouldLimitStops,
+      feasibilityWarning
+    });
+
+    return { shouldLimitStops, limitMessage, feasibilityWarning };
   }
 
   /**
-   * Limit stops to maintain quality when there are many days
+   * Intelligently limit stops to the most important ones
    */
-  private static limitStopsForManyDays(routeStops: any[], startStop: any, endStop: any): any[] {
+  private static limitStopsIntelligently(routeStops: any[], startStop: any, endStop: any): any[] {
     if (routeStops.length <= this.MAX_STOPS_LIMIT) {
       return routeStops;
     }
 
-    // Prioritize destination cities and major heritage locations
-    const prioritizedStops = routeStops
-      .filter(stop => stop.id !== startStop.id && stop.id !== endStop.id)
-      .sort((a, b) => {
-        // Priority order: destination_city > heritage_site > attraction
-        const priorityOrder = { 'destination_city': 3, 'heritage_site': 2, 'attraction': 1 };
-        const aPriority = priorityOrder[a.category] || 0;
-        const bPriority = priorityOrder[b.category] || 0;
-        return bPriority - aPriority;
-      })
-      .slice(0, this.MAX_STOPS_LIMIT - 2); // Reserve space for start/end
+    // Determine direction for geographic sorting
+    const isEastToWest = startStop.longitude < endStop.longitude;
 
-    return [startStop, ...prioritizedStops, endStop];
+    // Sort geographically first
+    const geographicallySorted = routeStops.sort((a, b) => {
+      return isEastToWest ? a.longitude - b.longitude : b.longitude - a.longitude;
+    });
+
+    // Prioritize by importance and geographic distribution
+    const prioritized = geographicallySorted
+      .filter(stop => stop.id !== startStop.id && stop.id !== endStop.id)
+      .map(stop => ({
+        ...stop,
+        priority: this.calculateStopPriority(stop)
+      }))
+      .sort((a, b) => b.priority - a.priority);
+
+    // Select top stops ensuring geographic distribution
+    const selected = this.selectDistributedStops(prioritized, this.MAX_STOPS_LIMIT, isEastToWest);
+
+    console.log(`📍 Limited stops (${selected.length}):`, selected.map(s => s.name));
+
+    return selected;
   }
 
   /**
-   * Build the final trip plan from orchestration data with strict day constraints
+   * Calculate priority score for a stop
+   */
+  private static calculateStopPriority(stop: any): number {
+    let priority = 0;
+
+    // Category priorities
+    const categoryScores = {
+      'destination_city': 100,
+      'heritage_site': 80,
+      'historic_site': 70,
+      'attraction': 60,
+      'monument': 50,
+      'landmark': 40
+    };
+    
+    priority += categoryScores[stop.category] || 30;
+
+    // Heritage value bonus
+    const heritageScores = { 'high': 50, 'medium': 30, 'low': 10 };
+    priority += heritageScores[stop.heritage_value] || 0;
+
+    // Significance bonus
+    if (stop.significance === 'national') priority += 40;
+    if (stop.significance === 'state') priority += 20;
+    if (stop.description && stop.description.toLowerCase().includes('historic')) priority += 20;
+
+    return priority;
+  }
+
+  /**
+   * Select stops with good geographic distribution
+   */
+  private static selectDistributedStops(stops: any[], maxCount: number, isEastToWest: boolean): any[] {
+    if (stops.length <= maxCount) return stops;
+
+    const selected: any[] = [];
+    const totalRange = Math.abs(stops[stops.length - 1].longitude - stops[0].longitude);
+    const segmentSize = totalRange / maxCount;
+
+    let currentSegmentStart = stops[0].longitude;
+    let segmentIndex = 0;
+
+    while (selected.length < maxCount && segmentIndex < maxCount) {
+      const segmentEnd = currentSegmentStart + (isEastToWest ? segmentSize : -segmentSize);
+      
+      // Find best stop in this segment
+      const segmentStops = stops.filter(stop => {
+        const inRange = isEastToWest 
+          ? stop.longitude >= currentSegmentStart && stop.longitude <= segmentEnd
+          : stop.longitude <= currentSegmentStart && stop.longitude >= segmentEnd;
+        return inRange && !selected.includes(stop);
+      });
+
+      if (segmentStops.length > 0) {
+        // Select highest priority stop in this segment
+        const bestInSegment = segmentStops.reduce((best, current) => 
+          current.priority > best.priority ? current : best
+        );
+        selected.push(bestInSegment);
+      }
+
+      currentSegmentStart = segmentEnd;
+      segmentIndex++;
+    }
+
+    // Fill remaining slots with highest priority stops not yet selected
+    while (selected.length < maxCount) {
+      const remaining = stops.filter(stop => !selected.includes(stop));
+      if (remaining.length === 0) break;
+      
+      const highest = remaining.reduce((best, current) => 
+        current.priority > best.priority ? current : best
+      );
+      selected.push(highest);
+    }
+
+    return selected;
+  }
+
+  /**
+   * Build the final trip plan using the enhanced service
    */
   static async buildTripPlan(
     orchestrationData: OrchestrationData,
@@ -134,354 +261,37 @@ export class TripPlanningOrchestrator {
     travelDays: number,
     tripStyle: 'destination-focused'
   ): Promise<TripPlan> {
-    const { startStop, endStop, allStops, styleConfig, stopsLimited, limitMessage } = orchestrationData;
-
-    console.log(`🎯 Building trip plan for EXACTLY ${travelDays} days with STRICT 10h max drive time`);
+    console.log(`🎯 Building enhanced trip plan for EXACTLY ${travelDays} days with STRICT constraints`);
     
-    // Log stops limitation if applied
-    if (stopsLimited && limitMessage) {
-      console.log(`📍 ${limitMessage}`);
-    }
-
-    // Calculate total distance for the trip
-    const totalDistance = DistanceCalculationService.calculateDistance(
-      startStop.latitude, 
-      startStop.longitude,
-      endStop.latitude, 
-      endStop.longitude
-    );
-
-    console.log(`📏 Total trip distance: ${totalDistance.toFixed(0)} miles`);
-
-    // CRITICAL: Check if trip is feasible with 10h limit
-    const avgDailyDistance = totalDistance / travelDays;
-    const avgDailyDriveTime = calculateRealisticDriveTime(avgDailyDistance);
-    
-    if (avgDailyDriveTime >= 10) {
-      console.warn(`⚠️ Trip may require adjustment: ${avgDailyDistance.toFixed(0)} miles/day = ${avgDailyDriveTime.toFixed(1)}h/day`);
-    }
-
-    // Create optimized daily segments with proper drive time distribution
-    const segments = await this.createOptimizedSegments(
-      startStop,
-      endStop,
-      allStops,
-      travelDays,
-      totalDistance,
-      styleConfig
-    );
-
-    // CRITICAL: Ensure we have exactly the requested number of segments
-    if (segments.length !== travelDays) {
-      console.error(`❌ CRITICAL: Segment count mismatch: expected ${travelDays}, got ${segments.length}`);
-      // Trim or pad segments to match requested days
-      if (segments.length > travelDays) {
-        segments.splice(travelDays);
-      } else {
-        while (segments.length < travelDays) {
-          const lastSegment = segments[segments.length - 1];
-          const paddingSegment = { ...lastSegment, day: segments.length + 1 };
-          segments.push(paddingSegment);
-        }
-      }
-    }
-
-    // Calculate totals from actual segments
-    const actualTotalDistance = segments.reduce((sum, seg) => sum + seg.distance, 0);
-    const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
-
-    // Create the trip plan with stops limitation info
-    const tripPlan: TripPlan = {
-      id: `heritage-trip-${Date.now()}`,
-      title: `${startLocation} to ${endLocation} Route 66 Heritage Adventure${stopsLimited ? ' (Optimized)' : ''}`,
-      startCity: startLocation,
-      endCity: endLocation,
+    // Use the enhanced Heritage Cities service
+    const tripPlan = await EnhancedHeritageCitiesService.planEnhancedHeritageCitiesTrip(
       startLocation,
       endLocation,
-      startDate: new Date(),
-      totalDays: travelDays, // Use the EXACT requested days
-      totalDistance: actualTotalDistance,
-      totalMiles: Math.round(actualTotalDistance),
-      totalDrivingTime,
-      segments,
-      dailySegments: segments,
-      tripStyle,
-      stops: [],
-      lastUpdated: new Date(),
-      // Add stops limitation metadata
-      stopsLimited,
-      limitMessage
-    };
-
-    // Analyze trip completion
-    const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
-    console.log('✅ Trip Completion Analysis:', completionAnalysis);
-
-    console.log(`✅ Final trip plan: ${segments.length} days (requested: ${travelDays}), ${Math.round(actualTotalDistance)} miles${stopsLimited ? ' (stops limited)' : ''}`);
-
-    return tripPlan;
-  }
-
-  /**
-   * Create optimized daily segments with STRICT 10h enforcement and proper distance distribution
-   */
-  private static async createOptimizedSegments(
-    startStop: any,
-    endStop: any,
-    allStops: any[],
-    travelDays: number,
-    totalDistance: number,
-    styleConfig: TripStyleConfig
-  ): Promise<DailySegment[]> {
-    const segments: DailySegment[] = [];
-    
-    console.log(`🛣️ Creating optimized route for EXACTLY ${travelDays} days with STRICT 10h max drive time`);
-
-    // Determine if we're going east-to-west or west-to-east
-    const isEastToWest = startStop.longitude < endStop.longitude;
-    console.log(`📍 Route direction: ${isEastToWest ? 'East to West' : 'West to East'}`);
-
-    // Get all available stops sorted by longitude
-    const sortedStops = this.getSortedRouteStops(startStop, endStop, allStops, isEastToWest);
-    
-    // FIXED: Use distance-based balanced distribution instead of equal segments
-    const dailyDistances = this.calculateProportionalDailyDistances(totalDistance, travelDays);
-    
-    let currentStop = startStop;
-    let accumulatedDistance = 0;
-
-    for (let day = 1; day <= travelDays; day++) {
-      const isLastDay = day === travelDays;
-      const targetDistance = dailyDistances[day - 1];
-      
-      let dayDestination: any;
-      
-      if (isLastDay) {
-        // Last day: go to end destination
-        dayDestination = endStop;
-      } else {
-        // Find next stop that gets us close to our cumulative target
-        const cumulativeTarget = accumulatedDistance + targetDistance;
-        dayDestination = this.findStopNearCumulativeDistance(
-          currentStop,
-          endStop,
-          sortedStops,
-          cumulativeTarget,
-          totalDistance,
-          isEastToWest
-        );
-      }
-
-      // Calculate actual distance and drive time
-      const actualDistance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        dayDestination.latitude, dayDestination.longitude
-      );
-
-      // Use the enhanced drive time calculation with STRICT 10h enforcement
-      let driveTimeHours = calculateRealisticDriveTime(actualDistance);
-      
-      // ABSOLUTE enforcement: If still over 10h, cap it and warn
-      if (driveTimeHours > 10) {
-        console.error(`🚨 CRITICAL: Day ${day} would be ${driveTimeHours.toFixed(1)}h - FORCING to 10h maximum`);
-        driveTimeHours = 10;
-      }
-
-      const startCityName = currentStop.name || currentStop.city_name || currentStop.city || 'Unknown';
-      const endCityName = dayDestination.name || dayDestination.city_name || dayDestination.city || 'Unknown';
-
-      // Create the segment with all required properties
-      const segment: DailySegment = {
-        day,
-        title: `Day ${day}: ${startCityName} to ${endCityName}`,
-        startCity: startCityName,
-        endCity: endCityName,
-        distance: actualDistance,
-        approximateMiles: Math.round(actualDistance),
-        driveTimeHours,
-        destination: {
-          city: endCityName,
-          state: dayDestination.state || 'Unknown'
-        },
-        attractions: [],
-        recommendedStops: [],
-        weatherData: null,
-        isGoogleMapsData: false
-      };
-
-      segments.push(segment);
-      
-      console.log(`📍 Day ${day}: ${segment.startCity} → ${segment.endCity} (${actualDistance.toFixed(0)} miles, ${driveTimeHours.toFixed(1)}h) ✅`);
-
-      currentStop = dayDestination;
-      accumulatedDistance += actualDistance;
-
-      if (isLastDay) break;
-    }
-
-    // Final validation - ensure ALL days are under 10 hours
-    this.validateAndEnforce10HourLimit(segments);
-
-    return segments;
-  }
-
-  /**
-   * Calculate proportional daily distances to evenly distribute the total
-   */
-  private static calculateProportionalDailyDistances(totalDistance: number, travelDays: number): number[] {
-    const baseDistance = totalDistance / travelDays;
-    const distances: number[] = [];
-    
-    // Create more even distribution with slight variation
-    for (let day = 1; day <= travelDays; day++) {
-      if (day === travelDays) {
-        // Last day gets remaining distance
-        const remaining = totalDistance - distances.reduce((sum, d) => sum + d, 0);
-        distances.push(Math.max(50, remaining)); // Minimum 50 miles for last day
-      } else {
-        // Earlier days get consistent distances with small random variation
-        const variation = (Math.random() - 0.5) * 0.2; // ±10% variation
-        const dayDistance = baseDistance * (1 + variation);
-        distances.push(Math.max(100, dayDistance)); // Minimum 100 miles per day
-      }
-    }
-    
-    // Normalize to ensure total matches exactly
-    const currentTotal = distances.reduce((sum, d) => sum + d, 0);
-    const factor = totalDistance / currentTotal;
-    const normalizedDistances = distances.map(d => d * factor);
-    
-    console.log(`📊 Proportional daily distances:`, normalizedDistances.map(d => d.toFixed(0)));
-    
-    return normalizedDistances;
-  }
-
-  /**
-   * Find stop that gets us closest to our cumulative distance target
-   */
-  private static findStopNearCumulativeDistance(
-    currentStop: any,
-    finalDestination: any,
-    sortedStops: any[],
-    cumulativeTarget: number,
-    totalDistance: number,
-    isEastToWest: boolean
-  ): any {
-    console.log(`🎯 Finding stop near cumulative target: ${cumulativeTarget.toFixed(0)} miles`);
-    
-    // Filter stops that are ahead of current position and before final destination
-    const progressiveStops = sortedStops.filter(stop => {
-      const distanceFromStart = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        stop.latitude, stop.longitude
-      );
-      
-      // Must be ahead of current position
-      const isAhead = isEastToWest ? 
-        stop.longitude > currentStop.longitude : 
-        stop.longitude < currentStop.longitude;
-      
-      // Must not overshoot final destination
-      const distanceToEnd = DistanceCalculationService.calculateDistance(
-        stop.latitude, stop.longitude,
-        finalDestination.latitude, finalDestination.longitude
-      );
-      
-      return isAhead && distanceFromStart > 50 && distanceToEnd > 50;
-    });
-
-    if (progressiveStops.length === 0) {
-      console.log(`⚠️ No progressive stops found, using final destination`);
-      return finalDestination;
-    }
-
-    // Find the stop that gets us closest to our cumulative target
-    let bestStop = progressiveStops[0];
-    let bestScore = Infinity;
-
-    for (const stop of progressiveStops) {
-      const distanceFromStart = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        stop.latitude, stop.longitude
-      );
-
-      // Score based on how close this gets us to the cumulative target
-      const cumulativeAtThisStop = cumulativeTarget; // We want to hit this target
-      const distanceScore = Math.abs(distanceFromStart - (cumulativeTarget - (totalDistance - DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        finalDestination.latitude, finalDestination.longitude
-      ))));
-      
-      // Prefer destination cities
-      const categoryBonus = (stop.category === 'destination_city') ? -100 : 0;
-      
-      const totalScore = distanceScore + categoryBonus;
-
-      if (totalScore < bestScore) {
-        bestScore = totalScore;
-        bestStop = stop;
-      }
-    }
-
-    console.log(`✅ Selected stop: ${bestStop.name || bestStop.city_name} (score: ${bestScore.toFixed(0)})`);
-    return bestStop;
-  }
-
-  /**
-   * STRICT validation and enforcement of 10-hour limit
-   */
-  private static validateAndEnforce10HourLimit(segments: DailySegment[]): void {
-    let hasViolations = false;
-    
-    segments.forEach(segment => {
-      if (segment.driveTimeHours > 10) {
-        console.error(`❌ VIOLATION: Day ${segment.day} drive time ${segment.driveTimeHours.toFixed(1)}h > 10h LIMIT`);
-        // Force cap at 10 hours - this indicates the trip needs more days
-        segment.driveTimeHours = 10;
-        hasViolations = true;
-      }
-    });
-    
-    if (hasViolations) {
-      console.error(`🚨 CRITICAL: Some days exceeded 10h limit - trip needs more days or route optimization`);
-    } else {
-      console.log(`✅ All days respect 10h drive time limit`);
-    }
-  }
-
-  /**
-   * Get stops sorted by their position along Route 66
-   */
-  private static getSortedRouteStops(startStop: any, endStop: any, allStops: any[], isEastToWest: boolean): any[] {
-    // Filter stops that are between start and end
-    const routeStops = this.filterRouteStops(startStop, endStop, allStops);
-    
-    // Sort by longitude to follow Route 66's east-west progression
-    return routeStops.sort((a, b) => {
-      if (isEastToWest) {
-        return a.longitude - b.longitude; // Sort west (ascending longitude)
-      } else {
-        return b.longitude - a.longitude; // Sort east (descending longitude)
-      }
-    });
-  }
-
-  private static filterRouteStops(startStop: any, endStop: any, allStops: any[]): any[] {
-    // Simple filtering - get stops that are between start and end geographically
-    const startLat = startStop.latitude;
-    const endLat = endStop.latitude;
-    const startLng = startStop.longitude;
-    const endLng = endStop.longitude;
-
-    const minLat = Math.min(startLat, endLat);
-    const maxLat = Math.max(startLat, endLat);
-    const minLng = Math.min(startLng, endLng);
-    const maxLng = Math.max(startLng, endLng);
-
-    return allStops.filter(stop => 
-      stop.latitude >= minLat && stop.latitude <= maxLat &&
-      stop.longitude >= minLng && stop.longitude <= maxLng &&
-      stop.id !== startStop.id && stop.id !== endStop.id
+      travelDays,
+      orchestrationData.allStops
     );
+
+    // Validate geographic progression
+    const isEastToWest = orchestrationData.startStop.longitude < orchestrationData.endStop.longitude;
+    const progressionValidation = validateGeographicProgression(tripPlan.stops || [], isEastToWest);
+    
+    if (!progressionValidation.isValid) {
+      console.warn(`⚠️ Geographic progression issues:`, progressionValidation.violations);
+    }
+
+    // Add orchestration metadata
+    const enhancedTripPlan: TripPlan = {
+      ...tripPlan,
+      stopsLimited: orchestrationData.stopsLimited,
+      limitMessage: orchestrationData.limitMessage
+    };
+    
+    // Analyze completion
+    const completionAnalysis = TripCompletionService.analyzeTripCompletion(enhancedTripPlan);
+    console.log('✅ Enhanced Trip Analysis:', completionAnalysis);
+
+    console.log(`✅ Enhanced trip plan complete: ${enhancedTripPlan.segments.length} days, strict constraints enforced`);
+
+    return enhancedTripPlan;
   }
 }

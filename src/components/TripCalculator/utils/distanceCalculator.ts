@@ -18,63 +18,113 @@ export const formatTime = (hours: number): string => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-// BALANCED DRIVE TIME CALCULATION: Ensures realistic and safe daily drives
+// STRICT DRIVE TIME CALCULATION: Enforces absolute 10-hour maximum
 export const calculateRealisticDriveTime = (distance: number): number => {
-  console.log(`🚨 BALANCED CALCULATION: Computing drive time for ${distance.toFixed(1)} miles`);
+  console.log(`🚨 STRICT CALCULATION: Computing drive time for ${distance.toFixed(1)} miles with ABSOLUTE 10h limit`);
   
-  // Constants for balanced trip planning
-  const MIN_DAILY_DISTANCE = 150; // Minimum for meaningful progress
-  const MAX_DAILY_DISTANCE = 400; // Maximum for safety and enjoyment
-  const PREFERRED_DAILY_DISTANCE = 300; // Sweet spot for Route 66
-  const MAX_DRIVE_HOURS = 8; // Absolute maximum per day
+  // Absolute constants - no exceptions
+  const ABSOLUTE_MAX_DRIVE_HOURS = 10; // NEVER exceed this
+  const RECOMMENDED_MAX_HOURS = 8;     // Comfortable maximum
+  const OPTIMAL_MAX_HOURS = 6;         // Ideal range top
+  const MIN_MEANINGFUL_HOURS = 2;      // Minimum useful drive time
   
   // Handle edge cases
   if (distance <= 0 || !isFinite(distance) || isNaN(distance)) {
-    console.log(`🚨 Invalid distance ${distance}, returning 0.5h`);
-    return 0.5;
+    console.log(`🚨 Invalid distance ${distance}, returning 2h minimum`);
+    return MIN_MEANINGFUL_HOURS;
   }
   
-  // Warn about distances outside preferred range
-  if (distance < MIN_DAILY_DISTANCE) {
-    console.warn(`⚠️ SHORT DAY: ${distance.toFixed(1)}mi is below recommended minimum ${MIN_DAILY_DISTANCE}mi`);
-  } else if (distance > MAX_DAILY_DISTANCE) {
-    console.warn(`⚠️ LONG DAY: ${distance.toFixed(1)}mi exceeds recommended maximum ${MAX_DAILY_DISTANCE}mi`);
-  }
-  
-  // Calculate realistic Route 66 speed based on distance
+  // Calculate realistic Route 66 speed based on distance and road conditions
   let avgSpeed: number;
   
   if (distance < 100) {
-    avgSpeed = 40; // City driving, frequent stops
+    avgSpeed = 40; // City driving, frequent stops, tourist areas
   } else if (distance < 200) {
-    avgSpeed = 45; // Mixed driving
+    avgSpeed = 45; // Mixed driving with some highway
   } else if (distance < 300) {
-    avgSpeed = 50; // Mostly highway
+    avgSpeed = 50; // Mostly highway driving
+  } else if (distance < 400) {
+    avgSpeed = 52; // Long highway stretches
   } else {
-    avgSpeed = 55; // Long highway stretches
+    avgSpeed = 55; // Maximum for very long distances
   }
   
   const baseTime = distance / avgSpeed;
   
-  // Add realistic buffer for Route 66 experience (stops, sightseeing, photos)
-  const bufferMultiplier = 1.15; // 15% buffer for Route 66 attractions
+  // Add realistic buffer for Route 66 experience (stops, sightseeing, traffic)
+  const bufferMultiplier = 1.20; // 20% buffer for Route 66 attractions and stops
   const calculatedTime = baseTime * bufferMultiplier;
   
-  // Never exceed maximum safe drive time
-  const finalTime = Math.min(calculatedTime, MAX_DRIVE_HOURS);
+  // ABSOLUTE ENFORCEMENT: Never allow more than 10 hours
+  let finalTime = calculatedTime;
+  
+  if (calculatedTime > ABSOLUTE_MAX_DRIVE_HOURS) {
+    console.error(`🚨 CRITICAL: ${calculatedTime.toFixed(1)}h exceeds ABSOLUTE 10h limit - FORCING to 10h`);
+    finalTime = ABSOLUTE_MAX_DRIVE_HOURS;
+  } else if (calculatedTime > RECOMMENDED_MAX_HOURS) {
+    console.warn(`⚠️ LONG DAY: ${calculatedTime.toFixed(1)}h exceeds recommended ${RECOMMENDED_MAX_HOURS}h`);
+  }
+  
+  // Ensure minimum meaningful time
+  finalTime = Math.max(finalTime, MIN_MEANINGFUL_HOURS);
   
   // Log calculation details
-  console.log(`✅ Balanced drive time calculation:`, {
+  console.log(`✅ STRICT drive time calculation:`, {
     distance: distance.toFixed(1),
     avgSpeed,
     baseTime: baseTime.toFixed(1),
     withBuffer: calculatedTime.toFixed(1),
     finalTime: finalTime.toFixed(1),
-    wasCapped: calculatedTime > MAX_DRIVE_HOURS,
-    category: distance < MIN_DAILY_DISTANCE ? 'short' : 
-              distance > MAX_DAILY_DISTANCE ? 'long' : 'balanced'
+    wasForced: calculatedTime > ABSOLUTE_MAX_DRIVE_HOURS,
+    category: finalTime <= OPTIMAL_MAX_HOURS ? 'optimal' : 
+              finalTime <= RECOMMENDED_MAX_HOURS ? 'acceptable' : 
+              finalTime < ABSOLUTE_MAX_DRIVE_HOURS ? 'long' : 'maximum'
   });
   
-  // Ensure minimum time and return
-  return Math.max(finalTime, 0.5);
+  return finalTime;
+};
+
+// Geographic progression validator to prevent ping-ponging
+export const validateGeographicProgression = (
+  stops: Array<{ latitude: number; longitude: number; name: string }>,
+  isEastToWest: boolean
+): { isValid: boolean; violations: string[]; recommendation: string } => {
+  const violations: string[] = [];
+  
+  if (stops.length < 2) {
+    return { isValid: true, violations: [], recommendation: 'Route has insufficient stops to validate' };
+  }
+  
+  console.log(`🧭 VALIDATING GEOGRAPHIC PROGRESSION: ${isEastToWest ? 'East→West' : 'West→East'}`);
+  
+  for (let i = 1; i < stops.length; i++) {
+    const prevStop = stops[i - 1];
+    const currentStop = stops[i];
+    
+    const longDiff = currentStop.longitude - prevStop.longitude;
+    const expectedDirection = isEastToWest ? 1 : -1; // East to West = positive longitude change
+    
+    // Check if we're moving in the wrong direction (ping-ponging)
+    if ((longDiff * expectedDirection) < -0.5) { // Allow small deviations
+      const violation = `${prevStop.name} → ${currentStop.name}: Wrong direction (${isEastToWest ? 'going east' : 'going west'})`;
+      violations.push(violation);
+      console.warn(`⚠️ PING-PONG DETECTED: ${violation}`);
+    }
+    
+    // Check for excessive backtracking (more than 1 degree longitude)
+    if (Math.abs(longDiff) > 2 && (longDiff * expectedDirection) < 0) {
+      const violation = `${prevStop.name} → ${currentStop.name}: Excessive backtracking (${Math.abs(longDiff).toFixed(1)}° longitude)`;
+      violations.push(violation);
+      console.error(`❌ EXCESSIVE BACKTRACKING: ${violation}`);
+    }
+  }
+  
+  const isValid = violations.length === 0;
+  const recommendation = isValid 
+    ? 'Geographic progression is logical and follows Route 66'
+    : `Fix ${violations.length} routing violations to prevent backtracking and ping-ponging`;
+  
+  console.log(`${isValid ? '✅' : '❌'} Geographic validation: ${recommendation}`);
+  
+  return { isValid, violations, recommendation };
 };
