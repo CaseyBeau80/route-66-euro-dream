@@ -62,6 +62,10 @@ const TripResults: React.FC<TripResultsProps> = ({
     }).format(amount);
   };
 
+  // Use fallback properties to ensure compatibility
+  const startCity = tripPlan.startCity || tripPlan.segments?.[0]?.startCity || tripPlan.startLocation || 'Start';
+  const endCity = tripPlan.endCity || tripPlan.segments?.[tripPlan.segments.length - 1]?.endCity || tripPlan.endLocation || 'End';
+
   // Determine if we should show the completion warning with proper null checks
   const shouldShowCompletionWarning = completionAnalysis && originalRequestedDays && 
     (completionAnalysis.isCompleted || (completionAnalysis.duplicateSegments && completionAnalysis.duplicateSegments.length > 0)) &&
@@ -83,7 +87,7 @@ const TripResults: React.FC<TripResultsProps> = ({
           Your Route 66 Adventure
         </h2>
         <p className="text-route66-text-secondary">
-          {tripPlan.startCity} to {tripPlan.endCity}
+          {startCity} to {endCity}
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">

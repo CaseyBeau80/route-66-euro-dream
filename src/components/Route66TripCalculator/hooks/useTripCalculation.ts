@@ -44,7 +44,31 @@ export const useTripCalculation = () => {
       });
 
       if (result.tripPlan) {
-        setTripPlan(result.tripPlan);
+        // Create a properly structured TripPlan that matches our unified type
+        const unifiedTripPlan: TripPlan = {
+          // Original properties
+          startLocation: result.tripPlan.startLocation || formData.startLocation,
+          endLocation: result.tripPlan.endLocation || formData.endLocation,
+          totalDistance: result.tripPlan.totalDistance,
+          totalDays: result.tripPlan.totalDays,
+          segments: result.tripPlan.segments || [],
+          stops: result.tripPlan.stops || [],
+          
+          // Additional properties that components expect
+          id: result.tripPlan.id || `trip-${Date.now()}`,
+          startCity: result.tripPlan.startCity || result.tripPlan.segments?.[0]?.startCity || formData.startLocation,
+          endCity: result.tripPlan.endCity || result.tripPlan.segments?.[result.tripPlan.segments.length - 1]?.endCity || formData.endLocation,
+          startDate: result.tripPlan.startDate,
+          totalMiles: result.tripPlan.totalMiles || result.tripPlan.totalDistance,
+          totalDrivingTime: result.tripPlan.totalDrivingTime || result.tripPlan.segments?.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0),
+          dailySegments: result.tripPlan.dailySegments || result.tripPlan.segments,
+          title: result.tripPlan.title || `${result.tripPlan.startLocation || formData.startLocation} to ${result.tripPlan.endLocation || formData.endLocation} Route 66 Adventure`,
+          tripStyle: result.tripPlan.tripStyle || formData.tripStyle,
+          // Copy any other properties that might exist
+          ...result.tripPlan
+        };
+        
+        setTripPlan(unifiedTripPlan);
         setPlanningResult(result);
         
         // Enhanced success message with Google Maps status

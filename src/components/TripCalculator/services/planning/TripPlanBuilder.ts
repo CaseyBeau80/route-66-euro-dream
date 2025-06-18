@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 
 export interface DriveTimeTarget {
@@ -38,6 +39,57 @@ export interface SegmentTiming {
 export interface DriveTimeCategory {
   category: 'short' | 'optimal' | 'long' | 'extreme';
   message: string;
+  color?: string;
+}
+
+export interface WeatherData {
+  temperature?: number;
+  highTemp?: number;
+  lowTemp?: number;
+  description?: string;
+  condition?: string;
+  humidity?: number;
+  windSpeed?: number;
+  precipitation?: number;
+  cloudCover?: number;
+  isActualForecast?: boolean;
+  main?: {
+    temp: number;
+    temp_min: number;
+    temp_max: number;
+    humidity: number;
+  };
+  temp?: {
+    day: number;
+    min: number;
+    max: number;
+  };
+  weather?: Array<{
+    description: string;
+    icon: string;
+    main: string;
+  }>;
+  icon?: string;
+  source?: string;
+}
+
+export interface DriveTimeBalance {
+  isBalanced: boolean;
+  averageDriveTime: number;
+  variance: number;
+  driveTimeRange: { min: number; max: number };
+  balanceQuality: 'excellent' | 'good' | 'fair' | 'poor';
+  qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F';
+  overallScore: number;
+  suggestions: string[];
+  reason: string;
+}
+
+export interface RouteProgression {
+  segmentNumber: number;
+  progressPercentage: number;
+  cumulativeDistance: number;
+  totalDistance: number;
 }
 
 export interface DailySegment {
@@ -49,7 +101,7 @@ export interface DailySegment {
   approximateMiles: number;
   driveTimeHours: number;
   drivingTime?: number;
-  stops: TripStop[];
+  stops?: TripStop[]; // Made optional to match TripPlanTypes
   destination: {
     city: string;
     state: string;
@@ -64,16 +116,53 @@ export interface DailySegment {
   subStopTimings?: SegmentTiming[];
   driveTimeCategory?: DriveTimeCategory;
   routeSection?: string;
+  routeProgression?: RouteProgression;
   driveTimeWarning?: string;
-  isGoogleMapsData?: boolean;
+  isGoogleMapsData?: boolean; // Added missing property
   dataAccuracy?: string;
+  notes?: string;
+  recommendations?: string[];
+  weather?: WeatherData;
+  weatherData?: WeatherData;
 }
 
 export interface TripPlan {
+  // Original properties from TripPlanBuilder
   startLocation: string;
   endLocation: string;
   totalDistance: number;
   totalDays: number;
   segments: DailySegment[];
   stops: TripStop[];
+  
+  // Additional properties from TripPlanTypes that components expect
+  id?: string;
+  startCity?: string;
+  endCity?: string;
+  startDate?: Date;
+  totalMiles?: number;
+  totalDrivingTime?: number;
+  dailySegments?: DailySegment[];
+  startCityImage?: string;
+  endCityImage?: string;
+  title?: string;
+  isEnriched?: boolean;
+  enrichmentStatus?: {
+    weatherData?: boolean;
+    stopsData?: boolean;
+    validationComplete?: boolean;
+  };
+  lastUpdated?: Date;
+  exportTimestamp?: number;
+  originalDays?: number;
+  driveTimeBalance?: DriveTimeBalance;
+  tripStyle?: 'balanced' | 'destination-focused';
+  summary?: {
+    totalDays: number;
+    totalDistance: number;
+    totalDriveTime: number;
+    startLocation: string;
+    endLocation: string;
+    tripStyle?: string;
+  };
 }
