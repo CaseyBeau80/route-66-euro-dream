@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -99,7 +98,7 @@ export class EnhancedDestinationSelector {
       canonicalStops = destinationCities; // Fallback to all destination cities
     }
     
-    // STEP 4: Remove start and end cities with safe filtering - FIXED WITH FOR...OF LOOP
+    // STEP 4: Remove start and end cities with safe filtering - FIXED WITH FOR...OF LOOP AND OPTIONAL CHAINING
     const availableCities: TripStop[] = [];
     
     // Use for...of loop instead of forEach to avoid TypeScript confusion
@@ -320,7 +319,7 @@ export class EnhancedDestinationSelector {
   }
 
   /**
-   * Expand selection to fill needed destinations - FIXED WITH FOR...OF LOOP
+   * Expand selection to fill needed destinations - FIXED WITH FOR...OF LOOP AND OPTIONAL CHAINING
    */
   private static expandSelection(
     currentSelection: TripStop[],
