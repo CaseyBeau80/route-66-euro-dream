@@ -1,3 +1,4 @@
+
 import { TripPlan } from './TripPlanTypes';
 import { DailySegment } from './TripPlanTypes';
 import { SupabaseDataService } from '../data/SupabaseDataService';
@@ -128,7 +129,7 @@ export class EnhancedTripPlanningService {
         const isLastDay = day === travelDays;
         const dayEndStop = isLastDay ? endStop : null;
 
-        // 4. Create validated segment - Fix: Add missing 4th argument (styleConfig)
+        // 4. Create validated segment - Fix: Match the 4-argument signature
         let segment = await SegmentCreationService.createValidatedSegment(
           currentStop,
           dayEndStop || endStop,
@@ -137,11 +138,12 @@ export class EnhancedTripPlanningService {
         );
 
         if (!segment) {
-          // 5. If validation fails, create capped segment - Fix: Remove extra argument
+          // 5. If validation fails, create capped segment - Fix: Match the 4-argument signature
           segment = await SegmentCreationService.createCappedSegment(
             currentStop,
             endStop,
-            day
+            day,
+            styleConfig
           );
         }
 
