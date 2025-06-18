@@ -1,4 +1,3 @@
-
 import { TripPlan } from './TripPlanTypes';
 import { DailySegment } from './TripPlanTypes';
 import { SupabaseDataService } from '../data/SupabaseDataService';
@@ -151,10 +150,9 @@ export class EnhancedTripPlanningService {
         currentStop = endStop;
       }
 
-      // 6. Enforce drive time limits
+      // 6. Enforce drive time limits - Fix: Only pass dailySegments (1 argument)
       const enforcedSegments = DriveTimeEnforcementService.enforceDriveTimeLimits(
-        dailySegments,
-        styleConfig
+        dailySegments
       );
 
       // 7. Enrich segments with additional data
