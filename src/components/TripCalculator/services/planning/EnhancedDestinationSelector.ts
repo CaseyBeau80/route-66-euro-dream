@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -52,7 +51,12 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 1: Filter to only valid stops with coordinates - ENHANCED SAFETY
-    const validStops = allStops.filter(stop => {
+    const validStops = allStops.filter((stop): stop is TripStop => {
+      if (!stop || typeof stop !== 'object') {
+        console.warn(`⚠️ SKIPPING invalid stop: not an object`);
+        return false;
+      }
+      
       const isValid = this.hasValidCoordinates(stop);
       if (!isValid) {
         console.warn(`⚠️ SKIPPING invalid stop:`, { 
@@ -75,7 +79,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 2: Get destination cities with additional validation
-    let destinationCities;
+    let destinationCities: TripStop[];
     try {
       destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(validStops);
       console.log(`🏛️ Destination cities available: ${destinationCities.length}`);
@@ -85,7 +89,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 3: Match available cities to canonical destinations
-    let canonicalStops;
+    let canonicalStops: TripStop[];
     try {
       canonicalStops = CanonicalRoute66Cities.matchStopsToCanonical(destinationCities);
       console.log(`🏛️ Canonical destinations available: ${canonicalStops.length}`);
@@ -95,19 +99,21 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 4: Remove start and end cities with safe filtering
-    const availableCities = canonicalStops.filter(city => {
-      const isValid = city && 
-                     city.id && 
-                     city.id !== startStop.id && 
+    const availableCities = canonicalStops.filter((city): city is TripStop => {
+      if (!city || typeof city !== 'object' || !city.id) {
+        console.warn(`⚠️ FILTERING OUT invalid city: missing data`);
+        return false;
+      }
+      
+      const isValid = city.id !== startStop.id && 
                      city.id !== endStop.id &&
                      this.hasValidCoordinates(city);
       
-      if (!isValid && city) {
+      if (!isValid) {
         console.warn(`⚠️ FILTERING OUT city:`, {
           id: city.id,
           name: city.name,
-          reason: !city.id ? 'no id' : 
-                  city.id === startStop.id ? 'is start stop' :
+          reason: city.id === startStop.id ? 'is start stop' :
                   city.id === endStop.id ? 'is end stop' :
                   !this.hasValidCoordinates(city) ? 'invalid coordinates' : 'unknown'
         });
@@ -124,7 +130,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 5: Filter by Route 66 sequence to prevent backtracking - WITH ERROR HANDLING
-    let sequenceValidCities;
+    let sequenceValidCities: TripStop[];
     try {
       const sequenceResult = Route66SequenceValidator.filterValidSequenceStops(
         startStop,
@@ -139,20 +145,22 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 6: If we don't have enough cities, expand selection beyond canonical
-    let workingCities = sequenceValidCities.filter(city => this.hasValidCoordinates(city));
+    let workingCities = sequenceValidCities.filter((city): city is TripStop => this.hasValidCoordinates(city));
     
     if (workingCities.length < neededIntermediateDestinations) {
       console.log(`📈 Need more cities: expanding beyond canonical destinations`);
       
       // Add non-canonical destination cities that are in sequence
-      const nonCanonicalDestinations = destinationCities.filter(city => 
-        city && 
-        city.id &&
-        city.id !== startStop.id && 
-        city.id !== endStop.id &&
-        this.hasValidCoordinates(city) &&
-        !canonicalStops.some(canonical => canonical && canonical.id === city.id)
-      );
+      const nonCanonicalDestinations = destinationCities.filter((city): city is TripStop => {
+        if (!city || typeof city !== 'object' || !city.id) {
+          return false;
+        }
+        
+        return city.id !== startStop.id && 
+               city.id !== endStop.id &&
+               this.hasValidCoordinates(city) &&
+               !canonicalStops.some(canonical => canonical && canonical.id === city.id);
+      });
       
       try {
         const additionalSequenceResult = Route66SequenceValidator.filterValidSequenceStops(
@@ -160,11 +168,11 @@ export class EnhancedDestinationSelector {
           nonCanonicalDestinations,
           endStop
         );
-        const additionalValidCities = additionalSequenceResult.validStops || [];
+        const additionalValidCities = (additionalSequenceResult.validStops || []).filter((city): city is TripStop => this.hasValidCoordinates(city));
         console.log(`🏙️ Additional valid destination cities: ${additionalValidCities.length}`);
         
         // Combine canonical and additional cities
-        workingCities = [...workingCities, ...additionalValidCities.filter(city => this.hasValidCoordinates(city))];
+        workingCities = [...workingCities, ...additionalValidCities];
       } catch (error) {
         console.error('❌ Error in additional sequence validation:', error);
         // Continue with current working cities
@@ -180,7 +188,7 @@ export class EnhancedDestinationSelector {
     );
     
     // STEP 8: Force inclusion of priority destinations if we have room - WITH ERROR HANDLING
-    let enhancedSelection;
+    let enhancedSelection: TripStop[];
     try {
       enhancedSelection = CanonicalRoute66Cities.enforceDestinationInclusion(
         selectedCities,
@@ -193,7 +201,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 9: Ensure we have exactly the right number of destinations
-    let finalSelection = enhancedSelection.filter(city => this.hasValidCoordinates(city));
+    let finalSelection = enhancedSelection.filter((city): city is TripStop => this.hasValidCoordinates(city));
     
     if (finalSelection.length > neededIntermediateDestinations) {
       // Too many - trim to the highest priority ones
@@ -210,7 +218,7 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 10: Final safety check - ensure all selected cities have valid coordinates
-    const safeFinalSelection = finalSelection.filter(city => {
+    const safeFinalSelection = finalSelection.filter((city): city is TripStop => {
       const isValid = this.hasValidCoordinates(city);
       if (!isValid) {
         console.warn(`⚠️ FINAL SAFETY: Removing city with invalid coordinates:`, {
@@ -251,26 +259,19 @@ export class EnhancedDestinationSelector {
   }
 
   /**
-   * Check if a stop has valid coordinates
+   * Check if a stop has valid coordinates - properly typed as type predicate
    */
   private static hasValidCoordinates(stop: any): stop is TripStop {
     return stop && 
            typeof stop === 'object' &&
-           stop.id &&
-           stop.name &&
+           typeof stop.id === 'string' &&
+           typeof stop.name === 'string' &&
            typeof stop.latitude === 'number' &&
            typeof stop.longitude === 'number' &&
            !isNaN(stop.latitude) &&
            !isNaN(stop.longitude) &&
            stop.latitude !== 0 &&
            stop.longitude !== 0;
-  }
-
-  /**
-   * Filter to valid stops with coordinates
-   */
-  private static filterToValidStops(stops: any[]): TripStop[] {
-    return stops.filter(stop => this.hasValidCoordinates(stop));
   }
 
   /**
@@ -284,7 +285,7 @@ export class EnhancedDestinationSelector {
     
     // Sort by canonical priority and take top N
     const prioritized = destinations
-      .filter(city => this.hasValidCoordinates(city))
+      .filter((city): city is TripStop => this.hasValidCoordinates(city))
       .map(city => {
         const canonicalInfo = CanonicalRoute66Cities.getDestinationInfo(
           city.city_name || city.name,
@@ -349,7 +350,7 @@ export class EnhancedDestinationSelector {
     }
 
     // Filter to only cities with valid coordinates
-    const validCities = canonicalCities.filter(city => this.hasValidCoordinates(city));
+    const validCities = canonicalCities.filter((city): city is TripStop => this.hasValidCoordinates(city));
 
     if (validCities.length <= neededCities) {
       // Use all available canonical cities, sorted by sequence
