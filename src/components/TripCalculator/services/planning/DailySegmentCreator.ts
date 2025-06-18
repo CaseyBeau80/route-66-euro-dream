@@ -27,8 +27,8 @@ export class DailySegmentCreator {
     const avgDistancePerDay = totalDistance / totalDays;
     console.log(`📏 STRICT: Target average distance per day: ${Math.round(avgDistancePerDay)} miles`);
     
-    // Find intermediate overnight stops (destination cities only) - explicitly type as TripStop[]
-    const overnightStops: TripStop[] = this.selectDestinationCityOvernightStops(
+    // Find intermediate overnight stops (destination cities only)
+    const overnightStops = this.selectDestinationCityOvernightStops(
       startStop,
       endStop,
       destinationCities,
@@ -36,21 +36,8 @@ export class DailySegmentCreator {
       totalDistance
     );
     
-    // Strict validation of all selected overnight stops
-    const warnings: string[] = [];
-    for (const stop of overnightStops) {
-      // Type assertion to ensure TypeScript knows this is a TripStop
-      const tripStop = stop as TripStop;
-      
-      if (!this.isValidTripStop(tripStop)) {
-        warnings.push(`Invalid stop data found and was removed from overnight stops`);
-        continue;
-      }
-      
-      if (!StrictDestinationCityEnforcer.isDestinationCity(tripStop)) {
-        warnings.push(`${tripStop.name} is not a destination city and was removed from overnight stops`);
-      }
-    }
+    // Validate the overnight stops and collect warnings
+    const warnings = this.validateOvernightStops(overnightStops);
     
     if (warnings.length > 0) {
       console.warn('🛡️ STRICT: Overnight stop validation warnings:', warnings);
@@ -86,6 +73,28 @@ export class DailySegmentCreator {
     
     console.log(`✅ STRICT: Created ${segments.length} validated daily segments`);
     return segments;
+  }
+  
+  /**
+   * Validate overnight stops and return warnings
+   */
+  private static validateOvernightStops(overnightStops: TripStop[]): string[] {
+    const warnings: string[] = [];
+    
+    for (let i = 0; i < overnightStops.length; i++) {
+      const stop = overnightStops[i];
+      
+      if (!this.isValidTripStop(stop)) {
+        warnings.push(`Invalid stop data found and was removed from overnight stops`);
+        continue;
+      }
+      
+      if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
+        warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+      }
+    }
+    
+    return warnings;
   }
   
   /**
