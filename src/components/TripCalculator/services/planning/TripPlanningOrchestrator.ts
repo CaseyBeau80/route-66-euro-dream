@@ -1,3 +1,4 @@
+
 import { TripPlan } from './TripPlanTypes';
 import { DailySegment } from './TripPlanTypes';
 import { SupabaseDataService } from '../data/SupabaseDataService';
@@ -181,14 +182,26 @@ export class TripPlanningOrchestrator {
 
       const driveTimeHours = Math.max(2.0, actualDistance / 50); // Minimum 2 hours, 50 mph average
 
-      // Create the segment
+      const startCityName = currentStop.name || currentStop.city_name || startStop.name;
+      const endCityName = dayDestination.name || dayDestination.city_name || endStop.name;
+
+      // Create the segment with all required properties
       const segment: DailySegment = {
         day,
-        startCity: currentStop.name || currentStop.city_name || startStop.name,
-        endCity: dayDestination.name || dayDestination.city_name || endStop.name,
+        title: `Day ${day}: ${startCityName} to ${endCityName}`,
+        startCity: startCityName,
+        endCity: endCityName,
         distance: actualDistance,
+        approximateMiles: Math.round(actualDistance),
         driveTimeHours,
+        destination: {
+          name: endCityName,
+          latitude: dayDestination.latitude,
+          longitude: dayDestination.longitude,
+          description: dayDestination.description || `Historic Route 66 destination in ${endCityName}`
+        },
         attractions: [],
+        recommendedStops: [],
         weatherData: null,
         isGoogleMapsData: false
       };
