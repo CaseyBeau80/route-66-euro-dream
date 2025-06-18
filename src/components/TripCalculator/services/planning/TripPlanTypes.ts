@@ -1,4 +1,5 @@
 
+
 import { PlanningAdjustment } from './PlanningPolicy';
 import { TripAdjustmentNotice } from './TripAdjustmentService';
 
@@ -33,6 +34,7 @@ export interface TripPlan {
     endLocation: string;
     totalDriveTime?: number;
     totalDays?: number;
+    totalDistance?: number;
   };
   startCityImage?: string;
   endCityImage?: string;
@@ -57,26 +59,23 @@ export interface DailySegment {
   driveTimeHours?: number;
   drivingTime?: number; // Legacy property for backward compatibility
   destination: DestinationInfo;
-  recommendedStops: any[];
+  recommendedStops: RecommendedStop[];
   isGoogleMapsData?: boolean;
   attractions: Attraction[];
   stops?: any[]; // For segments that have stop data
   
   // Weather data properties
-  weather?: any;
-  weatherData?: any;
+  weather?: WeatherData;
+  weatherData?: WeatherData;
   
   // Additional properties used by components
-  driveTimeCategory?: {
-    category: string;
-    message: string;
-    color?: string;
-  };
+  driveTimeCategory?: DriveTimeCategory;
   driveTimeWarning?: string;
   subStopTimings?: SubStopTiming[];
   routeSection?: string;
   notes?: string;
   recommendations?: string[];
+  dataAccuracy?: string;
 }
 
 export interface SubStopTiming {
@@ -85,12 +84,22 @@ export interface SubStopTiming {
     name: string;
     latitude: number;
     longitude: number;
+    description: string;
+    category: string;
+    city_name: string;
+    state: string;
+    city: string;
   };
   toStop: {
     id: string;
     name: string;
     latitude: number;
     longitude: number;
+    description: string;
+    category: string;
+    city_name: string;
+    state: string;
+    city: string;
   };
   distanceMiles: number;
   driveTimeHours: number;
@@ -115,10 +124,39 @@ export interface Attraction {
   category: string; // Required property that was missing
 }
 
+// Export missing types that other files are importing
+export interface WeatherData {
+  temperature?: number;
+  condition?: string;
+  humidity?: number;
+  windSpeed?: number;
+  forecast?: any[];
+}
+
+export interface RecommendedStop {
+  stopId: string;
+  id: string;
+  name: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  category: string;
+  city_name: string;
+  state: string;
+  city: string;
+}
+
+export interface DriveTimeCategory {
+  category: 'short' | 'optimal' | 'long' | 'extreme';
+  message: string;
+  color?: string;
+}
+
 // Additional type for drive time balance calculations
 export interface DriveTimeBalance {
   totalHours: number;
   averageHours: number;
+  averageDriveTime: number; // Add missing property
   maxHours: number;
   minHours: number;
   isBalanced: boolean;
@@ -128,3 +166,4 @@ export interface DriveTimeBalance {
     category: 'light' | 'moderate' | 'heavy' | 'extreme';
   }[];
 }
+
