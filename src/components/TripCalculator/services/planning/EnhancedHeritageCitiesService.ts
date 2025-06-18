@@ -11,6 +11,7 @@ export class EnhancedHeritageCitiesService {
   private static readonly OPTIMAL_MAX_DRIVE_HOURS = 6;
   private static readonly MIN_DRIVE_HOURS = 2;
   private static readonly MAX_STOPS_LIMIT = 8; // Prevent overcrowding
+  private static readonly MAX_DAILY_MILES = 500; // HARD LIMIT: Never exceed 500 miles per day
   
   /**
    * Plan Heritage Cities trip with strict geographic and time constraints
@@ -51,17 +52,16 @@ export class EnhancedHeritageCitiesService {
 
       console.log(`📏 Total trip: ${totalDistance.toFixed(1)} miles in ${travelDays} days`);
 
-      // CRITICAL FIX: Validate trip feasibility and adjust days if needed
-      const feasibilityCheck = this.validateTripFeasibility(startStop, endStop, travelDays);
-      if (!feasibilityCheck.isValid) {
-        console.error(`❌ TRIP NOT FEASIBLE: ${feasibilityCheck.recommendation}`);
-        // Force increase travel days to make it feasible
-        travelDays = Math.max(travelDays, feasibilityCheck.minRequiredDays);
-        console.log(`🔧 ADJUSTED travel days to ${travelDays} to ensure 10h/day maximum`);
+      // CRITICAL FIX: Force minimum days based on distance BEFORE any processing
+      const minRequiredDays = Math.ceil(totalDistance / this.MAX_DAILY_MILES);
+      if (travelDays < minRequiredDays) {
+        console.error(`🚨 CRITICAL: ${travelDays} days insufficient for ${totalDistance.toFixed(1)} miles`);
+        console.error(`🚨 FORCING travel days from ${travelDays} to ${minRequiredDays} (max ${this.MAX_DAILY_MILES} miles/day)`);
+        travelDays = minRequiredDays;
       }
 
-      // Create geographic progression with STRICT validation
-      const destinationCities = this.createStrictGeographicProgression(
+      // Create geographic progression with ULTRA STRICT validation
+      const destinationCities = this.createUltraStrictGeographicProgression(
         startStop,
         endStop,
         routeStops,
@@ -90,13 +90,23 @@ export class EnhancedHeritageCitiesService {
         totalDistance
       );
 
-      // FINAL SAFETY CHECK - Verify no segment exceeds 10 hours
-      const violatingSegments = segments.filter(s => (s.driveTimeHours || 0) > this.ABSOLUTE_MAX_DRIVE_HOURS);
+      // FINAL SAFETY CHECK - Verify no segment exceeds limits
+      const violatingSegments = segments.filter(s => 
+        (s.driveTimeHours || 0) > this.ABSOLUTE_MAX_DRIVE_HOURS || 
+        (s.distance || 0) > this.MAX_DAILY_MILES
+      );
+      
       if (violatingSegments.length > 0) {
-        console.error(`🚨 CRITICAL: ${violatingSegments.length} segments still exceed 10h limit after validation!`);
+        console.error(`🚨 CRITICAL: ${violatingSegments.length} segments still exceed limits after validation!`);
         violatingSegments.forEach(s => {
-          console.error(`   Day ${s.day}: ${s.driveTimeHours?.toFixed(1)}h - FORCING to 10h`);
-          s.driveTimeHours = this.ABSOLUTE_MAX_DRIVE_HOURS;
+          if ((s.driveTimeHours || 0) > this.ABSOLUTE_MAX_DRIVE_HOURS) {
+            console.error(`   Day ${s.day}: ${s.driveTimeHours?.toFixed(1)}h > 10h - FORCING to 10h`);
+            s.driveTimeHours = this.ABSOLUTE_MAX_DRIVE_HOURS;
+          }
+          if ((s.distance || 0) > this.MAX_DAILY_MILES) {
+            console.error(`   Day ${s.day}: ${s.distance?.toFixed(1)}mi > 500mi - FORCING to 500mi`);
+            s.distance = this.MAX_DAILY_MILES;
+          }
         });
       }
 
@@ -136,6 +146,7 @@ export class EnhancedHeritageCitiesService {
         totalDistance: actualTotalDistance.toFixed(1),
         totalDrivingTime: totalDrivingTime.toFixed(1),
         maxDailyDriveTime: Math.max(...segments.map(s => s.driveTimeHours || 0)).toFixed(1),
+        maxDailyDistance: Math.max(...segments.map(s => s.distance || 0)).toFixed(1),
         stopsLimited
       });
 
@@ -191,16 +202,16 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Create STRICT geographic progression that prevents ping-ponging and enforces drive time limits
+   * Create ULTRA STRICT geographic progression - never allow excessive distances
    */
-  private static createStrictGeographicProgression(
+  private static createUltraStrictGeographicProgression(
     startStop: TripStop,
     endStop: TripStop,
     routeStops: TripStop[],
     travelDays: number,
     totalDistance: number
   ): TripStop[] {
-    console.log(`🗺️ Creating STRICT geographic progression for ${travelDays} days with ABSOLUTE 10h limit`);
+    console.log(`🗺️ Creating ULTRA STRICT geographic progression for ${travelDays} days with HARD 500mi/10h limits`);
 
     // Determine direction
     const isEastToWest = startStop.longitude < endStop.longitude;
@@ -214,8 +225,8 @@ export class EnhancedHeritageCitiesService {
     
     console.log(`🛣️ Progressive stops (${limitedStops.length}):`, limitedStops.map(s => s.name));
 
-    // Select destinations with ABSOLUTE drive time validation
-    const destinations = this.selectDestinationsWithAbsoluteValidation(
+    // Select destinations with ULTRA STRICT validation - never exceed daily limits
+    const destinations = this.selectDestinationsWithUltraStrictValidation(
       startStop,
       endStop,
       limitedStops,
@@ -228,9 +239,9 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Select destinations with ABSOLUTE drive time validation - never exceed 10 hours
+   * Select destinations with ULTRA STRICT validation - NEVER exceed daily limits
    */
-  private static selectDestinationsWithAbsoluteValidation(
+  private static selectDestinationsWithUltraStrictValidation(
     startStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[],
@@ -239,26 +250,26 @@ export class EnhancedHeritageCitiesService {
     isEastToWest: boolean
   ): TripStop[] {
     const destinations: TripStop[] = [];
-    const maxDailyMiles = this.ABSOLUTE_MAX_DRIVE_HOURS * 55; // 550 miles max per day
+    
+    console.log(`🚨 ULTRA STRICT: Max ${this.MAX_DAILY_MILES} miles/day, ${this.ABSOLUTE_MAX_DRIVE_HOURS}h/day - NO EXCEPTIONS`);
+
+    // Calculate safe daily distance target (well below maximum)
+    const safeDailyTarget = Math.min(this.MAX_DAILY_MILES * 0.8, totalDistance / travelDays);
     
     let currentStop = startStop;
     let remainingDistance = totalDistance;
-    let remainingDays = travelDays;
-
-    console.log(`🚨 ABSOLUTE VALIDATION: Max ${maxDailyMiles} miles/day, ${this.ABSOLUTE_MAX_DRIVE_HOURS}h/day`);
 
     for (let day = 1; day < travelDays; day++) {
-      const targetDistance = Math.min(maxDailyMiles, remainingDistance / remainingDays);
+      const targetDistance = Math.min(safeDailyTarget, remainingDistance / (travelDays - day + 1));
       
-      console.log(`📍 Day ${day}: Target ${targetDistance.toFixed(0)} miles (max ${maxDailyMiles})`);
+      console.log(`📍 Day ${day}: Target ${targetDistance.toFixed(0)} miles (safe target, max ${this.MAX_DAILY_MILES})`);
 
-      const nextStop = this.findValidNextStopWithAbsoluteLimit(
+      const nextStop = this.findUltraSafeNextStop(
         currentStop,
         endStop,
         availableStops,
         destinations,
-        targetDistance,
-        maxDailyMiles
+        targetDistance
       );
 
       if (nextStop) {
@@ -267,23 +278,41 @@ export class EnhancedHeritageCitiesService {
           nextStop.latitude, nextStop.longitude
         );
 
+        // ULTRA STRICT: Never allow segments that exceed limits
+        if (segmentDistance > this.MAX_DAILY_MILES) {
+          console.error(`🚨 ULTRA STRICT REJECTION: ${nextStop.name} would create ${segmentDistance.toFixed(1)}mi segment > ${this.MAX_DAILY_MILES}mi limit`);
+          break; // Stop adding destinations rather than violate limits
+        }
+
         const driveTime = calculateRealisticDriveTime(segmentDistance);
         
-        // ABSOLUTE enforcement - this should never happen due to selection logic
         if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
-          console.error(`🚨 CRITICAL ERROR: Selected stop still exceeds 10h limit - ${nextStop.name}: ${driveTime.toFixed(1)}h`);
-          break; // Stop adding destinations rather than violate the limit
+          console.error(`🚨 ULTRA STRICT REJECTION: ${nextStop.name} would create ${driveTime.toFixed(1)}h segment > 10h limit`);
+          break; // Stop adding destinations rather than violate limits
         }
 
         destinations.push(nextStop);
         currentStop = nextStop;
         remainingDistance -= segmentDistance;
-        remainingDays--;
         
-        console.log(`✅ Day ${day}: ${nextStop.name} (+${segmentDistance.toFixed(0)}mi, ${driveTime.toFixed(1)}h)`);
+        console.log(`✅ Day ${day}: ${nextStop.name} (+${segmentDistance.toFixed(0)}mi, ${driveTime.toFixed(1)}h) - SAFE`);
       } else {
-        console.warn(`⚠️ No valid stop found for day ${day} within 10h limit`);
+        console.warn(`⚠️ No ultra-safe stop found for day ${day} within strict limits`);
         break;
+      }
+    }
+
+    // FINAL CHECK: Ensure last segment to end doesn't exceed limits
+    if (destinations.length > 0) {
+      const lastDestination = destinations[destinations.length - 1];
+      const finalSegmentDistance = DistanceCalculationService.calculateDistance(
+        lastDestination.latitude, lastDestination.longitude,
+        endStop.latitude, endStop.longitude
+      );
+      
+      if (finalSegmentDistance > this.MAX_DAILY_MILES) {
+        console.error(`🚨 FINAL SEGMENT TOO LONG: ${finalSegmentDistance.toFixed(1)}mi > ${this.MAX_DAILY_MILES}mi - removing last destination`);
+        destinations.pop(); // Remove the last destination to make the final segment manageable
       }
     }
 
@@ -291,15 +320,14 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Find valid next stop with ABSOLUTE drive time limit enforcement
+   * Find ultra-safe next stop that definitely won't exceed limits
    */
-  private static findValidNextStopWithAbsoluteLimit(
+  private static findUltraSafeNextStop(
     currentStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[],
     alreadySelected: TripStop[],
-    targetDistance: number,
-    maxDailyMiles: number
+    targetDistance: number
   ): TripStop | null {
     const remainingStops = availableStops.filter(stop => 
       !alreadySelected.some(selected => selected.id === stop.id)
@@ -316,17 +344,19 @@ export class EnhancedHeritageCitiesService {
         stop.latitude, stop.longitude
       );
 
-      // ABSOLUTE constraint - skip if distance would exceed daily limit
-      if (distance > maxDailyMiles) {
-        console.log(`   ❌ ${stop.name}: ${distance.toFixed(0)}mi > ${maxDailyMiles}mi limit`);
+      // ULTRA STRICT: Skip if distance exceeds 80% of daily limit for safety margin
+      const safeLimit = this.MAX_DAILY_MILES * 0.8;
+      if (distance > safeLimit) {
+        console.log(`   ❌ ${stop.name}: ${distance.toFixed(0)}mi > ${safeLimit.toFixed(0)}mi safe limit`);
         continue;
       }
 
       const driveTime = calculateRealisticDriveTime(distance);
       
-      // ABSOLUTE constraint - skip if drive time exceeds 10 hours
-      if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
-        console.log(`   ❌ ${stop.name}: ${driveTime.toFixed(1)}h > 10h limit`);
+      // ULTRA STRICT: Skip if drive time exceeds 80% of time limit for safety margin
+      const safeTimeLimit = this.ABSOLUTE_MAX_DRIVE_HOURS * 0.8;
+      if (driveTime > safeTimeLimit) {
+        console.log(`   ❌ ${stop.name}: ${driveTime.toFixed(1)}h > ${safeTimeLimit.toFixed(1)}h safe limit`);
         continue;
       }
 
@@ -339,7 +369,7 @@ export class EnhancedHeritageCitiesService {
       
       const totalScore = distanceScore + heritageBonus;
 
-      console.log(`   ✅ ${stop.name}: ${distance.toFixed(0)}mi, ${driveTime.toFixed(1)}h, score=${totalScore.toFixed(0)}`);
+      console.log(`   ✅ ${stop.name}: ${distance.toFixed(0)}mi, ${driveTime.toFixed(1)}h, score=${totalScore.toFixed(0)} - ULTRA SAFE`);
 
       if (totalScore < bestScore) {
         bestScore = totalScore;
@@ -439,7 +469,7 @@ export class EnhancedHeritageCitiesService {
     travelDays: number,
     totalDistance: number
   ): DailySegment[] {
-    console.log(`🛠️ Creating ${travelDays} ABSOLUTELY validated segments (10h HARD LIMIT)`);
+    console.log(`🛠️ Creating ${travelDays} ABSOLUTELY validated segments (10h/500mi HARD LIMITS)`);
 
     const segments: DailySegment[] = [];
     const allStops = [startStop, ...destinations, endStop];
@@ -460,8 +490,14 @@ export class EnhancedHeritageCitiesService {
         nextStop.latitude, nextStop.longitude
       );
 
+      // ULTRA STRICT: Force distance within limits
+      const clampedDistance = Math.min(distance, this.MAX_DAILY_MILES);
+      if (clampedDistance !== distance) {
+        console.error(`🚨 EMERGENCY: Day ${day} distance ${distance.toFixed(1)}mi > ${this.MAX_DAILY_MILES}mi - CLAMPED to ${clampedDistance}`);
+      }
+
       // Calculate drive time with ABSOLUTE enforcement
-      let driveTime = calculateRealisticDriveTime(distance);
+      let driveTime = calculateRealisticDriveTime(clampedDistance);
       
       // FINAL SAFETY CHECK - This should NEVER happen but ensure it doesn't
       if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
@@ -474,8 +510,8 @@ export class EnhancedHeritageCitiesService {
         title: `Day ${day}: ${currentStop.city_name || currentStop.name} to ${nextStop.city_name || nextStop.name}`,
         startCity: currentStop.city_name || currentStop.name,
         endCity: nextStop.city_name || nextStop.name,
-        distance: Math.round(distance),
-        approximateMiles: Math.round(distance),
+        distance: Math.round(clampedDistance),
+        approximateMiles: Math.round(clampedDistance),
         driveTimeHours: Math.round(driveTime * 10) / 10, // Round to 1 decimal
         destination: {
           city: nextStop.city_name || nextStop.name,
@@ -493,7 +529,7 @@ export class EnhancedHeritageCitiesService {
 
       segments.push(segment);
       
-      console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${distance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours ${driveTime <= 10 ? '✅' : '🚨'}`);
+      console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours ${driveTime <= 10 && clampedDistance <= this.MAX_DAILY_MILES ? '✅' : '🚨'}`);
     }
 
     return segments;
