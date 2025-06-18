@@ -13,10 +13,10 @@ export interface RecommendedStop {
   description: string;
   latitude: number;
   longitude: number;
-  category?: string; // Made optional to match TripPlanTypes
-  city_name?: string; // Made optional to match TripPlanTypes
-  state?: string; // Made optional to match TripPlanTypes
-  city?: string; // Made optional to match TripPlanTypes
+  category?: string;
+  city_name?: string;
+  state?: string;
+  city?: string;
 }
 
 export interface SegmentTiming {
@@ -101,12 +101,12 @@ export interface DailySegment {
   approximateMiles: number;
   driveTimeHours: number;
   drivingTime?: number;
-  stops?: TripStop[]; // Made optional to match TripPlanTypes
+  stops?: TripStop[];
   destination: {
     city: string;
     state: string;
   };
-  recommendedStops?: RecommendedStop[]; // Made optional to match TripPlanTypes
+  recommendedStops?: RecommendedStop[];
   attractions?: Array<{
     name: string;
     title: string;
@@ -118,7 +118,7 @@ export interface DailySegment {
   routeSection?: string;
   routeProgression?: RouteProgression;
   driveTimeWarning?: string;
-  isGoogleMapsData?: boolean; // Added missing property
+  isGoogleMapsData?: boolean;
   dataAccuracy?: string;
   notes?: string;
   recommendations?: string[];
@@ -128,7 +128,7 @@ export interface DailySegment {
 
 export interface TripPlan {
   // Core properties that must exist
-  id: string; // Made required to match TripPlanTypes expectations
+  id: string;
   startLocation: string;
   endLocation: string;
   totalDistance: number;
@@ -139,10 +139,10 @@ export interface TripPlan {
   // Additional properties from TripPlanTypes that components expect
   startCity: string;
   endCity: string;
-  startDate?: Date;
+  startDate: Date; // Make this required to match TripPlanTypes
   totalMiles?: number;
   totalDrivingTime?: number;
-  dailySegments?: DailySegment[];
+  dailySegments: DailySegment[]; // Make this required to match TripPlanTypes
   startCityImage?: string;
   endCityImage?: string;
   title?: string;
@@ -167,10 +167,36 @@ export interface TripPlan {
   };
 }
 
-// Add missing exports that other components expect
+// Add comprehensive TripPlanDataValidator with all expected methods
 export class TripPlanDataValidator {
   static validate(tripPlan: TripPlan): boolean {
     return !!(tripPlan.id && tripPlan.startLocation && tripPlan.endLocation && tripPlan.segments?.length > 0);
+  }
+
+  static validateTripPlan(tripPlan: TripPlan): boolean {
+    return this.validate(tripPlan);
+  }
+
+  static sanitizeTripPlan(tripPlan: TripPlan): TripPlan {
+    return {
+      ...tripPlan,
+      // Ensure required properties exist
+      startLocation: tripPlan.startLocation || tripPlan.startCity || '',
+      endLocation: tripPlan.endLocation || tripPlan.endCity || '',
+      stops: tripPlan.stops || [],
+      dailySegments: tripPlan.dailySegments || tripPlan.segments || [],
+      startDate: tripPlan.startDate || new Date(),
+      // Sanitize segments to ensure they have proper driveTimeCategory
+      segments: (tripPlan.segments || []).map(segment => ({
+        ...segment,
+        driveTimeCategory: segment.driveTimeCategory ? {
+          ...segment.driveTimeCategory,
+          category: ['short', 'optimal', 'long', 'extreme'].includes(segment.driveTimeCategory.category as any) 
+            ? segment.driveTimeCategory.category as 'short' | 'optimal' | 'long' | 'extreme'
+            : 'optimal'
+        } : undefined
+      }))
+    };
   }
 }
 

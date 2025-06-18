@@ -1,5 +1,5 @@
 
-import { DailySegment, RecommendedStop } from '../TripPlanTypes';
+import { DailySegment, RecommendedStop } from '../TripPlanBuilder';
 import { TripStop } from '../../../types/TripStop';
 import { DistanceCalculationService } from '../../utils/DistanceCalculationService';
 import { CityDisplayService } from '../../utils/CityDisplayService';

@@ -58,10 +58,10 @@ export const useTripCalculation = () => {
           // Additional properties that components expect
           startCity: result.tripPlan.startCity || result.tripPlan.segments?.[0]?.startCity || formData.startLocation,
           endCity: result.tripPlan.endCity || result.tripPlan.segments?.[result.tripPlan.segments.length - 1]?.endCity || formData.endLocation,
-          startDate: result.tripPlan.startDate,
+          startDate: result.tripPlan.startDate || new Date(),
           totalMiles: result.tripPlan.totalMiles || result.tripPlan.totalDistance,
           totalDrivingTime: result.tripPlan.totalDrivingTime || result.tripPlan.segments?.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0),
-          dailySegments: result.tripPlan.dailySegments || result.tripPlan.segments,
+          dailySegments: result.tripPlan.dailySegments || result.tripPlan.segments || [],
           title: result.tripPlan.title || `${formData.startLocation} to ${formData.endLocation} Route 66 Adventure`,
           tripStyle: result.tripPlan.tripStyle || formData.tripStyle,
           // Copy any other properties that might exist
