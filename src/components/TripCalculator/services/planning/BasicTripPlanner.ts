@@ -1,6 +1,6 @@
 
 import { TripPlan } from './TripPlanTypes';
-import { TripPlanningOrchestrator } from './TripPlanningOrchestrator';
+import { TripPlanningOrchestrator, OrchestrationData } from './TripPlanningOrchestrator';
 
 export class BasicTripPlanner {
   /**
@@ -16,7 +16,7 @@ export class BasicTripPlanner {
 
     try {
       // Orchestrate the planning process
-      const orchestrationData = await TripPlanningOrchestrator.orchestrateTripPlanning(
+      const orchestrationData: OrchestrationData = await TripPlanningOrchestrator.orchestrateTripPlanning(
         startLocation,
         endLocation,
         travelDays,

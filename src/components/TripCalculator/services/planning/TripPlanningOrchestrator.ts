@@ -8,6 +8,16 @@ import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancing
 import { TripStyleConfig, TripStyleLogic } from './TripStyleLogic';
 import { TripCompletionService } from './TripCompletionService';
 
+export interface OrchestrationData {
+  allStops: any[];
+  styleConfig: TripStyleConfig;
+  startStop: any;
+  endStop: any;
+  routeStops: any[];
+  driveTimeTargets: DriveTimeTarget[];
+  balanceMetrics: any;
+}
+
 export class TripPlanningOrchestrator {
   /**
    * Orchestrate the complete trip planning process
@@ -17,7 +27,7 @@ export class TripPlanningOrchestrator {
     endLocation: string,
     travelDays: number,
     tripStyle: 'balanced' | 'destination-focused'
-  ): Promise<TripPlan> {
+  ): Promise<OrchestrationData> {
     console.log(`🚗 ORCHESTRATING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle}`);
 
     // 1. Load all stops and configure trip style
@@ -52,7 +62,7 @@ export class TripPlanningOrchestrator {
    * Build the final trip plan from orchestration data
    */
   static async buildTripPlan(
-    orchestrationData: any,
+    orchestrationData: OrchestrationData,
     startLocation: string,
     endLocation: string,
     travelDays: number,
