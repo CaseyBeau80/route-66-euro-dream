@@ -3,6 +3,7 @@ import React from 'react';
 import { SavedTrip } from '@/components/TripCalculator/services/TripService';
 import SharedTripContentRenderer from '@/components/TripCalculator/components/share/SharedTripContentRenderer';
 import { TripDataSanitizationService } from '@/components/TripCalculator/services/planning/TripDataSanitizationService';
+import { DateDeserializationService } from '@/components/TripCalculator/services/planning/DateDeserializationService';
 import ErrorBoundary from '@/components/TripCalculator/components/ErrorBoundary';
 
 interface TripDetailsContentProps {
@@ -14,7 +15,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   trip,
   shareUrl
 }) => {
-  console.log('🚨 TripDetailsContent: RENDERING with enhanced error handling', {
+  console.log('🚨 TripDetailsContent: RENDERING with DATE DESERIALIZATION fix', {
     trip: {
       id: trip?.id,
       title: trip?.title,
@@ -23,7 +24,7 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
     shareUrl,
     hasTrip: !!trip,
     hasTripData: !!trip?.trip_data,
-    componentVersion: 'ENHANCED_ERROR_HANDLING',
+    componentVersion: 'DATE_DESERIALIZATION_FIX',
     timestamp: new Date().toISOString()
   });
 
@@ -50,16 +51,37 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
   }
 
   try {
-    // Sanitize trip data to handle circular references and data integrity issues
-    const { sanitizedData: tripPlan, report } = TripDataSanitizationService.sanitizeTripData(trip.trip_data);
+    // CRITICAL FIX: First deserialize dates, then sanitize
+    console.log('🔧 TripDetailsContent: Starting date deserialization...', {
+      originalTripData: trip.trip_data,
+      hasStartDate: !!trip.trip_data.startDate,
+      startDateType: typeof trip.trip_data.startDate,
+      startDateValue: trip.trip_data.startDate
+    });
 
-    console.log('🚨 TripDetailsContent: Data sanitization complete', {
+    // Step 1: Fix serialized dates
+    const dateFixedTripData = DateDeserializationService.fixTripPlanDates(trip.trip_data);
+    
+    console.log('🔧 TripDetailsContent: Date deserialization complete:', {
+      originalStartDate: trip.trip_data.startDate,
+      fixedStartDate: dateFixedTripData.startDate,
+      fixedStartDateType: typeof dateFixedTripData.startDate,
+      isValidDate: dateFixedTripData.startDate instanceof Date && !isNaN(dateFixedTripData.startDate.getTime())
+    });
+
+    // Step 2: Sanitize trip data to handle circular references and data integrity issues
+    const { sanitizedData: tripPlan, report } = TripDataSanitizationService.sanitizeTripData(dateFixedTripData);
+
+    console.log('🚨 TripDetailsContent: Data processing complete', {
       report,
       sanitizedTripPlan: {
         startCity: tripPlan?.startCity,
         endCity: tripPlan?.endCity,
         totalDays: tripPlan?.totalDays,
-        segmentsCount: tripPlan?.segments?.length
+        segmentsCount: tripPlan?.segments?.length,
+        startDate: tripPlan?.startDate,
+        startDateType: typeof tripPlan?.startDate,
+        isValidStartDate: tripPlan?.startDate instanceof Date && !isNaN(tripPlan?.startDate.getTime())
       },
       hasCircularReferences: report.hasCircularReferences,
       warnings: report.warnings,
@@ -93,14 +115,28 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
       );
     }
 
-    // Use the correct property name from TripPlan interface
+    // Use the fixed startDate
     const tripStartDate = tripPlan.startDate || undefined;
+
+    // Validate that we have a proper Date object
+    if (tripStartDate && !(tripStartDate instanceof Date)) {
+      console.error('❌ TripDetailsContent: tripStartDate is not a Date object after processing:', {
+        tripStartDate,
+        type: typeof tripStartDate,
+        constructor: tripStartDate?.constructor?.name
+      });
+    } else if (tripStartDate) {
+      console.log('✅ TripDetailsContent: Valid Date object confirmed:', {
+        tripStartDate: tripStartDate.toISOString(),
+        tripStartDateLocal: tripStartDate.toLocaleDateString()
+      });
+    }
 
     console.log('🚨 TripDetailsContent: About to render SharedTripContentRenderer', {
       tripStartDate: tripStartDate?.toISOString(),
       isSharedView: true,
       shareUrl,
-      componentVersion: 'ENHANCED_ERROR_HANDLING'
+      componentVersion: 'DATE_DESERIALIZATION_FIX'
     });
 
     return (
