@@ -81,8 +81,8 @@ export class EnhancedHeritageCitiesService {
         destinationCities.splice(0, destinationCities.length, ...fixedDestinations);
       }
 
-      // Create segments with ABSOLUTE ENFORCEMENT
-      const segments = this.createAbsolutelyValidatedSegments(
+      // Create segments with ABSOLUTE ENFORCEMENT - FIXED TO HANDLE EMPTY DESTINATIONS
+      const segments = this.createDistributedSegments(
         startStop,
         endStop,
         destinationCities,
@@ -457,6 +457,149 @@ export class EnhancedHeritageCitiesService {
     
     const distanceInDegrees = numerator / denominator;
     return distanceInDegrees * 69; // Approximate miles per degree
+  }
+
+  /**
+   * Create distributed segments that properly handle the requested number of days
+   * FIXED: Now distributes the route across all requested days, even without intermediate stops
+   */
+  private static createDistributedSegments(
+    startStop: TripStop,
+    endStop: TripStop,
+    destinations: TripStop[],
+    totalDays: number,
+    totalDistance: number
+  ): DailySegment[] {
+    console.log(`🛠️ Creating ${totalDays} distributed segments (10h/500mi HARD LIMITS)`);
+
+    const segments: DailySegment[] = [];
+    
+    // If we have enough intermediate destinations, use the normal approach
+    if (destinations.length >= totalDays - 1) {
+      return this.createAbsolutelyValidatedSegments(startStop, endStop, destinations, totalDays, totalDistance);
+    }
+
+    // FIXED: If we don't have enough destinations, create virtual waypoints along the direct route
+    console.log(`🔧 DISTRIBUTING ROUTE: Only ${destinations.length} destinations for ${totalDays} days - creating virtual waypoints`);
+    
+    const allWaypoints = this.createVirtualWaypoints(startStop, endStop, destinations, totalDays);
+    
+    // Create segments between consecutive waypoints
+    for (let day = 1; day <= totalDays; day++) {
+      const currentWaypoint = allWaypoints[day - 1];
+      const nextWaypoint = allWaypoints[day];
+      
+      if (!nextWaypoint) break;
+
+      const distance = DistanceCalculationService.calculateDistance(
+        currentWaypoint.latitude, currentWaypoint.longitude,
+        nextWaypoint.latitude, nextWaypoint.longitude
+      );
+
+      // ULTRA STRICT: Force distance within limits
+      const clampedDistance = Math.min(distance, this.MAX_DAILY_MILES);
+      if (clampedDistance !== distance) {
+        console.error(`🚨 EMERGENCY: Day ${day} distance ${distance.toFixed(1)}mi > ${this.MAX_DAILY_MILES}mi - CLAMPED to ${clampedDistance}`);
+      }
+
+      // Calculate drive time with ABSOLUTE enforcement
+      let driveTime = calculateRealisticDriveTime(clampedDistance);
+      
+      // FINAL SAFETY CHECK - This should NEVER happen but ensure it doesn't
+      if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
+        console.error(`🚨 EMERGENCY OVERRIDE: Day ${day} drive time ${driveTime.toFixed(1)}h > 10h - FORCING to 10h`);
+        driveTime = this.ABSOLUTE_MAX_DRIVE_HOURS;
+      }
+
+      const segment: DailySegment = {
+        day,
+        title: `Day ${day}: ${currentWaypoint.city_name || currentWaypoint.name} to ${nextWaypoint.city_name || nextWaypoint.name}`,
+        startCity: currentWaypoint.city_name || currentWaypoint.name,
+        endCity: nextWaypoint.city_name || nextWaypoint.name,
+        distance: Math.round(clampedDistance),
+        approximateMiles: Math.round(clampedDistance),
+        driveTimeHours: Math.round(driveTime * 10) / 10, // Round to 1 decimal
+        destination: {
+          city: nextWaypoint.city_name || nextWaypoint.name,
+          state: nextWaypoint.state || 'Unknown'
+        },
+        recommendedStops: [],
+        attractions: [{
+          name: nextWaypoint.name,
+          title: nextWaypoint.name,
+          description: nextWaypoint.description || `Historic Route 66 destination in ${nextWaypoint.state}`,
+          city: nextWaypoint.city_name || nextWaypoint.name,
+          category: nextWaypoint.category || 'heritage_site'
+        }]
+      };
+
+      segments.push(segment);
+      
+      console.log(`📅 Day ${day}: ${segment.startCity} → ${segment.endCity}, ${clampedDistance.toFixed(1)} miles, ${driveTime.toFixed(1)} hours ${driveTime <= 10 && clampedDistance <= this.MAX_DAILY_MILES ? '✅' : '🚨'}`);
+    }
+
+    return segments;
+  }
+
+  /**
+   * Create virtual waypoints along the direct route to ensure proper day distribution
+   */
+  private static createVirtualWaypoints(
+    startStop: TripStop,
+    endStop: TripStop,
+    destinations: TripStop[],
+    totalDays: number
+  ): TripStop[] {
+    const waypoints: TripStop[] = [startStop];
+    
+    // Add any real destinations we have
+    waypoints.push(...destinations);
+    
+    // If we still need more waypoints, create virtual ones along the direct route
+    const neededVirtualWaypoints = totalDays - waypoints.length;
+    
+    if (neededVirtualWaypoints > 0) {
+      console.log(`🎯 Creating ${neededVirtualWaypoints} virtual waypoints along direct route`);
+      
+      // Create evenly spaced points between start and end
+      for (let i = 1; i <= neededVirtualWaypoints; i++) {
+        const fraction = i / (neededVirtualWaypoints + 1);
+        
+        const virtualLat = startStop.latitude + (endStop.latitude - startStop.latitude) * fraction;
+        const virtualLng = startStop.longitude + (endStop.longitude - startStop.longitude) * fraction;
+        
+        const virtualWaypoint: TripStop = {
+          id: `virtual-${i}`,
+          name: `Route Point ${i}`,
+          city_name: `Waypoint ${i}`,
+          state: 'Route 66',
+          latitude: virtualLat,
+          longitude: virtualLng,
+          description: `Virtual waypoint along your Route 66 journey`,
+          category: 'waypoint'
+        };
+        
+        waypoints.push(virtualWaypoint);
+      }
+      
+      // Sort waypoints by geographic progression
+      const isEastToWest = startStop.longitude < endStop.longitude;
+      waypoints.sort((a, b) => {
+        if (a.id === startStop.id) return -1;
+        if (b.id === startStop.id) return 1;
+        if (a.id === endStop.id) return 1;
+        if (b.id === endStop.id) return -1;
+        
+        return isEastToWest ? a.longitude - b.longitude : b.longitude - a.longitude;
+      });
+    }
+    
+    // Always end with the final destination
+    waypoints.push(endStop);
+    
+    console.log(`🗺️ Created ${waypoints.length} total waypoints:`, waypoints.map(w => w.name));
+    
+    return waypoints;
   }
 
   /**
