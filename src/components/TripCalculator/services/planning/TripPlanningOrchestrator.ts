@@ -83,8 +83,8 @@ export class TripPlanningOrchestrator {
 
     console.log(`📏 Total trip distance: ${totalDistance.toFixed(0)} miles`);
 
-    // Create balanced daily segments
-    const segments = await this.createBalancedDailySegments(
+    // Create balanced daily segments with proper route progression
+    const segments = await this.createProgressiveSegments(
       startStop,
       endStop,
       allStops,
@@ -132,9 +132,9 @@ export class TripPlanningOrchestrator {
   }
 
   /**
-   * Create balanced daily segments for the exact number of requested days
+   * Create progressive daily segments that follow Route 66's natural flow
    */
-  private static async createBalancedDailySegments(
+  private static async createProgressiveSegments(
     startStop: any,
     endStop: any,
     allStops: any[],
@@ -143,36 +143,38 @@ export class TripPlanningOrchestrator {
     styleConfig: TripStyleConfig
   ): Promise<DailySegment[]> {
     const segments: DailySegment[] = [];
-    const targetDailyDistance = totalDistance / travelDays;
     
-    console.log(`🎯 Target daily distance: ${targetDailyDistance.toFixed(0)} miles`);
+    console.log(`🛣️ Creating progressive route for ${travelDays} days`);
 
-    // Filter route stops between start and end
-    const routeStops = this.filterRouteStops(startStop, endStop, allStops);
+    // Determine if we're going east-to-west or west-to-east
+    const isEastToWest = startStop.longitude < endStop.longitude;
+    console.log(`📍 Route direction: ${isEastToWest ? 'East to West' : 'West to East'}`);
+
+    // Get all available stops sorted by longitude (Route 66 runs roughly east-west)
+    const sortedStops = this.getSortedRouteStops(startStop, endStop, allStops, isEastToWest);
     
+    // Create segments by selecting stops that progress naturally along the route
     let currentStop = startStop;
-    let remainingDistance = totalDistance;
+    const targetDailyDistance = totalDistance / travelDays;
 
     for (let day = 1; day <= travelDays; day++) {
       const isLastDay = day === travelDays;
-      let targetDistance: number;
+      
+      let dayDestination: any;
       
       if (isLastDay) {
         // Last day: go to end destination
-        targetDistance = remainingDistance;
+        dayDestination = endStop;
       } else {
-        // Calculate proportional distance for this day
-        const remainingDays = travelDays - day + 1;
-        targetDistance = Math.min(targetDailyDistance, remainingDistance / remainingDays);
+        // Find next progressive stop
+        dayDestination = this.findNextProgressiveStop(
+          currentStop,
+          endStop,
+          sortedStops,
+          targetDailyDistance,
+          isEastToWest
+        );
       }
-
-      // Find the best stop for this day's target distance
-      const dayDestination = isLastDay ? endStop : this.findBestStopForDistance(
-        currentStop,
-        routeStops,
-        targetDistance,
-        endStop
-      );
 
       // Calculate actual distance and drive time
       const actualDistance = DistanceCalculationService.calculateDistance(
@@ -182,8 +184,8 @@ export class TripPlanningOrchestrator {
 
       const driveTimeHours = Math.max(2.0, actualDistance / 50); // Minimum 2 hours, 50 mph average
 
-      const startCityName = currentStop.name || currentStop.city_name || startStop.name;
-      const endCityName = dayDestination.name || dayDestination.city_name || endStop.name;
+      const startCityName = currentStop.name || currentStop.city_name || currentStop.city || 'Unknown';
+      const endCityName = dayDestination.name || dayDestination.city_name || dayDestination.city || 'Unknown';
 
       // Create the segment with all required properties
       const segment: DailySegment = {
@@ -195,10 +197,8 @@ export class TripPlanningOrchestrator {
         approximateMiles: Math.round(actualDistance),
         driveTimeHours,
         destination: {
-          name: endCityName,
-          latitude: dayDestination.latitude,
-          longitude: dayDestination.longitude,
-          description: dayDestination.description || `Historic Route 66 destination in ${endCityName}`
+          city: endCityName,
+          state: dayDestination.state || 'Unknown'
         },
         attractions: [],
         recommendedStops: [],
@@ -211,12 +211,82 @@ export class TripPlanningOrchestrator {
       console.log(`📍 Day ${day}: ${segment.startCity} → ${segment.endCity} (${actualDistance.toFixed(0)} miles, ${driveTimeHours.toFixed(1)}h)`);
 
       currentStop = dayDestination;
-      remainingDistance -= actualDistance;
 
       if (isLastDay) break;
     }
 
     return segments;
+  }
+
+  /**
+   * Get stops sorted by their position along Route 66
+   */
+  private static getSortedRouteStops(startStop: any, endStop: any, allStops: any[], isEastToWest: boolean): any[] {
+    // Filter stops that are between start and end
+    const routeStops = this.filterRouteStops(startStop, endStop, allStops);
+    
+    // Sort by longitude to follow Route 66's east-west progression
+    return routeStops.sort((a, b) => {
+      if (isEastToWest) {
+        return a.longitude - b.longitude; // Sort west (ascending longitude)
+      } else {
+        return b.longitude - a.longitude; // Sort east (descending longitude)
+      }
+    });
+  }
+
+  /**
+   * Find the next stop that progresses naturally along the route
+   */
+  private static findNextProgressiveStop(
+    currentStop: any,
+    finalDestination: any,
+    sortedStops: any[],
+    targetDistance: number,
+    isEastToWest: boolean
+  ): any {
+    console.log(`🔍 Finding next progressive stop from ${currentStop.name || currentStop.city_name}`);
+    
+    // Filter stops that are ahead of current position
+    const progressiveStops = sortedStops.filter(stop => {
+      if (isEastToWest) {
+        return stop.longitude > currentStop.longitude; // Going west, need higher longitude
+      } else {
+        return stop.longitude < currentStop.longitude; // Going east, need lower longitude
+      }
+    });
+
+    if (progressiveStops.length === 0) {
+      console.log(`⚠️ No progressive stops found, using final destination`);
+      return finalDestination;
+    }
+
+    // Find the stop closest to our target distance that progresses along the route
+    let bestStop = progressiveStops[0];
+    let bestScore = Infinity;
+
+    for (const stop of progressiveStops) {
+      const distance = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        stop.latitude, stop.longitude
+      );
+
+      // Score based on how close to target distance (prefer stops near target)
+      const distanceScore = Math.abs(distance - targetDistance);
+      
+      // Prefer destination cities
+      const categoryBonus = (stop.category === 'destination_city') ? -50 : 0;
+      
+      const totalScore = distanceScore + categoryBonus;
+
+      if (totalScore < bestScore) {
+        bestScore = totalScore;
+        bestStop = stop;
+      }
+    }
+
+    console.log(`✅ Selected progressive stop: ${bestStop.name || bestStop.city_name} (${bestScore.toFixed(0)} score)`);
+    return bestStop;
   }
 
   /**
@@ -239,44 +309,5 @@ export class TripPlanningOrchestrator {
       stop.longitude >= minLng && stop.longitude <= maxLng &&
       stop.id !== startStop.id && stop.id !== endStop.id
     );
-  }
-
-  /**
-   * Find the best stop for a target distance
-   */
-  private static findBestStopForDistance(
-    currentStop: any,
-    availableStops: any[],
-    targetDistance: number,
-    finalDestination: any
-  ): any {
-    if (availableStops.length === 0) {
-      return finalDestination;
-    }
-
-    let bestStop = availableStops[0];
-    let bestScore = Infinity;
-
-    for (const stop of availableStops) {
-      const distance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        stop.latitude, stop.longitude
-      );
-
-      // Score based on how close to target distance
-      const distanceScore = Math.abs(distance - targetDistance);
-      
-      // Prefer destination cities
-      const categoryBonus = (stop.category === 'destination_city') ? -50 : 0;
-      
-      const totalScore = distanceScore + categoryBonus;
-
-      if (totalScore < bestScore) {
-        bestScore = totalScore;
-        bestStop = stop;
-      }
-    }
-
-    return bestStop;
   }
 }
