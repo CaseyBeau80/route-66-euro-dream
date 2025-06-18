@@ -102,9 +102,10 @@ export class SegmentCreationLoop {
     const { segmentTimings, totalSegmentDriveTime, segmentDistance, isGoogleMapsData, dataAccuracy } = 
       await SegmentTimingCalculator.calculateSegmentTimings(currentStop, dayDestination, segmentStops);
 
-    // Get drive time category for this segment - Fix type conversion
+    // Get drive time category for this segment - Fix type conversion by ensuring proper type handling
     const rawCategory = SegmentTimingCalculator.categorizedriveTime(totalSegmentDriveTime);
-    const driveTimeCategory = SegmentTimingCalculator.getDriveTimeCategory(rawCategory) as DriveTimeCategory;
+    // Since categorizedriveTime already returns DriveTimeCategory, we don't need getDriveTimeCategory
+    const driveTimeCategory = rawCategory;
 
     // Calculate route progression metrics
     const { routeSection } = SegmentMetricsCalculator.calculateRouteMetrics(
