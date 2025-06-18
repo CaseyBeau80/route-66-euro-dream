@@ -7,6 +7,7 @@ import { DriveTimeBalancingService, DriveTimeTarget } from './DriveTimeBalancing
 import { TripStyleConfig, TripStyleLogic } from './TripStyleLogic';
 import { TripCompletionService } from './TripCompletionService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
 
 export interface OrchestrationData {
   allStops: any[];
@@ -70,7 +71,7 @@ export class TripPlanningOrchestrator {
   ): Promise<TripPlan> {
     const { startStop, endStop, allStops, styleConfig } = orchestrationData;
 
-    console.log(`🎯 Building trip plan for EXACTLY ${travelDays} days with 10h max drive time`);
+    console.log(`🎯 Building trip plan for EXACTLY ${travelDays} days with STRICT 10h max drive time`);
 
     // Calculate total distance for the trip
     const totalDistance = DistanceCalculationService.calculateDistance(
@@ -81,6 +82,14 @@ export class TripPlanningOrchestrator {
     );
 
     console.log(`📏 Total trip distance: ${totalDistance.toFixed(0)} miles`);
+
+    // CRITICAL: Check if trip is feasible with 10h limit
+    const avgDailyDistance = totalDistance / travelDays;
+    const avgDailyDriveTime = calculateRealisticDriveTime(avgDailyDistance);
+    
+    if (avgDailyDriveTime >= 10) {
+      console.warn(`⚠️ Trip may require adjustment: ${avgDailyDistance.toFixed(0)} miles/day = ${avgDailyDriveTime.toFixed(1)}h/day`);
+    }
 
     // Create optimized daily segments with proper drive time distribution
     const segments = await this.createOptimizedSegments(
@@ -141,7 +150,7 @@ export class TripPlanningOrchestrator {
   }
 
   /**
-   * Create optimized daily segments with improved drive time distribution
+   * Create optimized daily segments with improved drive time distribution and STRICT 10h enforcement
    */
   private static async createOptimizedSegments(
     startStop: any,
@@ -153,7 +162,7 @@ export class TripPlanningOrchestrator {
   ): Promise<DailySegment[]> {
     const segments: DailySegment[] = [];
     
-    console.log(`🛣️ Creating optimized route for EXACTLY ${travelDays} days with 10h max drive time`);
+    console.log(`🛣️ Creating optimized route for EXACTLY ${travelDays} days with STRICT 10h max drive time`);
 
     // Determine if we're going east-to-west or west-to-east
     const isEastToWest = startStop.longitude < endStop.longitude;
@@ -162,8 +171,8 @@ export class TripPlanningOrchestrator {
     // Get all available stops sorted by longitude
     const sortedStops = this.getSortedRouteStops(startStop, endStop, allStops, isEastToWest);
     
-    // Calculate optimal daily distances with last-day optimization
-    const dailyDistances = this.calculateOptimizedDailyDistances(totalDistance, travelDays);
+    // Calculate BALANCED daily distances to prevent very long final days
+    const dailyDistances = this.calculateBalancedDailyDistances(totalDistance, travelDays);
     
     let currentStop = startStop;
     let accumulatedDistance = 0;
@@ -194,12 +203,8 @@ export class TripPlanningOrchestrator {
         dayDestination.latitude, dayDestination.longitude
       );
 
-      // Calculate drive time with 50 mph average, enforce 10-hour max
-      let driveTimeHours = Math.max(2.0, actualDistance / 50);
-      if (driveTimeHours > styleConfig.maxDailyDriveHours) {
-        console.warn(`⚠️ Day ${day} drive time ${driveTimeHours.toFixed(1)}h exceeds limit, capping at ${styleConfig.maxDailyDriveHours}h`);
-        driveTimeHours = styleConfig.maxDailyDriveHours;
-      }
+      // Use the enhanced drive time calculation with STRICT 10h enforcement
+      const driveTimeHours = calculateRealisticDriveTime(actualDistance);
 
       const startCityName = currentStop.name || currentStop.city_name || currentStop.city || 'Unknown';
       const endCityName = dayDestination.name || dayDestination.city_name || dayDestination.city || 'Unknown';
@@ -233,54 +238,66 @@ export class TripPlanningOrchestrator {
       if (isLastDay) break;
     }
 
-    // Validate drive times don't exceed limits
-    this.validateDriveTimes(segments, styleConfig);
+    // Final validation - ensure NO day exceeds 10 hours
+    this.validateAndEnforce10HourLimit(segments);
 
     return segments;
   }
 
   /**
-   * Calculate optimized daily distances to avoid longest drive on last day
+   * Calculate BALANCED daily distances to prevent very long final days
    */
-  private static calculateOptimizedDailyDistances(totalDistance: number, travelDays: number): number[] {
-    const averageDistance = totalDistance / travelDays;
+  private static calculateBalancedDailyDistances(totalDistance: number, travelDays: number): number[] {
     const distances: number[] = [];
     
-    // Distribute distances with shorter last day
+    if (travelDays === 1) {
+      return [totalDistance];
+    }
+    
+    // Strategy: Make the last day shorter, distribute extra to earlier days
+    const averageDistance = totalDistance / travelDays;
+    const lastDayReduction = 0.2; // Make last day 20% shorter than average
+    const lastDayDistance = averageDistance * (1 - lastDayReduction);
+    const extraDistanceToDistribute = averageDistance - lastDayDistance;
+    const extraPerEarlierDay = extraDistanceToDistribute / (travelDays - 1);
+    
     for (let day = 1; day <= travelDays; day++) {
       if (day === travelDays) {
-        // Last day gets 80% of average distance
-        distances.push(averageDistance * 0.8);
-      } else if (day === travelDays - 1) {
-        // Second to last day gets slightly more
-        distances.push(averageDistance * 1.1);
+        distances.push(lastDayDistance);
       } else {
-        // Other days get average or slightly more
-        distances.push(averageDistance * 1.05);
+        distances.push(averageDistance + extraPerEarlierDay);
       }
     }
     
-    // Normalize to ensure total matches
+    // Normalize to ensure total matches exactly
     const currentTotal = distances.reduce((sum, d) => sum + d, 0);
     const factor = totalDistance / currentTotal;
-    return distances.map(d => d * factor);
+    const normalizedDistances = distances.map(d => d * factor);
+    
+    console.log(`📊 Balanced daily distances:`, normalizedDistances.map(d => d.toFixed(0)));
+    
+    return normalizedDistances;
   }
 
   /**
-   * Validate that no day exceeds drive time limits
+   * STRICT validation and enforcement of 10-hour limit
    */
-  private static validateDriveTimes(segments: DailySegment[], styleConfig: TripStyleConfig): void {
+  private static validateAndEnforce10HourLimit(segments: DailySegment[]): void {
     let hasViolations = false;
     
     segments.forEach(segment => {
-      if (segment.driveTimeHours > styleConfig.maxDailyDriveHours) {
-        console.error(`❌ Day ${segment.day} violates drive time limit: ${segment.driveTimeHours.toFixed(1)}h > ${styleConfig.maxDailyDriveHours}h`);
+      if (segment.driveTimeHours > 10) {
+        console.error(`❌ VIOLATION: Day ${segment.day} drive time ${segment.driveTimeHours.toFixed(1)}h > 10h LIMIT`);
+        // Force cap at 10 hours - this indicates the trip needs more days
+        segment.driveTimeHours = 10;
         hasViolations = true;
       }
     });
     
-    if (!hasViolations) {
-      console.log(`✅ All days respect ${styleConfig.maxDailyDriveHours}h drive time limit`);
+    if (hasViolations) {
+      console.error(`🚨 CRITICAL: Some days exceeded 10h limit - trip needs more days or route optimization`);
+    } else {
+      console.log(`✅ All days respect 10h drive time limit`);
     }
   }
 

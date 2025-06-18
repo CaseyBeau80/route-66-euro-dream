@@ -90,7 +90,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         availableEndLocations={availableEndLocations}
       />
 
-      {/* Heritage Cities Experience Info - Replaces Trip Style Selector */}
+      {/* Heritage Cities Experience Info - Fixed and Simplified */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-4">
           <div className="bg-blue-600 rounded-full p-2">
@@ -108,7 +108,7 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
             <div className="space-y-2">
               <p className="text-sm text-gray-700 leading-relaxed">
                 Your trip will focus on <strong>major Route 66 heritage cities</strong> with optimized drive times 
-                (maximum 10 hours per day). We prioritize iconic destinations while keeping daily drives manageable 
+                (<strong>maximum 10 hours per day</strong>). We prioritize iconic destinations while keeping daily drives manageable 
                 for the perfect balance of adventure and comfort.
               </p>
               <div className="flex flex-wrap gap-2 mt-3">

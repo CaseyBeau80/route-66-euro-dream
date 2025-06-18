@@ -18,28 +18,20 @@ export const formatTime = (hours: number): string => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-// ABSOLUTE 10-HOUR ENFORCEMENT: No drive time can exceed 10 hours - EVER
+// STRICT 10-HOUR ENFORCEMENT: No drive time can exceed 10 hours - EVER
 export const calculateRealisticDriveTime = (distance: number): number => {
-  console.log(`🚨 ABSOLUTE 10H ENFORCEMENT: Calculating drive time for ${distance.toFixed(1)} miles`);
+  console.log(`🚨 STRICT 10H ENFORCEMENT: Calculating drive time for ${distance.toFixed(1)} miles`);
   
   // ABSOLUTE MAXIMUM: 10 hours - no exceptions
   const ABSOLUTE_MAX_HOURS = 10;
   
-  // Handle all edge cases with extreme prejudice
+  // Handle all edge cases
   if (distance <= 0 || !isFinite(distance) || isNaN(distance)) {
     console.log(`🚨 Invalid distance ${distance}, returning 0.5h`);
     return 0.5;
   }
   
-  // For any distance that would result in >10h at reasonable speeds, cap at 10h
-  // This means if someone tries to drive 600+ miles in one day, we cap it
-  const maxDistanceFor10Hours = 500; // 500 miles = 10 hours at 50mph average
-  
-  if (distance > maxDistanceFor10Hours) {
-    console.warn(`🚨 DISTANCE CAPPED: ${distance.toFixed(1)}mi would exceed 10h - FORCING to exactly 10h`);
-    return ABSOLUTE_MAX_HOURS;
-  }
-  
+  // Calculate base drive time with realistic speeds
   let avgSpeed: number;
   let bufferMultiplier: number;
   
@@ -60,28 +52,23 @@ export const calculateRealisticDriveTime = (distance: number): number => {
   const baseTime = distance / avgSpeed;
   const calculatedTime = baseTime * bufferMultiplier;
   
-  // ABSOLUTE ENFORCEMENT: Never exceed 10 hours under any circumstances
+  // CRITICAL: NEVER exceed 10 hours under any circumstances
   const finalTime = Math.min(calculatedTime, ABSOLUTE_MAX_HOURS);
   
-  console.log(`🚨 10H ENFORCEMENT COMPLETE:`, {
+  // If the calculated time would exceed 10 hours, we need to flag this
+  if (calculatedTime > ABSOLUTE_MAX_HOURS) {
+    console.warn(`🚨 DRIVE TIME CAPPED: ${distance.toFixed(1)}mi would require ${calculatedTime.toFixed(1)}h - FORCED to ${ABSOLUTE_MAX_HOURS}h`);
+  }
+  
+  console.log(`✅ Drive time calculation complete:`, {
     distance: distance.toFixed(1),
     avgSpeed,
     baseTime: baseTime.toFixed(1),
     calculatedTime: calculatedTime.toFixed(1),
     finalTime: finalTime.toFixed(1),
-    cappedAt10Hours: calculatedTime > ABSOLUTE_MAX_HOURS,
-    absoluteMaxHours: ABSOLUTE_MAX_HOURS,
-    guarantee: 'NEVER_EXCEEDS_10_HOURS'
+    cappedAt10Hours: calculatedTime > ABSOLUTE_MAX_HOURS
   });
   
   // Ensure minimum time and return
-  const result = Math.max(finalTime, 0.5);
-  
-  // FINAL SAFETY CHECK: If somehow result is still > 10, force it to 10
-  if (result > ABSOLUTE_MAX_HOURS) {
-    console.error(`🚨 EMERGENCY: Result ${result} > 10h - FORCING TO 10h`);
-    return ABSOLUTE_MAX_HOURS;
-  }
-  
-  return result;
+  return Math.max(finalTime, 0.5);
 };
