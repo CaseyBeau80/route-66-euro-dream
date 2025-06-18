@@ -149,6 +149,18 @@ const ROUTE_66_STOPS: TripStop[] = [
   },
   {
     id: '13',
+    name: 'Needles, CA',
+    city: 'Needles',
+    city_name: 'Needles',
+    state: 'CA',
+    latitude: 34.8409,
+    longitude: -114.6160,
+    category: 'destination_city',
+    heritage_value: 'medium',
+    description: 'Historic Route 66 town on California border'
+  },
+  {
+    id: '14',
     name: 'Barstow, CA',
     city: 'Barstow',
     city_name: 'Barstow',
@@ -160,7 +172,7 @@ const ROUTE_66_STOPS: TripStop[] = [
     description: 'Desert stop on the way to California'
   },
   {
-    id: '14',
+    id: '15',
     name: 'San Bernardino, CA',
     city: 'San Bernardino',
     city_name: 'San Bernardino',
@@ -172,7 +184,7 @@ const ROUTE_66_STOPS: TripStop[] = [
     description: 'Gateway to Southern California'
   },
   {
-    id: '15',
+    id: '16',
     name: 'Los Angeles, CA',
     city: 'Los Angeles',
     city_name: 'Los Angeles',
@@ -191,6 +203,9 @@ export class SupabaseDataService {
    */
   static async fetchAllStops(): Promise<TripStop[]> {
     console.log(`📊 SupabaseDataService: Returning ${ROUTE_66_STOPS.length} Route 66 stops`);
+    
+    // Log all stop names for debugging
+    console.log('🗂️ SupabaseDataService: Available stops:', ROUTE_66_STOPS.map(s => s.name));
     
     // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -211,10 +226,22 @@ export class SupabaseDataService {
    */
   static async findStopByName(name: string): Promise<TripStop | null> {
     const allStops = await this.fetchAllStops();
-    return allStops.find(stop => 
+    
+    console.log(`🔍 SupabaseDataService: Searching for "${name}" among ${allStops.length} stops`);
+    
+    // Try multiple matching strategies
+    const found = allStops.find(stop => 
+      stop.name.toLowerCase() === name.toLowerCase() ||
+      stop.city?.toLowerCase() === name.toLowerCase() ||
+      stop.city_name?.toLowerCase() === name.toLowerCase() ||
       stop.name.toLowerCase().includes(name.toLowerCase()) ||
-      stop.city?.toLowerCase().includes(name.toLowerCase())
-    ) || null;
+      name.toLowerCase().includes(stop.city?.toLowerCase() || '') ||
+      name.toLowerCase().includes(stop.city_name?.toLowerCase() || '')
+    );
+    
+    console.log(`${found ? '✅' : '❌'} SupabaseDataService: ${found ? 'Found' : 'Not found'} "${name}"${found ? ` -> ${found.name}` : ''}`);
+    
+    return found || null;
   }
 
   /**
