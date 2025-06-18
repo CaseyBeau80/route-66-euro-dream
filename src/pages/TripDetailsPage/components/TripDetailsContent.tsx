@@ -118,13 +118,23 @@ const TripDetailsContent: React.FC<TripDetailsContentProps> = ({
     // Use the fixed startDate
     const tripStartDate = tripPlan.startDate || undefined;
 
-    // FIXED: Improve type checking to avoid TypeScript error
+    // FIXED: Simplify type checking to avoid TypeScript error
     if (tripStartDate !== undefined && tripStartDate !== null) {
       if (!(tripStartDate instanceof Date)) {
+        // Safely get constructor name without TypeScript error
+        let constructorName = 'unknown';
+        try {
+          if (tripStartDate && typeof tripStartDate === 'object' && 'constructor' in tripStartDate) {
+            constructorName = (tripStartDate as any).constructor?.name || 'unknown';
+          }
+        } catch (e) {
+          constructorName = 'error-accessing-constructor';
+        }
+
         console.error('❌ TripDetailsContent: tripStartDate is not a Date object after processing:', {
           tripStartDate,
           type: typeof tripStartDate,
-          constructorName: tripStartDate && typeof tripStartDate === 'object' && tripStartDate.constructor ? tripStartDate.constructor.name : 'unknown'
+          constructorName
         });
       } else {
         console.log('✅ TripDetailsContent: Valid Date object confirmed:', {
