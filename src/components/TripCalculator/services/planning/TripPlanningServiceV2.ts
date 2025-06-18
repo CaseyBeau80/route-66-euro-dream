@@ -1,3 +1,4 @@
+
 import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -14,7 +15,7 @@ export class TripPlanningServiceV2 {
   /**
    * Build trip plan with ABSOLUTE drive time enforcement from the start
    */
-  static buildTripPlan(
+  static async buildTripPlan(
     startStop: TripStop,
     endStop: TripStop,
     allStops: TripStop[],
@@ -22,7 +23,7 @@ export class TripPlanningServiceV2 {
     startCityName: string,
     endCityName: string,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
-  ): TripPlan {
+  ): Promise<TripPlan> {
     console.log(`🏗️ V2 TRIP PLANNER: ABSOLUTE drive time enforcement from planning start`);
     
     // STEP 1: Get style configuration with enforced limits
@@ -55,7 +56,7 @@ export class TripPlanningServiceV2 {
     console.log(`🎯 V2 SELECTED: ${selectedDestinationCities.length} destinations with validated distances`);
 
     // STEP 5: Build segments with ABSOLUTE validation
-    const segments = TripSegmentBuilderV2.buildSegmentsWithDestinationCities(
+    const segments = await TripSegmentBuilderV2.buildSegmentsWithDestinationCities(
       startStop, endStop, selectedDestinationCities, tripDays, styleConfig
     );
 
@@ -85,6 +86,8 @@ export class TripPlanningServiceV2 {
       title: `${tripDays}-Day Route 66 Journey: ${startCityName} to ${endCityName}`,
       startCity: startCityName,
       endCity: endCityName,
+      startLocation: startCityName,
+      endLocation: endCityName,
       startDate: new Date(),
       totalDays: tripDays,
       totalDistance,
@@ -92,6 +95,7 @@ export class TripPlanningServiceV2 {
       totalDrivingTime,
       segments: sanitizedSegments,
       dailySegments: sanitizedSegments,
+      stops: [],
       tripStyle,
       lastUpdated: new Date()
     };
@@ -133,7 +137,7 @@ export class TripPlanningServiceV2 {
 
     try {
       // Load and prepare data
-      const allStops = await SupabaseDataService.fetchAllStops();
+      const allStops = await SupabaseDataService.getAllStops();
       const { startStop, endStop, routeStops } = TripBoundaryService.findBoundaryStops(
         startLocation,
         endLocation,

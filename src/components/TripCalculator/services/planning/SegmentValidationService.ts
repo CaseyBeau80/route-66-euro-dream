@@ -1,21 +1,23 @@
 
-import { TripStop } from '../../types/TripStop';
-import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { DailySegment } from './TripPlanTypes';
 
 export class SegmentValidationService {
-  /**
-   * Validate segment to ensure it's meaningful
-   */
-  static isValidSegment(fromStop: TripStop, toStop: TripStop, minDistanceMiles: number = 5): boolean {
-    if (fromStop.id === toStop.id) {
-      return false;
-    }
+  static isValidSegment(segment: DailySegment): boolean {
+    return segment && segment.startCity && segment.endCity && segment.distance > 0;
+  }
+
+  static validateSegments(segments: DailySegment[]): { isValid: boolean; violations: string[] } {
+    const violations: string[] = [];
     
-    const distance = DistanceCalculationService.calculateDistance(
-      fromStop.latitude, fromStop.longitude,
-      toStop.latitude, toStop.longitude
-    );
-    
-    return distance >= minDistanceMiles;
+    segments.forEach((segment, index) => {
+      if (!this.isValidSegment(segment)) {
+        violations.push(`Invalid segment at day ${index + 1}`);
+      }
+    });
+
+    return {
+      isValid: violations.length === 0,
+      violations
+    };
   }
 }

@@ -1,72 +1,37 @@
 
+import { TripPlan } from './TripPlanTypes';
+
 export interface TripCompletionAnalysis {
-  isCompleted: boolean;
-  originalDays: number;
-  optimizedDays: number;
-  adjustmentReason?: string;
-  confidence: number;
-  qualityMetrics: {
-    driveTimeBalance: 'excellent' | 'good' | 'fair' | 'poor';
-    routeEfficiency: 'excellent' | 'good' | 'fair' | 'poor';
-    attractionCoverage: 'excellent' | 'good' | 'fair' | 'poor';
-    overallScore: number;
-  };
-  recommendations?: string[];
-  duplicateSegments?: any[];
-  totalUsefulDays?: number;
-  unusedDays?: number;
+  isComplete: boolean;
+  completionPercentage: number;
+  missingElements: string[];
+  recommendations: string[];
 }
 
 export class TripCompletionService {
-  static analyzeTripCompletion(
-    originalDays: number,
-    optimizedDays: number,
-    segments: any[]
-  ): TripCompletionAnalysis {
-    const isCompleted = optimizedDays > 0 && segments.length > 0;
-    
-    return {
-      isCompleted,
-      originalDays,
-      optimizedDays,
-      adjustmentReason: originalDays !== optimizedDays ? 'Route optimization' : undefined,
-      confidence: 0.85,
-      qualityMetrics: {
-        driveTimeBalance: 'good',
-        routeEfficiency: 'excellent',
-        attractionCoverage: 'good',
-        overallScore: 0.8
-      },
-      recommendations: [
-        'Consider adding rest stops for longer driving segments',
-        'Check local attractions at each destination'
-      ],
-      totalUsefulDays: optimizedDays,
-      unusedDays: Math.max(0, originalDays - optimizedDays)
-    };
-  }
+  static analyzeTripCompletion(tripPlan: TripPlan): TripCompletionAnalysis {
+    const missingElements: string[] = [];
+    const recommendations: string[] = [];
 
-  static calculateRouteProgression(
-    segmentNumber: number,
-    totalDistance: number,
-    cumulativeDistance: number
-  ): any {
-    const progressPercentage = (cumulativeDistance / totalDistance) * 100;
-    return {
-      segmentNumber,
-      progressPercentage: Math.round(progressPercentage),
-      cumulativeDistance: Math.round(cumulativeDistance),
-      totalDistance: Math.round(totalDistance)
-    };
-  }
+    if (!tripPlan.segments || tripPlan.segments.length === 0) {
+      missingElements.push('segments');
+    }
 
-  static sanitizeSegment(segment: any, index: number): any {
+    if (!tripPlan.startLocation) {
+      missingElements.push('startLocation');
+    }
+
+    if (!tripPlan.endLocation) {
+      missingElements.push('endLocation');
+    }
+
+    const completionPercentage = Math.max(0, 100 - (missingElements.length * 25));
+
     return {
-      ...segment,
-      day: segment.day || index + 1,
-      distance: segment.distance || 0,
-      driveTimeHours: segment.driveTimeHours || 0,
-      approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0)
+      isComplete: missingElements.length === 0,
+      completionPercentage,
+      missingElements,
+      recommendations
     };
   }
 }

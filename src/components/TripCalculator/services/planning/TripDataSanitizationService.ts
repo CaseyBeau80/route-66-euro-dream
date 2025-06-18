@@ -5,6 +5,14 @@ export interface SanitizationReport {
   isValid: boolean;
   warnings: string[];
   sanitizedFields: string[];
+  hasCircularReferences?: boolean;
+  circularPaths?: string[];
+  missingFields?: string[];
+}
+
+export interface TripDataSanitizationResult {
+  sanitizedData: TripPlan;
+  report: SanitizationReport;
 }
 
 export class TripDataSanitizationService {
@@ -75,6 +83,29 @@ export class TripDataSanitizationService {
     };
   }
 
+  static sanitizeTripData(tripData: any): TripDataSanitizationResult {
+    const report: SanitizationReport = {
+      isValid: true,
+      warnings: [],
+      sanitizedFields: [],
+      hasCircularReferences: false,
+      circularPaths: [],
+      missingFields: []
+    };
+
+    try {
+      const sanitizedData = this.sanitizeTripPlan(tripData);
+      return { sanitizedData, report };
+    } catch (error) {
+      report.isValid = false;
+      report.warnings.push('Failed to sanitize trip data');
+      return {
+        sanitizedData: this.createEmptyTripPlan(),
+        report
+      };
+    }
+  }
+
   static createEmptyTripPlan(): TripPlan {
     return {
       id: `empty-${Date.now()}`,
@@ -101,7 +132,14 @@ export class TripDataSanitizationService {
 
     if (!originalPlan) {
       warnings.push('Original plan was null or undefined');
-      return { isValid: false, warnings, sanitizedFields };
+      return { 
+        isValid: false, 
+        warnings, 
+        sanitizedFields,
+        hasCircularReferences: false,
+        circularPaths: [],
+        missingFields: ['originalPlan']
+      };
     }
 
     // Check for sanitized fields
@@ -112,7 +150,10 @@ export class TripDataSanitizationService {
     return {
       isValid: warnings.length === 0,
       warnings,
-      sanitizedFields
+      sanitizedFields,
+      hasCircularReferences: false,
+      circularPaths: [],
+      missingFields: []
     };
   }
 }
