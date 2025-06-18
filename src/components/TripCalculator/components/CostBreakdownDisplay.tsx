@@ -49,7 +49,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
         </CardContent>
       </Card>
 
-      {/* Cost Breakdown */}
+      {/* Cost Breakdown - FIXED: Single row layout with horizontal scroll on mobile */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -58,8 +58,8 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg min-w-[200px] flex-shrink-0">
               <Car className="h-6 w-6 text-blue-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="font-semibold text-blue-800 truncate">Gas Costs</div>
@@ -69,17 +69,17 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg min-w-[200px] flex-shrink-0">
               <Bed className="h-6 w-6 text-blue-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="font-semibold text-blue-800 truncate">Hotels</div>
+                <div className="font-semibent text-blue-800 truncate">Hotels</div>
                 <div className="text-xl font-bold text-blue-700">
                   {formatCurrency(breakdown.accommodationCost)}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg min-w-[200px] flex-shrink-0">
               <Utensils className="h-6 w-6 text-blue-600 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="font-semibold text-blue-800 truncate">Meals</div>
@@ -90,7 +90,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
             </div>
 
             {breakdown.carRentalCost > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg min-w-[200px] flex-shrink-0">
                 <CarIcon className="h-6 w-6 text-blue-600 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold text-blue-800 truncate">Car Rental</div>
@@ -102,7 +102,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
             )}
 
             {breakdown.attractionCost > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg min-w-[200px] flex-shrink-0">
                 <MapPin className="h-6 w-6 text-blue-600 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold text-blue-800 truncate">Attractions</div>
@@ -114,7 +114,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
             )}
 
             {breakdown.tollCost > 0 && (
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg min-w-[200px] flex-shrink-0">
                 <CreditCard className="h-6 w-6 text-blue-600 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibent text-blue-800 truncate">Tolls</div>
@@ -126,7 +126,7 @@ const CostBreakdownDisplay: React.FC<CostBreakdownDisplayProps> = ({ costEstimat
             )}
 
             {groupSize > 1 && (
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg min-w-[200px] flex-shrink-0">
                 <Users className="h-6 w-6 text-blue-600 flex-shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold text-blue-800 truncate">Group Size</div>

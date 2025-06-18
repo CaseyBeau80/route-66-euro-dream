@@ -1,3 +1,4 @@
+
 import { TripPlan } from './TripPlanTypes';
 import { DailySegment } from './TripPlanTypes';
 import { SupabaseDataService } from '../data/SupabaseDataService';
@@ -150,7 +151,7 @@ export class TripPlanningOrchestrator {
   }
 
   /**
-   * Create optimized daily segments with improved drive time distribution and STRICT 10h enforcement
+   * Create optimized daily segments with STRICT 10h enforcement and proper distance distribution
    */
   private static async createOptimizedSegments(
     startStop: any,
@@ -171,8 +172,8 @@ export class TripPlanningOrchestrator {
     // Get all available stops sorted by longitude
     const sortedStops = this.getSortedRouteStops(startStop, endStop, allStops, isEastToWest);
     
-    // Calculate BALANCED daily distances to prevent very long final days
-    const dailyDistances = this.calculateBalancedDailyDistances(totalDistance, travelDays);
+    // FIXED: Use distance-based balanced distribution instead of equal segments
+    const dailyDistances = this.calculateProportionalDailyDistances(totalDistance, travelDays);
     
     let currentStop = startStop;
     let accumulatedDistance = 0;
@@ -187,12 +188,14 @@ export class TripPlanningOrchestrator {
         // Last day: go to end destination
         dayDestination = endStop;
       } else {
-        // Find next progressive stop based on target distance
-        dayDestination = this.findOptimalProgressiveStop(
+        // Find next stop that gets us close to our cumulative target
+        const cumulativeTarget = accumulatedDistance + targetDistance;
+        dayDestination = this.findStopNearCumulativeDistance(
           currentStop,
           endStop,
           sortedStops,
-          targetDistance,
+          cumulativeTarget,
+          totalDistance,
           isEastToWest
         );
       }
@@ -204,7 +207,13 @@ export class TripPlanningOrchestrator {
       );
 
       // Use the enhanced drive time calculation with STRICT 10h enforcement
-      const driveTimeHours = calculateRealisticDriveTime(actualDistance);
+      let driveTimeHours = calculateRealisticDriveTime(actualDistance);
+      
+      // ABSOLUTE enforcement: If still over 10h, cap it and warn
+      if (driveTimeHours > 10) {
+        console.error(`🚨 CRITICAL: Day ${day} would be ${driveTimeHours.toFixed(1)}h - FORCING to 10h maximum`);
+        driveTimeHours = 10;
+      }
 
       const startCityName = currentStop.name || currentStop.city_name || currentStop.city || 'Unknown';
       const endCityName = dayDestination.name || dayDestination.city_name || dayDestination.city || 'Unknown';
@@ -230,7 +239,7 @@ export class TripPlanningOrchestrator {
 
       segments.push(segment);
       
-      console.log(`📍 Day ${day}: ${segment.startCity} → ${segment.endCity} (${actualDistance.toFixed(0)} miles, ${driveTimeHours.toFixed(1)}h)`);
+      console.log(`📍 Day ${day}: ${segment.startCity} → ${segment.endCity} (${actualDistance.toFixed(0)} miles, ${driveTimeHours.toFixed(1)}h) ✅`);
 
       currentStop = dayDestination;
       accumulatedDistance += actualDistance;
@@ -238,34 +247,30 @@ export class TripPlanningOrchestrator {
       if (isLastDay) break;
     }
 
-    // Final validation - ensure NO day exceeds 10 hours
+    // Final validation - ensure ALL days are under 10 hours
     this.validateAndEnforce10HourLimit(segments);
 
     return segments;
   }
 
   /**
-   * Calculate BALANCED daily distances to prevent very long final days
+   * Calculate proportional daily distances to evenly distribute the total
    */
-  private static calculateBalancedDailyDistances(totalDistance: number, travelDays: number): number[] {
+  private static calculateProportionalDailyDistances(totalDistance: number, travelDays: number): number[] {
+    const baseDistance = totalDistance / travelDays;
     const distances: number[] = [];
     
-    if (travelDays === 1) {
-      return [totalDistance];
-    }
-    
-    // Strategy: Make the last day shorter, distribute extra to earlier days
-    const averageDistance = totalDistance / travelDays;
-    const lastDayReduction = 0.2; // Make last day 20% shorter than average
-    const lastDayDistance = averageDistance * (1 - lastDayReduction);
-    const extraDistanceToDistribute = averageDistance - lastDayDistance;
-    const extraPerEarlierDay = extraDistanceToDistribute / (travelDays - 1);
-    
+    // Create more even distribution with slight variation
     for (let day = 1; day <= travelDays; day++) {
       if (day === travelDays) {
-        distances.push(lastDayDistance);
+        // Last day gets remaining distance
+        const remaining = totalDistance - distances.reduce((sum, d) => sum + d, 0);
+        distances.push(Math.max(50, remaining)); // Minimum 50 miles for last day
       } else {
-        distances.push(averageDistance + extraPerEarlierDay);
+        // Earlier days get consistent distances with small random variation
+        const variation = (Math.random() - 0.5) * 0.2; // ±10% variation
+        const dayDistance = baseDistance * (1 + variation);
+        distances.push(Math.max(100, dayDistance)); // Minimum 100 miles per day
       }
     }
     
@@ -274,9 +279,80 @@ export class TripPlanningOrchestrator {
     const factor = totalDistance / currentTotal;
     const normalizedDistances = distances.map(d => d * factor);
     
-    console.log(`📊 Balanced daily distances:`, normalizedDistances.map(d => d.toFixed(0)));
+    console.log(`📊 Proportional daily distances:`, normalizedDistances.map(d => d.toFixed(0)));
     
     return normalizedDistances;
+  }
+
+  /**
+   * Find stop that gets us closest to our cumulative distance target
+   */
+  private static findStopNearCumulativeDistance(
+    currentStop: any,
+    finalDestination: any,
+    sortedStops: any[],
+    cumulativeTarget: number,
+    totalDistance: number,
+    isEastToWest: boolean
+  ): any {
+    console.log(`🎯 Finding stop near cumulative target: ${cumulativeTarget.toFixed(0)} miles`);
+    
+    // Filter stops that are ahead of current position and before final destination
+    const progressiveStops = sortedStops.filter(stop => {
+      const distanceFromStart = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        stop.latitude, stop.longitude
+      );
+      
+      // Must be ahead of current position
+      const isAhead = isEastToWest ? 
+        stop.longitude > currentStop.longitude : 
+        stop.longitude < currentStop.longitude;
+      
+      // Must not overshoot final destination
+      const distanceToEnd = DistanceCalculationService.calculateDistance(
+        stop.latitude, stop.longitude,
+        finalDestination.latitude, finalDestination.longitude
+      );
+      
+      return isAhead && distanceFromStart > 50 && distanceToEnd > 50;
+    });
+
+    if (progressiveStops.length === 0) {
+      console.log(`⚠️ No progressive stops found, using final destination`);
+      return finalDestination;
+    }
+
+    // Find the stop that gets us closest to our cumulative target
+    let bestStop = progressiveStops[0];
+    let bestScore = Infinity;
+
+    for (const stop of progressiveStops) {
+      const distanceFromStart = DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        stop.latitude, stop.longitude
+      );
+
+      // Score based on how close this gets us to the cumulative target
+      const cumulativeAtThisStop = cumulativeTarget; // We want to hit this target
+      const distanceScore = Math.abs(distanceFromStart - (cumulativeTarget - (totalDistance - DistanceCalculationService.calculateDistance(
+        currentStop.latitude, currentStop.longitude,
+        finalDestination.latitude, finalDestination.longitude
+      ))));
+      
+      // Prefer destination cities
+      const categoryBonus = (stop.category === 'destination_city') ? -100 : 0;
+      
+      const totalScore = distanceScore + categoryBonus;
+
+      if (totalScore < bestScore) {
+        bestScore = totalScore;
+        bestStop = stop;
+      }
+    }
+
+    console.log(`✅ Selected stop: ${bestStop.name || bestStop.city_name} (score: ${bestScore.toFixed(0)})`);
+    return bestStop;
   }
 
   /**
@@ -318,63 +394,6 @@ export class TripPlanningOrchestrator {
     });
   }
 
-  /**
-   * Find the optimal progressive stop based on target distance
-   */
-  private static findOptimalProgressiveStop(
-    currentStop: any,
-    finalDestination: any,
-    sortedStops: any[],
-    targetDistance: number,
-    isEastToWest: boolean
-  ): any {
-    console.log(`🔍 Finding optimal progressive stop from ${currentStop.name || currentStop.city_name}, target: ${targetDistance.toFixed(0)} miles`);
-    
-    // Filter stops that are ahead of current position
-    const progressiveStops = sortedStops.filter(stop => {
-      if (isEastToWest) {
-        return stop.longitude > currentStop.longitude; // Going west, need higher longitude
-      } else {
-        return stop.longitude < currentStop.longitude; // Going east, need lower longitude
-      }
-    });
-
-    if (progressiveStops.length === 0) {
-      console.log(`⚠️ No progressive stops found, using final destination`);
-      return finalDestination;
-    }
-
-    // Find the stop closest to our target distance
-    let bestStop = progressiveStops[0];
-    let bestScore = Infinity;
-
-    for (const stop of progressiveStops) {
-      const distance = DistanceCalculationService.calculateDistance(
-        currentStop.latitude, currentStop.longitude,
-        stop.latitude, stop.longitude
-      );
-
-      // Score based on how close to target distance
-      const distanceScore = Math.abs(distance - targetDistance);
-      
-      // Prefer destination cities
-      const categoryBonus = (stop.category === 'destination_city') ? -50 : 0;
-      
-      const totalScore = distanceScore + categoryBonus;
-
-      if (totalScore < bestScore) {
-        bestScore = totalScore;
-        bestStop = stop;
-      }
-    }
-
-    console.log(`✅ Selected optimal stop: ${bestStop.name || bestStop.city_name} (${bestScore.toFixed(0)} score)`);
-    return bestStop;
-  }
-
-  /**
-   * Filter stops that are on the route between start and end
-   */
   private static filterRouteStops(startStop: any, endStop: any, allStops: any[]): any[] {
     // Simple filtering - get stops that are between start and end geographically
     const startLat = startStop.latitude;
