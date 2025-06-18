@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ const Route66TripCalculator: React.FC = () => {
     endLocation: '',
     travelDays: 0, // FIXED: Changed from 7 to 0 to enforce dropdown selection
     dailyDrivingLimit: 300,
-    tripStyle: 'balanced',
+    tripStyle: 'destination-focused', // FIXED: Only destination-focused allowed
     tripStartDate: new Date()
   });
 
@@ -106,7 +107,7 @@ const Route66TripCalculator: React.FC = () => {
     console.log('🔄 Reset trip requested');
     resetTrip();
     setHasCostEstimate(false);
-    setCompletionAnalysis(undefined);
+    setCompletionAnalysi
     setOriginalRequestedDays(undefined);
     // FIXED: Reset travel days to 0 to force dropdown selection
     setFormData(prev => ({
@@ -156,7 +157,7 @@ const Route66TripCalculator: React.FC = () => {
     }));
   };
 
-  const handleTripStyleChange = (style: 'balanced' | 'destination-focused') => {
+  const handleTripStyleChange = (style: 'destination-focused') => {
     console.log('🎨 Trip style changed:', style);
     setFormData(prev => ({
       ...prev,

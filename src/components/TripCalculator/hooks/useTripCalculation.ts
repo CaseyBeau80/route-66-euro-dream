@@ -1,91 +1,43 @@
 
-import { useState, useMemo } from 'react';
-import { route66Towns } from '@/types/route66';
-import { TripCalculation, TripFormData } from '../types/tripCalculator';
-import { calculateDistance } from '../utils/distanceCalculator';
+import { useState, useCallback } from 'react';
+import { TripFormData } from '../types/tripCalculator';
+import { TripPlan } from '../services/planning/TripPlanBuilder';
 
 export const useTripCalculation = () => {
+  const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [formData, setFormData] = useState<TripFormData>({
     startLocation: '',
     endLocation: '',
-    travelDays: 0, // FIXED: Changed from unset to 0 to ensure proper validation
-    dailyDrivingLimit: 300, // Single number instead of array
-    tripStyle: 'balanced' // Added trip style
+    travelDays: 0,
+    dailyDrivingLimit: 300,
+    tripStyle: 'destination-focused', // FIXED: Only destination-focused allowed
+    tripStartDate: new Date()
   });
-  const [calculation, setCalculation] = useState<TripCalculation | null>(null);
 
-  // Get available end locations based on start location
-  const availableEndLocations = useMemo(() => {
-    if (!formData.startLocation) return route66Towns;
-    
-    const startIndex = route66Towns.findIndex(town => town.name === formData.startLocation);
-    if (startIndex === -1) return route66Towns;
-    
-    // Return towns that are different from start location
-    return route66Towns.filter(town => town.name !== formData.startLocation);
-  }, [formData.startLocation]);
-
-  // Calculate trip details
-  const calculateTrip = () => {
-    if (!formData.startLocation || !formData.endLocation) return;
-
-    const startTown = route66Towns.find(town => town.name === formData.startLocation);
-    const endTown = route66Towns.find(town => town.name === formData.endLocation);
-
-    if (!startTown || !endTown) return;
-
-    const totalDistance = calculateDistance(
-      startTown.latLng[0], startTown.latLng[1],
-      endTown.latLng[0], endTown.latLng[1]
-    );
-
-    // Estimate drive time (assuming average speed of 55 mph on Route 66)
-    const totalDriveTime = totalDistance / 55;
-
-    let numberOfDays: number;
-    let dailyDistances: number[] = [];
-
-    if (formData.travelDays > 0) {
-      // Use user-specified days
-      numberOfDays = formData.travelDays;
-      const distancePerDay = totalDistance / numberOfDays;
-      dailyDistances = Array(numberOfDays).fill(distancePerDay);
-    } else {
-      // Calculate based on daily driving limit
-      const maxDailyDistance = formData.dailyDrivingLimit; // Now a single number
-      numberOfDays = Math.ceil(totalDistance / maxDailyDistance);
-      
-      // Distribute distance across days
-      for (let i = 0; i < numberOfDays; i++) {
-        const remainingDistance = totalDistance - dailyDistances.reduce((sum, dist) => sum + dist, 0);
-        const remainingDays = numberOfDays - i;
-        
-        if (i === numberOfDays - 1) {
-          dailyDistances.push(remainingDistance);
-        } else {
-          const dailyDistance = Math.min(maxDailyDistance, remainingDistance / remainingDays);
-          dailyDistances.push(dailyDistance);
-        }
-      }
+  const calculateTrip = useCallback(async (data: TripFormData) => {
+    setIsCalculating(true);
+    try {
+      // Implementation would go here
+      console.log('Calculating trip with data:', data);
+      // Simulate trip calculation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } finally {
+      setIsCalculating(false);
     }
+  }, []);
 
-    const averageDailyDistance = totalDistance / numberOfDays;
-
-    setCalculation({
-      totalDistance,
-      totalDriveTime,
-      dailyDistances,
-      numberOfDays,
-      averageDailyDistance
-    });
-  };
+  const resetTrip = useCallback(() => {
+    setTripPlan(null);
+    setIsCalculating(false);
+  }, []);
 
   return {
+    tripPlan,
+    isCalculating,
     formData,
     setFormData,
-    calculation,
-    availableEndLocations,
     calculateTrip,
-    isCalculateDisabled: !formData.startLocation || !formData.endLocation || formData.travelDays === 0 // FIXED: Include travelDays check
+    resetTrip
   };
 };
