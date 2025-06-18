@@ -103,11 +103,15 @@ export class EnhancedDestinationSelector {
     const availableCities: TripStop[] = [];
     
     for (const city of canonicalStops) {
-      if (!this.isValidTripStop(city)) {
-        // Fixed: Safe property access for invalid objects
+      // Check validity first, before the type guard narrows the type
+      const isValidCity = this.isValidTripStop(city);
+      
+      if (!isValidCity) {
+        // Fixed: Use type assertion to handle the narrowed type issue
+        const cityAsAny = city as any;
         console.warn(`⚠️ FILTERING OUT city: invalid coordinates`, {
-          id: (city && typeof city === 'object' && 'id' in city) ? city.id : 'no-id',
-          name: (city && typeof city === 'object' && 'name' in city) ? city.name : 'no-name'
+          id: (cityAsAny && typeof cityAsAny === 'object' && 'id' in cityAsAny) ? cityAsAny.id : 'no-id',
+          name: (cityAsAny && typeof cityAsAny === 'object' && 'name' in cityAsAny) ? cityAsAny.name : 'no-name'
         });
         continue;
       }
