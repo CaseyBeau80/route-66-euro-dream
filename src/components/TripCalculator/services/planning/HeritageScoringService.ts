@@ -27,6 +27,17 @@ export class HeritageScoringService {
     };
   }
 
+  static calculateHeritageEnhancedScore(
+    stop: TripStop,
+    baseScore: number,
+    style: 'balanced' | 'destination-focused'
+  ): number {
+    const heritageScore = this.calculateHeritageScore(stop);
+    const heritageWeight = style === 'destination-focused' ? 0.4 : 0.2;
+    
+    return baseScore * (1 - heritageWeight) + heritageScore.heritageScore * heritageWeight;
+  }
+
   static filterByHeritageTier(stops: TripStop[], minTier: string): TripStop[] {
     return stops.filter(stop => {
       const score = this.calculateHeritageScore(stop);
