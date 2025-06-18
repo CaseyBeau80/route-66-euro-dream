@@ -1,4 +1,3 @@
-
 import { TripPlan } from './TripPlanTypes';
 import { DailySegment } from './TripPlanTypes';
 import { SupabaseDataService } from '../data/SupabaseDataService';
@@ -187,8 +186,6 @@ export class TripPlanningOrchestrator {
         day,
         startCity: currentStop.name || currentStop.city_name || startStop.name,
         endCity: dayDestination.name || dayDestination.city_name || endStop.name,
-        startStop: currentStop,
-        endStop: dayDestination,
         distance: actualDistance,
         driveTimeHours,
         attractions: [],
