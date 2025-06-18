@@ -16,4 +16,26 @@ export class DriveTimeEnforcementService {
       return segment;
     });
   }
+
+  static validateAndFixSegmentDistance(
+    segment: DailySegment, 
+    styleConfig: TripStyleConfig
+  ): DailySegment {
+    // Validate and fix segment if drive time exceeds limits
+    if (segment.driveTimeHours > styleConfig.maxDailyDriveHours) {
+      const maxDistance = styleConfig.maxDailyDriveHours * 50; // Assuming 50 mph average
+      
+      console.warn(`Fixing segment distance from ${segment.distance} to ${maxDistance} miles`);
+      
+      return {
+        ...segment,
+        distance: maxDistance,
+        approximateMiles: maxDistance,
+        driveTimeHours: styleConfig.maxDailyDriveHours,
+        drivingTime: styleConfig.maxDailyDriveHours
+      };
+    }
+    
+    return segment;
+  }
 }

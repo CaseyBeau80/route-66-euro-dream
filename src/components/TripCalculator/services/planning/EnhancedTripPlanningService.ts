@@ -1,3 +1,4 @@
+
 import { TripPlan } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { DailySegment } from './TripPlanTypes';
@@ -184,7 +185,7 @@ export class EnhancedTripPlanningService {
         lastUpdated: new Date()
       };
 
-      // 10. Analyze trip completion
+      // 10. Analyze trip completion - Fix: Remove second argument
       const completionAnalysis = TripCompletionService.analyzeTripCompletion(tripPlan);
       console.log('✅ Trip Completion Analysis:', completionAnalysis);
 
@@ -197,16 +198,16 @@ export class EnhancedTripPlanningService {
   }
 
   // Replace the problematic category assignment with proper mapping
-private static mapDriveTimeCategory(category: string): 'short' | 'optimal' | 'long' | 'extreme' {
-  switch (category) {
-    case 'moderate':
-      return 'optimal';
-    case 'comfortable':
-      return 'short';
-    case 'extended':
-      return 'long';
-    default:
-      return 'optimal';
+  private static mapDriveTimeCategory(category: string): 'short' | 'optimal' | 'long' | 'extreme' {
+    switch (category) {
+      case 'moderate':
+        return 'optimal';
+      case 'comfortable':
+        return 'short';
+      case 'extended':
+        return 'long';
+      default:
+        return 'optimal';
+    }
   }
-}
 }
