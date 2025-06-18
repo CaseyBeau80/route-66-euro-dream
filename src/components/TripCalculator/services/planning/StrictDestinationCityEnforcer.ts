@@ -12,7 +12,7 @@ export class StrictDestinationCityEnforcer {
       return [];
     }
 
-    const destinationCities = allStops.filter((stop: TripStop) => {
+    const destinationCities: TripStop[] = allStops.filter((stop: TripStop): stop is TripStop => {
       // Comprehensive null safety check
       if (!stop || typeof stop !== 'object') {
         console.warn('⚠️ Filtering out null/undefined stop');
@@ -112,7 +112,7 @@ export class StrictDestinationCityEnforcer {
       const sanitizedSegment = { ...segment };
 
       if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
-        sanitizedSegment.recommendedStops = segment.recommendedStops.filter(stop => {
+        sanitizedSegment.recommendedStops = segment.recommendedStops.filter((stop): stop is typeof stop => {
           const isDestCity = this.isDestinationCity(stop);
           if (!isDestCity) {
             const stopName = (stop as any)?.name || 'unnamed';
