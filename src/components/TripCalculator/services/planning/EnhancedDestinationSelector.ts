@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -20,9 +21,10 @@ export class EnhancedDestinationSelector {
     // CRITICAL: Add comprehensive null safety checks
     if (!startStop || !endStop || !allStops || totalDays <= 0) {
       console.error('❌ CRITICAL: Invalid input parameters', { 
-        startStop: !!startStop, 
-        endStop: !!endStop, 
-        allStops: !!allStops,
+        hasStartStop: !!startStop, 
+        hasEndStop: !!endStop, 
+        hasAllStops: !!allStops,
+        allStopsLength: allStops?.length || 0,
         totalDays 
       });
       return [];
@@ -40,7 +42,7 @@ export class EnhancedDestinationSelector {
     }
     
     // CRITICAL FIX: Calculate the correct number of intermediate destinations needed
-    const neededIntermediateDestinations = Math.max(0, totalDays - 1); // For N days, we need N-1 intermediate destinations
+    const neededIntermediateDestinations = Math.max(0, totalDays - 1);
     
     console.log(`🎯 NEED ${neededIntermediateDestinations} intermediate destinations for ${totalDays} day trip`);
     
@@ -49,30 +51,70 @@ export class EnhancedDestinationSelector {
       return [];
     }
     
-    // STEP 1: Filter to only valid stops with coordinates
-    const safeAllStops = this.filterToValidStops(allStops);
-    console.log(`🛡️ SAFETY: Filtered ${allStops.length} stops to ${safeAllStops.length} safe stops`);
+    // STEP 1: Filter to only valid stops with coordinates - ENHANCED SAFETY
+    const validStops = allStops.filter(stop => {
+      const isValid = this.hasValidCoordinates(stop);
+      if (!isValid) {
+        console.warn(`⚠️ SKIPPING invalid stop:`, { 
+          id: stop?.id, 
+          name: stop?.name, 
+          hasLatitude: typeof stop?.latitude === 'number',
+          hasLongitude: typeof stop?.longitude === 'number',
+          latitude: stop?.latitude,
+          longitude: stop?.longitude
+        });
+      }
+      return isValid;
+    });
     
-    if (safeAllStops.length === 0) {
-      console.error('❌ CRITICAL: No valid stops available');
+    console.log(`🛡️ SAFETY: Filtered ${allStops.length} stops to ${validStops.length} valid stops`);
+    
+    if (validStops.length === 0) {
+      console.error('❌ CRITICAL: No valid stops available after coordinate validation');
       return [];
     }
     
-    const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(safeAllStops);
-    console.log(`🏛️ Destination cities available: ${destinationCities.length}`);
+    // STEP 2: Get destination cities with additional validation
+    let destinationCities;
+    try {
+      destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(validStops);
+      console.log(`🏛️ Destination cities available: ${destinationCities.length}`);
+    } catch (error) {
+      console.error('❌ Error filtering destination cities:', error);
+      return [];
+    }
     
-    // STEP 2: Match available cities to canonical destinations
-    const canonicalStops = CanonicalRoute66Cities.matchStopsToCanonical(destinationCities);
-    console.log(`🏛️ Canonical destinations available: ${canonicalStops.length}`);
+    // STEP 3: Match available cities to canonical destinations
+    let canonicalStops;
+    try {
+      canonicalStops = CanonicalRoute66Cities.matchStopsToCanonical(destinationCities);
+      console.log(`🏛️ Canonical destinations available: ${canonicalStops.length}`);
+    } catch (error) {
+      console.error('❌ Error matching canonical destinations:', error);
+      canonicalStops = destinationCities; // Fallback to all destination cities
+    }
     
-    // STEP 3: Remove start and end cities with safe filtering
-    const availableCities = canonicalStops.filter(city => 
-      city && 
-      city.id && 
-      city.id !== startStop.id && 
-      city.id !== endStop.id &&
-      this.hasValidCoordinates(city)
-    );
+    // STEP 4: Remove start and end cities with safe filtering
+    const availableCities = canonicalStops.filter(city => {
+      const isValid = city && 
+                     city.id && 
+                     city.id !== startStop.id && 
+                     city.id !== endStop.id &&
+                     this.hasValidCoordinates(city);
+      
+      if (!isValid && city) {
+        console.warn(`⚠️ FILTERING OUT city:`, {
+          id: city.id,
+          name: city.name,
+          reason: !city.id ? 'no id' : 
+                  city.id === startStop.id ? 'is start stop' :
+                  city.id === endStop.id ? 'is end stop' :
+                  !this.hasValidCoordinates(city) ? 'invalid coordinates' : 'unknown'
+        });
+      }
+      
+      return isValid;
+    });
     
     console.log(`🏛️ Available canonical cities: ${availableCities.length}`);
     
@@ -81,16 +123,22 @@ export class EnhancedDestinationSelector {
       return [];
     }
     
-    // STEP 4: Filter by Route 66 sequence to prevent backtracking
-    const { validStops: sequenceValidCities } = Route66SequenceValidator.filterValidSequenceStops(
-      startStop,
-      availableCities,
-      endStop
-    );
+    // STEP 5: Filter by Route 66 sequence to prevent backtracking - WITH ERROR HANDLING
+    let sequenceValidCities;
+    try {
+      const sequenceResult = Route66SequenceValidator.filterValidSequenceStops(
+        startStop,
+        availableCities,
+        endStop
+      );
+      sequenceValidCities = sequenceResult.validStops || [];
+      console.log(`🛤️ Sequence-valid canonical cities: ${sequenceValidCities.length}`);
+    } catch (error) {
+      console.error('❌ Error in sequence validation:', error);
+      sequenceValidCities = availableCities; // Fallback to all available cities
+    }
     
-    console.log(`🛤️ Sequence-valid canonical cities: ${sequenceValidCities.length}`);
-    
-    // STEP 5: If we don't have enough cities, expand selection beyond canonical
+    // STEP 6: If we don't have enough cities, expand selection beyond canonical
     let workingCities = sequenceValidCities.filter(city => this.hasValidCoordinates(city));
     
     if (workingCities.length < neededIntermediateDestinations) {
@@ -106,19 +154,24 @@ export class EnhancedDestinationSelector {
         !canonicalStops.some(canonical => canonical && canonical.id === city.id)
       );
       
-      const { validStops: additionalValidCities } = Route66SequenceValidator.filterValidSequenceStops(
-        startStop,
-        nonCanonicalDestinations,
-        endStop
-      );
-      
-      console.log(`🏙️ Additional valid destination cities: ${additionalValidCities.length}`);
-      
-      // Combine canonical and additional cities
-      workingCities = [...workingCities, ...additionalValidCities.filter(city => this.hasValidCoordinates(city))];
+      try {
+        const additionalSequenceResult = Route66SequenceValidator.filterValidSequenceStops(
+          startStop,
+          nonCanonicalDestinations,
+          endStop
+        );
+        const additionalValidCities = additionalSequenceResult.validStops || [];
+        console.log(`🏙️ Additional valid destination cities: ${additionalValidCities.length}`);
+        
+        // Combine canonical and additional cities
+        workingCities = [...workingCities, ...additionalValidCities.filter(city => this.hasValidCoordinates(city))];
+      } catch (error) {
+        console.error('❌ Error in additional sequence validation:', error);
+        // Continue with current working cities
+      }
     }
     
-    // STEP 6: Select optimal cities using canonical prioritization
+    // STEP 7: Select optimal cities using canonical prioritization
     const selectedCities = this.selectOptimalCanonicalCities(
       startStop, 
       endStop, 
@@ -126,14 +179,20 @@ export class EnhancedDestinationSelector {
       neededIntermediateDestinations
     );
     
-    // STEP 7: Force inclusion of priority destinations if we have room
-    const enhancedSelection = CanonicalRoute66Cities.enforceDestinationInclusion(
-      selectedCities,
-      workingCities,
-      neededIntermediateDestinations
-    );
+    // STEP 8: Force inclusion of priority destinations if we have room - WITH ERROR HANDLING
+    let enhancedSelection;
+    try {
+      enhancedSelection = CanonicalRoute66Cities.enforceDestinationInclusion(
+        selectedCities,
+        workingCities,
+        neededIntermediateDestinations
+      );
+    } catch (error) {
+      console.error('❌ Error in destination inclusion enforcement:', error);
+      enhancedSelection = selectedCities; // Use original selection
+    }
     
-    // STEP 8: Ensure we have exactly the right number of destinations
+    // STEP 9: Ensure we have exactly the right number of destinations
     let finalSelection = enhancedSelection.filter(city => this.hasValidCoordinates(city));
     
     if (finalSelection.length > neededIntermediateDestinations) {
@@ -150,26 +209,41 @@ export class EnhancedDestinationSelector {
       );
     }
     
-    // STEP 9: Final safety check - ensure all selected cities have valid coordinates
-    const safeFinalSelection = finalSelection.filter(city => this.hasValidCoordinates(city));
+    // STEP 10: Final safety check - ensure all selected cities have valid coordinates
+    const safeFinalSelection = finalSelection.filter(city => {
+      const isValid = this.hasValidCoordinates(city);
+      if (!isValid) {
+        console.warn(`⚠️ FINAL SAFETY: Removing city with invalid coordinates:`, {
+          id: city?.id,
+          name: city?.name,
+          latitude: city?.latitude,
+          longitude: city?.longitude
+        });
+      }
+      return isValid;
+    });
     
     if (safeFinalSelection.length !== finalSelection.length) {
       console.warn(`⚠️ SAFETY: Removed ${finalSelection.length - safeFinalSelection.length} cities with invalid coordinates`);
     }
     
-    // STEP 10: Validate final sequence if we have cities
+    // STEP 11: Validate final sequence if we have cities - WITH ERROR HANDLING
     if (safeFinalSelection.length > 0) {
-      const finalSequence = [startStop, ...safeFinalSelection, endStop];
-      const sequenceValidation = Route66SequenceValidator.validateTripSequence(finalSequence);
-      
-      if (!sequenceValidation.isValid) {
-        console.warn(`⚠️ CANONICAL SEQUENCE VIOLATIONS:`, sequenceValidation.violations);
-      } else {
-        console.log(`✅ CANONICAL SEQUENCE VALIDATION PASSED`);
+      try {
+        const finalSequence = [startStop, ...safeFinalSelection, endStop];
+        const sequenceValidation = Route66SequenceValidator.validateTripSequence(finalSequence);
+        
+        if (!sequenceValidation.isValid) {
+          console.warn(`⚠️ CANONICAL SEQUENCE VIOLATIONS:`, sequenceValidation.violations);
+        } else {
+          console.log(`✅ CANONICAL SEQUENCE VALIDATION PASSED`);
+        }
+      } catch (error) {
+        console.error('❌ Error in final sequence validation:', error);
       }
     }
     
-    // STEP 11: Log final result
+    // STEP 12: Log final result
     console.log(`🎯 FINAL SELECTION: ${safeFinalSelection.length}/${neededIntermediateDestinations} destinations for ${totalDays} days`);
     console.log(`✅ Selected destinations:`, safeFinalSelection.map(c => c?.name || 'unnamed'));
     
