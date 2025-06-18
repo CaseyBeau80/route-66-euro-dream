@@ -1,5 +1,4 @@
 
-
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -40,7 +39,7 @@ export class DailySegmentCreator {
     
     // Strict validation of all selected overnight stops
     const warnings: string[] = [];
-    overnightStops.forEach((stop) => {
+    overnightStops.forEach((stop: TripStop) => {
       if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
         warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
       }
@@ -91,17 +90,17 @@ export class DailySegmentCreator {
   ): TripStop[] {
     console.log(`🎯 STRICT: Selecting overnight stops from ${destinationCities.length} destination cities`);
     
-    // Filter out start and end stops
-    const availableStops = destinationCities.filter((stop) => {
+    // Filter out start and end stops - ensure proper typing
+    const availableStops: TripStop[] = destinationCities.filter((stop: TripStop): stop is TripStop => {
       return stop.id !== startStop.id && 
              stop.id !== endStop.id &&
-             StrictDestinationCityEnforcer.isDestinationCity(stop);
+             StrictDestinationCityEnforcer.isValidDestinationCity(stop);
     });
     
     console.log(`🏛️ STRICT: ${availableStops.length} available destination cities for overnight stops`);
     
     // Sort by distance from start to ensure geographic progression
-    const sortedStops = availableStops.sort((a, b) => {
+    const sortedStops = availableStops.sort((a: TripStop, b: TripStop) => {
       const distA = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude, a.latitude, a.longitude
       );
@@ -126,7 +125,7 @@ export class DailySegmentCreator {
       
       for (const stop of sortedStops) {
         // Skip already selected stops
-        if (overnightStops.some((s) => s.id === stop.id)) continue;
+        if (overnightStops.some((s: TripStop) => s.id === stop.id)) continue;
         
         const stopDistance = DistanceCalculationService.calculateDistance(
           startStop.latitude, startStop.longitude, stop.latitude, stop.longitude
@@ -140,7 +139,7 @@ export class DailySegmentCreator {
         }
       }
       
-      if (bestStop && StrictDestinationCityEnforcer.isDestinationCity(bestStop)) {
+      if (bestStop && StrictDestinationCityEnforcer.isValidDestinationCity(bestStop)) {
         console.log(`🏛️ STRICT: Selected overnight destination: ${bestStop.name} (${bestStop.category})`);
         overnightStops.push(bestStop);
       } else if (bestStop) {
@@ -151,7 +150,7 @@ export class DailySegmentCreator {
     }
     
     // Sort overnight stops by distance from start for proper sequence
-    const finalStops = overnightStops.sort((a, b) => {
+    const finalStops = overnightStops.sort((a: TripStop, b: TripStop) => {
       const distA = DistanceCalculationService.calculateDistance(
         startStop.latitude, startStop.longitude, a.latitude, a.longitude
       );
@@ -210,7 +209,7 @@ export class DailySegmentCreator {
         city: endStop.city_name || endStop.name,
         state: endStop.state
       },
-      recommendedStops: segmentAttractions.map((stop) => ({
+      recommendedStops: segmentAttractions.map((stop: TripStop) => ({
         stopId: stop.id, // Add required stopId
         id: stop.id,
         name: stop.name,
@@ -222,7 +221,7 @@ export class DailySegmentCreator {
         state: stop.state,
         city: stop.city || stop.city_name || 'Unknown'
       })),
-      attractions: segmentAttractions.map((stop) => ({
+      attractions: segmentAttractions.map((stop: TripStop) => ({
         name: stop.name,
         title: stop.name,
         description: stop.description,
@@ -248,12 +247,12 @@ export class DailySegmentCreator {
     );
     
     // Find stops along the route - EXCLUDE destination cities for attractions
-    const attractions = allStops.filter((stop) => {
+    const attractions: TripStop[] = allStops.filter((stop: TripStop): stop is TripStop => {
       // Skip start and end stops
       if (stop.id === startStop.id || stop.id === endStop.id) return false;
       
       // STRICT: Don't use destination cities as attractions in segments
-      if (StrictDestinationCityEnforcer.isDestinationCity(stop)) {
+      if (StrictDestinationCityEnforcer.isValidDestinationCity(stop)) {
         console.log(`🚫 STRICT: Excluding destination city from attractions: ${stop.name}`);
         return false;
       }
@@ -274,7 +273,7 @@ export class DailySegmentCreator {
     });
     
     // Sort by priority - attractions first, then historic sites
-    const sortedAttractions = attractions.sort((a, b) => {
+    const sortedAttractions = attractions.sort((a: TripStop, b: TripStop) => {
       if (a.category === 'attraction' && b.category !== 'attraction') return -1;
       if (b.category === 'attraction' && a.category !== 'attraction') return 1;
       if (a.category === 'historic_site' && b.category !== 'historic_site') return -1;
@@ -316,4 +315,3 @@ export class DailySegmentCreator {
     }
   }
 }
-
