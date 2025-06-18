@@ -12,12 +12,12 @@ export interface DayValidationResult {
 }
 
 export class TravelDayValidator {
-  private static readonly ABSOLUTE_MIN_DAYS = 1; // FIXED: Changed from 2 to 1
-  private static readonly ABSOLUTE_MAX_DAYS = 14; // Hard limit enforced
-  private static readonly MAX_DAILY_DRIVE_HOURS = 10; // Safety limit
+  private static readonly ABSOLUTE_MIN_DAYS = 1;
+  private static readonly ABSOLUTE_MAX_DAYS = 14;
+  private static readonly MAX_DAILY_DRIVE_HOURS = 10; // STRICT 10-hour limit
   
   /**
-   * Validate travel days against route requirements
+   * Validate travel days against route requirements with STRICT 10h enforcement
    */
   static validateTravelDays(
     startLocation: string,
@@ -54,24 +54,27 @@ export class TravelDayValidator {
       };
     }
     
-    // Calculate minimum days based on drive time limits
-    const minDaysForSafety = Math.ceil(estimatedDistance / (this.MAX_DAILY_DRIVE_HOURS * 50));
+    // Calculate minimum days based on STRICT 10-hour limit
+    const minDaysForAbsoluteSafety = Math.ceil(estimatedDistance / (this.MAX_DAILY_DRIVE_HOURS * 50));
     const minDaysForStyle = Math.ceil(estimatedDistance / (styleConfig.maxDailyDriveHours * 50));
-    const minDaysRequired = Math.max(this.ABSOLUTE_MIN_DAYS, minDaysForStyle);
+    const minDaysRequired = Math.max(this.ABSOLUTE_MIN_DAYS, minDaysForAbsoluteSafety, minDaysForStyle);
     
     // Calculate maximum recommended days (capped at 14 days)
     const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(estimatedDistance / 100));
     
-    // Check style-specific requirements (only if within absolute bounds)
+    // Check STRICT 10-hour constraint first
     if (requestedDays >= this.ABSOLUTE_MIN_DAYS && requestedDays <= this.ABSOLUTE_MAX_DAYS) {
-      if (requestedDays < minDaysRequired) {
-        issues.push(`Too few days for ${styleConfig.style} style (${minDaysRequired}+ days recommended)`);
-        recommendations.push(`Add ${minDaysRequired - requestedDays} more days for comfortable daily drives`);
+      const averageDailyHours = estimatedDistance / requestedDays / 50; // Assuming 50 mph average
+      
+      if (averageDailyHours > this.MAX_DAILY_DRIVE_HOURS) {
+        issues.push(`CRITICAL: Average ${averageDailyHours.toFixed(1)}h/day exceeds 10-hour absolute maximum`);
+        recommendations.push(`Add ${minDaysForAbsoluteSafety - requestedDays} more days to stay under 10-hour limit`);
       }
       
-      if (requestedDays < minDaysForSafety) {
-        issues.push(`Unsafe driving hours (${(estimatedDistance / requestedDays / 50).toFixed(1)}h/day average)`);
-        recommendations.push('Consider more days to stay under 10 hours of daily driving');
+      // Style-specific requirements (only if under 10h limit)
+      if (requestedDays < minDaysRequired && averageDailyHours <= this.MAX_DAILY_DRIVE_HOURS) {
+        issues.push(`Too few days for ${styleConfig.style} style (${minDaysRequired}+ days recommended)`);
+        recommendations.push(`Add ${minDaysRequired - requestedDays} more days for comfortable daily drives`);
       }
       
       // Check if too many days (updated for 14-day limit)
@@ -80,7 +83,7 @@ export class TravelDayValidator {
       }
     }
     
-    // CRITICAL: Form is only valid if within absolute bounds AND passes other checks
+    // CRITICAL: Form is only valid if within absolute bounds AND under 10h/day average
     const isValid = requestedDays >= this.ABSOLUTE_MIN_DAYS && 
                    requestedDays <= this.ABSOLUTE_MAX_DAYS && 
                    issues.length === 0;

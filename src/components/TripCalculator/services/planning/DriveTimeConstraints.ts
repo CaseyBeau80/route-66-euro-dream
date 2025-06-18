@@ -16,7 +16,7 @@ export interface DriveTimeTarget {
 
 export class DriveTimeConstraints {
   static readonly CONSTRAINTS: DriveTimeConstraints = {
-    absoluteMaxHours: 10,     // Hard limit - never exceed
+    absoluteMaxHours: 10,     // STRICT LIMIT - never exceed (updated from previous values)
     recommendedMaxHours: 8,   // Recommended maximum
     optimalMaxHours: 6,       // Upper bound of optimal range
     optimalMinHours: 4,       // Lower bound of optimal range
@@ -43,7 +43,7 @@ export class DriveTimeConstraints {
   }
 
   /**
-   * Validate if a drive time meets constraints
+   * Validate if a drive time meets constraints - STRICT 10h enforcement
    */
   static validateDriveTime(driveTimeHours: number): {
     isValid: boolean;
@@ -53,12 +53,13 @@ export class DriveTimeConstraints {
   } {
     const constraints = this.CONSTRAINTS;
 
+    // STRICT: Any drive time over 10 hours is completely invalid
     if (driveTimeHours > constraints.absoluteMaxHours) {
       return {
         isValid: false,
         isOptimal: false,
         violationType: 'extreme',
-        recommendation: `${driveTimeHours.toFixed(1)}h exceeds absolute maximum. Split into multiple days.`
+        recommendation: `${driveTimeHours.toFixed(1)}h exceeds absolute 10-hour maximum. Trip must be split into more days.`
       };
     }
 
@@ -67,7 +68,7 @@ export class DriveTimeConstraints {
         isValid: true,
         isOptimal: false,
         violationType: 'too_long',
-        recommendation: `${driveTimeHours.toFixed(1)}h is long but manageable. Consider adding stops.`
+        recommendation: `${driveTimeHours.toFixed(1)}h is long but under 10h limit. Consider adding stops for comfort.`
       };
     }
 

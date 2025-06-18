@@ -18,23 +18,26 @@ export const formatTime = (hours: number): string => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-// NUCLEAR OPTION: Absolutely bulletproof drive time calculation with ZERO exceptions
+// ABSOLUTE 10-HOUR ENFORCEMENT: No drive time can exceed 10 hours - EVER
 export const calculateRealisticDriveTime = (distance: number): number => {
-  console.log(`🚨 NUCLEAR DRIVE TIME CALCULATION: ${distance.toFixed(1)} miles`);
+  console.log(`🚨 ABSOLUTE 10H ENFORCEMENT: Calculating drive time for ${distance.toFixed(1)} miles`);
   
-  // NUCLEAR ENFORCEMENT: Absolutely no drive time can exceed 8 hours - PERIOD
-  const NUCLEAR_MAX_HOURS = 8;
+  // ABSOLUTE MAXIMUM: 10 hours - no exceptions
+  const ABSOLUTE_MAX_HOURS = 10;
   
   // Handle all edge cases with extreme prejudice
   if (distance <= 0 || !isFinite(distance) || isNaN(distance)) {
-    console.log(`🚨 NUCLEAR: Invalid distance ${distance}, returning 0.5h`);
+    console.log(`🚨 Invalid distance ${distance}, returning 0.5h`);
     return 0.5;
   }
   
-  // For any distance over 400 miles, force to 8 hours max
-  if (distance > 400) {
-    console.warn(`🚨 NUCLEAR: Distance ${distance.toFixed(1)}mi > 400mi - FORCING to 8h limit`);
-    return NUCLEAR_MAX_HOURS;
+  // For any distance that would result in >10h at reasonable speeds, cap at 10h
+  // This means if someone tries to drive 600+ miles in one day, we cap it
+  const maxDistanceFor10Hours = 500; // 500 miles = 10 hours at 50mph average
+  
+  if (distance > maxDistanceFor10Hours) {
+    console.warn(`🚨 DISTANCE CAPPED: ${distance.toFixed(1)}mi would exceed 10h - FORCING to exactly 10h`);
+    return ABSOLUTE_MAX_HOURS;
   }
   
   let avgSpeed: number;
@@ -57,28 +60,27 @@ export const calculateRealisticDriveTime = (distance: number): number => {
   const baseTime = distance / avgSpeed;
   const calculatedTime = baseTime * bufferMultiplier;
   
-  // NUCLEAR ENFORCEMENT: Never exceed 8 hours under any circumstances
-  const finalTime = Math.min(calculatedTime, NUCLEAR_MAX_HOURS);
+  // ABSOLUTE ENFORCEMENT: Never exceed 10 hours under any circumstances
+  const finalTime = Math.min(calculatedTime, ABSOLUTE_MAX_HOURS);
   
-  console.log(`🚨 NUCLEAR CALCULATION COMPLETE:`, {
+  console.log(`🚨 10H ENFORCEMENT COMPLETE:`, {
     distance: distance.toFixed(1),
     avgSpeed,
-    bufferMultiplier,
     baseTime: baseTime.toFixed(1),
     calculatedTime: calculatedTime.toFixed(1),
     finalTime: finalTime.toFixed(1),
-    nuclearCapped: calculatedTime > NUCLEAR_MAX_HOURS,
-    nuclearMaxHours: NUCLEAR_MAX_HOURS,
-    guarantee: 'NEVER_EXCEEDS_8_HOURS'
+    cappedAt10Hours: calculatedTime > ABSOLUTE_MAX_HOURS,
+    absoluteMaxHours: ABSOLUTE_MAX_HOURS,
+    guarantee: 'NEVER_EXCEEDS_10_HOURS'
   });
   
   // Ensure minimum time and return
   const result = Math.max(finalTime, 0.5);
   
-  // FINAL SAFETY CHECK: If somehow result is still > 8, force it
-  if (result > NUCLEAR_MAX_HOURS) {
-    console.error(`🚨 NUCLEAR EMERGENCY: Result ${result} > 8h - FORCING TO 8h`);
-    return NUCLEAR_MAX_HOURS;
+  // FINAL SAFETY CHECK: If somehow result is still > 10, force it to 10
+  if (result > ABSOLUTE_MAX_HOURS) {
+    console.error(`🚨 EMERGENCY: Result ${result} > 10h - FORCING TO 10h`);
+    return ABSOLUTE_MAX_HOURS;
   }
   
   return result;
