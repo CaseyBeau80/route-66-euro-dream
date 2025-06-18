@@ -572,6 +572,7 @@ export class EnhancedHeritageCitiesService {
           id: `virtual-${i}`,
           name: `Route Point ${i}`,
           city_name: `Waypoint ${i}`,
+          city: `Waypoint ${i}`, // FIXED: Add the missing city property
           state: 'Route 66',
           latitude: virtualLat,
           longitude: virtualLng,
