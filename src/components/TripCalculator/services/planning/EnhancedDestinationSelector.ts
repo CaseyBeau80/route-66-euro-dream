@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -51,25 +52,37 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 1: Filter to only valid stops with coordinates - ENHANCED SAFETY
-    const validStops = allStops.filter((stop): stop is TripStop => {
+    const validStops: TripStop[] = [];
+    
+    for (const stop of allStops) {
+      // Log before type checking to avoid type issues
+      const stopId = (stop as any)?.id;
+      const stopName = (stop as any)?.name;
+      const hasLatitude = typeof (stop as any)?.latitude === 'number';
+      const hasLongitude = typeof (stop as any)?.longitude === 'number';
+      const latitude = (stop as any)?.latitude;
+      const longitude = (stop as any)?.longitude;
+      
       if (!stop || typeof stop !== 'object') {
         console.warn(`⚠️ SKIPPING invalid stop: not an object`);
-        return false;
+        continue;
       }
       
       const isValid = this.hasValidCoordinates(stop);
       if (!isValid) {
         console.warn(`⚠️ SKIPPING invalid stop:`, { 
-          id: stop?.id, 
-          name: stop?.name, 
-          hasLatitude: typeof stop?.latitude === 'number',
-          hasLongitude: typeof stop?.longitude === 'number',
-          latitude: stop?.latitude,
-          longitude: stop?.longitude
+          id: stopId, 
+          name: stopName, 
+          hasLatitude,
+          hasLongitude,
+          latitude,
+          longitude
         });
+        continue;
       }
-      return isValid;
-    });
+      
+      validStops.push(stop);
+    }
     
     console.log(`🛡️ SAFETY: Filtered ${allStops.length} stops to ${validStops.length} valid stops`);
     
@@ -98,16 +111,19 @@ export class EnhancedDestinationSelector {
       canonicalStops = destinationCities; // Fallback to all destination cities
     }
     
-    // STEP 4: Remove start and end cities with safe filtering - FIXED WITH FOR...OF LOOP AND OPTIONAL CHAINING
+    // STEP 4: Remove start and end cities with safe filtering - COMPLETELY RESTRUCTURED
     const availableCities: TripStop[] = [];
     
-    // Use for...of loop instead of forEach to avoid TypeScript confusion
     for (const city of canonicalStops) {
+      // Log properties before type checking to avoid type issues
+      const cityId = (city as any)?.id;
+      const cityName = (city as any)?.name;
+      
       // Explicit type check first - this ensures TypeScript knows city is TripStop
       if (!this.hasValidCoordinates(city)) {
         console.warn(`⚠️ FILTERING OUT city: invalid coordinates`, {
-          id: city?.id,
-          name: city?.name
+          id: cityId,
+          name: cityName
         });
         continue;
       }
@@ -158,7 +174,6 @@ export class EnhancedDestinationSelector {
       // Add non-canonical destination cities that are in sequence
       const nonCanonicalDestinations: TripStop[] = [];
       
-      // Use for...of loop instead of forEach to avoid TypeScript confusion
       for (const city of destinationCities) {
         // Explicit type check first
         if (!this.hasValidCoordinates(city)) {
@@ -231,18 +246,28 @@ export class EnhancedDestinationSelector {
     }
     
     // STEP 10: Final safety check - ensure all selected cities have valid coordinates
-    const safeFinalSelection = finalSelection.filter((city): city is TripStop => {
+    const safeFinalSelection: TripStop[] = [];
+    
+    for (const city of finalSelection) {
+      // Log properties before type checking to avoid type issues
+      const cityId = (city as any)?.id;
+      const cityName = (city as any)?.name;
+      const latitude = (city as any)?.latitude;
+      const longitude = (city as any)?.longitude;
+      
       const isValid = this.hasValidCoordinates(city);
       if (!isValid) {
         console.warn(`⚠️ FINAL SAFETY: Removing city with invalid coordinates:`, {
-          id: city?.id,
-          name: city?.name,
-          latitude: city?.latitude,
-          longitude: city?.longitude
+          id: cityId,
+          name: cityName,
+          latitude,
+          longitude
         });
+        continue;
       }
-      return isValid;
-    });
+      
+      safeFinalSelection.push(city);
+    }
     
     if (safeFinalSelection.length !== finalSelection.length) {
       console.warn(`⚠️ SAFETY: Removed ${finalSelection.length - safeFinalSelection.length} cities with invalid coordinates`);
@@ -319,7 +344,7 @@ export class EnhancedDestinationSelector {
   }
 
   /**
-   * Expand selection to fill needed destinations - FIXED WITH FOR...OF LOOP AND OPTIONAL CHAINING
+   * Expand selection to fill needed destinations - COMPLETELY RESTRUCTURED
    */
   private static expandSelection(
     currentSelection: TripStop[],
@@ -331,7 +356,6 @@ export class EnhancedDestinationSelector {
     const expanded = [...currentSelection];
     const usedIds = new Set(currentSelection.map(city => city.id));
     
-    // Use for...of loop instead of forEach to avoid TypeScript confusion
     for (const city of availableCities) {
       if (expanded.length >= needed) break;
       
