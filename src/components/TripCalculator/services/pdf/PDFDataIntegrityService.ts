@@ -6,6 +6,16 @@ export interface ValidationResult {
   issues: string[];
 }
 
+export interface DataIntegrityReport {
+  isValid: boolean;
+  warnings: string[];
+  enrichmentStatus: {
+    hasWeatherData: boolean;
+    hasStopsData: boolean;
+    completenessPercentage: number;
+  };
+}
+
 export class PDFDataIntegrityService {
   static validateForPDFExport(tripPlan: TripPlan): ValidationResult {
     const issues: string[] = [];
@@ -73,5 +83,60 @@ export class PDFDataIntegrityService {
 
   static sanitizeForPDF(tripPlan: TripPlan): TripPlan {
     return TripPlanDataValidator.sanitizeTripPlan(tripPlan);
+  }
+
+  static generateIntegrityReport(tripPlan: TripPlan): DataIntegrityReport {
+    const warnings: string[] = [];
+    let hasWeatherData = false;
+    let hasStopsData = false;
+
+    if (tripPlan.segments) {
+      const weatherSegments = tripPlan.segments.filter(s => s.weather || s.weatherData);
+      hasWeatherData = weatherSegments.length > 0;
+
+      const stopsSegments = tripPlan.segments.filter(s => s.stops && s.stops.length > 0);
+      hasStopsData = stopsSegments.length > 0;
+
+      if (!hasWeatherData) {
+        warnings.push('No weather data available for segments');
+      }
+
+      if (!hasStopsData) {
+        warnings.push('Limited stop information available');
+      }
+    }
+
+    const completenessPercentage = tripPlan.segments 
+      ? Math.round(((hasWeatherData ? 50 : 0) + (hasStopsData ? 50 : 0)))
+      : 0;
+
+    return {
+      isValid: warnings.length === 0,
+      warnings,
+      enrichmentStatus: {
+        hasWeatherData,
+        hasStopsData,
+        completenessPercentage
+      }
+    };
+  }
+
+  static shouldShowDataQualityNotice(integrityReport: DataIntegrityReport): boolean {
+    return integrityReport.warnings.length > 0 || 
+           integrityReport.enrichmentStatus.completenessPercentage < 75;
+  }
+
+  static generateDataQualityMessage(integrityReport: DataIntegrityReport): string {
+    const completeness = integrityReport.enrichmentStatus.completenessPercentage;
+    
+    if (completeness >= 90) {
+      return '✅ High quality data - all information complete';
+    } else if (completeness >= 75) {
+      return '⚠️ Good data quality - minor information gaps';
+    } else if (completeness >= 50) {
+      return '⚠️ Partial data available - some features may be limited';
+    } else {
+      return '⚠️ Limited data available - basic itinerary only';
+    }
   }
 }

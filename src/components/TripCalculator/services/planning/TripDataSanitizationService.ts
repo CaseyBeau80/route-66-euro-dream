@@ -1,4 +1,11 @@
+
 import { TripPlan, DailySegment } from './TripPlanTypes';
+
+export interface SanitizationReport {
+  isValid: boolean;
+  warnings: string[];
+  sanitizedFields: string[];
+}
 
 export class TripDataSanitizationService {
   static sanitizeSegment(segment: any): DailySegment {
@@ -85,6 +92,27 @@ export class TripDataSanitizationService {
       dailySegments: [],
       stops: [],
       lastUpdated: new Date()
+    };
+  }
+
+  static generateSanitizationReport(originalPlan: any, sanitizedPlan: TripPlan): SanitizationReport {
+    const warnings: string[] = [];
+    const sanitizedFields: string[] = [];
+
+    if (!originalPlan) {
+      warnings.push('Original plan was null or undefined');
+      return { isValid: false, warnings, sanitizedFields };
+    }
+
+    // Check for sanitized fields
+    if (!originalPlan.startLocation) sanitizedFields.push('startLocation');
+    if (!originalPlan.endLocation) sanitizedFields.push('endLocation');
+    if (!originalPlan.stops) sanitizedFields.push('stops');
+
+    return {
+      isValid: warnings.length === 0,
+      warnings,
+      sanitizedFields
     };
   }
 }

@@ -1,3 +1,4 @@
+
 import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
@@ -59,6 +60,8 @@ export class TripPlanningService {
       title: `${tripDays}-Day Route 66 Journey: ${startCityName} to ${endCityName}`,
       startCity: startCityName,
       endCity: endCityName,
+      startLocation: startCityName,
+      endLocation: endCityName,
       startDate: new Date(),
       totalDays: tripDays,
       totalDistance,
@@ -66,6 +69,7 @@ export class TripPlanningService {
       totalDrivingTime: sanitizedSegments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0),
       segments: sanitizedSegments,
       dailySegments: sanitizedSegments,
+      stops: [],
       tripStyle,
       lastUpdated: new Date()
     };

@@ -1,3 +1,4 @@
+
 import { TripPlan } from './TripPlanBuilder';
 import { TripPlanValidator } from '../../planning/TripPlanValidator';
 import { EnhancedSupabaseDataService } from '../data/EnhancedSupabaseDataService';
@@ -101,12 +102,15 @@ export class UnifiedTripPlanningService {
         id: `trip-${Date.now()}`,
         startCity: startLocation,
         endCity: endLocation,
+        startLocation: startLocation,
+        endLocation: endLocation,
         startDate: new Date(),
         segments: planningResult.segments,
         dailySegments: planningResult.segments,
         totalDays: planningResult.segments.length,
         totalDistance,
         totalDrivingTime: totalDriveTime,
+        stops: [],
         summary: {
           totalDays: planningResult.segments.length,
           totalDistance,
