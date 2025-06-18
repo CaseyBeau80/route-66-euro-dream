@@ -54,7 +54,7 @@ export class DestinationOptimizationService {
     const effectiveDriveTimeTarget = driveTimeTarget || {
       targetHours: targetDriveTime,
       minHours: Math.max(2, targetDriveTime * 0.5),
-      maxHours: Math.min(enhancedConfig.maxDailyDriveHours, targetDriveTime * 1.5)
+      maxHours: Math.min(enhancedConfig.maxDailyDriveHours || 10, targetDriveTime * 1.5)
     };
 
     // Use heritage-first selection with smart fallbacks
@@ -65,7 +65,7 @@ export class DestinationOptimizationService {
       candidateStops,
       effectiveDriveTimeTarget,
       {
-        maxDriveTimeHours: enhancedConfig.maxDailyDriveHours,
+        maxDriveTimeHours: enhancedConfig.maxDailyDriveHours || 10,
         allowFlexibleDriveTime: enhancedConfig.prioritizeHeritageOverDistance,
         flexibilityBufferHours: tripStyle === 'destination-focused' ? 3 : 1,
         minimumHeritageScore: tripStyle === 'destination-focused' ? 70 : 50,

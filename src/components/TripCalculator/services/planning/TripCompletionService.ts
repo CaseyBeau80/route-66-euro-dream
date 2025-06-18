@@ -3,14 +3,26 @@ import { TripPlan } from './TripPlanTypes';
 
 export interface TripCompletionAnalysis {
   isComplete: boolean;
+  isCompleted: boolean; // Alias for backward compatibility
   completionScore: number;
   missingElements: string[];
   recommendations: string[];
+  duplicateSegments: any[]; // For duplicate segment detection
+  totalUsefulDays: number; // Actual useful days after optimization
+  unusedDays: number; // Days that were removed/optimized
+  originalDays?: number; // Original requested days
+  optimizedDays?: number; // Final optimized days
+  adjustmentReason?: string; // Reason for optimization
+  confidence: number; // Planning confidence score (0-1)
   qualityMetrics: {
     hasValidSegments: boolean;
     hasReasonableDistances: boolean;
     hasBalancedDriveTimes: boolean;
     coversTotalRoute: boolean;
+    driveTimeBalance: string; // 'excellent' | 'good' | 'fair' | 'poor'
+    routeEfficiency: string; // 'excellent' | 'good' | 'fair' | 'poor'
+    attractionCoverage: string; // 'excellent' | 'good' | 'fair' | 'poor'
+    overallScore: number; // 0-1 overall quality score
   };
 }
 
@@ -73,16 +85,34 @@ export class TripCompletionService {
     const isComplete = completionScore >= 90;
     const coversTotalRoute = tripPlan.totalDistance > 1000; // Route 66 is ~2400 miles
 
+    // Calculate quality metrics
+    const driveTimeBalance = hasBalancedDriveTimes ? 'excellent' : completionScore > 70 ? 'good' : completionScore > 50 ? 'fair' : 'poor';
+    const routeEfficiency = coversTotalRoute ? 'excellent' : completionScore > 70 ? 'good' : completionScore > 50 ? 'fair' : 'poor';
+    const attractionCoverage = (tripPlan.segments?.length || 0) > 0 ? 'good' : 'fair';
+    const overallScore = completionScore / 100;
+
     return {
       isComplete,
+      isCompleted: isComplete, // Alias for backward compatibility
       completionScore,
       missingElements,
       recommendations,
+      duplicateSegments: [], // No duplicate detection implemented yet
+      totalUsefulDays: tripPlan.totalDays || 0,
+      unusedDays: 0, // No optimization implemented yet
+      originalDays: tripPlan.totalDays,
+      optimizedDays: tripPlan.totalDays,
+      adjustmentReason: undefined,
+      confidence: overallScore,
       qualityMetrics: {
         hasValidSegments,
         hasReasonableDistances,
         hasBalancedDriveTimes,
-        coversTotalRoute
+        coversTotalRoute,
+        driveTimeBalance,
+        routeEfficiency,
+        attractionCoverage,
+        overallScore
       }
     };
   }
