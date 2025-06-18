@@ -113,18 +113,22 @@ export class BasicTripPlanner {
       // Single day trip
       const segment: DailySegment = {
         day: 1,
+        title: `Day 1: ${startStop.city_name || startStop.name} to ${endStop.city_name || endStop.name}`,
         startCity: startStop.city_name || startStop.name,
         endCity: endStop.city_name || endStop.name,
         distance: totalDistance,
+        approximateMiles: Math.round(totalDistance),
         driveTimeHours: DistanceCalculationService.calculateDriveTime(totalDistance),
+        destination: {
+          city: endStop.city_name || endStop.name,
+          state: endStop.state || 'Unknown'
+        },
+        recommendedStops: [],
         attractions: routeStops.slice(0, 5).map(stop => ({
           name: stop.name,
+          title: stop.name,
           description: stop.description,
-          category: stop.category,
-          coordinates: {
-            latitude: stop.latitude,
-            longitude: stop.longitude
-          }
+          city: stop.city_name || stop.name
         }))
       };
 
@@ -165,12 +169,9 @@ export class BasicTripPlanner {
             endCity = routeStops[currentStopIndex].city_name || routeStops[currentStopIndex].name;
             dayAttractions.push({
               name: routeStops[currentStopIndex].name,
+              title: routeStops[currentStopIndex].name,
               description: routeStops[currentStopIndex].description,
-              category: routeStops[currentStopIndex].category,
-              coordinates: {
-                latitude: routeStops[currentStopIndex].latitude,
-                longitude: routeStops[currentStopIndex].longitude
-              }
+              city: routeStops[currentStopIndex].city_name || routeStops[currentStopIndex].name
             });
             currentStopIndex++;
           } else {
@@ -187,10 +188,17 @@ export class BasicTripPlanner {
 
         const segment: DailySegment = {
           day,
+          title: `Day ${day}: ${startCity} to ${endCity}`,
           startCity,
           endCity,
           distance: Math.max(dayDistance, 1), // Ensure minimum 1 mile
+          approximateMiles: Math.round(Math.max(dayDistance, 1)),
           driveTimeHours: Math.max(driveTimeHours, 0.1), // Ensure minimum drive time
+          destination: {
+            city: endCity,
+            state: day === travelDays ? (endStop.state || 'Unknown') : (routeStops[Math.min(currentStopIndex - 1, routeStops.length - 1)]?.state || 'Unknown')
+          },
+          recommendedStops: [],
           attractions: dayAttractions
         };
 
