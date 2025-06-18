@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -40,11 +39,15 @@ export class DailySegmentCreator {
     // Strict validation of all selected overnight stops with proper type narrowing
     const warnings: string[] = [];
     for (const stop of overnightStops) {
-      // First ensure it's a valid TripStop, then check if it's a destination city
-      if (this.isValidTripStop(stop)) {
-        if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
-          warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
-        }
+      // Separate the type guard check from the destination city validation
+      if (!this.isValidTripStop(stop)) {
+        warnings.push(`Invalid stop data found and was removed from overnight stops`);
+        continue;
+      }
+      
+      // Now TypeScript knows stop is a valid TripStop
+      if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
+        warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
       }
     }
     
