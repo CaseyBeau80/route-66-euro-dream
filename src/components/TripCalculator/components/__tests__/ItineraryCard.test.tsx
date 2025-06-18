@@ -38,6 +38,8 @@ describe('ItineraryCard', () => {
     totalDistance: 2400,
     totalDrivingTime: 36,
     totalMiles: 2400,
+    tripStyle: 'balanced',
+    lastUpdated: new Date('2024-06-01'),
     segments: [],
     dailySegments: [],
     stops: []
