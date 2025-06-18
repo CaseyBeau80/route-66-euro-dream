@@ -36,16 +36,13 @@ export class DailySegmentCreator {
       totalDistance
     );
     
-    // Strict validation of all selected overnight stops with proper typing
+    // Strict validation of all selected overnight stops with improved type safety
     const warnings: string[] = [];
-    if (overnightStops && Array.isArray(overnightStops)) {
-      overnightStops.forEach((stop: TripStop) => {
-        if (stop && typeof stop === 'object' && 'name' in stop) {
-          if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
-            warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
-          }
-        }
-      });
+    for (const stop of overnightStops) {
+      // Use explicit type guard function to ensure proper type inference
+      if (this.isValidTripStop(stop) && !StrictDestinationCityEnforcer.isDestinationCity(stop)) {
+        warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
+      }
     }
     
     if (warnings.length > 0) {
@@ -84,6 +81,16 @@ export class DailySegmentCreator {
     return segments;
   }
   
+  /**
+   * Type guard function to ensure proper type inference
+   */
+  private static isValidTripStop(stop: any): stop is TripStop {
+    return stop && 
+           typeof stop === 'object' && 
+           typeof stop.name === 'string' &&
+           typeof stop.id === 'string';
+  }
+  
   private static selectDestinationCityOvernightStops(
     startStop: TripStop,
     endStop: TripStop,
@@ -93,9 +100,9 @@ export class DailySegmentCreator {
   ): TripStop[] {
     console.log(`🎯 STRICT: Selecting overnight stops from ${destinationCities.length} destination cities`);
     
-    // Filter out start and end stops - ensure proper typing
+    // Filter out start and end stops with proper null checking
     const availableStops: TripStop[] = destinationCities.filter((stop: TripStop) => {
-      return stop && 
+      return this.isValidTripStop(stop) && 
              stop.id !== startStop.id && 
              stop.id !== endStop.id &&
              StrictDestinationCityEnforcer.isDestinationCity(stop);
