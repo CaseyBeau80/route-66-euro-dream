@@ -99,21 +99,21 @@ export class EnhancedDestinationSelector {
       canonicalStops = destinationCities; // Fallback to all destination cities
     }
     
-    // STEP 4: Remove start and end cities with safe filtering - FIXED TYPE NARROWING
+    // STEP 4: Remove start and end cities with safe filtering - FIXED WITH FOR...OF LOOP
     const availableCities: TripStop[] = [];
     
-    // Process each canonical stop individually to avoid TypeScript confusion
-    canonicalStops.forEach(city => {
-      // Explicit type check first
+    // Use for...of loop instead of forEach to avoid TypeScript confusion
+    for (const city of canonicalStops) {
+      // Explicit type check first - this ensures TypeScript knows city is TripStop
       if (!this.hasValidCoordinates(city)) {
         console.warn(`⚠️ FILTERING OUT city: invalid coordinates`, {
           id: city?.id,
           name: city?.name
         });
-        return;
+        continue;
       }
       
-      // Now we know city is a valid TripStop, safe to access properties
+      // Now TypeScript knows city is a valid TripStop
       const isNotStartStop = city.id !== startStop.id;
       const isNotEndStop = city.id !== endStop.id;
       
@@ -126,7 +126,7 @@ export class EnhancedDestinationSelector {
           reason: city.id === startStop.id ? 'is start stop' : 'is end stop'
         });
       }
-    });
+    }
     
     console.log(`🏛️ Available canonical cities: ${availableCities.length}`);
     
@@ -159,11 +159,11 @@ export class EnhancedDestinationSelector {
       // Add non-canonical destination cities that are in sequence
       const nonCanonicalDestinations: TripStop[] = [];
       
-      // Process each destination city individually
-      destinationCities.forEach(city => {
+      // Use for...of loop instead of forEach to avoid TypeScript confusion
+      for (const city of destinationCities) {
         // Explicit type check first
         if (!this.hasValidCoordinates(city)) {
-          return;
+          continue;
         }
         
         // Now safe to access properties
@@ -174,7 +174,7 @@ export class EnhancedDestinationSelector {
         if (isNotStartStop && isNotEndStop && isNotAlreadyCanonical) {
           nonCanonicalDestinations.push(city);
         }
-      });
+      }
       
       try {
         const additionalSequenceResult = Route66SequenceValidator.filterValidSequenceStops(
@@ -320,7 +320,7 @@ export class EnhancedDestinationSelector {
   }
 
   /**
-   * Expand selection to fill needed destinations - FIXED TYPE NARROWING
+   * Expand selection to fill needed destinations - FIXED WITH FOR...OF LOOP
    */
   private static expandSelection(
     currentSelection: TripStop[],
@@ -332,13 +332,13 @@ export class EnhancedDestinationSelector {
     const expanded = [...currentSelection];
     const usedIds = new Set(currentSelection.map(city => city.id));
     
-    // Process each available city individually to avoid TypeScript confusion
-    availableCities.forEach(city => {
-      if (expanded.length >= needed) return;
+    // Use for...of loop instead of forEach to avoid TypeScript confusion
+    for (const city of availableCities) {
+      if (expanded.length >= needed) break;
       
       // Explicit type check first
       if (!this.hasValidCoordinates(city)) {
-        return;
+        continue;
       }
       
       // Now safe to access properties
@@ -350,7 +350,7 @@ export class EnhancedDestinationSelector {
         expanded.push(city);
         usedIds.add(city.id);
       }
-    });
+    }
     
     console.log(`📈 Expanded selection from ${currentSelection.length} to ${expanded.length} destinations`);
     
