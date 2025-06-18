@@ -1,3 +1,4 @@
+
 import { PlanningAdjustment } from './PlanningPolicy';
 import { TripAdjustmentNotice } from './TripAdjustmentService';
 
@@ -25,6 +26,15 @@ export interface TripPlan {
   planningAdjustments?: PlanningAdjustment[];
   adjustmentNotice?: TripAdjustmentNotice | null;
   originalRequestedDays?: number;
+  
+  // Additional properties used by components
+  summary?: {
+    startLocation: string;
+    endLocation: string;
+    totalDriveTime?: number;
+  };
+  startCityImage?: string;
+  endCityImage?: string;
 }
 
 export interface DailySegment {
@@ -39,6 +49,35 @@ export interface DailySegment {
   recommendedStops: any[];
   isGoogleMapsData?: boolean;
   attractions: Attraction[];
+  
+  // Additional properties used by components
+  driveTimeCategory?: {
+    category: string;
+    message: string;
+    color?: string;
+  };
+  driveTimeWarning?: string;
+  subStopTimings?: SubStopTiming[];
+  routeSection?: string;
+  notes?: string;
+  recommendations?: string[];
+}
+
+export interface SubStopTiming {
+  fromStop: {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+  };
+  toStop: {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+  };
+  distanceMiles: number;
+  driveTimeHours: number;
 }
 
 export interface DestinationInfo {
