@@ -192,6 +192,9 @@ export interface DriveTimeBalance {
   driveTimeRange: { min: number; max: number }; // Add missing driveTimeRange property
   balanceQuality?: 'excellent' | 'good' | 'fair' | 'poor'; // Add missing balanceQuality property
   qualityGrade?: 'A' | 'B' | 'C' | 'D' | 'F'; // Add missing qualityGrade property
+  overallScore?: number; // Add missing overallScore property
+  suggestions?: string[]; // Add missing suggestions property
+  reason?: string; // Add missing reason property
   segments: {
     day: number;
     hours: number;
