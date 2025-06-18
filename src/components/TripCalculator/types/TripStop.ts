@@ -17,6 +17,8 @@ export interface TripStop {
   city: string;
   // NEW: Population data for scoring
   population?: number;
+  // NEW: Heritage value for heritage scoring
+  heritage_value?: 'low' | 'medium' | 'high';
 }
 
 // Type guard to validate TripStop objects
