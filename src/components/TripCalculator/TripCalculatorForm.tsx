@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Sparkles } from 'lucide-react';
+import { MapPin, Sparkles, Info } from 'lucide-react';
 import { TripFormData } from './types/tripCalculator';
 import { route66Towns } from '@/types/route66';
 import { TripPlan } from './services/planning/TripPlanBuilder';
@@ -9,7 +9,6 @@ import FormHeader from './components/FormHeader';
 import LocationSelectionForm from './components/LocationSelectionForm';
 import TripDateForm from './components/TripDateForm';
 import TripDurationForm from './components/TripDurationForm';
-import TripStyleSelector from './components/TripStyleSelector';
 import CostEstimatorSection from './components/CostEstimatorSection';
 import FormValidationHelper from './components/FormValidationHelper';
 import SmartPlanningInfo from './components/SmartPlanningInfo';
@@ -67,28 +66,6 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
     }
   };
 
-  const handleTripStyleChange = (style: 'destination-focused') => {
-    console.log(`🎨 Trip style changed to: ${style}, triggering re-plan if trip exists`);
-    
-    // Update form data first
-    setFormData({
-      ...formData,
-      tripStyle: style
-    });
-    
-    // Call external handler if provided
-    if (onTripStyleChange) {
-      onTripStyleChange(style);
-    }
-    
-    // Trigger recalculation if we have a valid trip plan
-    if (tripPlan && isFormValid) {
-      setTimeout(() => {
-        onCalculate();
-      }, 100);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -113,12 +90,42 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
         availableEndLocations={availableEndLocations}
       />
 
-      {/* Trip Style Selector - Heritage Cities Only */}
-      <TripStyleSelector 
-        formData={formData}
-        setFormData={setFormData}
-        onTripStyleChange={handleTripStyleChange}
-      />
+      {/* Heritage Cities Experience Info - Replaces Trip Style Selector */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="bg-blue-600 rounded-full p-2">
+            <MapPin className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Heritage Cities Experience</h3>
+            <p className="text-sm text-gray-600">Optimized for the ultimate Route 66 adventure</p>
+          </div>
+        </div>
+        
+        <div className="bg-white/70 rounded-lg p-4 border border-blue-100">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-sm text-gray-700 leading-relaxed">
+                Your trip will focus on <strong>major Route 66 heritage cities</strong> with optimized drive times 
+                (maximum 10 hours per day). We prioritize iconic destinations while keeping daily drives manageable 
+                for the perfect balance of adventure and comfort.
+              </p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                  🏛️ Heritage Cities
+                </span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                  ⏱️ Max 10h/day driving
+                </span>
+                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium">
+                  🎯 Optimized routes
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Trip Duration */}
       <TripDurationForm 
