@@ -27,8 +27,8 @@ export class GoogleMapsTripPlanner {
     const allStops = await SupabaseDataService.fetchAllStops();
     const styleConfig: TripStyleConfig = TripStyleLogic.configureTripStyle(tripStyle);
 
-    // Identify boundary stops
-    const { startStop, endStop } = TripBoundaryService.findExactBoundaryStops(
+    // Identify boundary stops - fix method name
+    const { startStop, endStop } = TripBoundaryService.findBoundaryStops(
       startLocation,
       endLocation,
       allStops

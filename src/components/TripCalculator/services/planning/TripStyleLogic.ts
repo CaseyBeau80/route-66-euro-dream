@@ -1,6 +1,7 @@
 
 export interface TripStyleConfig {
   name: string;
+  style: 'balanced' | 'destination-focused'; // Add missing style property
   maxDailyDriveTime: number;
   maxDailyDriveHours: number; // New property that other services expect
   preferredDailyDistance: number;
@@ -26,6 +27,7 @@ export class TripStyleLogic {
     if (tripStyle === 'destination-focused') {
       return {
         name: 'Destination-Focused',
+        style: 'destination-focused', // Add the style property
         maxDailyDriveTime: 10,
         maxDailyDriveHours: 10,
         preferredDailyDistance: 350,
@@ -44,6 +46,7 @@ export class TripStyleLogic {
       // Default to balanced
       return {
         name: 'Balanced',
+        style: 'balanced', // Add the style property
         maxDailyDriveTime: 7,
         maxDailyDriveHours: 7,
         preferredDailyDistance: 300,
