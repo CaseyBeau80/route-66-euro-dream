@@ -1,3 +1,4 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DailySegment, DriveTimeCategory, RecommendedStop } from './TripPlanBuilder';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
@@ -38,7 +39,7 @@ export class DailySegmentCreator {
     
     // Strict validation of all selected overnight stops
     const warnings: string[] = [];
-    overnightStops.forEach((stop: TripStop) => {
+    overnightStops.forEach((stop: TripStop, index: number) => {
       if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {
         warnings.push(`${stop.name} is not a destination city and was removed from overnight stops`);
       }
@@ -246,7 +247,15 @@ export class DailySegmentCreator {
     );
     
     // Find stops along the route - EXCLUDE destination cities for attractions
-    const attractions: TripStop[] = allStops.filter((stop: TripStop) => {
+    const validStops: TripStop[] = allStops.filter((stop: TripStop) => {
+      return stop && 
+             typeof stop.latitude === 'number' && 
+             typeof stop.longitude === 'number' &&
+             !isNaN(stop.latitude) && 
+             !isNaN(stop.longitude);
+    });
+    
+    const attractions: TripStop[] = validStops.filter((stop: TripStop) => {
       // Skip start and end stops
       if (stop.id === startStop.id || stop.id === endStop.id) return false;
       
