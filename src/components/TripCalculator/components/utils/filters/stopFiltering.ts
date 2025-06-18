@@ -4,6 +4,11 @@ import { StrictDestinationCityEnforcer } from '../../../services/planning/Strict
 
 // STRICT filter function to only allow destination cities
 export const isUserRelevantStop = (stop: TripStop): boolean => {
+  if (!stop || typeof stop !== 'object') {
+    console.log(`🚫 STRICT FILTER: Invalid stop object`);
+    return false;
+  }
+
   console.log(`🔍 STRICT FILTER: Checking ${stop.name} (${stop.category})`);
   const isDestCity = StrictDestinationCityEnforcer.isDestinationCity(stop);
   
@@ -23,6 +28,11 @@ export const isDestinationCity = (stop: TripStop): boolean => {
 
 // Legacy support for existing filters but enforce destination city restriction
 export const isValidRouteStop = (stop: TripStop): boolean => {
+  if (!stop || typeof stop !== 'object') {
+    console.log(`🚫 STRICT VALIDATION: Invalid stop object`);
+    return false;
+  }
+
   const isValidData = stop.category === 'destination_city' && 
                      stop.latitude !== undefined && 
                      stop.longitude !== undefined &&
@@ -38,12 +48,22 @@ export const isValidRouteStop = (stop: TripStop): boolean => {
 
 // New function to get only destination cities from an array
 export const filterToDestinationCitiesOnly = (stops: TripStop[]): TripStop[] => {
+  if (!stops || !Array.isArray(stops)) {
+    console.log(`🔒 STRICT FILTERING: Invalid stops array`);
+    return [];
+  }
+  
   console.log(`🔒 STRICT FILTERING: Processing ${stops.length} stops`);
   return StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(stops);
 };
 
 // Validation function for trip planning
 export const validateStopForTripPlanning = (stop: TripStop, context: string = 'planning'): boolean => {
+  if (!stop || typeof stop !== 'object') {
+    console.warn(`⚠️ STRICT VALIDATION: Invalid stop object for ${context}`);
+    return false;
+  }
+
   console.log(`🛡️ STRICT VALIDATION: Validating ${stop.name} for ${context}`);
   
   if (!StrictDestinationCityEnforcer.isDestinationCity(stop)) {

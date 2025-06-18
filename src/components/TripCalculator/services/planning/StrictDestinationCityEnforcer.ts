@@ -12,7 +12,7 @@ export class StrictDestinationCityEnforcer {
       return [];
     }
 
-    const destinationCities = allStops.filter(stop => {
+    const destinationCities = allStops.filter((stop: TripStop) => {
       // Comprehensive null safety check
       if (!stop || typeof stop !== 'object') {
         console.warn('⚠️ Filtering out null/undefined stop');
@@ -84,7 +84,8 @@ export class StrictDestinationCityEnforcer {
       if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
         segment.recommendedStops.forEach((stop, stopIndex) => {
           if (!this.isDestinationCity(stop)) {
-            violations.push(`Day ${segment.day}, Stop ${stopIndex + 1}: ${stop?.name || 'unnamed'} is not a destination city`);
+            const stopName = (stop as any)?.name || 'unnamed';
+            violations.push(`Day ${segment.day}, Stop ${stopIndex + 1}: ${stopName} is not a destination city`);
           }
         });
       }
@@ -114,7 +115,9 @@ export class StrictDestinationCityEnforcer {
         sanitizedSegment.recommendedStops = segment.recommendedStops.filter(stop => {
           const isDestCity = this.isDestinationCity(stop);
           if (!isDestCity) {
-            console.log(`🧹 Sanitized out non-destination city: ${stop?.name || 'unnamed'} (${stop?.category || 'unknown'})`);
+            const stopName = (stop as any)?.name || 'unnamed';
+            const stopCategory = (stop as any)?.category || 'unknown';
+            console.log(`🧹 Sanitized out non-destination city: ${stopName} (${stopCategory})`);
           }
           return isDestCity;
         });
