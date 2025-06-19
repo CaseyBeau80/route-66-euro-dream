@@ -1,5 +1,6 @@
 
 import { CoordinateValidator } from '../planning/utils/CoordinateValidator';
+import { ObjectSafetyValidator } from '../planning/utils/ObjectSafetyValidator';
 
 export class SafeDistanceCalculationService {
   /**
@@ -11,6 +12,20 @@ export class SafeDistanceCalculationService {
     context: string = 'distance-calculation'
   ): number {
     console.log(`📏 Safe distance calculation between objects in ${context}`);
+
+    // ENHANCED: Use comprehensive object validation first
+    const obj1Validation = ObjectSafetyValidator.validateObjectWithCoordinates(obj1, `${context}-obj1`);
+    const obj2Validation = ObjectSafetyValidator.validateObjectWithCoordinates(obj2, `${context}-obj2`);
+
+    if (!obj1Validation.isValid) {
+      console.error(`❌ DISTANCE CALC: Object 1 validation failed: ${obj1Validation.error}`);
+      return 0;
+    }
+
+    if (!obj2Validation.isValid) {
+      console.error(`❌ DISTANCE CALC: Object 2 validation failed: ${obj2Validation.error}`);
+      return 0;
+    }
 
     // Safely get coordinates with detailed error reporting
     const coords1 = CoordinateValidator.safeGetCoordinates(obj1, `${context}-obj1`);
@@ -34,7 +49,8 @@ export class SafeDistanceCalculationService {
       return 0;
     }
 
-    try {
+    // Wrap the actual calculation in safety wrapper
+    return ObjectSafetyValidator.wrapCoordinateAccess(() => {
       // Haversine formula
       const R = 3959; // Earth's radius in miles
       const dLat = (coords2.latitude - coords1.latitude) * Math.PI / 180;
@@ -48,16 +64,7 @@ export class SafeDistanceCalculationService {
 
       console.log(`📏 Safe distance calculated: ${distance.toFixed(1)} miles in ${context}`);
       return distance;
-    } catch (error) {
-      console.error(`❌ DISTANCE CALC: Error in calculation for ${context}:`, {
-        error,
-        coords1,
-        coords2,
-        context,
-        stack: new Error().stack?.split('\n').slice(1, 5).join('\n')
-      });
-      return 0;
-    }
+    }, `haversine-calculation-${context}`, 0);
   }
 
   /**
