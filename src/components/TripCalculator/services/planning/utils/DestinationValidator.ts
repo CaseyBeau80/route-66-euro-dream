@@ -6,53 +6,97 @@ export class DestinationValidator {
    * Enhanced validation to check if an object is a valid TripStop with coordinates
    */
   static isValidTripStop(obj: any): obj is TripStop {
-    // First check: ensure obj exists and is an object
-    if (!obj || typeof obj !== 'object') {
-      console.warn('⚠️ VALIDATION: Object is null, undefined, or not an object:', obj);
+    // CRITICAL: Add stack trace logging for debugging
+    if (!obj) {
+      console.warn('⚠️ VALIDATION: Object is null or undefined:', { 
+        obj, 
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n') 
+      });
+      return false;
+    }
+
+    if (typeof obj !== 'object') {
+      console.warn('⚠️ VALIDATION: Object is not an object:', { 
+        obj, 
+        type: typeof obj,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     // Check required string properties with more thorough validation
     if (!obj.id || typeof obj.id !== 'string' || obj.id.trim() === '') {
-      console.warn('⚠️ VALIDATION: Invalid or missing ID:', { id: obj.id });
+      console.warn('⚠️ VALIDATION: Invalid or missing ID:', { 
+        id: obj.id,
+        hasId: 'id' in obj,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     if (!obj.name || typeof obj.name !== 'string' || obj.name.trim() === '') {
-      console.warn('⚠️ VALIDATION: Invalid or missing name:', { name: obj.name });
+      console.warn('⚠️ VALIDATION: Invalid or missing name:', { 
+        name: obj.name,
+        hasName: 'name' in obj,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     // CRITICAL: Check coordinate properties with comprehensive validation
     if (typeof obj.latitude !== 'number') {
-      console.warn('⚠️ VALIDATION: Latitude is not a number:', { latitude: obj.latitude, type: typeof obj.latitude });
+      console.warn('⚠️ VALIDATION: Latitude is not a number:', { 
+        latitude: obj.latitude, 
+        type: typeof obj.latitude,
+        hasLatitude: 'latitude' in obj,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     if (typeof obj.longitude !== 'number') {
-      console.warn('⚠️ VALIDATION: Longitude is not a number:', { longitude: obj.longitude, type: typeof obj.longitude });
+      console.warn('⚠️ VALIDATION: Longitude is not a number:', { 
+        longitude: obj.longitude, 
+        type: typeof obj.longitude,
+        hasLongitude: 'longitude' in obj,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     if (isNaN(obj.latitude) || isNaN(obj.longitude)) {
-      console.warn('⚠️ VALIDATION: Coordinates are NaN:', { latitude: obj.latitude, longitude: obj.longitude });
+      console.warn('⚠️ VALIDATION: Coordinates are NaN:', { 
+        latitude: obj.latitude, 
+        longitude: obj.longitude,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     // Check for zero coordinates (which might indicate missing data)
     if (obj.latitude === 0 && obj.longitude === 0) {
-      console.warn('⚠️ VALIDATION: Coordinates are both zero (likely missing data):', { id: obj.id, name: obj.name });
+      console.warn('⚠️ VALIDATION: Coordinates are both zero (likely missing data):', { 
+        id: obj.id, 
+        name: obj.name,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     // Validate coordinate ranges (basic sanity check)
     if (obj.latitude < -90 || obj.latitude > 90) {
-      console.warn('⚠️ VALIDATION: Latitude out of valid range:', { latitude: obj.latitude });
+      console.warn('⚠️ VALIDATION: Latitude out of valid range:', { 
+        latitude: obj.latitude,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
     if (obj.longitude < -180 || obj.longitude > 180) {
-      console.warn('⚠️ VALIDATION: Longitude out of valid range:', { longitude: obj.longitude });
+      console.warn('⚠️ VALIDATION: Longitude out of valid range:', { 
+        longitude: obj.longitude,
+        stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+      });
       return false;
     }
 
