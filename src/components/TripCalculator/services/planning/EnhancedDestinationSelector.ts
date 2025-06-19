@@ -19,26 +19,58 @@ export class EnhancedDestinationSelector {
   ): TripStop[] {
     console.log(`🎯 ENHANCED CANONICAL SELECTION: ${totalDays} days from ${startStop?.name || 'undefined'} to ${endStop?.name || 'undefined'}`);
     
-    // CRITICAL: Add comprehensive null safety checks
-    if (!startStop || !endStop || !allStops || totalDays <= 0) {
-      console.error('❌ CRITICAL: Invalid input parameters', { 
-        hasStartStop: !!startStop, 
-        hasEndStop: !!endStop, 
+    // CRITICAL: Add comprehensive input validation
+    if (!startStop) {
+      console.error('❌ CRITICAL: startStop is null/undefined');
+      return [];
+    }
+
+    if (!endStop) {
+      console.error('❌ CRITICAL: endStop is null/undefined');
+      return [];
+    }
+
+    if (!allStops || !Array.isArray(allStops)) {
+      console.error('❌ CRITICAL: allStops is not a valid array:', { 
         hasAllStops: !!allStops,
-        allStopsLength: allStops?.length || 0,
-        totalDays 
+        isArray: Array.isArray(allStops),
+        type: typeof allStops,
+        length: allStops?.length || 'N/A'
+      });
+      return [];
+    }
+
+    if (typeof totalDays !== 'number' || totalDays <= 0 || isNaN(totalDays)) {
+      console.error('❌ CRITICAL: Invalid totalDays:', { 
+        totalDays, 
+        type: typeof totalDays,
+        isNaN: isNaN(totalDays)
       });
       return [];
     }
 
     // CRITICAL: Validate coordinates exist and are valid numbers - ENHANCED CHECKS
     if (!DestinationValidator.isValidTripStop(startStop)) {
-      console.error('❌ CRITICAL: Invalid startStop:', startStop);
+      console.error('❌ CRITICAL: Invalid startStop - failed validation:', {
+        id: startStop?.id || 'missing',
+        name: startStop?.name || 'missing',
+        latitude: startStop?.latitude,
+        longitude: startStop?.longitude,
+        latitudeType: typeof startStop?.latitude,
+        longitudeType: typeof startStop?.longitude
+      });
       return [];
     }
 
     if (!DestinationValidator.isValidTripStop(endStop)) {
-      console.error('❌ CRITICAL: Invalid endStop:', endStop);
+      console.error('❌ CRITICAL: Invalid endStop - failed validation:', {
+        id: endStop?.id || 'missing',
+        name: endStop?.name || 'missing',
+        latitude: endStop?.latitude,
+        longitude: endStop?.longitude,
+        latitudeType: typeof endStop?.latitude,
+        longitudeType: typeof endStop?.longitude
+      });
       return [];
     }
     
