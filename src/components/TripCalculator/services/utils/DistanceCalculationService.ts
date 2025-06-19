@@ -1,76 +1,88 @@
 
 export class DistanceCalculationService {
   /**
-   * Calculate distance between two points using Haversine formula
-   * Returns distance in miles
+   * Calculate distance between two points with comprehensive validation
    */
   static calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
+    lat1: number | undefined,
+    lng1: number | undefined,
+    lat2: number | undefined,
+    lng2: number | undefined
   ): number {
-    // Validate input coordinates
-    if (!this.isValidCoordinate(lat1, lon1) || !this.isValidCoordinate(lat2, lon2)) {
-      console.warn('⚠️ Invalid coordinates provided to distance calculation:', {
-        lat1, lon1, lat2, lon2
-      });
+    // CRITICAL: Validate all inputs before any calculation
+    if (lat1 === undefined || lat1 === null || typeof lat1 !== 'number' || isNaN(lat1)) {
+      console.error('❌ DISTANCE: Invalid lat1:', { lat1, type: typeof lat1 });
+      return 0;
+    }
+    
+    if (lng1 === undefined || lng1 === null || typeof lng1 !== 'number' || isNaN(lng1)) {
+      console.error('❌ DISTANCE: Invalid lng1:', { lng1, type: typeof lng1 });
+      return 0;
+    }
+    
+    if (lat2 === undefined || lat2 === null || typeof lat2 !== 'number' || isNaN(lat2)) {
+      console.error('❌ DISTANCE: Invalid lat2:', { lat2, type: typeof lat2 });
+      return 0;
+    }
+    
+    if (lng2 === undefined || lng2 === null || typeof lng2 !== 'number' || isNaN(lng2)) {
+      console.error('❌ DISTANCE: Invalid lng2:', { lng2, type: typeof lng2 });
       return 0;
     }
 
-    const R = 3958.756; // Radius of Earth in miles
-    const dLat = this.toRadians(lat2 - lat1);
-    const dLon = this.toRadians(lon2 - lon1);
-    
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-
-    console.log(`📏 Distance calculation:`, {
-      from: `${lat1.toFixed(4)}, ${lon1.toFixed(4)}`,
-      to: `${lat2.toFixed(4)}, ${lon2.toFixed(4)}`,
-      distance: `${distance.toFixed(1)} miles`
-    });
-
-    return Math.max(0, distance); // Ensure non-negative distance
+    try {
+      // Haversine formula
+      const R = 3959; // Earth's radius in miles
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lng2 - lng1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = R * c;
+      
+      return distance;
+    } catch (error) {
+      console.error('❌ DISTANCE CALCULATION ERROR:', error, {
+        lat1, lng1, lat2, lng2
+      });
+      return 0;
+    }
   }
 
   /**
-   * Validate that coordinates are reasonable
+   * Safe distance calculation between two objects with coordinates
    */
-  private static isValidCoordinate(lat: number, lon: number): boolean {
-    return (
-      typeof lat === 'number' && 
-      typeof lon === 'number' &&
-      !isNaN(lat) && 
-      !isNaN(lon) &&
-      lat >= -90 && lat <= 90 &&
-      lon >= -180 && lon <= 180 &&
-      lat !== 0 && lon !== 0 // Exclude null island
-    );
-  }
-
-  /**
-   * Convert degrees to radians
-   */
-  private static toRadians(degrees: number): number {
-    return degrees * (Math.PI / 180);
-  }
-
-  /**
-   * Calculate estimated drive time in hours
-   * Assumes average speed of 55 mph for Route 66
-   */
-  static calculateDriveTime(distanceMiles: number): number {
-    const averageSpeed = 55; // mph for Route 66
-    const driveTime = distanceMiles / averageSpeed;
+  static calculateDistanceBetweenObjects(obj1: any, obj2: any): number {
+    // CRITICAL: Validate objects exist
+    if (!obj1) {
+      console.error('❌ DISTANCE: obj1 is null/undefined:', { obj1, stack: new Error().stack?.split('\n').slice(1, 3).join('\n') });
+      return 0;
+    }
     
-    console.log(`⏱️ Drive time calculation: ${distanceMiles.toFixed(1)} miles ÷ ${averageSpeed} mph = ${driveTime.toFixed(1)} hours`);
+    if (!obj2) {
+      console.error('❌ DISTANCE: obj2 is null/undefined:', { obj2, stack: new Error().stack?.split('\n').slice(1, 3).join('\n') });
+      return 0;
+    }
+
+    // CRITICAL: Validate objects are actually objects
+    if (typeof obj1 !== 'object') {
+      console.error('❌ DISTANCE: obj1 is not an object:', { obj1, type: typeof obj1 });
+      return 0;
+    }
     
-    return Math.max(0, driveTime);
+    if (typeof obj2 !== 'object') {
+      console.error('❌ DISTANCE: obj2 is not an object:', { obj2, type: typeof obj2 });
+      return 0;
+    }
+
+    // Extract coordinates safely
+    const lat1 = obj1.latitude;
+    const lng1 = obj1.longitude;
+    const lat2 = obj2.latitude;
+    const lng2 = obj2.longitude;
+
+    return this.calculateDistance(lat1, lng1, lat2, lng2);
   }
 }
