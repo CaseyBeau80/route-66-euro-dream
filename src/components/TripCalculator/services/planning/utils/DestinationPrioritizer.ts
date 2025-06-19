@@ -106,19 +106,49 @@ export class DestinationPrioritizer {
     return trimmed;
   }
 
-  private static getTripDirection(startStop: TripStop, endStop: TripStop): 'east-to-west' | 'west-to-east' {
+  /**
+   * CRITICAL FIX: Get trip direction with comprehensive null/undefined validation
+   */
+  private static getTripDirection(startStop: TripStop | null | undefined, endStop: TripStop | null | undefined): 'east-to-west' | 'west-to-east' {
+    // CRITICAL: Add null/undefined validation first
+    if (!startStop || typeof startStop !== 'object') {
+      console.warn('⚠️ DIRECTION: Invalid startStop, defaulting to east-to-west:', { startStop, type: typeof startStop });
+      return 'east-to-west';
+    }
+
+    if (!endStop || typeof endStop !== 'object') {
+      console.warn('⚠️ DIRECTION: Invalid endStop, defaulting to east-to-west:', { endStop, type: typeof endStop });
+      return 'east-to-west';
+    }
+
+    // Additional validation for TripStop structure
     if (!DestinationValidator.isValidTripStop(startStop) || !DestinationValidator.isValidTripStop(endStop)) {
-      return 'east-to-west'; // Default direction
+      console.warn('⚠️ DIRECTION: Invalid TripStop objects, defaulting to east-to-west:', {
+        startStopValid: DestinationValidator.isValidTripStop(startStop),
+        endStopValid: DestinationValidator.isValidTripStop(endStop)
+      });
+      return 'east-to-west';
     }
 
     const startInfo = Route66SequenceUtils.getSequenceInfo(startStop);
     const endInfo = Route66SequenceUtils.getSequenceInfo(endStop);
     
     if (startInfo.order !== null && endInfo.order !== null) {
-      return endInfo.order < startInfo.order ? 'east-to-west' : 'west-to-east';
+      const direction = endInfo.order < startInfo.order ? 'east-to-west' : 'west-to-east';
+      console.log(`🧭 DIRECTION: ${direction} based on sequence orders (${startInfo.order} → ${endInfo.order})`);
+      return direction;
     }
     
-    // Fallback to longitude
-    return endStop.longitude < startStop.longitude ? 'east-to-west' : 'west-to-east';
+    // Fallback to longitude with additional safety checks
+    if (startStop.longitude !== undefined && startStop.longitude !== null &&
+        endStop.longitude !== undefined && endStop.longitude !== null &&
+        typeof startStop.longitude === 'number' && typeof endStop.longitude === 'number') {
+      const direction = endStop.longitude < startStop.longitude ? 'east-to-west' : 'west-to-east';
+      console.log(`🧭 DIRECTION: ${direction} based on longitude (${startStop.longitude} → ${endStop.longitude})`);
+      return direction;
+    }
+
+    console.warn('⚠️ DIRECTION: No valid sequence or longitude data, defaulting to east-to-west');
+    return 'east-to-west';
   }
 }

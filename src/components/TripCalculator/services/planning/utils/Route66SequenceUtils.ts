@@ -1,3 +1,4 @@
+
 import { DailySegment } from '../TripPlanTypes';
 import { TripStop } from '../../../types/TripStop';
 
@@ -9,10 +10,24 @@ export interface SequenceInfo {
 
 export class Route66SequenceUtils {
   /**
-   * Get detailed sequence information for a stop
+   * Get detailed sequence information for a stop with comprehensive null checks
    */
-  static getSequenceInfo(stop: TripStop): SequenceInfo {
-    if (stop.sequence_order !== undefined && stop.sequence_order !== null) {
+  static getSequenceInfo(stop: TripStop | null | undefined): SequenceInfo {
+    // CRITICAL FIX: Add null/undefined validation first
+    if (!stop || typeof stop !== 'object') {
+      console.warn('⚠️ SEQUENCE: Invalid stop object passed to getSequenceInfo:', { stop, type: typeof stop });
+      return {
+        order: null,
+        isKnown: false,
+        source: 'unknown'
+      };
+    }
+
+    // Check for explicit sequence_order with proper validation
+    if (stop.sequence_order !== undefined && 
+        stop.sequence_order !== null && 
+        typeof stop.sequence_order === 'number' && 
+        !isNaN(stop.sequence_order)) {
       return {
         order: stop.sequence_order,
         isKnown: true,
@@ -20,7 +35,11 @@ export class Route66SequenceUtils {
       };
     }
 
-    if (stop.longitude !== undefined && stop.longitude !== null) {
+    // Fallback to longitude with proper validation
+    if (stop.longitude !== undefined && 
+        stop.longitude !== null && 
+        typeof stop.longitude === 'number' && 
+        !isNaN(stop.longitude)) {
       // Approximate sequence based on longitude
       const approximateOrder = Math.round((stop.longitude + 100) * 10);
       return {
@@ -30,6 +49,15 @@ export class Route66SequenceUtils {
       };
     }
 
+    console.warn('⚠️ SEQUENCE: No valid sequence data for stop:', { 
+      stopName: stop.name || 'unknown',
+      stopId: stop.id || 'unknown',
+      hasSequenceOrder: 'sequence_order' in stop,
+      hasLongitude: 'longitude' in stop,
+      sequenceOrderValue: stop.sequence_order,
+      longitudeValue: stop.longitude
+    });
+
     return {
       order: null,
       isKnown: false,
@@ -38,10 +66,24 @@ export class Route66SequenceUtils {
   }
 
   /**
-   * Sort stops by Route 66 sequence order
+   * Sort stops by Route 66 sequence order with enhanced validation
    */
   static sortBySequence(stops: TripStop[], direction: 'east-to-west' | 'west-to-east' = 'west-to-east'): TripStop[] {
-    const sortedStops = [...stops].sort((a, b) => {
+    // Validate input array
+    if (!Array.isArray(stops)) {
+      console.error('❌ SEQUENCE SORT: Invalid stops array:', typeof stops);
+      return [];
+    }
+
+    const validStops = stops.filter(stop => {
+      if (!stop || typeof stop !== 'object') {
+        console.warn('⚠️ SEQUENCE SORT: Filtering out invalid stop:', stop);
+        return false;
+      }
+      return true;
+    });
+
+    const sortedStops = [...validStops].sort((a, b) => {
       const aInfo = this.getSequenceInfo(a);
       const bInfo = this.getSequenceInfo(b);
 
@@ -55,10 +97,12 @@ export class Route66SequenceUtils {
       }
 
       // Fallback to alphabetical
-      return a.name.localeCompare(b.name);
+      const aName = a.name || 'unknown';
+      const bName = b.name || 'unknown';
+      return aName.localeCompare(bName);
     });
 
-    console.log(`🔄 SEQUENCE SORT: Sorted ${stops.length} stops ${direction}`);
+    console.log(`🔄 SEQUENCE SORT: Sorted ${validStops.length} stops ${direction}`);
     return sortedStops;
   }
 
@@ -116,9 +160,6 @@ export class Route66SequenceUtils {
     return bestStop;
   }
 
-  /**
-   * Calculate optimal sequence-based spacing for multiple stops
-   */
   static calculateOptimalSpacing(
     startStop: TripStop,
     endStop: TripStop,
@@ -145,9 +186,6 @@ export class Route66SequenceUtils {
     return targetSequences;
   }
 
-  /**
-   * Detect sequence violations in a trip plan
-   */
   static detectSequenceViolations(stops: TripStop[]): {
     hasViolations: boolean;
     backtrackingCount: number;
