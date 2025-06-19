@@ -1,4 +1,3 @@
-
 import { TripStop } from '../../../types/TripStop';
 
 export interface ValidationResult {
@@ -9,16 +8,34 @@ export interface ValidationResult {
 
 export class CentralizedStopValidator {
   /**
-   * BULLETPROOF validation for TripStop objects - prevents all undefined coordinate access
+   * PHASE 1-4: BULLETPROOF validation for TripStop objects - prevents all undefined coordinate access
    */
   static validateTripStop(stop: any, context: string = 'unknown'): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // CRITICAL: First check - absolute null/undefined safety
+    console.log(`🛡️ PHASE 1 DEBUG: Validating TripStop in ${context}:`, {
+      stop: {
+        exists: !!stop,
+        type: typeof stop,
+        isNull: stop === null,
+        isUndefined: stop === undefined,
+        keys: stop ? Object.keys(stop) : 'none',
+        name: stop?.name || 'unnamed',
+        hasLatitude: stop && 'latitude' in stop,
+        hasLongitude: stop && 'longitude' in stop,
+        latitude: stop?.latitude,
+        longitude: stop?.longitude
+      },
+      context,
+      stack: new Error().stack?.split('\n').slice(1, 3).join('\n')
+    });
+
+    // PHASE 2: CRITICAL - First check - absolute null/undefined safety
     if (stop === null) {
-      errors.push(`Stop is null in ${context}`);
-      console.error(`❌ CRITICAL: Stop is null in ${context}`, { 
+      const error = `Stop is null in ${context}`;
+      errors.push(error);
+      console.error(`❌ PHASE 2 CRITICAL: ${error}`, { 
         stop, 
         context,
         stack: new Error().stack?.split('\n').slice(1, 3).join('\n')
@@ -27,8 +44,9 @@ export class CentralizedStopValidator {
     }
 
     if (stop === undefined) {
-      errors.push(`Stop is undefined in ${context}`);
-      console.error(`❌ CRITICAL: Stop is undefined in ${context}`, { 
+      const error = `Stop is undefined in ${context}`;
+      errors.push(error);
+      console.error(`❌ PHASE 2 CRITICAL: ${error}`, { 
         stop, 
         context,
         stack: new Error().stack?.split('\n').slice(1, 3).join('\n')
@@ -37,8 +55,9 @@ export class CentralizedStopValidator {
     }
 
     if (typeof stop !== 'object') {
-      errors.push(`Stop is not an object (${typeof stop}) in ${context}`);
-      console.error(`❌ CRITICAL: Stop is not an object in ${context}`, { 
+      const error = `Stop is not an object (${typeof stop}) in ${context}`;
+      errors.push(error);
+      console.error(`❌ PHASE 2 CRITICAL: ${error}`, { 
         stop, 
         type: typeof stop,
         context,
@@ -47,10 +66,11 @@ export class CentralizedStopValidator {
       return { isValid: false, errors, warnings };
     }
 
-    // Required string properties with bulletproof checking
-    if (!('id' in stop) || stop.id === null || stop.id === undefined || typeof stop.id !== 'string' || stop.id.trim() === '') {
-      errors.push(`Invalid or missing ID in ${context}`);
-      console.error(`❌ CRITICAL: Invalid ID in ${context}`, { 
+    // PHASE 2: Required string properties with bulletproof checking
+    if (!this.hasValidProperty(stop, 'id', 'string')) {
+      const error = `Invalid or missing ID in ${context}`;
+      errors.push(error);
+      console.error(`❌ PHASE 2 CRITICAL: ${error}`, { 
         hasId: 'id' in stop,
         id: stop.id,
         idType: typeof stop.id,
@@ -58,9 +78,10 @@ export class CentralizedStopValidator {
       });
     }
 
-    if (!('name' in stop) || stop.name === null || stop.name === undefined || typeof stop.name !== 'string' || stop.name.trim() === '') {
-      errors.push(`Invalid or missing name in ${context}`);
-      console.error(`❌ CRITICAL: Invalid name in ${context}`, { 
+    if (!this.hasValidProperty(stop, 'name', 'string')) {
+      const error = `Invalid or missing name in ${context}`;
+      errors.push(error);
+      console.error(`❌ PHASE 2 CRITICAL: ${error}`, { 
         hasName: 'name' in stop,
         name: stop.name,
         nameType: typeof stop.name,
@@ -68,79 +89,24 @@ export class CentralizedStopValidator {
       });
     }
 
-    // BULLETPROOF coordinate validation - this is where the error occurs
-    if (!('latitude' in stop)) {
-      errors.push(`Missing latitude property in ${context}`);
-      console.error(`❌ CRITICAL: Missing latitude property in ${context}`, { 
-        stop: JSON.stringify(stop, null, 2),
-        properties: Object.keys(stop),
-        context
-      });
-    } else if (stop.latitude === null || stop.latitude === undefined) {
-      errors.push(`Latitude is null/undefined in ${context}`);
-      console.error(`❌ CRITICAL: Latitude is null/undefined in ${context}`, { 
-        latitude: stop.latitude,
-        context
-      });
-    } else if (typeof stop.latitude !== 'number') {
-      errors.push(`Latitude is not a number (${typeof stop.latitude}) in ${context}`);
-      console.error(`❌ CRITICAL: Latitude is not a number in ${context}`, { 
-        latitude: stop.latitude,
-        type: typeof stop.latitude,
-        context
-      });
-    } else if (isNaN(stop.latitude)) {
-      errors.push(`Latitude is NaN in ${context}`);
-      console.error(`❌ CRITICAL: Latitude is NaN in ${context}`, { 
-        latitude: stop.latitude,
-        context
-      });
-    } else if (stop.latitude < -90 || stop.latitude > 90) {
-      errors.push(`Latitude out of valid range (${stop.latitude}) in ${context}`);
-      console.error(`❌ CRITICAL: Latitude out of range in ${context}`, { 
-        latitude: stop.latitude,
-        context
-      });
+    // PHASE 2: BULLETPROOF coordinate validation - this is where the error occurs
+    const latitudeValidation = this.validateCoordinateProperty(stop, 'latitude', context);
+    if (!latitudeValidation.isValid) {
+      errors.push(...latitudeValidation.errors);
+      warnings.push(...latitudeValidation.warnings);
     }
 
-    if (!('longitude' in stop)) {
-      errors.push(`Missing longitude property in ${context}`);
-      console.error(`❌ CRITICAL: Missing longitude property in ${context}`, { 
-        stop: JSON.stringify(stop, null, 2),
-        properties: Object.keys(stop),
-        context
-      });
-    } else if (stop.longitude === null || stop.longitude === undefined) {
-      errors.push(`Longitude is null/undefined in ${context}`);
-      console.error(`❌ CRITICAL: Longitude is null/undefined in ${context}`, { 
-        longitude: stop.longitude,
-        context
-      });
-    } else if (typeof stop.longitude !== 'number') {
-      errors.push(`Longitude is not a number (${typeof stop.longitude}) in ${context}`);
-      console.error(`❌ CRITICAL: Longitude is not a number in ${context}`, { 
-        longitude: stop.longitude,
-        type: typeof stop.longitude,
-        context
-      });
-    } else if (isNaN(stop.longitude)) {
-      errors.push(`Longitude is NaN in ${context}`);
-      console.error(`❌ CRITICAL: Longitude is NaN in ${context}`, { 
-        longitude: stop.longitude,
-        context
-      });
-    } else if (stop.longitude < -180 || stop.longitude > 180) {
-      errors.push(`Longitude out of valid range (${stop.longitude}) in ${context}`);
-      console.error(`❌ CRITICAL: Longitude out of range in ${context}`, { 
-        longitude: stop.longitude,
-        context
-      });
+    const longitudeValidation = this.validateCoordinateProperty(stop, 'longitude', context);
+    if (!longitudeValidation.isValid) {
+      errors.push(...longitudeValidation.errors);
+      warnings.push(...longitudeValidation.warnings);
     }
 
-    // Zero coordinate warning
+    // PHASE 4: Zero coordinate warning
     if (stop.latitude === 0 && stop.longitude === 0) {
-      warnings.push(`Coordinates are both zero (likely missing data) in ${context}`);
-      console.warn(`⚠️ Zero coordinates in ${context}`, { 
+      const warning = `Coordinates are both zero (likely missing data) in ${context}`;
+      warnings.push(warning);
+      console.warn(`⚠️ PHASE 4: ${warning}`, { 
         name: stop.name,
         context
       });
@@ -149,7 +115,7 @@ export class CentralizedStopValidator {
     const isValid = errors.length === 0;
 
     if (!isValid) {
-      console.error(`❌ VALIDATION FAILED in ${context}:`, { 
+      console.error(`❌ PHASE 2: VALIDATION FAILED in ${context}:`, { 
         stopName: stop?.name || 'unknown',
         stopId: stop?.id || 'unknown',
         errors, 
@@ -158,15 +124,99 @@ export class CentralizedStopValidator {
         stack: new Error().stack?.split('\n').slice(1, 5).join('\n')
       });
     } else if (warnings.length > 0) {
-      console.warn(`⚠️ VALIDATION WARNINGS in ${context}:`, { 
+      console.warn(`⚠️ PHASE 4: VALIDATION WARNINGS in ${context}:`, { 
         stopName: stop.name,
         warnings 
       });
     } else {
-      console.log(`✅ VALIDATION PASSED in ${context}: ${stop.name}`);
+      console.log(`✅ PHASE 5: VALIDATION PASSED in ${context}: ${stop.name}`);
     }
 
     return { isValid, errors, warnings };
+  }
+
+  /**
+   * PHASE 2: Validate coordinate property with comprehensive error checking
+   */
+  private static validateCoordinateProperty(
+    stop: any, 
+    property: 'latitude' | 'longitude', 
+    context: string
+  ): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!(property in stop)) {
+      errors.push(`Missing ${property} property in ${context}`);
+      console.error(`❌ PHASE 2 CRITICAL: Missing ${property} property in ${context}`, { 
+        stop: JSON.stringify(stop, null, 2),
+        properties: Object.keys(stop),
+        context
+      });
+      return { isValid: false, errors, warnings };
+    }
+
+    const value = stop[property];
+
+    if (value === null || value === undefined) {
+      errors.push(`${property} is ${value === null ? 'null' : 'undefined'} in ${context}`);
+      console.error(`❌ PHASE 2 CRITICAL: ${property} is ${value === null ? 'null' : 'undefined'} in ${context}`, { 
+        [property]: value,
+        context
+      });
+      return { isValid: false, errors, warnings };
+    }
+
+    if (typeof value !== 'number') {
+      errors.push(`${property} is not a number (${typeof value}) in ${context}`);
+      console.error(`❌ PHASE 2 CRITICAL: ${property} is not a number in ${context}`, { 
+        [property]: value,
+        type: typeof value,
+        context
+      });
+      return { isValid: false, errors, warnings };
+    }
+
+    if (isNaN(value)) {
+      errors.push(`${property} is NaN in ${context}`);
+      console.error(`❌ PHASE 2 CRITICAL: ${property} is NaN in ${context}`, { 
+        [property]: value,
+        context
+      });
+      return { isValid: false, errors, warnings };
+    }
+
+    // PHASE 2: Validate coordinate ranges
+    if (property === 'latitude' && (value < -90 || value > 90)) {
+      errors.push(`Latitude out of valid range (${value}) in ${context}`);
+      console.error(`❌ PHASE 2 CRITICAL: Latitude out of range in ${context}`, { 
+        latitude: value,
+        context
+      });
+      return { isValid: false, errors, warnings };
+    }
+
+    if (property === 'longitude' && (value < -180 || value > 180)) {
+      errors.push(`Longitude out of valid range (${value}) in ${context}`);
+      console.error(`❌ PHASE 2 CRITICAL: Longitude out of range in ${context}`, { 
+        longitude: value,
+        context
+      });
+      return { isValid: false, errors, warnings };
+    }
+
+    return { isValid: true, errors, warnings };
+  }
+
+  /**
+   * PHASE 2: Helper to validate object properties safely
+   */
+  private static hasValidProperty(obj: any, property: string, expectedType: string): boolean {
+    if (!(property in obj)) return false;
+    if (obj[property] === null || obj[property] === undefined) return false;
+    if (typeof obj[property] !== expectedType) return false;
+    if (expectedType === 'string' && obj[property].trim() === '') return false;
+    return true;
   }
 
   /**

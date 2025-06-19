@@ -1,3 +1,4 @@
+
 export class DistanceCalculationService {
   /**
    * Calculate distance between two points with comprehensive validation
@@ -8,81 +9,179 @@ export class DistanceCalculationService {
     lat2: number | undefined,
     lng2: number | undefined
   ): number {
-    // CRITICAL: Validate all inputs before any calculation
-    if (lat1 === undefined || lat1 === null || typeof lat1 !== 'number' || isNaN(lat1)) {
-      console.error('❌ DISTANCE: Invalid lat1:', { lat1, type: typeof lat1 });
-      return 0;
-    }
-    
-    if (lng1 === undefined || lng1 === null || typeof lng1 !== 'number' || isNaN(lng1)) {
-      console.error('❌ DISTANCE: Invalid lng1:', { lng1, type: typeof lng1 });
-      return 0;
-    }
-    
-    if (lat2 === undefined || lat2 === null || typeof lat2 !== 'number' || isNaN(lat2)) {
-      console.error('❌ DISTANCE: Invalid lat2:', { lat2, type: typeof lat2 });
-      return 0;
-    }
-    
-    if (lng2 === undefined || lng2 === null || typeof lng2 !== 'number' || isNaN(lng2)) {
-      console.error('❌ DISTANCE: Invalid lng2:', { lng2, type: typeof lng2 });
+    console.log(`📏 PHASE 1 DEBUG: Distance calculation requested`, {
+      lat1: { value: lat1, type: typeof lat1, isValid: this.isValidCoordinate(lat1) },
+      lng1: { value: lng1, type: typeof lng1, isValid: this.isValidCoordinate(lng1) },
+      lat2: { value: lat2, type: typeof lat2, isValid: this.isValidCoordinate(lat2) },
+      lng2: { value: lng2, type: typeof lng2, isValid: this.isValidCoordinate(lng2) },
+      stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+    });
+
+    // PHASE 2: BULLETPROOF validation - check each coordinate individually
+    const validationResults = {
+      lat1: this.validateCoordinate(lat1, 'latitude', 'lat1'),
+      lng1: this.validateCoordinate(lng1, 'longitude', 'lng1'),
+      lat2: this.validateCoordinate(lat2, 'latitude', 'lat2'),
+      lng2: this.validateCoordinate(lng2, 'longitude', 'lng2')
+    };
+
+    // If any validation fails, return 0 and log detailed error
+    const failedValidations = Object.entries(validationResults).filter(([_, result]) => !result.isValid);
+    if (failedValidations.length > 0) {
+      console.error('❌ PHASE 2: Distance calculation failed - invalid coordinates:', {
+        failedValidations: failedValidations.map(([key, result]) => ({ [key]: result })),
+        allInputs: { lat1, lng1, lat2, lng2 }
+      });
       return 0;
     }
 
     try {
-      // Haversine formula
+      // PHASE 4: Safe calculation with validated coordinates
       const R = 3959; // Earth's radius in miles
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lng2 - lng1) * Math.PI / 180;
+      const dLat = (lat2! - lat1!) * Math.PI / 180;
+      const dLon = (lng2! - lng1!) * Math.PI / 180;
       const a = 
         Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.cos(lat1! * Math.PI / 180) * Math.cos(lat2! * Math.PI / 180) * 
         Math.sin(dLon/2) * Math.sin(dLon/2);
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       const distance = R * c;
       
+      console.log(`✅ PHASE 4: Distance calculated successfully: ${distance.toFixed(1)} miles`);
       return distance;
     } catch (error) {
-      console.error('❌ DISTANCE CALCULATION ERROR:', error, {
-        lat1, lng1, lat2, lng2
+      console.error('❌ PHASE 3: Distance calculation error caught:', {
+        error,
+        inputs: { lat1, lng1, lat2, lng2 },
+        stack: error instanceof Error ? error.stack : 'No stack trace'
       });
       return 0;
     }
   }
 
   /**
+   * PHASE 2: Comprehensive coordinate validation
+   */
+  private static validateCoordinate(
+    coord: number | undefined,
+    type: 'latitude' | 'longitude',
+    paramName: string
+  ): { isValid: boolean; error?: string } {
+    if (coord === undefined || coord === null) {
+      return { isValid: false, error: `${paramName} is ${coord === undefined ? 'undefined' : 'null'}` };
+    }
+    
+    if (typeof coord !== 'number') {
+      return { isValid: false, error: `${paramName} is not a number (${typeof coord})` };
+    }
+    
+    if (isNaN(coord)) {
+      return { isValid: false, error: `${paramName} is NaN` };
+    }
+    
+    if (!isFinite(coord)) {
+      return { isValid: false, error: `${paramName} is not finite` };
+    }
+    
+    // Check coordinate ranges
+    if (type === 'latitude' && (coord < -90 || coord > 90)) {
+      return { isValid: false, error: `${paramName} out of latitude range: ${coord}` };
+    }
+    
+    if (type === 'longitude' && (coord < -180 || coord > 180)) {
+      return { isValid: false, error: `${paramName} out of longitude range: ${coord}` };
+    }
+    
+    return { isValid: true };
+  }
+
+  /**
+   * PHASE 2: Quick coordinate validation helper
+   */
+  private static isValidCoordinate(coord: any): boolean {
+    return typeof coord === 'number' && !isNaN(coord) && isFinite(coord);
+  }
+
+  /**
    * Safe distance calculation between two objects with coordinates
    */
   static calculateDistanceBetweenObjects(obj1: any, obj2: any): number {
-    // CRITICAL: Validate objects exist
-    if (!obj1) {
-      console.error('❌ DISTANCE: obj1 is null/undefined:', { obj1, stack: new Error().stack?.split('\n').slice(1, 3).join('\n') });
-      return 0;
-    }
-    
-    if (!obj2) {
-      console.error('❌ DISTANCE: obj2 is null/undefined:', { obj2, stack: new Error().stack?.split('\n').slice(1, 3).join('\n') });
+    console.log(`📏 PHASE 1 DEBUG: Object distance calculation requested`, {
+      obj1: {
+        exists: !!obj1,
+        type: typeof obj1,
+        hasLatitude: obj1 && 'latitude' in obj1,
+        hasLongitude: obj1 && 'longitude' in obj1,
+        latitude: obj1?.latitude,
+        longitude: obj1?.longitude,
+        name: obj1?.name || 'unnamed'
+      },
+      obj2: {
+        exists: !!obj2,
+        type: typeof obj2,
+        hasLatitude: obj2 && 'latitude' in obj2,
+        hasLongitude: obj2 && 'longitude' in obj2,
+        latitude: obj2?.latitude,
+        longitude: obj2?.longitude,
+        name: obj2?.name || 'unnamed'
+      },
+      stack: new Error().stack?.split('\n').slice(1, 4).join('\n')
+    });
+
+    // PHASE 2: BULLETPROOF object validation
+    const obj1Validation = this.validateObject(obj1, 'obj1');
+    const obj2Validation = this.validateObject(obj2, 'obj2');
+
+    if (!obj1Validation.isValid) {
+      console.error('❌ PHASE 2: Object 1 validation failed:', obj1Validation.error);
       return 0;
     }
 
-    // CRITICAL: Validate objects are actually objects
-    if (typeof obj1 !== 'object') {
-      console.error('❌ DISTANCE: obj1 is not an object:', { obj1, type: typeof obj1 });
-      return 0;
-    }
-    
-    if (typeof obj2 !== 'object') {
-      console.error('❌ DISTANCE: obj2 is not an object:', { obj2, type: typeof obj2 });
+    if (!obj2Validation.isValid) {
+      console.error('❌ PHASE 2: Object 2 validation failed:', obj2Validation.error);
       return 0;
     }
 
-    // Extract coordinates safely
+    // PHASE 4: Extract coordinates safely
     const lat1 = obj1.latitude;
     const lng1 = obj1.longitude;
     const lat2 = obj2.latitude;
     const lng2 = obj2.longitude;
 
     return this.calculateDistance(lat1, lng1, lat2, lng2);
+  }
+
+  /**
+   * PHASE 2: Comprehensive object validation
+   */
+  private static validateObject(obj: any, paramName: string): { isValid: boolean; error?: string } {
+    if (!obj) {
+      return { isValid: false, error: `${paramName} is ${obj === null ? 'null' : 'undefined'}` };
+    }
+
+    if (typeof obj !== 'object') {
+      return { isValid: false, error: `${paramName} is not an object (${typeof obj})` };
+    }
+
+    if (!('latitude' in obj)) {
+      return { isValid: false, error: `${paramName} missing latitude property` };
+    }
+
+    if (!('longitude' in obj)) {
+      return { isValid: false, error: `${paramName} missing longitude property` };
+    }
+
+    const latValidation = this.validateCoordinate(obj.latitude, 'latitude', `${paramName}.latitude`);
+    if (!latValidation.isValid) {
+      return { isValid: false, error: latValidation.error };
+    }
+
+    const lngValidation = this.validateCoordinate(obj.longitude, 'longitude', `${paramName}.longitude`);
+    if (!lngValidation.isValid) {
+      return { isValid: false, error: lngValidation.error };
+    }
+
+    return { isValid: true };
   }
 
   /**
@@ -151,5 +250,25 @@ export class DistanceCalculationService {
     });
     
     return finalTime;
+  }
+
+  /**
+   * PHASE 5: Testing and validation helper
+   */
+  static validateDistanceInputs(obj1: any, obj2: any): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    const obj1Validation = this.validateObject(obj1, 'start');
+    const obj2Validation = this.validateObject(obj2, 'end');
+    
+    if (!obj1Validation.isValid) {
+      errors.push(`Start location: ${obj1Validation.error}`);
+    }
+    
+    if (!obj2Validation.isValid) {
+      errors.push(`End location: ${obj2Validation.error}`);
+    }
+    
+    return { isValid: errors.length === 0, errors };
   }
 }
