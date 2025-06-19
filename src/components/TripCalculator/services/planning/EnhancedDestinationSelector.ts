@@ -52,24 +52,24 @@ export class EnhancedDestinationSelector {
     // CRITICAL: Validate coordinates exist and are valid numbers - ENHANCED CHECKS
     if (!DestinationValidator.isValidTripStop(startStop)) {
       console.error('❌ CRITICAL: Invalid startStop - failed validation:', {
-        id: startStop?.id || 'missing',
-        name: startStop?.name || 'missing',
-        latitude: startStop?.latitude,
-        longitude: startStop?.longitude,
-        latitudeType: typeof startStop?.latitude,
-        longitudeType: typeof startStop?.longitude
+        id: (startStop as any)?.id || 'missing',
+        name: (startStop as any)?.name || 'missing',
+        latitude: (startStop as any)?.latitude,
+        longitude: (startStop as any)?.longitude,
+        latitudeType: typeof (startStop as any)?.latitude,
+        longitudeType: typeof (startStop as any)?.longitude
       });
       return [];
     }
 
     if (!DestinationValidator.isValidTripStop(endStop)) {
       console.error('❌ CRITICAL: Invalid endStop - failed validation:', {
-        id: endStop?.id || 'missing',
-        name: endStop?.name || 'missing',
-        latitude: endStop?.latitude,
-        longitude: endStop?.longitude,
-        latitudeType: typeof endStop?.latitude,
-        longitudeType: typeof endStop?.longitude
+        id: (endStop as any)?.id || 'missing',
+        name: (endStop as any)?.name || 'missing',
+        latitude: (endStop as any)?.latitude,
+        longitude: (endStop as any)?.longitude,
+        latitudeType: typeof (endStop as any)?.latitude,
+        longitudeType: typeof (endStop as any)?.longitude
       });
       return [];
     }

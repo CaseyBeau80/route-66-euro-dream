@@ -81,13 +81,15 @@ export class DestinationValidator {
       if (this.isValidTripStop(stop)) {
         validStops.push(stop as TripStop);
       } else {
+        // Safe property access with type assertion
+        const stopObj = stop as any;
         console.warn(`⚠️ VALIDATION: Skipping invalid stop at index ${i}:`, {
-          id: (stop && typeof stop === 'object' && 'id' in stop) ? stop.id : 'no-id',
-          name: (stop && typeof stop === 'object' && 'name' in stop) ? stop.name : 'no-name',
-          hasLatitude: (stop && typeof stop === 'object' && 'latitude' in stop),
-          hasLongitude: (stop && typeof stop === 'object' && 'longitude' in stop),
-          latitudeType: (stop && typeof stop === 'object' && 'latitude' in stop) ? typeof stop.latitude : 'missing',
-          longitudeType: (stop && typeof stop === 'object' && 'longitude' in stop) ? typeof stop.longitude : 'missing'
+          id: stopObj?.id || 'no-id',
+          name: stopObj?.name || 'no-name',
+          hasLatitude: 'latitude' in stopObj,
+          hasLongitude: 'longitude' in stopObj,
+          latitudeType: typeof stopObj?.latitude,
+          longitudeType: typeof stopObj?.longitude
         });
       }
     }
@@ -125,9 +127,11 @@ export class DestinationValidator {
     for (const city of canonicalStops) {
       // Check validity first
       if (!this.isValidTripStop(city)) {
+        // Safe property access with type assertion
+        const cityObj = city as any;
         console.warn(`⚠️ VALIDATION: Filtering out invalid city:`, {
-          id: (city && typeof city === 'object' && 'id' in city) ? city.id : 'no-id',
-          name: (city && typeof city === 'object' && 'name' in city) ? city.name : 'no-name'
+          id: cityObj?.id || 'no-id',
+          name: cityObj?.name || 'no-name'
         });
         continue;
       }
