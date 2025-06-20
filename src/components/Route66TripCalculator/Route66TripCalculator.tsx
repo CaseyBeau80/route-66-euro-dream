@@ -49,7 +49,7 @@ const Route66TripCalculator: React.FC = () => {
     setFormData(prev => ({ ...prev, travelDays: days }));
   };
 
-  const handleTripStyleChange = (style: 'balanced' | 'destination-focused') => {
+  const handleTripStyleChange = (style: 'destination-focused') => {
     setFormData(prev => ({ ...prev, tripStyle: style }));
   };
 
