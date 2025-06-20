@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import TripPlannerForm from '../TripCalculator/components/TripPlannerForm';
+import TripPlannerForm from './components/TripPlannerForm';
 import TripCalculatorResults from '../TripCalculator/TripCalculatorResults';
 import CostEstimatorSection from '../TripCalculator/components/CostEstimatorSection';
 import { useTripCalculation } from './hooks/useTripCalculation';
 import CoordinateErrorBoundary from '../TripCalculator/components/CoordinateErrorBoundary';
 
 const Route66TripCalculator: React.FC = () => {
-  const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip } = useTripCalculation();
+  const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip, formData } = useTripCalculation();
 
   console.log('✨ Route66TripCalculator: Component mounted');
 
@@ -42,9 +42,15 @@ const Route66TripCalculator: React.FC = () => {
               onError={handleCoordinateError}
             >
               <TripPlannerForm
-                onCalculateTrip={calculateTrip}
-                isPlanning={isCalculating}
+                formData={formData}
+                onStartDateChange={(date) => {/* TODO: implement */}}
+                onLocationChange={(type, location) => {/* TODO: implement */}}
+                onTravelDaysChange={(days) => {/* TODO: implement */}}
+                onTripStyleChange={(style) => {/* TODO: implement */}}
+                onPlanTrip={calculateTrip}
                 onResetTrip={resetTrip}
+                isPlanning={isCalculating}
+                tripPlan={tripPlan}
               />
             </CoordinateErrorBoundary>
           </CardContent>
@@ -70,7 +76,10 @@ const Route66TripCalculator: React.FC = () => {
             fallbackMessage="There was an issue with the cost estimator."
             onError={handleCoordinateError}
           >
-            <CostEstimatorSection tripPlan={tripPlan} />
+            <CostEstimatorSection 
+              formData={formData}
+              tripPlan={tripPlan} 
+            />
           </CoordinateErrorBoundary>
         )}
       </div>

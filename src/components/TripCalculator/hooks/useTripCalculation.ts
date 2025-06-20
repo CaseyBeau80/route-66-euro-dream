@@ -15,17 +15,17 @@ export const useTripCalculation = () => {
     tripStartDate: new Date()
   });
 
-  const calculateTrip = useCallback(async (data: TripFormData) => {
+  const calculateTrip = useCallback(async (data?: TripFormData) => {
     setIsCalculating(true);
     try {
       // Implementation would go here
-      console.log('Calculating trip with data:', data);
+      console.log('Calculating trip with data:', data || formData);
       // Simulate trip calculation
       await new Promise(resolve => setTimeout(resolve, 2000));
     } finally {
       setIsCalculating(false);
     }
-  }, []);
+  }, [formData]);
 
   const resetTrip = useCallback(() => {
     setTripPlan(null);
@@ -38,6 +38,7 @@ export const useTripCalculation = () => {
     formData,
     setFormData,
     calculateTrip,
-    resetTrip
+    resetTrip,
+    planningResult: null // Add planningResult to match the expected interface
   };
 };
