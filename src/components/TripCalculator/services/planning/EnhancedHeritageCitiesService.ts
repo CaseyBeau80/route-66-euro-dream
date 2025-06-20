@@ -42,23 +42,42 @@ export class EnhancedHeritageCitiesService {
         console.warn(`⚠️ Could not find exact matches for start/end locations, using fallback`);
       }
       
+      const finalStartStop = startStop || validStops[0];
+      const finalEndStop = endStop || validStops[validStops.length - 1];
+      
       // Create segments based on available days
       const segments = this.createHeritageCitiesSegments(
-        startStop || validStops[0],
-        endStop || validStops[validStops.length - 1],
+        finalStartStop,
+        finalEndStop,
         validStops,
         travelDays
       );
       
+      // Calculate total distance and driving time
+      const totalDistance = this.calculateTotalDistance(segments);
+      const totalDrivingTime = segments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0);
+      
+      // Create complete TripPlan object with all required properties
       const tripPlan: TripPlan = {
+        id: `heritage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: `${startLocation} to ${endLocation} Heritage Cities Route 66 Adventure`,
-        segments,
-        totalDistance: this.calculateTotalDistance(segments),
+        startCity: finalStartStop.name,
+        endCity: finalEndStop.name,
+        startLocation: startLocation,
+        endLocation: endLocation,
+        startDate: new Date(),
         totalDays: travelDays,
-        tripStyle: 'destination-focused'
+        totalDistance: totalDistance,
+        totalMiles: totalDistance,
+        totalDrivingTime: totalDrivingTime,
+        segments: segments,
+        dailySegments: segments, // Ensure both properties are set
+        stops: validStops,
+        tripStyle: 'destination-focused',
+        lastUpdated: new Date()
       };
       
-      console.log(`✅ HERITAGE CITIES: Created ${segments.length} day trip plan`);
+      console.log(`✅ HERITAGE CITIES: Created complete trip plan with ${segments.length} segments`);
       return tripPlan;
       
     } catch (error) {
@@ -68,7 +87,7 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Create segments for heritage cities trip
+   * Create segments for heritage cities trip with proper structure
    */
   private static createHeritageCitiesSegments(
     startStop: TripStop,
@@ -78,23 +97,45 @@ export class EnhancedHeritageCitiesService {
   ): DailySegment[] {
     const segments: DailySegment[] = [];
     
-    // For now, create basic segments without the invalid 'startStop' property
     for (let day = 1; day <= travelDays; day++) {
       const isLastDay = day === travelDays;
       const currentStop = day === 1 ? startStop : validStops[Math.min(day - 1, validStops.length - 1)];
       const nextStop = isLastDay ? endStop : validStops[Math.min(day, validStops.length - 1)];
       
+      // Get safe coordinates for the destination
+      const destinationCoordinates = CoordinateAccessSafety.safeGetCoordinates(nextStop, `segment-${day}`);
+      
       const segment: DailySegment = {
         day,
-        from: currentStop.name,
-        to: nextStop.name,
+        title: `${currentStop.name} to ${nextStop.name}`,
+        startCity: currentStop.name,
+        endCity: nextStop.name,
         distance: 150, // Placeholder distance
-        estimatedDriveTime: 3, // Placeholder drive time
-        destinationCity: nextStop.name,
-        state: nextStop.state,
-        coordinates: CoordinateAccessSafety.safeGetCoordinates(nextStop, `segment-${day}`),
-        recommendedStops: [],
-        nearbyAttractionsCount: 0
+        approximateMiles: 150,
+        driveTimeHours: 3, // Placeholder drive time
+        destination: {
+          city: nextStop.city || nextStop.name,
+          state: nextStop.state || 'Unknown'
+        },
+        recommendedStops: [{
+          stopId: nextStop.id,
+          id: nextStop.id,
+          name: nextStop.name,
+          description: nextStop.description || '',
+          latitude: destinationCoordinates?.latitude || 0,
+          longitude: destinationCoordinates?.longitude || 0,
+          category: nextStop.category || 'destination_city',
+          city_name: nextStop.city || nextStop.name,
+          state: nextStop.state || 'Unknown',
+          city: nextStop.city || nextStop.name
+        }],
+        attractions: [{
+          name: nextStop.name,
+          title: nextStop.name,
+          description: nextStop.description || 'Historic Route 66 destination',
+          city: nextStop.city || nextStop.name,
+          category: nextStop.category || 'heritage_site'
+        }]
       };
       
       segments.push(segment);

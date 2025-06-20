@@ -17,9 +17,10 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const fallbackImage = "https://images.unsplash.com/photo-1466442929976-97f336a657be?w=300&h=200&fit=crop";
 
-  // Calculate total drive time from daily segments
-  const totalDriveTimeHours = tripPlan.dailySegments.reduce((total, segment) => {
-    return total + segment.driveTimeHours;
+  // Calculate total drive time from segments (use both segments and dailySegments for compatibility)
+  const segments = tripPlan.segments || tripPlan.dailySegments || [];
+  const totalDriveTimeHours = segments.reduce((total, segment) => {
+    return total + (segment.driveTimeHours || segment.drivingTime || 0);
   }, 0);
 
   const formatDriveTime = (hours: number): string => {
@@ -32,6 +33,10 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
       return `${wholeHours}h ${minutes}m`;
     }
   };
+
+  // Get start and end cities from the trip plan
+  const startCity = tripPlan.startCity || segments[0]?.startCity || tripPlan.startLocation || "Unknown";
+  const endCity = tripPlan.endCity || segments[segments.length - 1]?.endCity || tripPlan.endLocation || "Unknown";
 
   return (
     <>
@@ -52,15 +57,15 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
                 />
               </div>
               <h3 className="font-route66 text-lg text-route66-primary">Starting Point</h3>
-              <p className="text-sm text-route66-text-secondary">{tripPlan.dailySegments[0]?.startCity || "Unknown"}</p>
+              <p className="text-sm text-route66-text-secondary">{startCity}</p>
             </div>
             
             <div className="flex-shrink-0 text-center px-4">
               <div className="bg-route66-primary text-white rounded-full px-4 py-2 font-route66 text-lg mb-2">
-                {tripPlan.totalDays} DAYS
+                {tripPlan.totalDays || segments.length} DAYS
               </div>
               <div className="text-route66-text-secondary font-travel text-sm mb-1">
-                {tripPlan.totalMiles} miles
+                {tripPlan.totalMiles || tripPlan.totalDistance || 0} miles
               </div>
               <div className="text-route66-primary font-travel text-sm font-semibold">
                 {formatDriveTime(totalDriveTimeHours)} drive time
@@ -76,7 +81,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
                 />
               </div>
               <h3 className="font-route66 text-lg text-route66-primary">Destination</h3>
-              <p className="text-sm text-route66-text-secondary">{tripPlan.dailySegments[tripPlan.dailySegments.length-1]?.endCity || "Unknown"}</p>
+              <p className="text-sm text-route66-text-secondary">{endCity}</p>
             </div>
           </div>
 

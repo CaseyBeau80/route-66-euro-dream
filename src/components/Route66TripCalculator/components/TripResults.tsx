@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TripPlan } from '../../TripCalculator/services/planning/TripPlanBuilder';
+import { TripPlan } from '../../TripCalculator/services/planning/TripCompletionService';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,9 +62,10 @@ const TripResults: React.FC<TripResultsProps> = ({
     }).format(amount);
   };
 
-  // Use fallback properties to ensure compatibility
+  // Use fallback properties to ensure compatibility - FIXED to use correct properties
   const startCity = tripPlan.startCity || tripPlan.segments?.[0]?.startCity || tripPlan.startLocation || 'Start';
   const endCity = tripPlan.endCity || tripPlan.segments?.[tripPlan.segments.length - 1]?.endCity || tripPlan.endLocation || 'End';
+  const segments = tripPlan.segments || tripPlan.dailySegments || [];
 
   // Determine if we should show the completion warning with proper null checks
   const shouldShowCompletionWarning = completionAnalysis && originalRequestedDays && 
@@ -92,18 +93,18 @@ const TripResults: React.FC<TripResultsProps> = ({
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-route66-primary">{tripPlan.segments?.length || 0}</div>
+            <div className="text-2xl font-bold text-route66-primary">{segments.length || 0}</div>
             <div className="text-sm text-route66-text-secondary">Days</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">
-              {Math.round(tripPlan.totalDistance || 0)}
+              {Math.round(tripPlan.totalDistance || tripPlan.totalMiles || 0)}
             </div>
             <div className="text-sm text-route66-text-secondary">Miles</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">
-              {Math.round((tripPlan.totalDistance || 0) / 55)}
+              {Math.round((tripPlan.totalDistance || tripPlan.totalMiles || 0) / 55)}
             </div>
             <div className="text-sm text-route66-text-secondary">Drive Hours</div>
           </div>
@@ -126,7 +127,7 @@ const TripResults: React.FC<TripResultsProps> = ({
           Daily Itinerary
         </h3>
         
-        {tripPlan.segments?.map((segment, index) => (
+        {segments.map((segment, index) => (
           <Card key={index} className="p-4 border border-route66-border">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -138,7 +139,7 @@ const TripResults: React.FC<TripResultsProps> = ({
                     Day {segment.day}
                   </h4>
                   <p className="text-sm text-route66-text-secondary">
-                    {segment.startCity} → {segment.endCity}
+                    {segment.startCity || 'Start'} → {segment.endCity || 'End'}
                   </p>
                 </div>
               </div>
@@ -146,17 +147,17 @@ const TripResults: React.FC<TripResultsProps> = ({
               <div className="flex items-center gap-4 text-sm text-route66-text-secondary mt-2 md:mt-0">
                 <div className="flex items-center gap-1">
                   <Route className="w-4 h-4" />
-                  {Math.round(segment.distance)} miles
+                  {Math.round(segment.distance || segment.approximateMiles || 0)} miles
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {Math.round(segment.distance / 55 * 10) / 10} hours
+                  {Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10} hours
                 </div>
               </div>
             </div>
 
             {/* Weather Widget */}
-            {tripStartDate && (
+            {tripStartDate && segment.endCity && (
               <div className="mb-4">
                 <SimpleWeatherWidget segment={segment} tripStartDate={tripStartDate} isSharedView={false} />
               </div>
@@ -173,7 +174,7 @@ const TripResults: React.FC<TripResultsProps> = ({
                     <div key={idx} className="flex items-center gap-2 text-sm">
                       <MapPin className="w-3 h-3 text-route66-primary flex-shrink-0" />
                       <span className="text-route66-text-secondary truncate">
-                        {attraction.name}
+                        {attraction.name || attraction.title}
                       </span>
                     </div>
                   ))}
@@ -189,7 +190,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - FIXED: Ensure share button is always visible */}
       <div className="flex justify-center pt-4">
         <Button onClick={handleShareTrip} className="bg-route66-primary hover:bg-route66-primary/90 text-white px-6 py-2">
           <Share2 className="w-4 h-4 mr-2" />
