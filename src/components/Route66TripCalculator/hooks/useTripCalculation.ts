@@ -11,13 +11,23 @@ export const useTripCalculation = () => {
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [planningResult, setPlanningResult] = useState<EnhancedTripPlanResult | null>(null);
+  const [formData, setFormData] = useState<TripFormData>({
+    startLocation: '',
+    endLocation: '',
+    travelDays: 0,
+    dailyDrivingLimit: 300,
+    tripStyle: 'destination-focused', // FIXED: Only destination-focused allowed
+    tripStartDate: new Date()
+  });
 
   const calculateTrip = useCallback(async (
-    formData: TripFormData,
+    inputFormData?: TripFormData,
     onProgress?: (current: number, total: number, currentSegment?: string) => void
   ) => {
+    const dataToUse = inputFormData || formData;
+    
     console.log('🚗 useTripCalculation: Starting enhanced trip calculation with Google Maps integration', { 
-      formData,
+      formData: dataToUse,
       hasGoogleMaps: GoogleMapsIntegrationService.isAvailable()
     });
     
@@ -27,12 +37,12 @@ export const useTripCalculation = () => {
 
     try {
       // Fix: Use the correct number of arguments and ensure tripStyle is properly typed
-      const tripStyle: 'balanced' | 'destination-focused' = formData.tripStyle === 'destination-focused' ? 'destination-focused' : 'balanced';
+      const tripStyle: 'balanced' | 'destination-focused' = dataToUse.tripStyle === 'destination-focused' ? 'destination-focused' : 'balanced';
       
       const result = await Route66TripPlannerService.planTripWithAnalysis(
-        formData.startLocation,
-        formData.endLocation,
-        formData.travelDays,
+        dataToUse.startLocation,
+        dataToUse.endLocation,
+        dataToUse.travelDays,
         tripStyle
       );
 
@@ -49,7 +59,7 @@ export const useTripCalculation = () => {
         // Ensure the trip plan has the required title property
         const unifiedTripPlan: TripPlan = {
           ...result.tripPlan,
-          title: result.tripPlan.title || `${formData.startLocation} to ${formData.endLocation} Route 66 Adventure`,
+          title: result.tripPlan.title || `${dataToUse.startLocation} to ${dataToUse.endLocation} Route 66 Adventure`,
           tripStyle: tripStyle
         };
         
@@ -90,7 +100,7 @@ export const useTripCalculation = () => {
     } finally {
       setIsCalculating(false);
     }
-  }, []);
+  }, [formData]);
 
   const resetTrip = useCallback(() => {
     console.log('🔄 useTripCalculation: Resetting trip');
@@ -103,6 +113,8 @@ export const useTripCalculation = () => {
     tripPlan,
     isCalculating,
     planningResult,
+    formData,
+    setFormData,
     calculateTrip,
     resetTrip
   };

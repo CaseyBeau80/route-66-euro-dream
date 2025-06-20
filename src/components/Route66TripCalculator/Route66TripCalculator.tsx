@@ -8,7 +8,7 @@ import { useTripCalculation } from './hooks/useTripCalculation';
 import CoordinateErrorBoundary from '../TripCalculator/components/CoordinateErrorBoundary';
 
 const Route66TripCalculator: React.FC = () => {
-  const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip, formData } = useTripCalculation();
+  const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip, formData, setFormData } = useTripCalculation();
 
   console.log('✨ Route66TripCalculator: Component mounted');
 
@@ -28,6 +28,31 @@ const Route66TripCalculator: React.FC = () => {
     };
   }, []);
 
+  const handlePlanTrip = () => {
+    calculateTrip(formData);
+  };
+
+  const handleLocationChange = (type: 'start' | 'end', location: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [type === 'start' ? 'startLocation' : 'endLocation']: location
+    }));
+  };
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (date) {
+      setFormData(prev => ({ ...prev, tripStartDate: date }));
+    }
+  };
+
+  const handleTravelDaysChange = (days: number) => {
+    setFormData(prev => ({ ...prev, travelDays: days }));
+  };
+
+  const handleTripStyleChange = (style: 'balanced' | 'destination-focused') => {
+    setFormData(prev => ({ ...prev, tripStyle: style }));
+  };
+
   return (
     <CoordinateErrorBoundary 
       fallbackMessage="There was an issue with the trip calculator. This might be due to location data problems."
@@ -43,11 +68,11 @@ const Route66TripCalculator: React.FC = () => {
             >
               <TripPlannerForm
                 formData={formData}
-                onStartDateChange={(date) => {/* TODO: implement */}}
-                onLocationChange={(type, location) => {/* TODO: implement */}}
-                onTravelDaysChange={(days) => {/* TODO: implement */}}
-                onTripStyleChange={(style) => {/* TODO: implement */}}
-                onPlanTrip={calculateTrip}
+                onStartDateChange={handleStartDateChange}
+                onLocationChange={handleLocationChange}
+                onTravelDaysChange={handleTravelDaysChange}
+                onTripStyleChange={handleTripStyleChange}
+                onPlanTrip={handlePlanTrip}
                 onResetTrip={resetTrip}
                 isPlanning={isCalculating}
                 tripPlan={tripPlan}
