@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { TripPlan } from '../../TripCalculator/services/planning/TripCompletionService';
+import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
