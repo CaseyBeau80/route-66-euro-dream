@@ -30,6 +30,47 @@ export class SupabaseDataService {
   }
 
   /**
+   * Find stop by name
+   */
+  static async findStopByName(name: string): Promise<TripStop | null> {
+    console.log(`🔍 SUPABASE: Finding stop by name: ${name}`);
+    
+    try {
+      const allStops = await this.fetchAllStops();
+      const foundStop = allStops.find(stop => 
+        stop.name.toLowerCase().includes(name.toLowerCase()) ||
+        stop.city?.toLowerCase().includes(name.toLowerCase())
+      );
+      
+      console.log(`🔍 SUPABASE: Found stop: ${foundStop ? foundStop.name : 'None'}`);
+      return foundStop || null;
+      
+    } catch (error) {
+      console.error('❌ SUPABASE: Error finding stop by name:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get destination cities only
+   */
+  static async getDestinationCities(): Promise<TripStop[]> {
+    console.log('🏙️ SUPABASE: Fetching destination cities');
+    
+    try {
+      const allStops = await this.fetchAllStops();
+      const destinationCities = allStops.filter(stop => stop.category === 'destination_city');
+      
+      console.log(`🏙️ SUPABASE: Found ${destinationCities.length} destination cities`);
+      return destinationCities;
+      
+    } catch (error) {
+      console.error('❌ SUPABASE: Error fetching destination cities:', error);
+      return [];
+    }
+  }
+
+  /**
    * Validate and filter stops to ensure coordinate safety
    */
   private static validateAndFilterStops(rawStops: any[]): TripStop[] {

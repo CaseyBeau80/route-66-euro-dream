@@ -16,15 +16,6 @@ const TripAdjustmentNotice: React.FC<TripAdjustmentNoticeProps> = ({
 
   const getIconAndColors = () => {
     switch (notice.type) {
-      case 'success':
-        return {
-          icon: <MapPin className="h-5 w-5" />,
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200',
-          iconColor: 'text-green-600',
-          titleColor: 'text-green-800',
-          textColor: 'text-green-700'
-        };
       case 'warning':
         return {
           icon: <Clock className="h-5 w-5" />,
@@ -34,9 +25,18 @@ const TripAdjustmentNotice: React.FC<TripAdjustmentNoticeProps> = ({
           titleColor: 'text-amber-800',
           textColor: 'text-amber-700'
         };
-      default:
+      case 'error':
         return {
           icon: <Route className="h-5 w-5" />,
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-200',
+          iconColor: 'text-red-600',
+          titleColor: 'text-red-800',
+          textColor: 'text-red-700'
+        };
+      default: // 'info'
+        return {
+          icon: <MapPin className="h-5 w-5" />,
           bgColor: 'bg-blue-50',
           borderColor: 'border-blue-200',
           iconColor: 'text-blue-600',

@@ -38,15 +38,15 @@ export class PlanningPolicy {
     let finalDays = input.requestedDays;
 
     // Validate minimum days
-    if (finalDays < this.constructor.MIN_DAYS) {
+    if (finalDays < PlanningPolicy.MIN_DAYS) {
       adjustments.push({
         type: 'days_increased',
-        reason: `Minimum ${this.constructor.MIN_DAYS} days required for any Route 66 trip`,
+        reason: `Minimum ${PlanningPolicy.MIN_DAYS} days required for any Route 66 trip`,
         originalValue: finalDays,
-        newValue: this.constructor.MIN_DAYS,
+        newValue: PlanningPolicy.MIN_DAYS,
         impact: 'high'
       });
-      finalDays = this.constructor.MIN_DAYS;
+      finalDays = PlanningPolicy.MIN_DAYS;
     }
 
     // Add warning for limited stops

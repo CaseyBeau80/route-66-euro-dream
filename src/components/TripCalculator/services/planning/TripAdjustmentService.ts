@@ -4,6 +4,7 @@ export interface TripAdjustmentNotice {
   title: string;
   message: string;
   adjustments: string[];
+  details?: string[]; // Add optional details property
 }
 
 export class TripAdjustmentService {
@@ -35,7 +36,8 @@ export class TripAdjustmentService {
       type,
       title,
       message: `Your trip has been adjusted from ${originalDays} to ${finalDays} days to ensure optimal Route 66 experience.`,
-      adjustments: allIssues
+      adjustments: allIssues,
+      details: allIssues // Include details for backward compatibility
     };
   }
 
