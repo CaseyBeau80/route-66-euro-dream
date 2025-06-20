@@ -1,20 +1,17 @@
 
-import { PlanningAdjustment } from './PlanningPolicy';
-
 export interface TripAdjustmentNotice {
-  type: 'info' | 'warning' | 'success';
+  type: 'info' | 'warning' | 'error';
   title: string;
   message: string;
-  details?: string[];
-  showDetails?: boolean;
+  adjustments: string[];
 }
 
 export class TripAdjustmentService {
   /**
-   * Generate user-friendly adjustment notice
+   * Generate adjustment notice for UI display
    */
   static generateAdjustmentNotice(
-    adjustments: PlanningAdjustment[],
+    adjustments: any[],
     warnings: string[],
     originalDays: number,
     finalDays: number
@@ -23,64 +20,36 @@ export class TripAdjustmentService {
       return null;
     }
 
-    // Primary adjustment (usually the most significant one)
-    const primaryAdjustment = adjustments[0];
-    
-    if (primaryAdjustment?.type === 'day_reduction') {
-      return {
-        type: 'info',
-        title: 'Trip Duration Automatically Adjusted',
-        message: `Your trip has been optimized from ${originalDays} to ${finalDays} days to match the available major Route 66 heritage destinations along your route.`,
-        details: [
-          `🏛️ Based on major heritage cities between your start and end points`,
-          `🎯 Ensures you can experience authentic Route 66 destinations each day`,
-          `⏱️ Maintains comfortable driving times (under 10 hours per day)`,
-          `✨ You can still enjoy all the iconic Route 66 experiences!`
-        ],
-        showDetails: true
-      };
+    const adjustmentStrings = adjustments.map(adj => adj.reason);
+    const allIssues = [...adjustmentStrings, ...warnings];
+
+    let type: 'info' | 'warning' | 'error' = 'info';
+    let title = 'Trip Planning Adjustments';
+
+    if (originalDays !== finalDays) {
+      type = 'warning';
+      title = 'Trip Duration Adjusted';
     }
 
-    if (primaryAdjustment?.type === 'day_increase') {
-      return {
-        type: 'warning',
-        title: 'Trip Duration Extended',
-        message: `Your trip has been extended from ${originalDays} to ${finalDays} days to ensure safe and comfortable travel.`,
-        details: adjustments.map(adj => `• ${adj.reason}`),
-        showDetails: false
-      };
-    }
-
-    // General warnings
-    if (warnings.length > 0) {
-      return {
-        type: 'warning',
-        title: 'Planning Adjustments Made',
-        message: warnings[0],
-        details: warnings.slice(1),
-        showDetails: warnings.length > 1
-      };
-    }
-
-    return null;
+    return {
+      type,
+      title,
+      message: `Your trip has been adjusted from ${originalDays} to ${finalDays} days to ensure optimal Route 66 experience.`,
+      adjustments: allIssues
+    };
   }
 
   /**
    * Format adjustment summary for logging
    */
   static formatAdjustmentSummary(
-    adjustments: PlanningAdjustment[],
+    adjustments: any[],
     originalDays: number,
     finalDays: number
   ): string {
-    if (adjustments.length === 0) {
-      return `No adjustments needed (${finalDays} days)`;
-    }
-
-    const summary = adjustments.map(adj => 
-      `${adj.constraint}: ${adj.originalValue}→${adj.adjustedValue} days (${adj.reason})`
-    ).join('; ');
-
-    return `Adjusted: ${originalDays}→${finalDays} days | ${summary}`;
+    if (adjustments.length === 0) return 'No adjustments made';
+    
+    const summary = adjustments.map(adj => `${adj.type}: ${adj.reason}`).join('; ');
+    return `${originalDays}→${finalDays} days: ${summary}`;
   }
 }

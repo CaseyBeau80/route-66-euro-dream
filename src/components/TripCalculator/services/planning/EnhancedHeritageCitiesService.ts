@@ -1,4 +1,3 @@
-
 import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { TripBoundaryService } from './TripBoundaryService';
@@ -6,6 +5,7 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { calculateRealisticDriveTime, validateGeographicProgression } from '../../utils/distanceCalculator';
 import { PlanningPolicy, PlanningAdjustment } from './PlanningPolicy';
 import { TripAdjustmentService, TripAdjustmentNotice } from './TripAdjustmentService';
+import { CoordinateAccessSafety } from './CoordinateAccessSafety';
 
 export class EnhancedHeritageCitiesService {
   // ABSOLUTE CONSTRAINTS - These cannot be exceeded
@@ -20,7 +20,7 @@ export class EnhancedHeritageCitiesService {
   private static readonly MIN_STOPS_FOR_WARNING = 3; // Warn if fewer than 3 real stops found
 
   /**
-   * Plan Heritage Cities trip with constraint-based planning
+   * Plan Heritage Cities trip with BULLETPROOF coordinate validation
    */
   static async planEnhancedHeritageCitiesTrip(
     startLocation: string,
@@ -28,7 +28,7 @@ export class EnhancedHeritageCitiesService {
     travelDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log(`🏛️ ENHANCED Heritage Cities Planning with Constraints: ${startLocation} → ${endLocation} (${travelDays} days requested)`);
+    console.log(`🏛️ ENHANCED Heritage Cities Planning with COORDINATE SAFETY: ${startLocation} → ${endLocation} (${travelDays} days requested)`);
 
     // Validate minimum days requirement
     if (travelDays < 1) {
@@ -37,16 +37,32 @@ export class EnhancedHeritageCitiesService {
     }
 
     try {
-      // Find boundary stops
+      // PHASE 3: Enhanced boundary stop finding with coordinate validation
+      console.log(`🔍 PHASE 3: Finding boundary stops with coordinate validation`);
       const { startStop, endStop, routeStops } = TripBoundaryService.findBoundaryStops(
         startLocation,
         endLocation,
         allStops
       );
 
-      console.log(`✅ Boundary stops found:`, {
-        start: `${startStop.name} (${startStop.state})`,
-        end: `${endStop.name} (${endStop.state})`,
+      // PHASE 3: CRITICAL - Validate coordinates before ANY access
+      console.log(`🔐 PHASE 3: Validating start stop coordinates`);
+      const startCoords = CoordinateAccessSafety.safeGetCoordinates(startStop, 'planEnhanced-startStop');
+      if (!startCoords) {
+        console.error(`❌ PHASE 3 CRITICAL: Start stop has invalid coordinates`, { startStop });
+        throw new Error(`Start location "${startLocation}" has invalid coordinate data`);
+      }
+
+      console.log(`🔐 PHASE 3: Validating end stop coordinates`);
+      const endCoords = CoordinateAccessSafety.safeGetCoordinates(endStop, 'planEnhanced-endStop');
+      if (!endCoords) {
+        console.error(`❌ PHASE 3 CRITICAL: End stop has invalid coordinates`, { endStop });
+        throw new Error(`End location "${endLocation}" has invalid coordinate data`);
+      }
+
+      console.log(`✅ PHASE 3: Boundary stops coordinate validation passed:`, {
+        start: `${startStop.name} (${startCoords.latitude}, ${startCoords.longitude})`,
+        end: `${endStop.name} (${endCoords.latitude}, ${endCoords.longitude})`,
         availableStops: routeStops.length
       });
 
@@ -72,11 +88,21 @@ export class EnhancedHeritageCitiesService {
         warnings: constraintResult.warnings.length
       });
 
-      // Calculate total distance and validate feasibility
-      const totalDistance = DistanceCalculationService.calculateDistance(
-        startStop.latitude, startStop.longitude,
-        endStop.latitude, endStop.longitude
+      // PHASE 3: Calculate total distance with SAFE coordinate access
+      console.log(`📏 PHASE 3: Calculating total distance with coordinate safety`);
+      const totalDistance = CoordinateAccessSafety.wrapCoordinateOperation(
+        () => DistanceCalculationService.calculateDistance(
+          startCoords.latitude, startCoords.longitude,
+          endCoords.latitude, endCoords.longitude
+        ),
+        'total-distance-calculation',
+        0
       );
+
+      if (totalDistance === 0) {
+        console.error(`❌ PHASE 3 CRITICAL: Could not calculate total distance`);
+        throw new Error('Unable to calculate trip distance - coordinate data may be invalid');
+      }
 
       console.log(`📏 Total trip: ${totalDistance.toFixed(1)} miles in ${travelDays} days`);
 
@@ -88,8 +114,8 @@ export class EnhancedHeritageCitiesService {
         travelDays = minRequiredDays;
       }
 
-      // ENHANCED STOP DISCOVERY - Find all possible real destinations
-      const discoveredDestinations = this.enhancedStopDiscovery(
+      // ENHANCED STOP DISCOVERY with coordinate validation
+      const discoveredDestinations = this.enhancedStopDiscoveryWithValidation(
         startStop,
         endStop,
         routeStops,
@@ -99,20 +125,20 @@ export class EnhancedHeritageCitiesService {
 
       console.log(`🔍 Enhanced discovery found ${discoveredDestinations.length} real destinations for ${travelDays} days`);
 
-      // Validate geographic progression
+      // Validate geographic progression with safe coordinate access
       const allStopsInOrder = [startStop, ...discoveredDestinations, endStop];
-      const isEastToWest = startStop.longitude < endStop.longitude;
+      const isEastToWest = startCoords.longitude < endCoords.longitude;
       const progressionValidation = validateGeographicProgression(allStopsInOrder, isEastToWest);
       
       if (!progressionValidation.isValid) {
         console.error(`❌ GEOGRAPHIC VIOLATIONS:`, progressionValidation.violations);
         // Fix the progression by removing problematic stops
-        const fixedDestinations = this.fixGeographicProgression(discoveredDestinations, startStop, endStop, isEastToWest);
+        const fixedDestinations = this.fixGeographicProgressionSafe(discoveredDestinations, startStop, endStop, isEastToWest);
         discoveredDestinations.splice(0, discoveredDestinations.length, ...fixedDestinations);
       }
 
-      // INTELLIGENT SEGMENT DISTRIBUTION - RESPECT ADJUSTED DAYS
-      const { segments, warningMessage } = this.intelligentSegmentDistribution(
+      // INTELLIGENT SEGMENT DISTRIBUTION with coordinate safety
+      const { segments, warningMessage } = this.intelligentSegmentDistributionSafe(
         startStop,
         endStop,
         discoveredDestinations,
@@ -206,27 +232,36 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * ENHANCED STOP DISCOVERY - Comprehensive search for real heritage destinations
+   * ENHANCED STOP DISCOVERY with coordinate validation
    */
-  private static enhancedStopDiscovery(
+  private static enhancedStopDiscoveryWithValidation(
     startStop: TripStop,
     endStop: TripStop,
     routeStops: TripStop[],
     travelDays: number,
     totalDistance: number
   ): TripStop[] {
-    console.log(`🔍 ENHANCED STOP DISCOVERY: Comprehensive search for ${travelDays} days`);
+    console.log(`🔍 ENHANCED STOP DISCOVERY with coordinate validation: Comprehensive search for ${travelDays} days`);
+
+    // Validate start and end coordinates
+    const startCoords = CoordinateAccessSafety.safeGetCoordinates(startStop, 'discovery-start');
+    const endCoords = CoordinateAccessSafety.safeGetCoordinates(endStop, 'discovery-end');
+
+    if (!startCoords || !endCoords) {
+      console.error(`❌ DISCOVERY: Cannot proceed without valid start/end coordinates`);
+      return [];
+    }
 
     // Determine direction
-    const isEastToWest = startStop.longitude < endStop.longitude;
+    const isEastToWest = startCoords.longitude < endCoords.longitude;
     console.log(`📍 Direction: ${isEastToWest ? 'East to West' : 'West to East'}`);
 
-    // STEP 1: Primary heritage stops (existing logic but expanded)
-    const primaryStops = this.filterProgressiveStops(startStop, endStop, routeStops, isEastToWest);
+    // STEP 1: Primary heritage stops (existing logic but with validation)
+    const primaryStops = this.filterProgressiveStopsSafe(startStop, endStop, routeStops, isEastToWest);
     console.log(`🏛️ Primary heritage stops found: ${primaryStops.length}`);
 
     // STEP 2: Secondary category stops (new comprehensive search)
-    const secondaryStops = this.findSecondaryStops(startStop, endStop, routeStops, isEastToWest);
+    const secondaryStops = this.findSecondaryStopsSafe(startStop, endStop, routeStops, isEastToWest);
     console.log(`🎯 Secondary category stops found: ${secondaryStops.length}`);
 
     // STEP 3: Combine and prioritize all discovered stops
@@ -234,8 +269,8 @@ export class EnhancedHeritageCitiesService {
     const uniqueStops = this.deduplicateStops(allDiscoveredStops);
     console.log(`🔄 Total unique stops after deduplication: ${uniqueStops.length}`);
 
-    // STEP 4: Enhanced selection algorithm
-    const selectedDestinations = this.enhancedStopSelection(
+    // STEP 4: Enhanced selection algorithm with coordinate safety
+    const selectedDestinations = this.enhancedStopSelectionSafe(
       startStop,
       endStop,
       uniqueStops,
@@ -248,9 +283,149 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
+   * Filter progressive stops with coordinate safety
+   */
+  private static filterProgressiveStopsSafe(
+    startStop: TripStop,
+    endStop: TripStop,
+    routeStops: TripStop[],
+    isEastToWest: boolean
+  ): TripStop[] {
+    return routeStops.filter(stop => {
+      // First check if we can safely access coordinates
+      const stopCoords = CoordinateAccessSafety.safeGetCoordinates(stop, `progressive-filter-${stop.name || 'unnamed'}`);
+      if (!stopCoords) {
+        console.warn(`⚠️ FILTER: Skipping stop with invalid coordinates: ${stop.name || 'unnamed'}`);
+        return false;
+      }
+
+      // Check if it's geographically relevant
+      return this.isGeographicallyRelevantSafe(stop, startStop, endStop, isEastToWest);
+    });
+  }
+
+  /**
+   * Create segment with coordinate safety
+   */
+  private static createSegmentSafe(fromStop: TripStop, toStop: TripStop, day: number): DailySegment {
+    const fromCoords = CoordinateAccessSafety.safeGetCoordinates(fromStop, `segment-from-${day}`);
+    const toCoords = CoordinateAccessSafety.safeGetCoordinates(toStop, `segment-to-${day}`);
+
+    if (!fromCoords || !toCoords) {
+      console.error(`❌ SEGMENT CREATION: Invalid coordinates for day ${day}`);
+      // Return a fallback segment
+      return {
+        day,
+        startCity: fromStop.name || 'Unknown',
+        endCity: toStop.name || 'Unknown',
+        startStop: fromStop,
+        endStop: toStop,
+        distance: 0,
+        driveTimeHours: this.MIN_DRIVE_HOURS,
+        stops: [toStop],
+        description: `Day ${day}: Unable to calculate distance due to coordinate issues`
+      };
+    }
+
+    const distance = CoordinateAccessSafety.wrapCoordinateOperation(
+      () => DistanceCalculationService.calculateDistance(
+        fromCoords.latitude, fromCoords.longitude,
+        toCoords.latitude, toCoords.longitude
+      ),
+      `segment-distance-day-${day}`,
+      0
+    );
+
+    const driveTimeHours = distance > 0 ? calculateRealisticDriveTime(distance) : this.MIN_DRIVE_HOURS;
+
+    return {
+      day,
+      startCity: fromStop.city_name || fromStop.name,
+      endCity: toStop.city_name || toStop.name,
+      startStop: fromStop,
+      endStop: toStop,
+      distance,
+      driveTimeHours,
+      stops: [toStop],
+      description: `Day ${day}: ${fromStop.name} to ${toStop.name} - ${distance.toFixed(0)} miles (${driveTimeHours.toFixed(1)} hours)`
+    };
+  }
+
+  /**
+   * Check if stop is geographically relevant with expanded radius
+   */
+  private static isGeographicallyRelevantSafe(
+    stop: TripStop,
+    startStop: TripStop,
+    endStop: TripStop,
+    isEastToWest: boolean
+  ): boolean {
+    const stopCoords = CoordinateAccessSafety.safeGetCoordinates(stop, 'geographically-relevant');
+    const startCoords = CoordinateAccessSafety.safeGetCoordinates(startStop, 'geographically-relevant-start');
+    const endCoords = CoordinateAccessSafety.safeGetCoordinates(endStop, 'geographically-relevant-end');
+
+    if (!stopCoords || !startCoords || !endCoords) {
+      return true; // Include by default if coordinates are invalid
+    }
+
+    // Must be between start and end geographically
+    const isBetween = isEastToWest 
+      ? stopCoords.longitude > startCoords.longitude && stopCoords.longitude < endCoords.longitude
+      : stopCoords.longitude < startCoords.longitude && stopCoords.longitude > endCoords.longitude;
+    
+    if (!isBetween) return false;
+    
+    // Must be within expanded distance from direct route
+    const distanceFromRoute = this.calculateDistanceFromDirectRouteSafe(startStop, endStop, stop);
+    return distanceFromRoute < this.EXPANDED_SEARCH_RADIUS;
+  }
+
+  /**
+   * Calculate distance from point to direct route line
+   */
+  private static calculateDistanceFromDirectRouteSafe(
+    startStop: TripStop,
+    endStop: TripStop,
+    candidateStop: TripStop
+  ): number {
+    const startCoords = CoordinateAccessSafety.safeGetCoordinates(startStop, 'route-distance-start');
+    const endCoords = CoordinateAccessSafety.safeGetCoordinates(endStop, 'route-distance-end');
+    const candidateCoords = CoordinateAccessSafety.safeGetCoordinates(candidateStop, 'route-distance-candidate');
+
+    if (!startCoords || !endCoords || !candidateCoords) {
+      return 0; // Return 0 to include the stop if coordinates are invalid
+    }
+
+    return CoordinateAccessSafety.wrapCoordinateOperation(
+      () => {
+        // Calculate direct distance
+        const directDistance = DistanceCalculationService.calculateDistance(
+          startCoords.latitude, startCoords.longitude,
+          endCoords.latitude, endCoords.longitude
+        );
+
+        // Calculate distance through candidate
+        const toCandidate = DistanceCalculationService.calculateDistance(
+          startCoords.latitude, startCoords.longitude,
+          candidateCoords.latitude, candidateCoords.longitude
+        );
+
+        const fromCandidate = DistanceCalculationService.calculateDistance(
+          candidateCoords.latitude, candidateCoords.longitude,
+          endCoords.latitude, endCoords.longitude
+        );
+
+        return (toCandidate + fromCandidate) - directDistance;
+      },
+      'route-distance-calculation',
+      0
+    );
+  }
+
+  /**
    * Find secondary category stops for comprehensive coverage
    */
-  private static findSecondaryStops(
+  private static findSecondaryStopsSafe(
     startStop: TripStop,
     endStop: TripStop,
     routeStops: TripStop[],
@@ -271,7 +446,7 @@ export class EnhancedHeritageCitiesService {
 
     return routeStops.filter(stop => {
       // Must be geographically relevant
-      if (!this.isGeographicallyRelevant(stop, startStop, endStop, isEastToWest)) {
+      if (!this.isGeographicallyRelevantSafe(stop, startStop, endStop, isEastToWest)) {
         return false;
       }
 
@@ -285,34 +460,9 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Check if stop is geographically relevant with expanded radius
-   */
-  private static isGeographicallyRelevant(
-    stop: TripStop,
-    startStop: TripStop,
-    endStop: TripStop,
-    isEastToWest: boolean
-  ): boolean {
-    if (!stop.latitude || !stop.longitude) {
-      return true; // Include stops without coordinates by default
-    }
-
-    // Must be between start and end geographically
-    const isBetween = isEastToWest 
-      ? stop.longitude > startStop.longitude && stop.longitude < endStop.longitude
-      : stop.longitude < startStop.longitude && stop.longitude > endStop.longitude;
-    
-    if (!isBetween) return false;
-    
-    // Must be within expanded distance from direct route
-    const distanceFromRoute = this.calculateDistanceFromDirectRoute(startStop, endStop, stop);
-    return distanceFromRoute < this.EXPANDED_SEARCH_RADIUS; // Expanded from 150 to 200 miles
-  }
-
-  /**
    * Enhanced stop selection algorithm with heritage prioritization
    */
-  private static enhancedStopSelection(
+  private static enhancedStopSelectionSafe(
     startStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[],
@@ -336,7 +486,7 @@ export class EnhancedHeritageCitiesService {
         ? null // Last segment - any reasonable distance to end
         : targetSegmentDistance;
 
-      const nextStop = this.findOptimalNextStop(
+      const nextStop = this.findOptimalNextStopSafe(
         currentStop,
         endStop,
         remainingStops,
@@ -390,7 +540,7 @@ export class EnhancedHeritageCitiesService {
   /**
    * Find optimal next stop with heritage prioritization
    */
-  private static findOptimalNextStop(
+  private static findOptimalNextStopSafe(
     currentStop: TripStop,
     endStop: TripStop,
     availableStops: TripStop[],
@@ -515,9 +665,9 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * INTELLIGENT SEGMENT DISTRIBUTION - ENFORCE REQUESTED DAYS
+   * INTELLIGENT SEGMENT DISTRIBUTION with coordinate safety
    */
-  private static intelligentSegmentDistribution(
+  private static intelligentSegmentDistributionSafe(
     startStop: TripStop,
     endStop: TripStop,
     destinations: TripStop[],
@@ -546,7 +696,7 @@ export class EnhancedHeritageCitiesService {
         const fromStop = allRouteStops[fromIndex];
         const toStop = allRouteStops[toIndex === fromIndex ? toIndex + 1 : toIndex];
 
-        const segment = this.createSegment(fromStop, toStop, day);
+        const segment = this.createSegmentSafe(fromStop, toStop, day);
         segments.push(segment);
         
         console.log(`📅 Day ${day}: ${fromStop.name} → ${toStop.name}, ${segment.distance} miles, ${segment.driveTimeHours?.toFixed(1)} hours`);
@@ -570,7 +720,7 @@ export class EnhancedHeritageCitiesService {
         // For the last day, always go to the end
         if (day === requestedDays) {
           const toStop = endStop;
-          const segment = this.createSegment(fromStop, toStop, day);
+          const segment = this.createSegmentSafe(fromStop, toStop, day);
           segments.push(segment);
           console.log(`📅 Day ${day} (FINAL): ${fromStop.name} → ${toStop.name}, ${segment.distance} miles, ${segment.driveTimeHours?.toFixed(1)} hours`);
           break;
@@ -596,7 +746,7 @@ export class EnhancedHeritageCitiesService {
         }
 
         const toStop = allRouteStops[bestStopIndex];
-        const segment = this.createSegment(fromStop, toStop, day);
+        const segment = this.createSegmentSafe(fromStop, toStop, day);
         segments.push(segment);
         
         currentStopIndex = bestStopIndex;
@@ -612,123 +762,5 @@ export class EnhancedHeritageCitiesService {
 
     console.log(`✅ Intelligent distribution complete: ${segments.length} segments created for ${requestedDays} requested days`);
     return { segments, warningMessage };
-  }
-
-  /**
-   * Create a segment between two stops
-   */
-  private static createSegment(fromStop: TripStop, toStop: TripStop, day: number): DailySegment {
-    const distance = DistanceCalculationService.calculateDistance(
-      fromStop.latitude, fromStop.longitude,
-      toStop.latitude, toStop.longitude
-    );
-
-    const clampedDistance = Math.min(distance, this.MAX_DAILY_MILES);
-    let driveTime = calculateRealisticDriveTime(clampedDistance);
-    
-    if (driveTime > this.ABSOLUTE_MAX_DRIVE_HOURS) {
-      driveTime = this.ABSOLUTE_MAX_DRIVE_HOURS;
-    }
-
-    return {
-      day,
-      title: `Day ${day}: ${fromStop.city_name || fromStop.name} to ${toStop.city_name || toStop.name}`,
-      startCity: fromStop.city_name || fromStop.name,
-      endCity: toStop.city_name || toStop.name,
-      distance: Math.round(clampedDistance),
-      approximateMiles: Math.round(clampedDistance),
-      driveTimeHours: Math.round(driveTime * 10) / 10,
-      destination: {
-        city: toStop.city_name || toStop.name,
-        state: toStop.state || 'Unknown'
-      },
-      recommendedStops: [],
-      attractions: [{
-        name: toStop.name,
-        title: toStop.name,
-        description: toStop.description || `Historic Route 66 destination in ${toStop.state}`,
-        city: toStop.city_name || toStop.name,
-        category: toStop.category || 'heritage_site'
-      }]
-    };
-  }
-
-  /**
-   * Filter stops to ensure progressive movement (no ping-ponging)
-   */
-  private static filterProgressiveStops(
-    startStop: TripStop,
-    endStop: TripStop,
-    routeStops: TripStop[],
-    isEastToWest: boolean
-  ): TripStop[] {
-    return routeStops
-      .filter(stop => {
-        // Must be between start and end geographically
-        const isBetween = isEastToWest 
-          ? stop.longitude > startStop.longitude && stop.longitude < endStop.longitude
-          : stop.longitude < startStop.longitude && stop.longitude > endStop.longitude;
-        
-        if (!isBetween) return false;
-        
-        // Must be within reasonable distance from direct route (prevent major detours)
-        const distanceFromRoute = this.calculateDistanceFromDirectRoute(startStop, endStop, stop);
-        return distanceFromRoute < this.EXPANDED_SEARCH_RADIUS; // Use expanded radius
-      })
-      .sort((a, b) => {
-        // Sort by geographic progression
-        return isEastToWest ? a.longitude - b.longitude : b.longitude - a.longitude;
-      });
-  }
-
-  /**
-   * Fix geographic progression by removing problematic stops
-   */
-  private static fixGeographicProgression(
-    destinations: TripStop[],
-    startStop: TripStop,
-    endStop: TripStop,
-    isEastToWest: boolean
-  ): TripStop[] {
-    const fixed: TripStop[] = [];
-    let currentLongitude = startStop.longitude;
-
-    for (const stop of destinations) {
-      const expectedDirection = isEastToWest ? 1 : -1;
-      const longDiff = stop.longitude - currentLongitude;
-      
-      // Only keep stops that maintain progressive movement
-      if ((longDiff * expectedDirection) >= -0.5) { // Allow small deviations
-        fixed.push(stop);
-        currentLongitude = stop.longitude;
-        console.log(`✅ Keeping progressive stop: ${stop.name}`);
-      } else {
-        console.log(`❌ Removing ping-pong stop: ${stop.name}`);
-      }
-    }
-
-    return fixed;
-  }
-
-  /**
-   * Calculate distance from point to direct route line
-   */
-  private static calculateDistanceFromDirectRoute(
-    startStop: TripStop,
-    endStop: TripStop,
-    testStop: TripStop
-  ): number {
-    const A = startStop.latitude;
-    const B = startStop.longitude;
-    const C = endStop.latitude;
-    const D = endStop.longitude;
-    const P = testStop.latitude;
-    const Q = testStop.longitude;
-
-    const numerator = Math.abs((D - B) * (A - P) - (C - A) * (B - Q));
-    const denominator = Math.sqrt(Math.pow(D - B, 2) + Math.pow(C - A, 2));
-    
-    const distanceInDegrees = numerator / denominator;
-    return distanceInDegrees * 69; // Approximate miles per degree
   }
 }
