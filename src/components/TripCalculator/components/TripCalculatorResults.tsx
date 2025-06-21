@@ -67,14 +67,18 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     }
   };
 
-  console.log('🎯 TripCalculatorResults: Final render state:', {
+  // DEBUG: Log what we're receiving
+  console.log('🎯 TripCalculatorResults: Component state debug:', {
     hasTripPlan: !!tripPlan,
+    tripPlanType: typeof tripPlan,
+    tripPlanTitle: tripPlan?.title || 'no title',
+    tripPlanSegments: tripPlan?.segments?.length || 0,
     validTripStartDate: validTripStartDate.toISOString(),
-    validTripStartDateLocal: validTripStartDate.toLocaleDateString(),
-    willPassToResults: true
+    componentWillRender: !!tripPlan ? 'TripResultsPreview' : 'empty state'
   });
 
   if (!tripPlan) {
+    console.log('⚠️ TripCalculatorResults: No trip plan, showing empty state');
     return (
       <div className="text-center p-8">
         <div className="text-gray-400 text-4xl mb-4">🗺️</div>
@@ -84,22 +88,45 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     );
   }
 
+  console.log('✅ TripCalculatorResults: Rendering trip plan with share buttons');
+
   return (
     <div className="space-y-6">
+      {/* MASSIVE SHARE BUTTON AT THE TOP - IMPOSSIBLE TO MISS */}
+      <div className="bg-gradient-to-r from-red-500 via-blue-500 to-green-500 p-3 rounded-2xl shadow-2xl mb-6">
+        <div className="bg-white rounded-xl p-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6">🎯 SHARE YOUR TRIP 🎯</h2>
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-20 py-8 text-2xl font-bold shadow-xl rounded-xl gap-4 transform hover:scale-105 transition-all duration-300"
+          >
+            <Share2 className="w-8 h-8" />
+            SHARE THIS TRIP NOW!
+          </Button>
+          <p className="text-gray-600 mt-6 text-xl font-bold">Click above to copy your shareable trip link!</p>
+        </div>
+      </div>
+
       <TripResultsPreview
         tripPlan={tripPlan}
         tripStartDate={validTripStartDate}
       />
       
-      {/* RESTORED: The original share button that was working */}
-      <div className="flex justify-center">
-        <Button
-          onClick={handleShare}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2"
-        >
-          <Share2 className="w-4 h-4" />
-          Share Trip
-        </Button>
+      {/* ANOTHER HUGE SHARE BUTTON AT THE BOTTOM */}
+      <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-3 rounded-2xl shadow-2xl mt-6">
+        <div className="bg-white rounded-xl p-8 text-center">
+          <h2 className="text-3xl font-bold text-gray-800 mb-6">💫 LOVE THIS TRIP PLAN? 💫</h2>
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="bg-green-600 hover:bg-green-700 text-white px-20 py-8 text-2xl font-bold shadow-xl rounded-xl gap-4 transform hover:scale-105 transition-all duration-300"
+          >
+            <Share2 className="w-8 h-8" />
+            SHARE YOUR ADVENTURE!
+          </Button>
+          <p className="text-gray-600 mt-6 text-xl font-bold">Share your Route 66 adventure with friends and family!</p>
+        </div>
       </div>
     </div>
   );
