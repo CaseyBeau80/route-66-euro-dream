@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
 import EnhancedWeatherWidget from '../../TripCalculator/components/weather/EnhancedWeatherWidget';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
+import TripShareButton from '../../TripCalculator/components/TripShareButton';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 
 interface TripResultsProps {
@@ -158,7 +159,7 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* Enhanced Weather Widget with proper date */}
+            {/* Enhanced Weather Widget with proper date and OpenWeather API */}
             <div className="mb-4">
               <EnhancedWeatherWidget 
                 segment={segment} 
@@ -188,15 +189,23 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Added Share Button */}
       <div className="flex justify-center gap-4 pt-6">
+        <TripShareButton 
+          tripPlan={tripPlan}
+          tripStartDate={tripStartDate}
+          useLiveWeather={true}
+          className="bg-route66-primary hover:bg-route66-primary/90 text-white px-6 py-2"
+        />
+        
         {onShareTrip && (
           <Button 
             onClick={handleShareTrip}
-            className="bg-route66-primary hover:bg-route66-primary/90 text-white"
+            className="bg-route66-accent hover:bg-route66-accent/90 text-white"
+            variant="outline"
           >
             <Share2 className="w-4 h-4 mr-2" />
-            Share Trip
+            Custom Share
           </Button>
         )}
       </div>
