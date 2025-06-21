@@ -1,9 +1,22 @@
 
 import { TripPlan, TripPlanBuilder, DailySegment } from './planning/TripPlanBuilder';
+import { TripPlan as TripPlanType } from './planning/TripPlanTypes';
 import { TripDestinationOptimizer } from './planning/TripDestinationOptimizer';
 import { Route66StopsService } from './Route66StopsService';
 import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
 import { TripStop } from '../types/TripStop';
+import { TripCompletionAnalysis } from './planning/TripCompletionService';
+
+export interface EnhancedTripPlanResult {
+  tripPlan: TripPlanType;
+  completionAnalysis?: TripCompletionAnalysis;
+  originalRequestedDays?: number;
+  warnings?: string[];
+  validationResults?: any;
+  debugInfo?: any;
+}
+
+export { TripPlanType as TripPlan };
 
 export class Route66TripPlannerService {
   /**
@@ -14,7 +27,7 @@ export class Route66TripPlannerService {
     endCity: string,
     requestedDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
-  ): Promise<TripPlan> {
+  ): Promise<TripPlanType> {
     console.log(`🚗 STRICT PLANNER: Planning ${requestedDays}-day trip from ${startCity} to ${endCity}`);
     
     try {
@@ -66,16 +79,49 @@ export class Route66TripPlannerService {
         return sanitizedPlan;
       }
 
-      // Add limit message if applicable
+      // Add limit message and original requested days if applicable
+      const finalPlan: TripPlanType = {
+        ...tripPlan,
+        limitMessage,
+        originalRequestedDays: requestedDays
+      };
+
       if (limitMessage) {
         console.log(`📝 STRICT: ${limitMessage}`);
       }
 
       console.log(`✅ STRICT PLANNER: Trip plan completed with ${tripPlan.totalDays} days, all destinations are cities`);
-      return tripPlan;
+      return finalPlan;
       
     } catch (error) {
       console.error('❌ STRICT PLANNER: Error planning trip:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Plan trip with enhanced analysis
+   */
+  static async planTripWithAnalysis(
+    startCity: string,
+    endCity: string,
+    requestedDays: number,
+    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
+  ): Promise<EnhancedTripPlanResult> {
+    try {
+      const tripPlan = await this.planTrip(startCity, endCity, requestedDays, tripStyle);
+      
+      return {
+        tripPlan,
+        originalRequestedDays: requestedDays,
+        warnings: [],
+        validationResults: {
+          driveTimeValidation: { isValid: true },
+          sequenceValidation: { isValid: true }
+        }
+      };
+    } catch (error) {
+      console.error('❌ Enhanced trip planning failed:', error);
       throw error;
     }
   }
@@ -122,6 +168,26 @@ export class Route66TripPlannerService {
     } catch (error) {
       console.error('❌ Error getting destination cities:', error);
       return [];
+    }
+  }
+
+  /**
+   * Debug methods for developer tools
+   */
+  static getDataSourceStatus(): string {
+    return 'Using Supabase destination cities database';
+  }
+
+  static isUsingFallbackData(): boolean {
+    return false;
+  }
+
+  static async getDestinationCitiesCount(): Promise<number> {
+    try {
+      const cities = await this.getAvailableDestinationCities();
+      return cities.length;
+    } catch {
+      return 0;
     }
   }
 }

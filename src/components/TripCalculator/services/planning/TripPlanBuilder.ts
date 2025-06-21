@@ -2,27 +2,7 @@
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
-
-export interface DailySegment {
-  day: number;
-  startCity: string;
-  endCity: string;
-  distance: number;
-  driveTimeHours: number;
-  recommendedStops?: TripStop[];
-  attractions?: any[];
-  driveTimeWarning?: string;
-}
-
-export interface TripPlan {
-  title: string;
-  startCity: string;
-  endCity: string;
-  totalDays: number;
-  totalDistance: number;
-  segments: DailySegment[];
-  tripStyle?: 'balanced' | 'destination-focused';
-}
+import { TripPlan, DailySegment } from './TripPlanTypes';
 
 export class TripPlanBuilder {
   /**
@@ -68,12 +48,25 @@ export class TripPlanBuilder {
 
       const segment: DailySegment = {
         day: i + 1,
+        title: `Day ${i + 1}: ${currentPoint.name} to ${nextPoint.name}`,
         startCity: currentPoint.name,
         endCity: nextPoint.name,
         distance: segmentDistance,
-        driveTimeHours,
-        recommendedStops: [], // Will be populated later with destination cities only
-        attractions: []
+        approximateMiles: Math.round(segmentDistance),
+        driveTimeHours: driveTimeHours,
+        drivingTime: driveTimeHours,
+        destination: {
+          city: nextPoint.city || nextPoint.city_name,
+          state: nextPoint.state
+        },
+        recommendedStops: [],
+        isGoogleMapsData: false,
+        attractions: [],
+        driveTimeCategory: {
+          category: driveTimeHours > 8 ? 'extreme' : driveTimeHours > 6 ? 'long' : driveTimeHours > 4 ? 'optimal' : 'short',
+          message: driveTimeHours > 8 ? `Long drive day: ${driveTimeHours.toFixed(1)} hours. Consider breaking this into multiple days.` : 'Manageable drive time',
+          color: driveTimeHours > 8 ? 'text-red-600' : driveTimeHours > 6 ? 'text-orange-600' : 'text-green-600'
+        }
       };
 
       // Add drive time warning if over 8 hours
@@ -85,13 +78,30 @@ export class TripPlanBuilder {
     }
 
     const tripPlan: TripPlan = {
+      id: `trip-${Date.now()}`,
       title: `${startStop.name} to ${endStop.name} Road Trip`,
       startCity: startStop.name,
       endCity: endStop.name,
+      startLocation: `${startStop.name}, ${startStop.state}`,
+      endLocation: `${endStop.name}, ${endStop.state}`,
+      startDate: new Date(),
       totalDays: segments.length,
       totalDistance,
+      totalMiles: Math.round(totalDistance),
+      totalDrivingTime: segments.reduce((total, seg) => total + (seg.driveTimeHours || 0), 0),
       segments,
-      tripStyle
+      dailySegments: segments,
+      stops: [],
+      tripStyle: tripStyle,
+      lastUpdated: new Date(),
+      summary: {
+        startLocation: `${startStop.name}, ${startStop.state}`,
+        endLocation: `${endStop.name}, ${endStop.state}`,
+        totalDriveTime: segments.reduce((total, seg) => total + (seg.driveTimeHours || 0), 0),
+        totalDays: segments.length,
+        totalDistance: Math.round(totalDistance),
+        tripStyle: tripStyle
+      }
     };
 
     console.log(`✅ STRICT: Trip plan built with ${segments.length} days, all destinations are cities`);
@@ -117,7 +127,8 @@ export class TripPlanBuilder {
     
     return {
       ...tripPlan,
-      segments: sanitizedSegments
+      segments: sanitizedSegments,
+      dailySegments: sanitizedSegments
     };
   }
 }

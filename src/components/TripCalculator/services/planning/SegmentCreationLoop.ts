@@ -1,6 +1,7 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DriveTimeTarget } from './DriveTimeBalancingService';
-import { DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming } from './TripPlanBuilder';
+import { DailySegment, DriveTimeCategory, RecommendedStop, SegmentTiming } from './TripPlanTypes';
 import { SegmentStopCurator } from './SegmentStopCurator';
 import { SegmentTimingCalculator } from './SegmentTimingCalculator';
 import { SegmentMetricsCalculator } from './SegmentMetricsCalculator';
@@ -129,12 +130,12 @@ export class SegmentCreationLoop {
       title: stop.name,
       description: stop.description,
       city: stop.city || stop.city_name,
-      category: stop.category || 'attraction' // Add required category property
+      category: stop.category || 'attraction'
     }));
 
     // Convert TripStop[] to RecommendedStop[] to satisfy type requirements with stopId
     const recommendedStops: RecommendedStop[] = segmentStops.map(stop => ({
-      stopId: stop.id, // Add required stopId
+      stopId: stop.id,
       id: stop.id,
       name: stop.name,
       description: stop.description,
@@ -143,49 +144,40 @@ export class SegmentCreationLoop {
       category: stop.category,
       city_name: stop.city_name,
       state: stop.state,
-      city: stop.city || stop.city_name || 'Unknown'
+      city: stop.city || stop.city_name
     }));
 
-    // Convert SubStopTiming[] to SegmentTiming[] with required startTime and endTime
-    const convertedSegmentTimings: SegmentTiming[] = segmentTimings.map((timing, index) => ({
-      startTime: `${8 + index}:00`, // Add sample start times
-      endTime: `${8 + index + 1}:00`, // Add sample end times
-      city: timing.toStop.city_name || timing.toStop.name,
-      state: timing.toStop.state,
-      latitude: timing.toStop.latitude,
-      longitude: timing.toStop.longitude,
-      distanceFromLastStop: timing.distance,
-      driveTimeHours: timing.driveTimeHours,
-      fromStop: timing.fromStop,
-      toStop: timing.toStop,
-      distance: timing.distance,
-      driveTime: timing.drivingTime,
-      distanceMiles: timing.distanceMiles,
-      drivingTime: timing.drivingTime
+    // Convert segmentTimings to SubStopTiming format with required properties
+    const subStopTimings = segmentTimings.map(timing => ({
+      ...timing,
+      distance: timing.distanceMiles, // Add required distance property
+      drivingTime: timing.driveTimeHours // Add required drivingTime property
     }));
 
-    return {
+    // Build the daily segment with all required properties
+    const dailySegment: DailySegment = {
       day,
       title: `Day ${day}: ${startCityDisplay} to ${endCityDisplay}`,
       startCity: startCityDisplay,
       endCity: endCityDisplay,
-      approximateMiles: Math.round(segmentDistance),
       distance: segmentDistance,
+      approximateMiles: Math.round(segmentDistance),
+      driveTimeHours: totalSegmentDriveTime,
       drivingTime: totalSegmentDriveTime,
-      driveTimeHours: Math.round(totalSegmentDriveTime * 10) / 10,
-      stops: segmentStops, // Add the required stops property
-      recommendedStops,
-      attractions,
-      subStopTimings: convertedSegmentTimings,
-      routeSection,
-      driveTimeCategory,
       destination: {
-        city: dayDestination.name,
+        city: dayDestination.city || dayDestination.city_name,
         state: dayDestination.state
       },
+      recommendedStops,
       isGoogleMapsData,
+      attractions,
+      subStopTimings,
+      routeSection,
+      driveTimeCategory,
       dataAccuracy
     };
+
+    return dailySegment;
   }
 
   /**
@@ -193,16 +185,11 @@ export class SegmentCreationLoop {
    */
   private static getDriveTimeMessage(category: 'short' | 'optimal' | 'long' | 'extreme'): string {
     switch (category) {
-      case 'short':
-        return 'Comfortable driving day with plenty of time for exploration';
-      case 'optimal':
-        return 'Well-balanced driving time with good sightseeing opportunities';
-      case 'long':
-        return 'Extended driving day - plan for fewer stops';
-      case 'extreme':
-        return 'Very long driving day - consider splitting the route';
-      default:
-        return 'Moderate driving time';
+      case 'short': return 'Light driving day - plenty of time for sightseeing';
+      case 'optimal': return 'Balanced driving and exploration time';
+      case 'long': return 'Long driving day - plan your stops carefully';
+      case 'extreme': return 'Very long driving day - consider breaking this segment';
+      default: return 'Moderate driving day';
     }
   }
 
@@ -211,27 +198,18 @@ export class SegmentCreationLoop {
    */
   private static getDriveTimeColor(category: 'short' | 'optimal' | 'long' | 'extreme'): string {
     switch (category) {
-      case 'short':
-        return 'green';
-      case 'optimal':
-        return 'blue';
-      case 'long':
-        return 'orange';
-      case 'extreme':
-        return 'red';
-      default:
-        return 'gray';
+      case 'short': return 'text-green-600';
+      case 'optimal': return 'text-blue-600';
+      case 'long': return 'text-orange-600';
+      case 'extreme': return 'text-red-600';
+      default: return 'text-gray-600';
     }
   }
 
   /**
    * Log segment creation details
    */
-  private static logSegmentCreation(
-    segment: DailySegment,
-    day: number,
-    dayDestination: TripStop
-  ): void {
-    console.log(`✅ Day ${day}: ${segment.approximateMiles}mi to ${dayDestination.name} (${dayDestination.category}), ${segment.driveTimeHours}h drive (${segment.driveTimeCategory?.category}), ${segment.recommendedStops?.length} curated stops, ${segment.routeSection}`);
+  private static logSegmentCreation(segment: DailySegment, day: number, destination: TripStop): void {
+    console.log(`✅ Day ${day} segment created: ${segment.startCity} → ${segment.endCity} (${segment.distance.toFixed(1)}mi, ${segment.driveTimeHours.toFixed(1)}h)`);
   }
 }
