@@ -5,6 +5,7 @@ import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { EnhancedTripPlanResult } from '../../TripCalculator/services/Route66TripPlannerService';
 import { Route66TripPlannerService } from '../../TripCalculator/services/Route66TripPlannerService';
 import { GoogleMapsIntegrationService } from '../../TripCalculator/services/GoogleMapsIntegrationService';
+import { TripValidationService } from '../../TripCalculator/services/validation/TripValidationService';
 import { toast } from '@/hooks/use-toast';
 
 export const useTripCalculation = () => {
@@ -26,7 +27,7 @@ export const useTripCalculation = () => {
   ) => {
     const dataToUse = inputFormData || formData;
     
-    console.log('🚗 FIXED TRIP CALCULATION: Starting with enforced limits', { 
+    console.log('🚗 ENHANCED TRIP CALCULATION: Starting with validation', { 
       formData: dataToUse,
       hasGoogleMaps: GoogleMapsIntegrationService.isAvailable()
     });
@@ -36,7 +37,7 @@ export const useTripCalculation = () => {
     setPlanningResult(null);
 
     try {
-      // Enhanced validation with proper trip day enforcement
+      // Enhanced pre-validation
       if (!dataToUse.startLocation.trim() || !dataToUse.endLocation.trim()) {
         throw new Error('Please enter both start and end locations');
       }
@@ -45,11 +46,68 @@ export const useTripCalculation = () => {
         throw new Error('Please select at least 1 travel day');
       }
 
-      // FIXED: Enforce minimum 3 days for realistic Route 66 trips
+      // ENHANCED: Use validation service to check trip feasibility
+      console.log('🔍 Running enhanced trip validation...');
+      const validation = TripValidationService.validateTrip(
+        dataToUse.startLocation,
+        dataToUse.endLocation,
+        dataToUse.travelDays
+      );
+
+      console.log('📊 Validation results:', {
+        isValid: validation.isValid,
+        feasibilityScore: validation.feasibilityScore,
+        suggestedDays: validation.suggestedDays,
+        issues: validation.issues,
+        canOptimize: validation.canBeOptimized
+      });
+
+      // Handle validation failures with better UX
+      if (!validation.isValid) {
+        const primaryIssue = validation.issues[0] || 'Trip parameters need adjustment';
+        
+        // If we have optimization suggestions, show them
+        if (validation.optimizationSuggestions.length > 0) {
+          const suggestion = validation.optimizationSuggestions[0];
+          if (suggestion.type === 'increase_days' && suggestion.actionValue) {
+            throw new Error(
+              `${primaryIssue} Try ${suggestion.actionValue} days instead for a better experience.`
+            );
+          }
+        }
+        
+        throw new Error(`${primaryIssue} Please adjust your trip parameters.`);
+      }
+
+      // Show validation warnings for sub-optimal trips
+      if (validation.feasibilityScore < 80 && validation.recommendations.length > 0) {
+        toast({
+          title: "Trip Plan Notice",
+          description: validation.recommendations[0],
+          variant: "default"
+        });
+      }
+
+      // Use suggested days if significantly better than requested
+      let adjustedTravelDays = dataToUse.travelDays;
+      if (validation.suggestedDays && 
+          validation.feasibilityScore < 60 && 
+          Math.abs(validation.suggestedDays - dataToUse.travelDays) <= 2) {
+        
+        adjustedTravelDays = validation.suggestedDays;
+        console.log(`🎯 Auto-adjusting days from ${dataToUse.travelDays} to ${adjustedTravelDays} for better feasibility`);
+        
+        toast({
+          title: "Trip Duration Optimized",
+          description: `Adjusted to ${adjustedTravelDays} days for optimal experience based on route analysis.`,
+          variant: "default"
+        });
+      }
+
+      // Apply hard limits as fallback
       const minDays = 3;
       const maxDays = 14;
-      let adjustedTravelDays = dataToUse.travelDays;
-
+      
       if (adjustedTravelDays < minDays) {
         adjustedTravelDays = minDays;
         toast({
@@ -68,7 +126,7 @@ export const useTripCalculation = () => {
         });
       }
 
-      // Update the data with adjusted days
+      // Update the data with validated/adjusted days
       const adjustedFormData = {
         ...dataToUse,
         travelDays: adjustedTravelDays
@@ -88,15 +146,15 @@ export const useTripCalculation = () => {
         adjustedFormData.endLocation = adjustedFormData.endLocation + ', AZ';
       }
 
-      const tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'; // FIXED: Only support destination-focused
+      const tripStyle: 'balanced' | 'destination-focused' = 'destination-focused';
       
-      console.log('🎯 PLANNING TRIP with EXPLICIT day count enforcement:', {
+      console.log('🎯 PLANNING VALIDATED TRIP:', {
         start: adjustedFormData.startLocation,
         end: adjustedFormData.endLocation,
-        requestedDays: adjustedTravelDays,
         originalDays: dataToUse.travelDays,
-        style: tripStyle,
-        maxDailyDriveTime: 8 // hours
+        adjustedDays: adjustedTravelDays,
+        validationScore: validation.feasibilityScore,
+        style: tripStyle
       });
       
       const result = await Route66TripPlannerService.planTripWithAnalysis(
@@ -106,7 +164,7 @@ export const useTripCalculation = () => {
         tripStyle
       );
 
-      console.log('✅ FIXED TRIP PLANNING completed:', {
+      console.log('✅ ENHANCED TRIP PLANNING completed:', {
         success: !!result.tripPlan,
         segmentCount: result.tripPlan?.segments?.length,
         totalDistance: result.tripPlan?.totalDistance,
@@ -115,30 +173,29 @@ export const useTripCalculation = () => {
         hasValidationResults: !!result.validationResults,
         warningCount: result.warnings?.length || 0,
         actualDays: result.tripPlan?.segments?.length,
-        requestedDays: adjustedTravelDays
+        validationScore: validation.feasibilityScore
       });
 
       if (result.tripPlan) {
-        // CRITICAL FIX: Ensure we have the correct number of segments
+        // Apply final validation and drive time limits
         const segments = result.tripPlan.segments || [];
         
-        // If we don't have enough segments, this is a critical error
         if (segments.length === 0) {
           throw new Error(`No trip segments were created. Please try different locations or adjust the number of days.`);
         }
         
-        // FIXED: Enforce drive time limits on all segments
-        const MAX_DAILY_DRIVE_TIME = 8; // 8 hours maximum
+        // ENHANCED: Apply validation-based drive time limits
+        const MAX_DAILY_DRIVE_TIME = 10; // 10 hours maximum from validation service
         
         let hasExcessiveDriving = false;
         const validatedSegments = segments.map(segment => {
           if ((segment.driveTimeHours || 0) > MAX_DAILY_DRIVE_TIME) {
             hasExcessiveDriving = true;
-            console.warn(`⚠️ CAPPING DRIVE TIME: Day ${segment.day} reduced from ${segment.driveTimeHours}h to ${MAX_DAILY_DRIVE_TIME}h`);
+            console.warn(`⚠️ VALIDATION: Capping drive time for Day ${segment.day} from ${segment.driveTimeHours}h to ${MAX_DAILY_DRIVE_TIME}h`);
             return {
               ...segment,
               driveTimeHours: MAX_DAILY_DRIVE_TIME,
-              distance: Math.min(segment.distance, MAX_DAILY_DRIVE_TIME * 50) // Cap distance too
+              distance: Math.min(segment.distance, MAX_DAILY_DRIVE_TIME * 50)
             };
           }
           return segment;
@@ -146,51 +203,50 @@ export const useTripCalculation = () => {
         
         if (hasExcessiveDriving) {
           toast({
-            title: "Drive Times Adjusted",
-            description: `Some segments exceeded 8 hours and were adjusted for safety. Consider adding more travel days for a more comfortable trip.`,
+            title: "Drive Times Optimized",
+            description: `Some segments exceeded safe driving limits and were adjusted. Your trip maintains the validation score of ${Math.round(validation.feasibilityScore)}%.`,
             variant: "default"
           });
         }
 
-        // CRITICAL FIX: Validate that we have proper segments before proceeding
         if (validatedSegments.length === 0) {
           throw new Error(`Trip planning failed to create valid daily segments. Please try different locations.`);
         }
 
-        // FIXED: Ensure trip plan matches requested days exactly
+        // Create final trip plan with validation metadata
         const finalTripPlan: TripPlan = {
           ...result.tripPlan,
           segments: validatedSegments,
           dailySegments: validatedSegments,
-          totalDays: validatedSegments.length, // Use actual segment count
+          totalDays: validatedSegments.length,
           title: result.tripPlan.title || `${adjustedFormData.startLocation} to ${adjustedFormData.endLocation} Route 66 Adventure`,
-          tripStyle: tripStyle
+          tripStyle: tripStyle,
+          // Add validation metadata
+          validationScore: validation.feasibilityScore,
+          wasOptimized: adjustedTravelDays !== dataToUse.travelDays,
+          originalRequestedDays: dataToUse.travelDays
         };
         
-        console.log('🎯 FINAL TRIP PLAN VALIDATION:', {
-          requestedDays: adjustedTravelDays,
+        console.log('🎯 FINAL VALIDATED TRIP PLAN:', {
+          requestedDays: dataToUse.travelDays,
+          adjustedDays: adjustedTravelDays,
           actualSegments: validatedSegments.length,
-          segmentDetails: validatedSegments.map(s => ({
-            day: s.day,
-            startCity: s.startCity,
-            endCity: s.endCity,
-            distance: s.distance,
-            driveTime: s.driveTimeHours
-          }))
+          validationScore: validation.feasibilityScore,
+          wasOptimized: finalTripPlan.wasOptimized
         });
         
         setTripPlan(finalTripPlan);
         setPlanningResult(result);
         
-        // Enhanced success message with accurate metrics
+        // Enhanced success message with validation info
         const averageDailyDistance = validatedSegments.length > 0 ? 
           Math.round((result.tripPlan.totalDistance || 0) / validatedSegments.length) : 0;
         const averageDailyDriveTime = validatedSegments.length > 0 ? 
           Math.round(((result.tripPlan.totalDrivingTime || 0) / validatedSegments.length) * 10) / 10 : 0;
         
         toast({
-          title: "Trip Planned Successfully!",
-          description: `${validatedSegments.length} day itinerary to ${result.tripPlan.endCity}. Average: ${averageDailyDistance}mi, ${averageDailyDriveTime}h per day.`,
+          title: "Trip Validated & Planned Successfully! 🎯",
+          description: `${validatedSegments.length} day itinerary to ${result.tripPlan.endCity}. Feasibility: ${Math.round(validation.feasibilityScore)}%. Avg: ${averageDailyDistance}mi, ${averageDailyDriveTime}h/day.`,
           variant: "default"
         });
         
@@ -199,19 +255,19 @@ export const useTripCalculation = () => {
       }
 
     } catch (error) {
-      console.error('❌ TRIP CALCULATION failed:', error);
+      console.error('❌ ENHANCED TRIP CALCULATION failed:', error);
       
       let errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
-      // Enhanced error messages with specific suggestions
+      // Enhanced error messages with validation context
       if (errorMessage.includes('not found')) {
         if (errorMessage.includes('Start location')) {
           errorMessage += ` Try major Route 66 cities like: Chicago IL, St. Louis MO, Springfield MO, Joplin MO, Tulsa OK, or Oklahoma City OK.`;
         } else if (errorMessage.includes('End location')) {
           errorMessage += ` Try destinations like: Amarillo TX, Albuquerque NM, Flagstaff AZ, Kingman AZ, Barstow CA, or Los Angeles CA.`;
         }
-      } else if (errorMessage.includes('insufficient')) {
-        errorMessage = `Not enough Route 66 destinations for a ${dataToUse.travelDays} day trip between these locations. Try reducing days or selecting cities farther apart.`;
+      } else if (errorMessage.includes('too short') || errorMessage.includes('days needed')) {
+        errorMessage += ` Use the validation suggestions above to optimize your trip duration.`;
       }
       
       toast({
@@ -228,7 +284,7 @@ export const useTripCalculation = () => {
   }, [formData]);
 
   const resetTrip = useCallback(() => {
-    console.log('🔄 Resetting trip calculation');
+    console.log('🔄 Resetting enhanced trip calculation');
     setTripPlan(null);
     setPlanningResult(null);
     setIsCalculating(false);
