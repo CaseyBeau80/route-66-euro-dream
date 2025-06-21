@@ -23,20 +23,8 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
-  console.log('🔧 TripCalculatorResults: Debug props analysis:', {
-    hasTripPlan: !!tripPlan,
-    hasCalculation: !!calculation,
-    tripStartDateRaw: tripStartDate,
-    tripStartDateType: typeof tripStartDate,
-    tripStartDateValid: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-    tripStartDateString: tripStartDate?.toISOString(),
-    originalRequestedDays,
-    timestamp: new Date().toISOString()
-  });
-
-  // CRITICAL FIX: Ensure we have a valid date - use today if not provided
+  // CRITICAL FIX: Ensure we have a valid date
   const validTripStartDate = React.useMemo(() => {
-    // If we have a valid Date object, use it
     if (tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())) {
       console.log('✅ TripCalculatorResults: Using provided valid tripStartDate:', {
         date: tripStartDate.toISOString(),

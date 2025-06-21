@@ -21,15 +21,20 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
   const { formatDistance } = useUnits();
   const { costEstimate } = useCostEstimator(tripPlan);
 
-  // Debug: Log component render
-  React.useEffect(() => {
-    console.log('🎯 TripResultsPreview: Component rendered with:', {
-      hasTripPlan: !!tripPlan,
-      tripStartDate: tripStartDate?.toISOString(),
-      segmentCount: tripPlan?.segments?.length,
-      timestamp: new Date().toISOString()
-    });
-  }, [tripPlan, tripStartDate]);
+  // Ensure we have a valid trip start date
+  const validTripStartDate = React.useMemo(() => {
+    if (tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())) {
+      return tripStartDate;
+    }
+    // Default to today if no valid date provided
+    return new Date();
+  }, [tripStartDate]);
+
+  console.log('🎯 TripResultsPreview: Rendering with valid start date:', {
+    originalDate: tripStartDate?.toISOString(),
+    validDate: validTripStartDate.toISOString(),
+    hasTripPlan: !!tripPlan
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -53,10 +58,22 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* Enhanced Trip Overview Header with Prominent Share Button */}
+      {/* PROMINENT Share Button at the very top */}
+      <div className="flex justify-end mb-4">
+        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl animate-pulse">
+          <ShareTripButton
+            tripTitle={tripTitle}
+            variant="default"
+            size="lg"
+            className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-8 py-4 text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 border-0"
+            showText={true}
+          />
+        </div>
+      </div>
+
+      {/* Enhanced Trip Overview Header */}
       <Card className="overflow-hidden shadow-xl border-0 bg-gradient-to-br from-blue-50 via-white to-blue-50">
         <CardHeader className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white p-8">
-          {/* Decorative background pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
             <div className="absolute bottom-0 right-0 w-24 h-24 bg-white rounded-full translate-x-12 translate-y-12"></div>
@@ -64,7 +81,6 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           </div>
           
           <div className="relative z-10">
-            {/* Top row with Route 66 badge and PROMINENT Share Button */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm">
@@ -73,16 +89,14 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
                 </div>
               </div>
               
-              {/* PROMINENT Share Button - Top Right Corner */}
-              <div className="flex items-center gap-2">
-                <ShareTripButton
-                  tripTitle={tripTitle}
-                  variant="ghost"
-                  size="default"
-                  className="text-white hover:bg-white/20 border-2 border-white/30 bg-white/10 px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  showText={true}
-                />
-              </div>
+              {/* Another Share Button in Header */}
+              <ShareTripButton
+                tripTitle={tripTitle}
+                variant="ghost"
+                size="default"
+                className="text-white hover:bg-white/20 border-2 border-white/30 bg-white/10 px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                showText={true}
+              />
             </div>
             
             <div className="text-center">
@@ -90,11 +104,9 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
                 {startCity} to {endCity}
               </CardTitle>
               
-              {tripStartDate && (
-                <p className="text-blue-100 text-lg font-medium">
-                  Journey begins: {format(tripStartDate, 'EEEE, MMMM d, yyyy')}
-                </p>
-              )}
+              <p className="text-blue-100 text-lg font-medium">
+                Journey begins: {format(validTripStartDate, 'EEEE, MMMM d, yyyy')}
+              </p>
             </div>
           </div>
         </CardHeader>
@@ -153,7 +165,7 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             </div>
           </div>
 
-          {/* Secondary Share Section */}
+          {/* Prominent Share Section */}
           <div className="mt-8 pt-6 border-t border-blue-100 text-center">
             <div className="mb-3">
               <p className="text-blue-700 font-medium mb-3">Love this trip plan?</p>
@@ -183,7 +195,7 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
               </CardTitle>
             </div>
             
-            {/* Additional Share Button in Itinerary Header */}
+            {/* Share Button in Itinerary Header */}
             <ShareTripButton
               tripTitle={tripTitle}
               variant="ghost"
@@ -198,7 +210,7 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           <div className="p-6">
             <PreviewDailyItinerary 
               segments={tripPlan.segments || []}
-              tripStartDate={tripStartDate}
+              tripStartDate={validTripStartDate}
             />
           </div>
         </CardContent>
