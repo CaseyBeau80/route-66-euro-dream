@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Calendar, Clock, DollarSign, Route } from 'lucide-react';
+import { MapPin, Calendar, Clock, DollarSign, Route, Share2 } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { useCostEstimator } from '../hooks/useCostEstimator';
 import { useUnits } from '@/contexts/UnitContext';
 import { format, addDays } from 'date-fns';
 import PreviewDailyItinerary from './PreviewDailyItinerary';
-import ShareTripButton from './share/ShareTripButton';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 
 interface TripResultsPreviewProps {
   tripPlan: TripPlan;
@@ -45,6 +46,27 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
     }).format(amount);
   };
 
+  // Simple share handler
+  const handleShare = async () => {
+    try {
+      const currentUrl = window.location.href;
+      await navigator.clipboard.writeText(currentUrl);
+      
+      toast({
+        title: "Trip Link Copied!",
+        description: "Your Route 66 trip link has been copied to the clipboard. Share it with friends and family!",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Share failed:', error);
+      toast({
+        title: "Share Failed",
+        description: "Could not copy link. Please copy the URL manually from your browser.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Build trip title for sharing
   const startCity = tripPlan.startCity || tripPlan.segments?.[0]?.startCity || 'Route 66';
   const endCity = tripPlan.endCity || tripPlan.segments?.[tripPlan.segments?.length - 1]?.endCity || 'Adventure';
@@ -52,16 +74,17 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* PROMINENT Share Button at the very top */}
-      <div className="flex justify-center mb-6">
-        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl">
-          <ShareTripButton
-            title={tripTitle}
-            variant="outline"
-            size="lg"
-            className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-10 py-4 text-xl font-bold shadow-xl border-0 rounded-lg"
-          />
-        </div>
+      {/* VERY PROMINENT Share Button at the very top */}
+      <div className="flex justify-center mb-8 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl">
+        <Button
+          onClick={handleShare}
+          variant="outline"
+          size="lg"
+          className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-12 py-6 text-xl font-bold shadow-xl border-0 rounded-lg gap-3"
+        >
+          <Share2 className="w-6 h-6" />
+          Share This Trip
+        </Button>
       </div>
 
       {/* Enhanced Trip Overview Header */}
@@ -83,12 +106,15 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
               </div>
               
               {/* Share Button in Header */}
-              <ShareTripButton
-                title={tripTitle}
+              <Button
+                onClick={handleShare}
                 variant="outline"
                 size="default"
-                className="text-white hover:bg-white/20 border-2 border-white/30 bg-white/10"
-              />
+                className="text-white hover:bg-white/20 border-2 border-white/30 bg-white/10 gap-2"
+              >
+                <Share2 className="w-4 h-4" />
+                Share Trip
+              </Button>
             </div>
             
             <div className="text-center">
@@ -161,12 +187,15 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           <div className="mt-8 pt-6 border-t border-blue-100 text-center">
             <div className="mb-3">
               <p className="text-blue-700 font-medium mb-3">Love this trip plan?</p>
-              <ShareTripButton
-                title={tripTitle}
+              <Button
+                onClick={handleShare}
                 variant="default"
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl"
-              />
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl gap-2"
+              >
+                <Share2 className="w-5 h-5" />
+                Share Your Trip
+              </Button>
             </div>
             <p className="text-sm text-blue-600 mt-3">Share your Route 66 adventure with friends and family!</p>
           </div>
@@ -187,12 +216,15 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             </div>
             
             {/* Share Button in Itinerary Header */}
-            <ShareTripButton
-              title={tripTitle}
+            <Button
+              onClick={handleShare}
               variant="outline"
               size="sm"
-              className="text-white hover:bg-white/20 border border-white/30"
-            />
+              className="text-white hover:bg-white/20 border border-white/30 gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              Share Trip
+            </Button>
           </div>
         </CardHeader>
         
@@ -206,11 +238,11 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
         </CardContent>
       </Card>
 
-      {/* Bottom Share Section */}
+      {/* Bottom Share Section - VERY LARGE AND PROMINENT */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-4 border-blue-300 rounded-2xl p-8 text-center shadow-xl">
         <div className="flex justify-center items-center gap-4 mb-6">
           <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <Route className="w-6 h-6 text-white" />
+            <Share2 className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-3xl font-bold text-gray-800">
             Share Your Route 66 Adventure!
@@ -221,12 +253,15 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           Love this trip plan? Share it with friends and family! They'll get the complete itinerary with weather forecasts and attractions.
         </p>
         
-        <ShareTripButton
-          title={tripTitle}
+        <Button
+          onClick={handleShare}
           variant="default"
           size="lg"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 rounded-xl font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105"
-        />
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 rounded-xl font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 gap-3"
+        >
+          <Share2 className="w-6 h-6" />
+          Share This Amazing Trip!
+        </Button>
         
         <p className="text-gray-600 mt-4">
           🎯 Click above to copy your shareable trip link!
