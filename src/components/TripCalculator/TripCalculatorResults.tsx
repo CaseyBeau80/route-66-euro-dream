@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -165,16 +166,24 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     console.log('📊 Rendering Legacy Trip Results with full sharing features');
     const tripTitle = `Route 66 Legacy Trip - ${calculation.numberOfDays} Days`;
     
-    // Create a mock trip plan for legacy results to enable sharing
+    // Create a properly structured mock trip plan for legacy results to enable sharing
     const mockTripPlan: TripPlan = {
+      id: 'legacy-trip-' + Date.now(),
       title: tripTitle,
       startCity: 'Chicago',
       endCity: 'Los Angeles',
+      startLocation: 'Chicago, IL',
+      endLocation: 'Los Angeles, CA',
+      startDate: tripStartDate || new Date(),
       totalDays: calculation.numberOfDays,
       totalDistance: calculation.totalDistance,
+      totalMiles: Math.round(calculation.totalDistance),
       totalDrivingTime: calculation.totalDriveTime,
       segments: [],
-      dailySegments: []
+      dailySegments: [],
+      stops: [],
+      tripStyle: 'balanced',
+      lastUpdated: new Date()
     };
     
     return (
