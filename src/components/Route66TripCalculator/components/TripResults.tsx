@@ -5,9 +5,9 @@ import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/T
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
-import PriorityWeatherWidget from '../../TripCalculator/components/weather/PriorityWeatherWidget';
+import SimpleWeatherWidget from './SimpleWeatherWidget';
+import SimpleShareButton from './SimpleShareButton';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
-import TripShareButton from '../../TripCalculator/components/TripShareButton';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 
 interface TripResultsProps {
@@ -29,43 +29,31 @@ const TripResults: React.FC<TripResultsProps> = ({
     costEstimate
   } = useCostEstimator(tripPlan);
 
-  // FIXED: Ensure we always have a valid trip start date for weather calculations
+  // FIXED: Ensure we always have a valid trip start date
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate && !isNaN(tripStartDate.getTime())) {
-      console.log('✅ FIXED TRIP RESULTS: Using provided tripStartDate:', tripStartDate.toISOString());
+      console.log('✅ Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
     
-    // Use today as fallback with noon time to avoid timezone issues
+    // Use today as fallback
     const today = new Date();
     today.setHours(12, 0, 0, 0);
-    console.log('🔄 FIXED TRIP RESULTS: Using today as fallback:', today.toISOString());
+    console.log('🔄 Using today as fallback:', today.toISOString());
     return today;
   }, [tripStartDate]);
 
-  console.log('📊 FIXED TRIP RESULTS: Rendering with priority weather system:', {
+  console.log('📊 TripResults rendering with simplified components:', {
     tripPlan: !!tripPlan,
     segmentCount: tripPlan?.segments?.length,
     effectiveTripStartDate: effectiveTripStartDate.toISOString(),
     hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost,
-    hasCompletionAnalysis: !!completionAnalysis,
-    originalRequestedDays,
-    fixedWeatherSystem: true
+    totalCost: costEstimate?.breakdown?.totalCost
   });
 
   if (!tripPlan) {
     return null;
   }
-
-  const handleShareTrip = () => {
-    console.log('📤 FIXED TRIP RESULTS: Share button clicked');
-    if (onShareTrip) {
-      onShareTrip();
-    } else {
-      console.warn('⚠️ FIXED TRIP RESULTS: No share handler provided');
-    }
-  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -131,10 +119,10 @@ const TripResults: React.FC<TripResultsProps> = ({
         </div>
       </div>
 
-      {/* Daily Segments with FIXED Priority Weather System */}
+      {/* Daily Segments with Simplified Weather */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-route66-primary mb-4">
-          Daily Itinerary with Live Weather
+          Daily Itinerary with Weather
         </h3>
         
         {segments.map((segment, index) => (
@@ -158,9 +146,6 @@ const TripResults: React.FC<TripResultsProps> = ({
                 <div className="flex items-center gap-1">
                   <Route className="w-4 h-4" />
                   {Math.round(segment.distance || segment.approximateMiles || 0)} miles
-                  {segment.isGoogleMapsData && (
-                    <span className="text-xs text-green-600 ml-1">📍</span>
-                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
@@ -172,13 +157,11 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* FIXED: Priority Weather Widget with guaranteed tripStartDate */}
+            {/* Simplified Weather Widget */}
             <div className="mb-4">
-              <PriorityWeatherWidget 
+              <SimpleWeatherWidget 
                 segment={segment} 
                 tripStartDate={effectiveTripStartDate}
-                isSharedView={false}
-                isPDFExport={false}
               />
             </div>
 
@@ -202,37 +185,24 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* FIXED: Prominent Share Button Section */}
+      {/* Simplified Share Section */}
       <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg p-6 text-center">
         <h3 className="text-lg font-bold text-gray-800 mb-2">
           Share Your Route 66 Adventure
         </h3>
         <p className="text-gray-600 mb-4 text-sm">
-          Generate a shareable link with live weather forecasts for your trip
+          Generate a shareable link for your trip plan
         </p>
         
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <TripShareButton 
+        <div className="flex justify-center">
+          <SimpleShareButton 
             tripPlan={tripPlan}
             tripStartDate={effectiveTripStartDate}
-            useLiveWeather={true}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold text-base shadow-lg transition-all duration-200 hover:shadow-xl"
           />
-          
-          {onShareTrip && (
-            <Button 
-              onClick={handleShareTrip}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold text-base shadow-lg"
-              variant="default"
-            >
-              <Share2 className="w-5 h-5 mr-2" />
-              Custom Share
-            </Button>
-          )}
         </div>
         
         <p className="text-xs text-gray-500 mt-3">
-          Share links include live weather data and work on any device
+          Share your complete itinerary with friends and family
         </p>
       </div>
     </div>
