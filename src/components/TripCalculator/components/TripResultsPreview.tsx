@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Calendar, Clock, DollarSign, Route, Share2 } from 'lucide-react';
@@ -74,17 +73,20 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* VERY PROMINENT Share Button at the very top */}
-      <div className="flex justify-center mb-8 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl">
-        <Button
-          onClick={handleShare}
-          variant="outline"
-          size="lg"
-          className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-12 py-6 text-xl font-bold shadow-xl border-0 rounded-lg gap-3"
-        >
-          <Share2 className="w-6 h-6" />
-          Share This Trip
-        </Button>
+      {/* MASSIVE Share Button at the very top - This should be impossible to miss */}
+      <div className="w-full bg-gradient-to-r from-red-500 via-blue-500 to-green-500 p-2 rounded-2xl shadow-2xl">
+        <div className="bg-white rounded-xl p-6 text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">🎯 SHARE YOUR TRIP 🎯</h2>
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-16 py-8 text-2xl font-bold shadow-xl rounded-xl gap-4 transform hover:scale-105 transition-all duration-300"
+          >
+            <Share2 className="w-8 h-8" />
+            SHARE THIS TRIP NOW!
+          </Button>
+          <p className="text-gray-600 mt-4 text-lg">Click above to copy your shareable trip link!</p>
+        </div>
       </div>
 
       {/* Enhanced Trip Overview Header */}
@@ -183,21 +185,21 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             </div>
           </div>
 
-          {/* Prominent Share Section */}
-          <div className="mt-8 pt-6 border-t border-blue-100 text-center">
+          {/* ANOTHER Prominent Share Section */}
+          <div className="mt-8 pt-6 border-t border-blue-100 text-center bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl">
             <div className="mb-3">
-              <p className="text-blue-700 font-medium mb-3">Love this trip plan?</p>
+              <p className="text-blue-700 font-bold text-xl mb-4">💫 LOVE THIS TRIP PLAN? 💫</p>
               <Button
                 onClick={handleShare}
                 variant="default"
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl gap-2"
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-12 py-6 text-xl font-bold shadow-lg hover:shadow-xl gap-3 transform hover:scale-105 transition-all duration-300"
               >
-                <Share2 className="w-5 h-5" />
-                Share Your Trip
+                <Share2 className="w-6 h-6" />
+                SHARE YOUR ADVENTURE!
               </Button>
             </div>
-            <p className="text-sm text-blue-600 mt-3">Share your Route 66 adventure with friends and family!</p>
+            <p className="text-lg text-blue-700 font-medium mt-4">Share your Route 66 adventure with friends and family!</p>
           </div>
         </CardContent>
       </Card>
@@ -238,18 +240,18 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
         </CardContent>
       </Card>
 
-      {/* Bottom Share Section - VERY LARGE AND PROMINENT */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-4 border-blue-300 rounded-2xl p-8 text-center shadow-xl">
-        <div className="flex justify-center items-center gap-4 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <Share2 className="w-6 h-6 text-white" />
+      {/* FINAL Bottom Share Section - ULTRA PROMINENT */}
+      <div className="bg-gradient-to-r from-purple-100 via-blue-100 to-green-100 border-8 border-blue-400 rounded-3xl p-12 text-center shadow-2xl">
+        <div className="flex justify-center items-center gap-6 mb-8">
+          <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center animate-pulse">
+            <Share2 className="w-8 h-8 text-white" />
           </div>
-          <h3 className="text-3xl font-bold text-gray-800">
-            Share Your Route 66 Adventure!
+          <h3 className="text-4xl font-black text-gray-800">
+            🚗 SHARE YOUR ROUTE 66 ADVENTURE! 🚗
           </h3>
         </div>
         
-        <p className="text-gray-700 mb-6 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-800 mb-8 text-2xl font-bold max-w-3xl mx-auto">
           Love this trip plan? Share it with friends and family! They'll get the complete itinerary with weather forecasts and attractions.
         </p>
         
@@ -257,14 +259,14 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           onClick={handleShare}
           variant="default"
           size="lg"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 rounded-xl font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 gap-3"
+          className="bg-gradient-to-r from-red-600 via-blue-600 to-green-600 hover:from-red-700 hover:via-blue-700 hover:to-green-700 text-white px-20 py-10 rounded-2xl font-black text-3xl shadow-2xl hover:shadow-3xl transform hover:scale-110 gap-4 transition-all duration-500"
         >
-          <Share2 className="w-6 h-6" />
-          Share This Amazing Trip!
+          <Share2 className="w-10 h-10" />
+          🎯 SHARE THIS AMAZING TRIP! 🎯
         </Button>
         
-        <p className="text-gray-600 mt-4">
-          🎯 Click above to copy your shareable trip link!
+        <p className="text-gray-700 mt-6 text-xl font-bold">
+          👆 Click above to copy your shareable trip link! 👆
         </p>
       </div>
     </div>
