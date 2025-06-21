@@ -1,13 +1,12 @@
 
-import { TripPlan, DailySegment } from './TripPlanTypes';
+import { TripPlan } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
-import { CoordinateAccessSafety } from './CoordinateAccessSafety';
-import { EnhancedDistanceService } from '../EnhancedDistanceService';
+import { SupabaseDataService } from '../data/SupabaseDataService';
 import { DestinationMatchingService } from '../DestinationMatchingService';
 
 export class EnhancedHeritageCitiesService {
   /**
-   * Plan enhanced heritage cities trip with coordinate safety and real distances
+   * Plan an enhanced heritage cities trip with proper day distribution
    */
   static async planEnhancedHeritageCitiesTrip(
     startLocation: string,
@@ -15,275 +14,298 @@ export class EnhancedHeritageCitiesService {
     travelDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log(`🏛️ ENHANCED HERITAGE: Planning ${travelDays} day trip from ${startLocation} to ${endLocation}`);
+    console.log(`🏛️ Enhanced Heritage Cities Planning: ${startLocation} → ${endLocation}, ${travelDays} days`);
     
     try {
-      // Validate coordinates for all stops
-      const validStops = allStops.filter(stop => 
-        CoordinateAccessSafety.canSafelyAccessCoordinates(stop, `heritage-validation-${stop.id}`)
-      );
+      // Fetch all Route 66 stops if not provided
+      const stops = allStops.length > 0 ? allStops : await SupabaseDataService.fetchAllStops();
       
-      console.log(`✅ COORDINATE SAFETY: ${validStops.length} stops passed validation from ${allStops.length} total`);
-      
-      if (validStops.length === 0) {
-        throw new Error('No valid stops available for heritage cities trip planning');
-      }
-      
-      // Enhanced destination matching with logging
-      console.log(`🔍 SEARCHING for start location: "${startLocation}"`);
-      const startMatchResult = DestinationMatchingService.findBestMatch(startLocation, validStops);
-      const startStop = startMatchResult?.stop;
-      
-      console.log(`🔍 SEARCHING for end location: "${endLocation}"`);
-      const endMatchResult = DestinationMatchingService.findBestMatch(endLocation, validStops);
-      const endStop = endMatchResult?.stop;
-      
-      if (!startStop) {
-        console.error(`❌ Could not find start location: "${startLocation}"`);
-        const suggestions = DestinationMatchingService.getSuggestions(startLocation, validStops, 3);
-        throw new Error(`Start location "${startLocation}" not found. Try: ${suggestions.join(', ')}`);
-      }
-      
-      if (!endStop) {
-        console.error(`❌ Could not find end location: "${endLocation}"`);
-        const suggestions = DestinationMatchingService.getSuggestions(endLocation, validStops, 3);
-        throw new Error(`End location "${endLocation}" not found. Try: ${suggestions.join(', ')}`);
+      if (!stops || stops.length === 0) {
+        throw new Error('No Route 66 stops available');
       }
 
-      console.log(`✅ MATCHED LOCATIONS:`, {
+      console.log(`📍 Working with ${stops.length} Route 66 stops`);
+
+      // Find start and end stops using enhanced matching
+      const startMatch = DestinationMatchingService.findBestMatch(startLocation, stops);
+      const endMatch = DestinationMatchingService.findBestMatch(endLocation, stops);
+
+      if (!startMatch || !endMatch) {
+        console.error('❌ Could not match start/end locations:', { 
+          startLocation, 
+          endLocation,
+          foundStart: !!startMatch,
+          foundEnd: !!endMatch 
+        });
+        throw new Error(`Could not find Route 66 stops for ${!startMatch ? startLocation : endLocation}`);
+      }
+
+      const startStop = startMatch.stop;
+      const endStop = endMatch.stop;
+
+      console.log(`✅ Matched locations:`, {
         start: `${startStop.name} (${startStop.city}, ${startStop.state})`,
-        end: `${endStop.name} (${endStop.city}, ${endStop.state})`,
-        startConfidence: startMatchResult.confidence,
-        endConfidence: endMatchResult.confidence
+        end: `${endStop.name} (${endStop.city}, ${endStop.state})`
       });
-      
-      // Create segments with realistic daily limits
-      const segments = await this.createRealisticHeritageCitiesSegments(
+
+      // Get heritage cities (destination cities) between start and end
+      const destinationCities = await SupabaseDataService.getDestinationCities();
+      console.log(`🏛️ Found ${destinationCities.length} heritage cities`);
+
+      // Filter heritage cities that are between start and end geographically
+      const routeHeritageCities = this.filterHeritageCitiesOnRoute(
+        startStop, 
+        endStop, 
+        destinationCities
+      );
+
+      console.log(`🛣️ Route heritage cities: ${routeHeritageCities.length} cities`);
+
+      // Select key destinations based on travel days
+      const selectedDestinations = this.selectKeyDestinations(
+        routeHeritageCities,
+        travelDays - 1 // Reserve last day for final destination
+      );
+
+      console.log(`🎯 Selected ${selectedDestinations.length} destinations for ${travelDays} days`);
+
+      // Build daily segments with proper distribution
+      const segments = await this.buildDailySegments(
         startStop,
+        selectedDestinations,
         endStop,
-        validStops,
+        stops,
         travelDays
       );
-      
-      // Calculate totals from actual segments
-      const totalDistance = segments.reduce((total, segment) => total + segment.distance, 0);
-      const totalDrivingTime = segments.reduce((total, segment) => total + (segment.driveTimeHours || 0), 0);
-      
-      // Create complete TripPlan object
+
+      // Calculate total metrics
+      const totalDistance = segments.reduce((sum, seg) => sum + (seg.distance || 0), 0);
+      const totalDrivingTime = segments.reduce((sum, seg) => sum + (seg.driveTimeHours || 0), 0);
+
+      console.log(`📊 Trip totals: ${totalDistance} miles, ${totalDrivingTime.toFixed(1)} hours`);
+
       const tripPlan: TripPlan = {
-        id: `heritage-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        title: `${startLocation} to ${endLocation} Heritage Cities Route 66 Adventure`,
-        startCity: startStop.name,
-        endCity: endStop.name,
+        id: `heritage-trip-${Date.now()}`,
         startLocation: startLocation,
         endLocation: endLocation,
-        startDate: new Date(),
-        totalDays: segments.length, // Use actual segment count
-        totalDistance: totalDistance,
-        totalMiles: totalDistance,
+        startCity: startStop.city || startStop.name,
+        endCity: endStop.city || endStop.name,
+        totalDays: travelDays,
+        totalDistance: Math.round(totalDistance),
         totalDrivingTime: totalDrivingTime,
         segments: segments,
-        dailySegments: segments,
-        stops: validStops,
         tripStyle: 'destination-focused',
-        lastUpdated: new Date()
+        summary: {
+          startLocation: startLocation,
+          endLocation: endLocation,
+          totalDays: travelDays,
+          totalDistance: Math.round(totalDistance),
+          totalDriveTime: totalDrivingTime
+        }
       };
-      
-      console.log(`✅ HERITAGE CITIES: Created realistic trip plan:`, {
-        segments: segments.length,
-        totalMiles: Math.round(totalDistance),
-        totalDriveTime: Math.round(totalDrivingTime * 10) / 10,
-        averageDailyDistance: Math.round(totalDistance / segments.length),
-        averageDailyDriveTime: Math.round((totalDrivingTime / segments.length) * 10) / 10
-      });
-      
+
+      console.log(`✅ Heritage cities trip plan created: ${segments.length} days, ${Math.round(totalDistance)} miles`);
       return tripPlan;
-      
+
     } catch (error) {
-      console.error('❌ HERITAGE CITIES: Planning failed:', error);
-      throw new Error(`Heritage cities trip planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ Enhanced heritage cities planning failed:', error);
+      throw error;
     }
   }
 
   /**
-   * Create segments with realistic daily driving limits (6-8 hours max)
+   * Filter heritage cities that are on the route between start and end
    */
-  private static async createRealisticHeritageCitiesSegments(
+  private static filterHeritageCitiesOnRoute(
     startStop: TripStop,
     endStop: TripStop,
-    validStops: TripStop[],
-    requestedDays: number
-  ): Promise<DailySegment[]> {
-    const segments: DailySegment[] = [];
-    const MAX_DAILY_DRIVE_TIME = 8; // 8 hours max per day
-    const PREFERRED_DAILY_DRIVE_TIME = 6; // 6 hours preferred
-    
-    // Get route stops in geographic order
-    const routeStops = this.selectOptimalRouteStops(startStop, endStop, validStops, requestedDays);
-    
-    console.log(`🗺️ REALISTIC ROUTING: Selected ${routeStops.length} stops for ${requestedDays} requested days`);
-    
-    let currentStopIndex = 0;
-    let dayCount = 1;
-    
-    while (currentStopIndex < routeStops.length - 1 && dayCount <= requestedDays + 2) { // Allow some flexibility
-      const currentStop = routeStops[currentStopIndex];
-      let nextStopIndex = currentStopIndex + 1;
-      let bestNextStop = routeStops[nextStopIndex];
-      let totalDistance = 0;
-      let totalDriveTime = 0;
-      
-      // Try to find the farthest stop we can reach within daily limits
-      while (nextStopIndex < routeStops.length) {
-        const candidateStop = routeStops[nextStopIndex];
-        
-        try {
-          const distanceResult = await EnhancedDistanceService.calculateDistance(
-            currentStop,
-            candidateStop,
-            { useGoogleMaps: true }
-          );
-          
-          // If this segment would exceed daily limits, stop at previous stop
-          if (distanceResult.driveTimeHours > MAX_DAILY_DRIVE_TIME) {
-            console.log(`⏰ DAILY LIMIT: ${currentStop.name} to ${candidateStop.name} = ${distanceResult.driveTimeHours.toFixed(1)}h (exceeds ${MAX_DAILY_DRIVE_TIME}h limit)`);
-            break;
-          }
-          
-          // Update the best option
-          bestNextStop = candidateStop;
-          totalDistance = Math.round(distanceResult.distance);
-          totalDriveTime = distanceResult.driveTimeHours;
-          
-          // If we've reached a good stopping point (6+ hours or destination), use it
-          if (distanceResult.driveTimeHours >= PREFERRED_DAILY_DRIVE_TIME || candidateStop.id === endStop.id) {
-            break;
-          }
-          
-          nextStopIndex++;
-        } catch (error) {
-          console.warn(`⚠️ Distance calculation failed for ${currentStop.name} to ${candidateStop.name}:`, error);
-          // Use fallback estimates
-          totalDistance = 200; // Reasonable fallback
-          totalDriveTime = 4;   // Reasonable fallback
-          break;
-        }
+    heritageCities: TripStop[]
+  ): TripStop[] {
+    const routeCities: TripStop[] = [];
+
+    for (const city of heritageCities) {
+      // Skip if it's the start or end location
+      if (city.id === startStop.id || city.id === endStop.id) {
+        continue;
       }
+
+      // Simple geographical filtering - between start and end coordinates
+      const isOnRoute = this.isLocationBetween(startStop, endStop, city);
       
-      // Create segment with safe coordinates
-      const destinationCoordinates = CoordinateAccessSafety.safeGetCoordinates(bestNextStop, `segment-${dayCount}`);
+      if (isOnRoute) {
+        routeCities.push(city);
+      }
+    }
+
+    // Sort by distance from start to maintain route order
+    return routeCities.sort((a, b) => {
+      const distA = this.calculateDistance(startStop, a);
+      const distB = this.calculateDistance(startStop, b);
+      return distA - distB;
+    });
+  }
+
+  /**
+   * Check if a location is geographically between start and end points
+   */
+  private static isLocationBetween(start: TripStop, end: TripStop, location: TripStop): boolean {
+    const startLat = start.latitude;
+    const startLng = start.longitude;
+    const endLat = end.latitude;
+    const endLng = end.longitude;
+    const locLat = location.latitude;
+    const locLng = location.longitude;
+
+    // Check if location is within the bounding box of start and end
+    const minLat = Math.min(startLat, endLat);
+    const maxLat = Math.max(startLat, endLat);
+    const minLng = Math.min(startLng, endLng);
+    const maxLng = Math.max(startLng, endLng);
+
+    // Add some tolerance for Route 66's winding path
+    const tolerance = 2.0; // degrees
+
+    return (
+      locLat >= minLat - tolerance &&
+      locLat <= maxLat + tolerance &&
+      locLng >= minLng - tolerance &&
+      locLng <= maxLng + tolerance
+    );
+  }
+
+  /**
+   * Select key destinations based on available travel days
+   */
+  private static selectKeyDestinations(
+    heritageCities: TripStop[],
+    maxDestinations: number
+  ): TripStop[] {
+    if (heritageCities.length <= maxDestinations) {
+      return heritageCities;
+    }
+
+    // Select evenly distributed destinations
+    const selected: TripStop[] = [];
+    const step = heritageCities.length / maxDestinations;
+    
+    for (let i = 0; i < maxDestinations; i++) {
+      const index = Math.round(i * step);
+      if (index < heritageCities.length) {
+        selected.push(heritageCities[index]);
+      }
+    }
+
+    return selected;
+  }
+
+  /**
+   * Build daily segments with proper day distribution
+   */
+  private static async buildDailySegments(
+    startStop: TripStop,
+    destinations: TripStop[],
+    endStop: TripStop,
+    allStops: TripStop[],
+    totalDays: number
+  ) {
+    const segments = [];
+    
+    // Create the route stops in order
+    const routeStops = [startStop, ...destinations, endStop];
+    
+    console.log(`🛣️ Building route with ${routeStops.length} stops for ${totalDays} days`);
+
+    // Distribute stops across days
+    const stopsPerDay = Math.max(1, Math.floor(routeStops.length / totalDays));
+    let currentStopIndex = 0;
+
+    for (let day = 1; day <= totalDays; day++) {
+      const isLastDay = day === totalDays;
       
-      const segment: DailySegment = {
-        day: dayCount,
-        title: `${currentStop.name} to ${bestNextStop.name}`,
-        startCity: currentStop.name,
-        endCity: bestNextStop.name,
-        distance: totalDistance,
-        approximateMiles: totalDistance,
-        driveTimeHours: totalDriveTime,
-        destination: {
-          city: bestNextStop.city || bestNextStop.name,
-          state: bestNextStop.state || 'Unknown'
-        },
-        recommendedStops: [{
-          stopId: bestNextStop.id,
-          id: bestNextStop.id,
-          name: bestNextStop.name,
-          description: bestNextStop.description || '',
-          latitude: destinationCoordinates?.latitude || 0,
-          longitude: destinationCoordinates?.longitude || 0,
-          category: bestNextStop.category || 'destination_city',
-          city_name: bestNextStop.city || bestNextStop.name,
-          state: bestNextStop.state || 'Unknown',
-          city: bestNextStop.city || bestNextStop.name
-        }],
-        attractions: [{
-          name: bestNextStop.name,
-          title: bestNextStop.name,
-          description: bestNextStop.description || 'Historic Route 66 destination',
-          city: bestNextStop.city || bestNextStop.name,
-          category: bestNextStop.category || 'heritage_site'
-        }],
-        isGoogleMapsData: true,
-        dataAccuracy: 'high'
+      // Start city for this day
+      const dayStartStop = routeStops[currentStopIndex];
+      
+      // End city for this day
+      let dayEndStop: TripStop;
+      if (isLastDay) {
+        // Last day always ends at final destination
+        dayEndStop = endStop;
+      } else {
+        // Calculate next stop index
+        const nextIndex = Math.min(
+          currentStopIndex + stopsPerDay,
+          routeStops.length - 2 // Ensure we don't skip the final destination
+        );
+        dayEndStop = routeStops[nextIndex];
+        currentStopIndex = nextIndex;
+      }
+
+      // Calculate distance and drive time
+      const distance = this.calculateDistance(dayStartStop, dayEndStop);
+      const driveTimeHours = distance / 55; // Assume 55 mph average
+
+      // Find attractions near the end city
+      const attractions = await this.findNearbyAttractions(dayEndStop, allStops);
+
+      const segment = {
+        day: day,
+        startCity: dayStartStop.city || dayStartStop.name,
+        endCity: dayEndStop.city || dayEndStop.name,
+        distance: Math.round(distance),
+        driveTimeHours: Math.round(driveTimeHours * 10) / 10,
+        attractions: attractions.slice(0, 3), // Limit to 3 attractions per day
+        description: `Day ${day}: Drive from ${dayStartStop.city || dayStartStop.name} to ${dayEndStop.city || dayEndStop.name}`,
+        isGoogleMapsData: false
       };
-      
+
       segments.push(segment);
-      
-      console.log(`📍 Day ${dayCount}: ${currentStop.name} → ${bestNextStop.name} (${totalDistance}mi, ${totalDriveTime.toFixed(1)}h)`);
-      
-      // Move to next segment
-      currentStopIndex = routeStops.findIndex(stop => stop.id === bestNextStop.id);
-      dayCount++;
-      
-      // Break if we've reached the destination
-      if (bestNextStop.id === endStop.id) {
+
+      // If we've reached the end, break
+      if (dayEndStop.id === endStop.id) {
         break;
       }
     }
-    
+
+    console.log(`✅ Built ${segments.length} daily segments`);
     return segments;
   }
 
   /**
-   * Select optimal route stops based on geography and travel days
+   * Find nearby attractions for a given stop
    */
-  private static selectOptimalRouteStops(
-    startStop: TripStop,
-    endStop: TripStop,
-    allStops: TripStop[],
-    travelDays: number
-  ): TripStop[] {
-    // Start with start and end stops
-    const routeStops = [startStop];
-    
-    // If same stop, return immediately
-    if (startStop.id === endStop.id) {
-      return routeStops;
-    }
-    
-    // Get geographic bounds
-    const startCoords = CoordinateAccessSafety.safeGetCoordinates(startStop, 'route-start');
-    const endCoords = CoordinateAccessSafety.safeGetCoordinates(endStop, 'route-end');
-    
-    if (!startCoords || !endCoords) {
-      console.warn('⚠️ Could not get coordinates for route planning, using simple selection');
-      routeStops.push(endStop);
-      return routeStops;
-    }
-    
-    // Find intermediate stops along the route
-    const intermediateStops = allStops.filter(stop => 
-      stop.id !== startStop.id && 
-      stop.id !== endStop.id &&
-      CoordinateAccessSafety.canSafelyAccessCoordinates(stop, `route-candidate-${stop.id}`)
-    );
-    
-    // Sort by longitude (east to west progression for Route 66)
-    const sortedIntermediateStops = intermediateStops
-      .map(stop => ({
-        stop,
-        coords: CoordinateAccessSafety.safeGetCoordinates(stop, `route-sort-${stop.id}`)
-      }))
-      .filter(item => item.coords)
+  private static async findNearbyAttractions(targetStop: TripStop, allStops: TripStop[]): Promise<TripStop[]> {
+    const attractions = allStops.filter(stop => {
+      // Skip if it's the same stop
+      if (stop.id === targetStop.id) return false;
+      
+      // Look for attractions within reasonable distance
+      const distance = this.calculateDistance(targetStop, stop);
+      return distance <= 50; // Within 50 miles
+    });
+
+    // Sort by distance and return closest ones
+    return attractions
       .sort((a, b) => {
-        // Route 66 generally goes east to west, so sort by longitude
-        const aLng = a.coords!.longitude;
-        const bLng = b.coords!.longitude;
-        return startCoords.longitude < endCoords.longitude ? aLng - bLng : bLng - aLng;
+        const distA = this.calculateDistance(targetStop, a);
+        const distB = this.calculateDistance(targetStop, b);
+        return distA - distB;
       })
-      .map(item => item.stop);
-    
-    // Add appropriate number of intermediate stops based on travel days
-    const maxIntermediateStops = Math.max(0, travelDays - 1);
-    const selectedIntermediateStops = sortedIntermediateStops.slice(0, maxIntermediateStops);
-    
-    routeStops.push(...selectedIntermediateStops);
-    routeStops.push(endStop);
-    
-    console.log(`🗺️ ROUTE SELECTION: ${routeStops.length} stops selected:`, 
-      routeStops.map(s => `${s.name} (${s.city})`));
-    
-    return routeStops;
+      .slice(0, 5);
+  }
+
+  /**
+   * Calculate distance between two stops using Haversine formula
+   */
+  private static calculateDistance(stop1: TripStop, stop2: TripStop): number {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (stop2.latitude - stop1.latitude) * Math.PI / 180;
+    const dLon = (stop2.longitude - stop1.longitude) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(stop1.latitude * Math.PI / 180) * Math.cos(stop2.latitude * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance;
   }
 }

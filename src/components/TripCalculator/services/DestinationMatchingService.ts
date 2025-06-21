@@ -50,15 +50,15 @@ export class DestinationMatchingService {
 
     console.log(`🎯 ENHANCED MATCHING: Searching for "${searchLocation}" (normalized: "${searchTerm}") in ${stops.length} stops`);
 
-    // CRITICAL DEBUG: Special logging for Needles
-    if (searchTerm.includes('needles')) {
-      console.log('🔍 NEEDLES SPECIAL DEBUG: Full stops analysis');
-      const needlesRelated = stops.filter(s => 
-        (s.name && s.name.toLowerCase().includes('needles')) || 
-        (s.city && s.city.toLowerCase().includes('needles')) ||
-        (s.city_name && s.city_name.toLowerCase().includes('needles'))
+    // CRITICAL DEBUG: Special logging for specific locations
+    if (searchTerm.includes('joliet') || searchTerm.includes('needles')) {
+      console.log(`🔍 SPECIAL DEBUG for ${searchTerm}: Full stops analysis`);
+      const relatedStops = stops.filter(s => 
+        (s.name && s.name.toLowerCase().includes(searchTerm)) || 
+        (s.city && s.city.toLowerCase().includes(searchTerm)) ||
+        (s.city_name && s.city_name.toLowerCase().includes(searchTerm))
       );
-      console.log('🔍 NEEDLES: Found related stops:', needlesRelated.map(s => ({
+      console.log(`🔍 ${searchTerm.toUpperCase()}: Found related stops:`, relatedStops.map(s => ({
         id: s.id,
         name: s.name,
         city: s.city,
@@ -67,9 +67,9 @@ export class DestinationMatchingService {
       })));
     }
 
-    // 1. Try exact matching first
+    // 1. Enhanced exact matching with multiple field checks
     for (const stop of stops) {
-      // Exact name match
+      // Check name field
       if (stop.name && this.normalizeSearchTerm(stop.name) === searchTerm) {
         matches.push({
           stop,
@@ -79,15 +79,24 @@ export class DestinationMatchingService {
         console.log(`✅ EXACT NAME MATCH: ${stop.name}`);
       }
       
-      // Exact city match (try both city and city_name fields)
-      const cityToCheck = stop.city || stop.city_name;
-      if (cityToCheck && this.normalizeSearchTerm(cityToCheck) === searchTerm) {
+      // Check city field
+      if (stop.city && this.normalizeSearchTerm(stop.city) === searchTerm) {
         matches.push({
           stop,
           confidence: 0.95,
           matchType: 'city'
         });
-        console.log(`✅ EXACT CITY MATCH: ${cityToCheck}, ${stop.state} (${stop.name})`);
+        console.log(`✅ EXACT CITY MATCH: ${stop.city}, ${stop.state} (${stop.name})`);
+      }
+
+      // Check city_name field
+      if (stop.city_name && this.normalizeSearchTerm(stop.city_name) === searchTerm) {
+        matches.push({
+          stop,
+          confidence: 0.95,
+          matchType: 'city'
+        });
+        console.log(`✅ EXACT CITY_NAME MATCH: ${stop.city_name}, ${stop.state} (${stop.name})`);
       }
     }
 
@@ -103,13 +112,11 @@ export class DestinationMatchingService {
         // Try multiple matching strategies for the canonical city
         const potentialStops = stops.filter(stop => {
           const nameMatch = stop.name && (
-            this.normalizeSearchTerm(stop.name) === canonicalNormalized ||
             this.normalizeSearchTerm(stop.name).includes(canonicalNormalized) ||
             canonicalNormalized.includes(this.normalizeSearchTerm(stop.name))
           );
           
           const cityMatch = (stop.city || stop.city_name) && (
-            this.normalizeSearchTerm(stop.city || stop.city_name || '') === canonicalNormalized ||
             this.normalizeSearchTerm(stop.city || stop.city_name || '').includes(canonicalNormalized) ||
             canonicalNormalized.includes(this.normalizeSearchTerm(stop.city || stop.city_name || ''))
           );
@@ -131,86 +138,37 @@ export class DestinationMatchingService {
       }
     }
 
-    // 3. Enhanced city + state parsing
-    if (searchTerm.includes(',') || searchTerm.includes(' ')) {
-      const parts = searchTerm.split(/[,\s]+/).filter(p => p.length > 0);
-      if (parts.length >= 2) {
-        const cityPart = parts[0];
-        const statePart = parts[1];
-
-        console.log(`🔍 PARSING: City="${cityPart}", State="${statePart}"`);
-
-        for (const stop of stops) {
-          if ((stop.city || stop.city_name) && stop.state) {
-            const normalizedCity = this.normalizeSearchTerm(stop.city || stop.city_name || '');
-            const normalizedState = this.normalizeSearchTerm(stop.state);
-            const stateAbbr = this.getStateAbbreviation(stop.state);
-            const normalizedStopName = this.normalizeSearchTerm(stop.name);
-            
-            const cityMatches = normalizedCity === cityPart || 
-                               normalizedStopName === cityPart ||
-                               normalizedCity.includes(cityPart) ||
-                               cityPart.includes(normalizedCity);
-                               
-            const stateMatches = normalizedState === statePart || 
-                                normalizedState.startsWith(statePart) || 
-                                statePart.startsWith(normalizedState) ||
-                                stateAbbr === statePart.toUpperCase();
-            
-            if (cityMatches && stateMatches) {
-              matches.push({
-                stop,
-                confidence: 0.97,
-                matchType: 'city'
-              });
-              console.log(`✅ ENHANCED CITY+STATE MATCH: ${stop.city || stop.city_name}, ${stop.state}`);
-            }
-          }
-        }
-      }
-    }
-
-    // 4. Aggressive partial matching if no matches found
+    // 3. Enhanced partial matching with better logic
     if (matches.length === 0) {
-      console.log('🔍 AGGRESSIVE FALLBACK: No exact matches found, trying partial matching');
+      console.log('🔍 ENHANCED PARTIAL MATCHING: No exact matches found');
       
       for (const stop of stops) {
         const normalizedName = this.normalizeSearchTerm(stop.name);
         const normalizedCity = this.normalizeSearchTerm(stop.city || stop.city_name || '');
         
         if (searchTerm.length >= 3) {
-          const nameIncludes = normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName);
-          const cityIncludes = normalizedCity.includes(searchTerm) || searchTerm.includes(normalizedCity);
+          // More flexible partial matching
+          const namePartialMatch = normalizedName.includes(searchTerm) || 
+                                  searchTerm.includes(normalizedName) ||
+                                  this.calculateSimilarity(normalizedName, searchTerm) > 0.7;
           
-          if (nameIncludes || cityIncludes) {
+          const cityPartialMatch = normalizedCity.includes(searchTerm) || 
+                                  searchTerm.includes(normalizedCity) ||
+                                  this.calculateSimilarity(normalizedCity, searchTerm) > 0.7;
+          
+          if (namePartialMatch || cityPartialMatch) {
+            const confidence = Math.max(
+              this.calculateSimilarity(normalizedName, searchTerm),
+              this.calculateSimilarity(normalizedCity, searchTerm)
+            ) * 0.8;
+            
             matches.push({
               stop,
-              confidence: 0.7,
+              confidence: confidence,
               matchType: 'partial'
             });
-            console.log(`✅ AGGRESSIVE PARTIAL MATCH: ${stop.name} (${stop.city || stop.city_name})`);
+            console.log(`✅ ENHANCED PARTIAL MATCH: ${stop.name} (${stop.city || stop.city_name}) - confidence: ${confidence.toFixed(2)}`);
           }
-        }
-      }
-    }
-
-    // 5. Last resort: fuzzy matching
-    if (matches.length === 0) {
-      console.log('🔍 LAST RESORT: Trying fuzzy matching');
-      
-      for (const stop of stops) {
-        const nameSimilarity = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.name));
-        const citySimilarity = (stop.city || stop.city_name) ? 
-          this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.city || stop.city_name || '')) : 0;
-        const maxSimilarity = Math.max(nameSimilarity, citySimilarity);
-        
-        if (maxSimilarity > 0.6) {
-          matches.push({
-            stop,
-            confidence: maxSimilarity * 0.8,
-            matchType: 'fuzzy'
-          });
-          console.log(`✅ FUZZY MATCH: ${stop.name} (similarity: ${maxSimilarity.toFixed(2)})`);
         }
       }
     }
@@ -237,20 +195,6 @@ export class DestinationMatchingService {
         state: s.state,
         id: s.id
       })));
-      
-      // Special debug for Needles
-      if (searchTerm.includes('needles')) {
-        console.log('🚨 NEEDLES SPECIFIC DEBUG: No match found despite comprehensive search');
-        console.log('🚨 This suggests Needles may not exist in the Route 66 stops data or has different naming');
-        
-        // Try to find any California stops for debugging
-        const caStops = stops.filter(s => s.state && s.state.toLowerCase().includes('ca'));
-        console.log('🔍 California stops available:', caStops.slice(0, 5).map(s => ({
-          name: s.name,
-          city: s.city || s.city_name,
-          state: s.state
-        })));
-      }
     }
 
     return bestMatch || null;
