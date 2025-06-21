@@ -23,62 +23,43 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
-  console.log('🔧 TripCalculatorResults: Received props:', {
+  console.log('🔧 TripCalculatorResults: Debug props analysis:', {
     hasTripPlan: !!tripPlan,
     hasCalculation: !!calculation,
-    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateRaw: tripStartDate,
     tripStartDateType: typeof tripStartDate,
     tripStartDateValid: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-    originalRequestedDays
+    tripStartDateString: tripStartDate?.toISOString(),
+    originalRequestedDays,
+    timestamp: new Date().toISOString()
   });
 
-  // CRITICAL FIX: Ensure valid tripStartDate with comprehensive validation and fallback
+  // CRITICAL FIX: Ensure we have a valid date - use today if not provided
   const validTripStartDate = React.useMemo(() => {
-    console.log('🔧 TripCalculatorResults: Validating tripStartDate:', {
-      inputDate: tripStartDate,
-      inputType: typeof tripStartDate,
-      isDate: tripStartDate instanceof Date,
-      isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-      timestamp: Date.now()
-    });
-
-    // Check if we have a valid Date object
+    // If we have a valid Date object, use it
     if (tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())) {
-      // Normalize to prevent timezone issues
-      const normalized = new Date(
-        tripStartDate.getFullYear(),
-        tripStartDate.getMonth(),
-        tripStartDate.getDate(),
-        12, 0, 0, 0
-      );
-      console.log('✅ TripCalculatorResults: Using provided tripStartDate:', {
-        original: tripStartDate.toISOString(),
-        normalized: normalized.toISOString(),
-        localDate: normalized.toLocaleDateString()
+      console.log('✅ TripCalculatorResults: Using provided valid tripStartDate:', {
+        date: tripStartDate.toISOString(),
+        localDate: tripStartDate.toLocaleDateString()
       });
-      return normalized;
+      return tripStartDate;
     }
-    
-    // Fallback to today with proper normalization
+
+    // Fall back to today
     const today = new Date();
-    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
-    console.log('🔄 TripCalculatorResults: Using today as fallback:', {
+    console.log('🔄 TripCalculatorResults: Using today as fallback date:', {
       today: today.toISOString(),
-      normalized: normalizedToday.toISOString(),
-      localDate: normalizedToday.toLocaleDateString(),
+      localDate: today.toLocaleDateString(),
       reason: tripStartDate ? 'invalid_date' : 'no_date_provided'
     });
-    return normalizedToday;
+    return today;
   }, [tripStartDate]);
 
-  console.log('🎯 TripCalculatorResults rendering with valid date:', {
+  console.log('🎯 TripCalculatorResults: Final render state:', {
     hasTripPlan: !!tripPlan,
-    hasCalculation: !!calculation,
     validTripStartDate: validTripStartDate.toISOString(),
-    validTripStartLocal: validTripStartDate.toLocaleDateString(),
-    hasCompletionAnalysis: !!completionAnalysis,
-    originalRequestedDays,
-    weatherSystemFixed: true
+    validTripStartDateLocal: validTripStartDate.toLocaleDateString(),
+    willPassToResults: true
   });
 
   if (!tripPlan) {

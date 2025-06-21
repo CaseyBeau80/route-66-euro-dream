@@ -21,44 +21,40 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  console.log('🌤️ UnifiedWeatherWidget render:', {
+  console.log('🌤️ UnifiedWeatherWidget render debug:', {
     city: segment.endCity,
     day: segment.day,
+    tripStartDateProvided: !!tripStartDate,
     tripStartDate: tripStartDate?.toISOString(),
-    hasValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
+    tripStartDateValid: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
   });
 
-  // Calculate segment date - FIXED: More robust date calculation
+  // Calculate segment date with improved logic
   const segmentDate = React.useMemo(() => {
-    if (!tripStartDate || !(tripStartDate instanceof Date) || isNaN(tripStartDate.getTime())) {
-      console.log('❌ UnifiedWeatherWidget: Invalid or missing tripStartDate for', segment.endCity);
-      return null;
-    }
+    // Use provided date or fall back to today
+    const baseDate = tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()) 
+      ? tripStartDate 
+      : new Date();
 
-    // Simple and reliable date calculation
-    const segmentDate = new Date(tripStartDate);
+    // Calculate the segment date: Day 1 = trip start date, Day 2 = trip start + 1 day, etc.
+    const segmentDate = new Date(baseDate);
     segmentDate.setDate(segmentDate.getDate() + (segment.day - 1));
     segmentDate.setHours(12, 0, 0, 0); // Normalize to noon
-    
-    console.log('✅ UnifiedWeatherWidget: Calculated segment date for', segment.endCity, {
-      tripStartDate: tripStartDate.toISOString(),
+
+    console.log('✅ UnifiedWeatherWidget: Calculated segment date:', {
+      city: segment.endCity,
       segmentDay: segment.day,
-      calculatedDate: segmentDate.toISOString(),
-      calculatedLocal: segmentDate.toLocaleDateString()
+      baseDate: baseDate.toISOString(),
+      calculatedSegmentDate: segmentDate.toISOString(),
+      localDate: segmentDate.toLocaleDateString()
     });
-    
+
     return segmentDate;
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // Fetch weather using secure service
+  // Fetch weather
   const fetchWeather = React.useCallback(async () => {
-    if (!segmentDate) {
-      console.log('❌ UnifiedWeatherWidget: No valid segment date for', segment.endCity);
-      return;
-    }
-
     console.log('🌤️ UnifiedWeatherWidget: Starting weather fetch for', segment.endCity);
-
     setLoading(true);
     setError(null);
 
@@ -69,41 +65,28 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
       );
 
       if (weatherData) {
-        console.log('✅ UnifiedWeatherWidget: Weather fetch successful for', segment.endCity, {
+        console.log('✅ UnifiedWeatherWidget: Weather fetch successful:', {
+          city: segment.endCity,
           temperature: weatherData.temperature,
-          source: weatherData.source,
-          isActualForecast: weatherData.isActualForecast
+          source: weatherData.source
         });
         setWeather(weatherData);
       } else {
-        console.log('⚠️ UnifiedWeatherWidget: No weather data returned for', segment.endCity);
+        console.log('⚠️ UnifiedWeatherWidget: No weather data returned');
         setError('Weather data unavailable');
       }
     } catch (error) {
-      console.error('❌ UnifiedWeatherWidget: Weather fetch failed for', segment.endCity, error);
+      console.error('❌ UnifiedWeatherWidget: Weather fetch failed:', error);
       setError('Failed to load weather');
     } finally {
       setLoading(false);
     }
   }, [segment.endCity, segmentDate]);
 
-  // Fetch weather when segment date is available
+  // Fetch weather when component mounts or dependencies change
   React.useEffect(() => {
-    if (segmentDate) {
-      fetchWeather();
-    }
+    fetchWeather();
   }, [fetchWeather]);
-
-  // Show message if no valid date
-  if (!segmentDate) {
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-        <div className="text-blue-400 text-2xl mb-2">📅</div>
-        <p className="text-sm text-blue-700 font-medium mb-1">Date Required for Weather</p>
-        <p className="text-xs text-blue-600">Trip start date needed to show weather forecast</p>
-      </div>
-    );
-  }
 
   // Loading state
   if (loading) {
@@ -137,9 +120,6 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
 
   // Success state with weather data
   if (weather) {
-    const daysFromToday = segmentDate ? 
-      Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : 0;
-
     return (
       <div className="bg-gradient-to-r from-blue-50 to-sky-50 border border-sky-200 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
@@ -150,7 +130,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
                 Weather for {segment.endCity}
               </h4>
               <p className="text-xs text-gray-600">
-                {segmentDate?.toLocaleDateString('en-US', { 
+                {segmentDate.toLocaleDateString('en-US', { 
                   weekday: 'short', 
                   month: 'short', 
                   day: 'numeric' 
@@ -206,7 +186,13 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     );
   }
 
-  return null;
+  // Fallback - should not reach here
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+      <div className="text-gray-400 text-2xl mb-2">🌤️</div>
+      <p className="text-sm text-gray-600">Weather loading...</p>
+    </div>
+  );
 };
 
 // Helper function to get weather icon
