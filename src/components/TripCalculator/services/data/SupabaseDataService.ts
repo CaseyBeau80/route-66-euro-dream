@@ -90,6 +90,46 @@ export class SupabaseDataService {
   }
 
   /**
+   * Find stop by name
+   */
+  static async findStopByName(name: string): Promise<TripStop | null> {
+    console.log(`🔍 SupabaseDataService: Finding stop by name: ${name}`);
+    
+    try {
+      const allStops = await this.fetchAllStops();
+      const normalizedSearchName = name.toLowerCase().trim();
+      
+      // Try exact match first
+      const exactMatch = allStops.find(stop => 
+        stop.name.toLowerCase().trim() === normalizedSearchName
+      );
+      
+      if (exactMatch) {
+        console.log(`✅ Found exact match: ${exactMatch.name}`);
+        return exactMatch;
+      }
+      
+      // Try partial match
+      const partialMatch = allStops.find(stop => 
+        stop.name.toLowerCase().includes(normalizedSearchName) ||
+        normalizedSearchName.includes(stop.name.toLowerCase())
+      );
+      
+      if (partialMatch) {
+        console.log(`✅ Found partial match: ${partialMatch.name}`);
+        return partialMatch;
+      }
+      
+      console.log(`❌ No stop found with name: ${name}`);
+      return null;
+      
+    } catch (error) {
+      console.error('❌ Failed to find stop by name:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get destination cities specifically
    */
   static async getDestinationCities(): Promise<TripStop[]> {
