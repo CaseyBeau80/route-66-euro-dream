@@ -14,28 +14,70 @@ export interface ValidationResult {
 }
 
 export class DriveTimeEnforcementService {
+  // FIXED: Absolute drive time enforcement
   static enforceDriveTimeLimits(segments: DailySegment[], styleConfig: TripStyleConfig): DailySegment[] {
+    console.log(`🚫 ENFORCING DRIVE LIMITS: Max ${styleConfig.maxDailyDriveHours}h per day`);
+    
     return segments.map(segment => {
       if (segment.driveTimeHours > styleConfig.maxDailyDriveHours) {
-        console.warn(`Capping drive time for day ${segment.day} from ${segment.driveTimeHours}h to ${styleConfig.maxDailyDriveHours}h`);
+        const originalTime = segment.driveTimeHours;
+        const cappedTime = styleConfig.maxDailyDriveHours;
+        const cappedDistance = Math.round(cappedTime * 50); // 50 mph average
+        
+        console.warn(`⚠️ CAPPED: Day ${segment.day} drive time from ${originalTime.toFixed(1)}h to ${cappedTime}h`);
+        console.warn(`⚠️ CAPPED: Day ${segment.day} distance from ${segment.distance}mi to ${cappedDistance}mi`);
+        
         return {
           ...segment,
-          driveTimeHours: styleConfig.maxDailyDriveHours
+          driveTimeHours: cappedTime,
+          distance: cappedDistance,
+          approximateMiles: cappedDistance
         };
       }
       return segment;
     });
   }
 
+  // FIXED: Enhanced validation with better error messages
+  static validateSegmentDriveTime(
+    startStop: TripStop,
+    endStop: TripStop,
+    styleConfig: TripStyleConfig
+  ): ValidationResult {
+    const distance = this.calculateDistance(startStop, endStop);
+    const driveTime = distance / 50; // 50 mph average speed for Route 66
+    
+    const isValid = driveTime <= styleConfig.maxDailyDriveHours;
+    const needsSplitting = driveTime > styleConfig.maxDailyDriveHours;
+    const recommendedSplits = needsSplitting ? Math.ceil(driveTime / styleConfig.maxDailyDriveHours) : 1;
+    
+    let recommendation: string | undefined;
+    if (needsSplitting) {
+      recommendation = `Segment too long (${driveTime.toFixed(1)}h). Split into ${recommendedSplits} segments or add intermediate stops.`;
+    }
+    
+    return {
+      isValid,
+      actualDriveTime: driveTime,
+      actualDistance: distance,
+      maxAllowed: styleConfig.maxDailyDriveHours,
+      needsSplitting,
+      recommendedSplits,
+      recommendation
+    };
+  }
+
+  // FIXED: More accurate distance calculation
   static validateAndFixSegmentDistance(
     segment: DailySegment, 
     styleConfig: TripStyleConfig
   ): DailySegment {
-    // Validate and fix segment if drive time exceeds limits
     if (segment.driveTimeHours > styleConfig.maxDailyDriveHours) {
-      const maxDistance = styleConfig.maxDailyDriveHours * 50; // Assuming 50 mph average
+      const maxDistance = Math.round(styleConfig.maxDailyDriveHours * 50); // 50 mph average
       
-      console.warn(`Fixing segment distance from ${segment.distance} to ${maxDistance} miles`);
+      console.warn(`🔧 FIXING SEGMENT: Day ${segment.day}`);
+      console.warn(`   Distance: ${segment.distance}mi → ${maxDistance}mi`);
+      console.warn(`   Drive time: ${segment.driveTimeHours.toFixed(1)}h → ${styleConfig.maxDailyDriveHours}h`);
       
       return {
         ...segment,
@@ -48,30 +90,7 @@ export class DriveTimeEnforcementService {
     return segment;
   }
 
-  // Added missing method for validation between two stops
-  static validateSegmentDriveTime(
-    startStop: TripStop,
-    endStop: TripStop,
-    styleConfig: TripStyleConfig
-  ): ValidationResult {
-    const distance = this.calculateDistance(startStop, endStop);
-    const driveTime = distance / 55; // Assuming 55 mph average speed
-    
-    const isValid = driveTime <= styleConfig.maxDailyDriveHours;
-    const needsSplitting = driveTime > styleConfig.maxDailyDriveHours;
-    const recommendedSplits = needsSplitting ? Math.ceil(driveTime / styleConfig.maxDailyDriveHours) : 1;
-    
-    return {
-      isValid,
-      actualDriveTime: driveTime,
-      actualDistance: distance,
-      maxAllowed: styleConfig.maxDailyDriveHours,
-      needsSplitting,
-      recommendedSplits,
-      recommendation: needsSplitting ? `Consider splitting into ${recommendedSplits} segments` : undefined
-    };
-  }
-
+  // FIXED: Haversine distance calculation
   private static calculateDistance(startStop: TripStop, endStop: TripStop): number {
     const R = 3959; // Earth's radius in miles
     const dLat = this.toRad(endStop.latitude - startStop.latitude);

@@ -18,20 +18,15 @@ const TripStyleSection: React.FC<TripStyleSectionProps> = ({
         Trip Style
       </label>
       <div className="grid grid-cols-1 gap-3">
-        <button
-          type="button"
-          onClick={() => onTripStyleChange('destination-focused')}
-          className={`p-4 border rounded-lg text-left transition-colors ${
-            tripStyle === 'destination-focused'
-              ? 'border-route66-primary bg-route66-primary/10 text-route66-primary'
-              : 'border-route66-border hover:border-route66-primary/50'
-          }`}
-        >
-          <div className="font-medium">Heritage Cities</div>
+        <div className="p-4 border-2 border-route66-primary bg-route66-primary/10 rounded-lg">
+          <div className="font-medium text-route66-primary">Heritage Cities Focus</div>
           <div className="text-sm text-route66-text-secondary mt-1">
-            Prioritizes iconic Route 66 heritage locations with optimized drive times
+            Prioritizes iconic Route 66 heritage locations with realistic drive times (max 8 hours/day)
           </div>
-        </button>
+          <div className="text-xs text-route66-text-secondary mt-2 opacity-75">
+            ✓ Drive time limits enforced ✓ Minimum 3 days ✓ Maximum 14 days
+          </div>
+        </div>
       </div>
     </div>
   );

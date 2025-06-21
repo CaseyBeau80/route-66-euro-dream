@@ -1,16 +1,10 @@
 
 export const getTripStyleDisplayName = (style: string): string => {
-  switch (style) {
-    case 'balanced': return 'Even Pacing';
-    case 'destination-focused': return 'Heritage Cities';
-    default: return 'Custom Trip';
-  }
+  // FIXED: Only support destination-focused style
+  return 'Heritage Cities Focus';
 };
 
 export const getTripStyleDescription = (style: string): string => {
-  switch (style) {
-    case 'balanced': return 'Consistent drive times with diverse stops and attractions';
-    case 'destination-focused': return 'Prioritizes iconic Route 66 heritage cities and landmarks';
-    default: return 'Customized to your preferences';
-  }
+  // FIXED: Updated description with drive time limits
+  return 'Prioritizes iconic Route 66 heritage cities with realistic drive times (max 8 hours/day)';
 };

@@ -1,9 +1,8 @@
-import React from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherDataValidator } from '../WeatherDataValidator';
-import { WeatherUtilityService } from '../services/WeatherUtilityService';
-import { WeatherApiKeyManager } from '@/components/Route66Map/services/weather/WeatherApiKeyManager';
-import { WeatherFallbackService } from '@/components/Route66Map/services/weather/WeatherFallbackService';
+import { SecureWeatherService } from '@/services/SecureWeatherService';
+import { WeatherService } from '@/components/Route66Map/services/WeatherService';
 
 interface UseUnifiedWeatherProps {
   cityName: string;
@@ -13,12 +12,6 @@ interface UseUnifiedWeatherProps {
   cachedWeather?: ForecastWeatherData | null;
 }
 
-interface UnifiedWeatherState {
-  weather: ForecastWeatherData | null;
-  loading: boolean;
-  error: string | null;
-}
-
 export const useUnifiedWeather = ({
   cityName,
   segmentDate,
@@ -26,202 +19,81 @@ export const useUnifiedWeather = ({
   prioritizeCachedData = false,
   cachedWeather = null
 }: UseUnifiedWeatherProps) => {
-  const [state, setState] = React.useState<UnifiedWeatherState>({
-    weather: null,
-    loading: false,
-    error: null
-  });
+  const [weather, setWeather] = useState<ForecastWeatherData | null>(cachedWeather);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [hasApiKey, setHasApiKey] = useState(false);
 
-  // FIXED: Enhanced stable key that includes validation context to prevent inconsistent caching
-  const stableKey = React.useMemo(() => {
-    const dateKey = segmentDate?.toISOString().split('T')[0] || 'no-date';
-    const daysFromToday = segmentDate ? WeatherUtilityService.getDaysFromToday(segmentDate) : -999;
-    const isWithinRange = segmentDate ? WeatherUtilityService.isWithinLiveForecastRange(segmentDate) : false;
-    return `${cityName}-day-${segmentDay}-${dateKey}-range-${isWithinRange}-days-${daysFromToday}`;
-  }, [cityName, segmentDay, segmentDate?.getTime()]);
+  // Check API key availability
+  useEffect(() => {
+    const weatherService = WeatherService.getInstance();
+    setHasApiKey(weatherService.hasApiKey());
+  }, [retryCount]);
 
-  console.log('🔗 FIXED: useUnifiedWeather with ENHANCED cache invalidation:', {
-    stableKey,
-    cityName,
-    segmentDay,
-    hasSegmentDate: !!segmentDate,
-    segmentDate: segmentDate?.toLocaleDateString(),
-    prioritizeCachedData,
-    hasCachedWeather: !!cachedWeather,
-    fixedImplementation: 'ENHANCED_CACHE_KEY_WITH_VALIDATION_CONTEXT'
-  });
-
-  // FIXED: Fetch weather function that ensures consistent validation
-  const fetchWeather = React.useCallback(async () => {
+  // FIXED: Enhanced weather fetching logic
+  const fetchWeather = useCallback(async () => {
     if (!segmentDate) {
-      console.warn('⚠️ FIXED: useUnifiedWeather - segmentDate is required for consistent validation');
-      setState(prev => ({ ...prev, error: 'Segment date required for weather validation' }));
+      console.log('🌤️ FIXED: No segment date provided for', cityName);
       return;
     }
 
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    console.log('🌤️ FIXED: Starting weather fetch for', cityName, {
+      segmentDate: segmentDate.toISOString(),
+      day: segmentDay,
+      hasApiKey,
+      prioritizeCachedData,
+      retryCount
+    });
+
+    setLoading(true);
+    setError(null);
 
     try {
-      console.log(`🚀 FIXED: Fetching weather for ${stableKey} with segmentDate:`, segmentDate.toLocaleDateString());
-
-      // Try to get live weather if API key exists and within forecast range
-      const hasApiKey = WeatherApiKeyManager.hasApiKey();
-      const isWithinForecastRange = WeatherUtilityService.isWithinLiveForecastRange(segmentDate);
-
-      let fetchedWeather: ForecastWeatherData | null = null;
-
-      if (hasApiKey && isWithinForecastRange) {
-        console.log(`🌤️ FIXED: Attempting live weather for ${cityName}`);
-        fetchedWeather = await fetchLiveWeather();
-      }
-
-      // Fallback to historical weather
-      if (!fetchedWeather) {
-        console.log(`📊 FIXED: Using fallback weather for ${cityName}`);
-        fetchedWeather = createFallbackWeather();
-      }
-
-      // FIXED: Always validate with segment date to ensure consistent source labeling
-      const validationResult = WeatherDataValidator.validateWeatherData(
-        fetchedWeather,
+      // Try secure weather service first (uses Supabase Edge Function)
+      const weatherData = await SecureWeatherService.fetchWeatherForecast(
         cityName,
         segmentDate
       );
 
-      console.log(`✅ FIXED: Weather validation for ${stableKey}:`, {
-        originalSource: fetchedWeather?.source,
-        validatedSource: validationResult.validation.source,
-        isLiveForecast: validationResult.isLiveForecast,
-        styleTheme: validationResult.validation.styleTheme,
-        dateBasedDecision: validationResult.validation.dateBasedDecision,
-        daysFromToday: validationResult.validation.daysFromToday
-      });
-
-      setState(prev => ({ 
-        ...prev, 
-        weather: validationResult.normalizedWeather, 
-        loading: false 
-      }));
-
-    } catch (error) {
-      console.error(`❌ FIXED: Weather fetch error for ${stableKey}:`, error);
-      
-      // Create fallback weather and validate it
-      const fallbackWeather = createFallbackWeather();
-      const validationResult = WeatherDataValidator.validateWeatherData(
-        fallbackWeather,
-        cityName,
-        segmentDate
-      );
-
-      setState(prev => ({ 
-        ...prev, 
-        weather: validationResult.normalizedWeather, 
-        loading: false, 
-        error: 'Using estimated weather data' 
-      }));
+      if (weatherData) {
+        console.log('✅ FIXED: Weather data received for', cityName, {
+          source: weatherData.source,
+          temperature: weatherData.temperature,
+          isActualForecast: weatherData.isActualForecast
+        });
+        setWeather(weatherData);
+        setError(null);
+      } else {
+        console.warn('⚠️ FIXED: No weather data returned for', cityName);
+        setError('Weather data unavailable');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Weather fetch failed';
+      console.error('❌ FIXED: Weather fetch error for', cityName, err);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
-  }, [segmentDate?.getTime(), cityName, stableKey]);
+  }, [cityName, segmentDate, segmentDay, hasApiKey, prioritizeCachedData, retryCount]);
 
-  // FIXED: Create fallback weather function
-  const createFallbackWeather = (): ForecastWeatherData => {
-    const targetDateString = segmentDate!.toISOString().split('T')[0];
-    const daysFromToday = WeatherUtilityService.getDaysFromToday(segmentDate!);
-    
-    return WeatherFallbackService.createFallbackForecast(
-      cityName,
-      segmentDate!,
-      targetDateString,
-      daysFromToday
-    );
-  };
-
-  // FIXED: Live weather fetch function
-  const fetchLiveWeather = async (): Promise<ForecastWeatherData | null> => {
-    try {
-      const apiKey = WeatherApiKeyManager.getApiKey();
-      if (!apiKey) return null;
-
-      // Get coordinates first
-      const coords = await getCoordinates(apiKey);
-      if (!coords) return null;
-
-      // Fetch forecast
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${coords.lat}&lon=${coords.lng}&appid=${apiKey}&units=imperial`;
-      const response = await fetch(weatherUrl);
-
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      if (!data.list || data.list.length === 0) return null;
-
-      // Find best match for the segment date
-      const targetDateString = segmentDate!.toISOString().split('T')[0];
-      const bestMatch = data.list.find((item: any) => {
-        const itemDate = new Date(item.dt * 1000).toISOString().split('T')[0];
-        return itemDate === targetDateString;
-      }) || data.list[0];
-
-      return {
-        temperature: Math.round(bestMatch.main.temp),
-        highTemp: Math.round(bestMatch.main.temp_max),
-        lowTemp: Math.round(bestMatch.main.temp_min),
-        description: bestMatch.weather[0]?.description || 'Partly Cloudy',
-        icon: bestMatch.weather[0]?.icon || '02d',
-        humidity: bestMatch.main.humidity,
-        windSpeed: Math.round(bestMatch.wind?.speed || 0),
-        precipitationChance: Math.round((bestMatch.pop || 0) * 100),
-        cityName,
-        forecast: [],
-        forecastDate: segmentDate!,
-        isActualForecast: true,
-        source: 'live_forecast' as const
-      };
-    } catch (error) {
-      console.error('❌ FIXED: Live weather fetch failed:', error);
-      return null;
-    }
-  };
-
-  // FIXED: Geocoding helper
-  const getCoordinates = async (apiKey: string) => {
-    try {
-      const cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim();
-      const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cleanCityName)}&limit=3&appid=${apiKey}`;
-      
-      const response = await fetch(geocodingUrl);
-      if (!response.ok) return null;
-
-      const data = await response.json();
-      if (!data || data.length === 0) return null;
-
-      const result = data.find((r: any) => r.country === 'US') || data[0];
-      return { lat: result.lat, lng: result.lon };
-    } catch (error) {
-      console.error('❌ FIXED: Geocoding error:', error);
-      return null;
-    }
-  };
-
-  // FIXED: Auto-fetch effect with proper dependencies and cache invalidation
-  React.useEffect(() => {
-    if (segmentDate && !state.weather && !state.loading) {
-      console.log(`🔄 FIXED: Auto-fetching weather for enhanced key ${stableKey}`);
+  // Fetch weather when dependencies change
+  useEffect(() => {
+    if (segmentDate && cityName) {
       fetchWeather();
     }
-  }, [segmentDate?.getTime(), stableKey, state.weather, state.loading, fetchWeather]);
+  }, [fetchWeather]);
 
-  // Refetch function for manual refresh with cache clearing
-  const refetch = React.useCallback(() => {
-    console.log(`🔄 FIXED: Manual refetch with cache clear for ${stableKey}`);
-    setState(prev => ({ ...prev, weather: null }));
-    fetchWeather();
-  }, [fetchWeather, stableKey]);
+  const refetch = useCallback(() => {
+    setRetryCount(prev => prev + 1);
+  }, []);
 
   return {
-    weather: state.weather,
-    loading: state.loading,
-    error: state.error,
+    weather,
+    loading,
+    error,
+    hasApiKey,
+    retryCount,
     refetch
   };
 };
