@@ -90,10 +90,10 @@ export const useTripCalculation = () => {
 
       const tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'; // FIXED: Only support destination-focused
       
-      console.log('🎯 PLANNING TRIP with fixed validation:', {
+      console.log('🎯 PLANNING TRIP with EXPLICIT day count enforcement:', {
         start: adjustedFormData.startLocation,
         end: adjustedFormData.endLocation,
-        days: adjustedTravelDays,
+        requestedDays: adjustedTravelDays,
         originalDays: dataToUse.travelDays,
         style: tripStyle,
         maxDailyDriveTime: 8 // hours
@@ -114,12 +114,20 @@ export const useTripCalculation = () => {
         destinationReached: result.tripPlan?.endCity,
         hasValidationResults: !!result.validationResults,
         warningCount: result.warnings?.length || 0,
-        actualDays: result.tripPlan?.segments?.length
+        actualDays: result.tripPlan?.segments?.length,
+        requestedDays: adjustedTravelDays
       });
 
       if (result.tripPlan) {
-        // FIXED: Enforce drive time limits on all segments
+        // CRITICAL FIX: Ensure we have the correct number of segments
         const segments = result.tripPlan.segments || [];
+        
+        // If we don't have enough segments, this is a critical error
+        if (segments.length === 0) {
+          throw new Error(`No trip segments were created. Please try different locations or adjust the number of days.`);
+        }
+        
+        // FIXED: Enforce drive time limits on all segments
         const MAX_DAILY_DRIVE_TIME = 8; // 8 hours maximum
         
         let hasExcessiveDriving = false;
@@ -144,6 +152,11 @@ export const useTripCalculation = () => {
           });
         }
 
+        // CRITICAL FIX: Validate that we have proper segments before proceeding
+        if (validatedSegments.length === 0) {
+          throw new Error(`Trip planning failed to create valid daily segments. Please try different locations.`);
+        }
+
         // FIXED: Ensure trip plan matches requested days exactly
         const finalTripPlan: TripPlan = {
           ...result.tripPlan,
@@ -153,6 +166,18 @@ export const useTripCalculation = () => {
           title: result.tripPlan.title || `${adjustedFormData.startLocation} to ${adjustedFormData.endLocation} Route 66 Adventure`,
           tripStyle: tripStyle
         };
+        
+        console.log('🎯 FINAL TRIP PLAN VALIDATION:', {
+          requestedDays: adjustedTravelDays,
+          actualSegments: validatedSegments.length,
+          segmentDetails: validatedSegments.map(s => ({
+            day: s.day,
+            startCity: s.startCity,
+            endCity: s.endCity,
+            distance: s.distance,
+            driveTime: s.driveTimeHours
+          }))
+        });
         
         setTripPlan(finalTripPlan);
         setPlanningResult(result);
@@ -170,7 +195,7 @@ export const useTripCalculation = () => {
         });
         
       } else {
-        throw new Error('Failed to plan trip - no trip plan returned');
+        throw new Error('Failed to plan trip - no trip plan returned from service');
       }
 
     } catch (error) {
