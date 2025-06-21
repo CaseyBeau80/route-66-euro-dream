@@ -1,4 +1,5 @@
 
+
 import { TripStop } from '../../types/TripStop';
 import { DailySegment } from './TripPlanBuilder';
 
@@ -104,8 +105,8 @@ export class StrictDestinationCityEnforcer {
             longitude: stop.longitude || 0,
             state: stop.state || 'Unknown',
             city: stop.city || stop.city_name || 'Unknown',
-            description: stop.description || '',
-            address: stop.address || ''
+            city_name: stop.city_name || stop.city || 'Unknown',
+            description: stop.description || ''
           };
 
           if (!this.isDestinationCity(tripStop)) {
@@ -153,8 +154,8 @@ export class StrictDestinationCityEnforcer {
           longitude: stop.longitude || 0,
           state: stop.state || 'Unknown',
           city: stop.city || stop.city_name || 'Unknown',
-          description: stop.description || '',
-          address: stop.address || ''
+          city_name: stop.city_name || stop.city || 'Unknown',
+          description: stop.description || ''
         };
 
         const isDestinationCity = this.isDestinationCity(tripStop);
@@ -196,3 +197,4 @@ export class StrictDestinationCityEnforcer {
     ];
   }
 }
+
