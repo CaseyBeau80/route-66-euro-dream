@@ -1,129 +1,103 @@
 
 import { TripStop } from '../../types/TripStop';
-import { DailySegment } from './TripPlanBuilder';
 
 export class StrictDestinationCityEnforcer {
   /**
-   * Filter stops to only include destination cities with null safety
+   * STRICT: Only allow destination cities - no exceptions
    */
-  static filterToDestinationCitiesOnly(allStops: TripStop[]): TripStop[] {
-    if (!allStops || !Array.isArray(allStops)) {
-      console.error('❌ StrictDestinationCityEnforcer: Invalid allStops parameter');
+  static isDestinationCity(stop: TripStop): boolean {
+    if (!stop || typeof stop !== 'object') {
+      return false;
+    }
+
+    // ABSOLUTE REQUIREMENT: Must be categorized as destination_city
+    if (stop.category !== 'destination_city') {
+      console.log(`🚫 STRICT ENFORCER: ${stop.name} rejected - category is ${stop.category}, not destination_city`);
+      return false;
+    }
+
+    // Must have valid coordinates
+    if (!stop.latitude || !stop.longitude) {
+      console.log(`🚫 STRICT ENFORCER: ${stop.name} rejected - missing coordinates`);
+      return false;
+    }
+
+    // Must have a name
+    if (!stop.name || stop.name.trim() === '') {
+      console.log(`🚫 STRICT ENFORCER: Stop rejected - missing or empty name`);
+      return false;
+    }
+
+    console.log(`✅ STRICT ENFORCER: ${stop.name} approved as destination city`);
+    return true;
+  }
+
+  /**
+   * Filter array to only include destination cities
+   */
+  static filterToDestinationCitiesOnly(stops: TripStop[]): TripStop[] {
+    if (!stops || !Array.isArray(stops)) {
+      console.log(`🚫 STRICT ENFORCER: Invalid stops array provided`);
       return [];
     }
 
-    const destinationCities: TripStop[] = allStops.filter((stop): stop is TripStop => {
-      // Comprehensive null safety check
-      if (!stop || typeof stop !== 'object') {
-        console.warn('⚠️ Filtering out null/undefined stop');
-        return false;
-      }
-
-      if (!stop.category) {
-        console.warn('⚠️ Filtering out stop without category:', stop.name || 'unnamed');
-        return false;
-      }
-
-      if (typeof stop.latitude !== 'number' || typeof stop.longitude !== 'number') {
-        console.warn('⚠️ Filtering out stop with invalid coordinates:', stop.name || 'unnamed');
-        return false;
-      }
-
-      if (isNaN(stop.latitude) || isNaN(stop.longitude)) {
-        console.warn('⚠️ Filtering out stop with NaN coordinates:', stop.name || 'unnamed');
-        return false;
-      }
-
-      return stop.category === 'destination_city';
-    });
-
-    console.log(`🏛️ StrictDestinationCityEnforcer: Filtered ${allStops.length} stops to ${destinationCities.length} destination cities`);
+    console.log(`🔒 STRICT ENFORCER: Filtering ${stops.length} stops to destination cities only`);
+    
+    const destinationCities = stops.filter(stop => this.isDestinationCity(stop));
+    
+    console.log(`🔒 STRICT ENFORCER: Result: ${destinationCities.length} destination cities from ${stops.length} total stops`);
+    console.log(`✅ APPROVED CITIES:`, destinationCities.map(city => `${city.name}, ${city.state}`));
     
     return destinationCities;
   }
 
   /**
-   * Check if a stop is a destination city - proper type guard
+   * Validate that all stops in an array are destination cities
    */
-  static isDestinationCity(stop: any): stop is TripStop {
-    return this.isValidDestinationCity(stop);
-  }
+  static validateAllAreDestinationCities(stops: TripStop[]): { isValid: boolean; violations: string[] } {
+    if (!stops || !Array.isArray(stops)) {
+      return { isValid: false, violations: ['Invalid stops array'] };
+    }
 
-  /**
-   * Validate that a stop is a proper destination city - proper type guard
-   */
-  static isValidDestinationCity(stop: any): stop is TripStop {
-    return stop && 
-           typeof stop === 'object' &&
-           typeof stop.id === 'string' &&
-           typeof stop.name === 'string' &&
-           typeof stop.latitude === 'number' &&
-           typeof stop.longitude === 'number' &&
-           !isNaN(stop.latitude) &&
-           !isNaN(stop.longitude) &&
-           stop.category === 'destination_city';
-  }
-
-  /**
-   * Validate that all stops in a trip plan are destination cities
-   */
-  static validateTripPlan(segments: DailySegment[]): { isValid: boolean; violations: string[] } {
     const violations: string[] = [];
 
-    if (!segments || !Array.isArray(segments)) {
-      violations.push('Invalid segments parameter');
-      return { isValid: false, violations };
-    }
-
-    segments.forEach((segment, index) => {
-      if (!segment) {
-        violations.push(`Segment ${index + 1} is null/undefined`);
-        return;
-      }
-
-      if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
-        segment.recommendedStops.forEach((stop, stopIndex) => {
-          if (!this.isDestinationCity(stop)) {
-            const stopName = (stop as any)?.name || 'unnamed';
-            violations.push(`Day ${segment.day}, Stop ${stopIndex + 1}: ${stopName} is not a destination city`);
-          }
-        });
+    stops.forEach((stop, index) => {
+      if (!this.isDestinationCity(stop)) {
+        violations.push(`Stop ${index + 1}: ${stop?.name || 'Unknown'} is not a destination city (category: ${stop?.category})`);
       }
     });
 
-    return {
-      isValid: violations.length === 0,
-      violations
-    };
+    const isValid = violations.length === 0;
+    
+    if (isValid) {
+      console.log(`✅ VALIDATION PASSED: All ${stops.length} stops are destination cities`);
+    } else {
+      console.log(`❌ VALIDATION FAILED: ${violations.length} violations found`);
+      violations.forEach(violation => console.log(`   - ${violation}`));
+    }
+
+    return { isValid, violations };
   }
 
   /**
-   * Sanitize trip plan to remove non-destination cities
+   * Get list of major Route 66 destination cities for reference
    */
-  static sanitizeTripPlan(segments: DailySegment[]): DailySegment[] {
-    if (!segments || !Array.isArray(segments)) {
-      console.error('❌ StrictDestinationCityEnforcer: Invalid segments parameter for sanitization');
-      return [];
-    }
-
-    return segments.map(segment => {
-      if (!segment) return segment;
-
-      const sanitizedSegment = { ...segment };
-
-      if (segment.recommendedStops && Array.isArray(segment.recommendedStops)) {
-        sanitizedSegment.recommendedStops = segment.recommendedStops.filter((stop): stop is typeof stop => {
-          const isDestCity = this.isDestinationCity(stop);
-          if (!isDestCity) {
-            const stopName = (stop as any)?.name || 'unnamed';
-            const stopCategory = (stop as any)?.category || 'unknown';
-            console.log(`🧹 Sanitized out non-destination city: ${stopName} (${stopCategory})`);
-          }
-          return isDestCity;
-        });
-      }
-
-      return sanitizedSegment;
-    });
+  static getMajorDestinationCities(): string[] {
+    return [
+      'Chicago, IL',
+      'St. Louis, MO', 
+      'Springfield, MO',
+      'Joplin, MO',
+      'Oklahoma City, OK',
+      'Amarillo, TX',
+      'Santa Fe, NM',
+      'Albuquerque, NM',
+      'Gallup, NM',
+      'Flagstaff, AZ',
+      'Needles, CA',
+      'Barstow, CA',
+      'Los Angeles, CA',
+      'Santa Monica, CA'
+    ];
   }
 }

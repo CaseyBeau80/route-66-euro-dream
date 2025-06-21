@@ -1,24 +1,64 @@
 
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 
 export class StopFilteringService {
   /**
-   * FIXED: Filter stops with improved logic to prevent ping ponging
+   * ENHANCED: Filter stops with STRICT destination city enforcement
    */
   static filterValidStops(
     stops: TripStop[],
     startStop: TripStop,
     endStop: TripStop,
-    maxDeviationMiles: number = 200 // More generous for Route 66
+    maxDeviationMiles: number = 200
   ): TripStop[] {
-    console.log(`🔍 FIXED: Filtering ${stops.length} stops with max deviation: ${maxDeviationMiles} miles`);
+    console.log(`🔍 ENHANCED: Filtering ${stops.length} stops with STRICT destination city enforcement`);
     
     if (!startStop || !endStop) {
       console.log('❌ Missing start or end stop for filtering');
-      return stops;
+      return [];
     }
 
+    // STEP 1: STRICT ENFORCEMENT - Only destination cities allowed
+    const destinationCitiesOnly = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(stops);
+    
+    if (destinationCitiesOnly.length === 0) {
+      console.log('❌ No destination cities found after strict filtering');
+      return [];
+    }
+
+    // STEP 2: Remove duplicates by name and location
+    const uniqueStops = this.removeDuplicateStops(destinationCitiesOnly);
+
+    // STEP 3: Geographic filtering for reasonable route progression
+    const geographicallyValid = this.filterByGeographicProgression(
+      uniqueStops,
+      startStop,
+      endStop,
+      maxDeviationMiles
+    );
+
+    console.log(`✅ ENHANCED FILTERING COMPLETE: ${stops.length} → ${destinationCitiesOnly.length} (cities only) → ${geographicallyValid.length} (final)`);
+    
+    // STEP 4: Final validation
+    const validation = StrictDestinationCityEnforcer.validateAllAreDestinationCities(geographicallyValid);
+    if (!validation.isValid) {
+      console.error(`❌ FINAL VALIDATION FAILED:`, validation.violations);
+    }
+
+    return geographicallyValid;
+  }
+
+  /**
+   * Filter stops by geographic progression along the route
+   */
+  private static filterByGeographicProgression(
+    stops: TripStop[],
+    startStop: TripStop,
+    endStop: TripStop,
+    maxDeviationMiles: number
+  ): TripStop[] {
     // Calculate the direct distance between start and end
     const directDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude,
@@ -27,20 +67,11 @@ export class StopFilteringService {
       endStop.longitude
     );
 
-    console.log(`📏 FIXED: Direct route distance: ${directDistance.toFixed(1)} miles`);
+    console.log(`📏 Direct route distance: ${directDistance.toFixed(1)} miles`);
 
-    // Remove duplicates by name and location first
-    const uniqueStops = this.removeDuplicateStops(stops);
-
-    const validStops = uniqueStops.filter(stop => {
-      if (!stop || typeof stop.latitude !== 'number' || typeof stop.longitude !== 'number') {
-        console.log(`⚠️ FIXED: Skipping stop with invalid coordinates: ${stop?.name || 'Unknown'}`);
-        return false;
-      }
-
+    const validStops = stops.filter(stop => {
       // Skip if it's the same as start or end
       if (stop.id === startStop.id || stop.id === endStop.id) {
-        console.log(`⚠️ FIXED: Skipping start/end stop: ${stop.name}`);
         return false;
       }
 
@@ -62,66 +93,32 @@ export class StopFilteringService {
       const totalDistanceViaStop = distanceFromStart + distanceFromStopToEnd;
       const deviation = totalDistanceViaStop - directDistance;
 
-      // FIXED: More intelligent filtering - check if stop is actually between start and end
+      // Check if stop is actually between start and end (progressing)
       const isProgressing = distanceFromStart < directDistance && distanceFromStopToEnd < directDistance;
       const isReasonableDeviation = deviation <= maxDeviationMiles;
 
       if (!isProgressing) {
-        console.log(`⚠️ FIXED: Filtering out non-progressing stop: ${stop.name}`);
+        console.log(`⚠️ Filtering out non-progressing destination city: ${stop.name}`);
         return false;
       }
 
       if (!isReasonableDeviation) {
-        console.log(`⚠️ FIXED: Filtering out stop with excessive deviation: ${stop.name} (${deviation.toFixed(1)} miles over direct route)`);
+        console.log(`⚠️ Filtering out destination city with excessive deviation: ${stop.name} (${deviation.toFixed(1)} miles over direct route)`);
       } else {
-        console.log(`✅ FIXED: Keeping progressing stop: ${stop.name} (deviation: ${deviation.toFixed(1)} miles)`);
+        console.log(`✅ Keeping progressing destination city: ${stop.name} (deviation: ${deviation.toFixed(1)} miles)`);
       }
 
       return isReasonableDeviation;
     });
 
-    // Always include destination cities that are progressing along the route
-    const destinationCities = uniqueStops.filter(stop => {
-      if (stop.category !== 'destination_city' && stop.category !== 'major_waypoint') {
-        return false;
-      }
-
-      const distanceFromStart = DistanceCalculationService.calculateDistance(
-        startStop.latitude,
-        startStop.longitude,
-        stop.latitude,
-        stop.longitude
-      );
-
-      const distanceFromStopToEnd = DistanceCalculationService.calculateDistance(
-        stop.latitude,
-        stop.longitude,
-        endStop.latitude,
-        endStop.longitude
-      );
-
-      // Only include if it's actually between start and end
-      return distanceFromStart < directDistance && distanceFromStopToEnd < directDistance;
-    });
-
-    // Combine valid stops with progressing destination cities (remove duplicates)
-    const allValidStops = [...validStops];
-    destinationCities.forEach(city => {
-      if (!allValidStops.find(stop => stop.id === city.id)) {
-        console.log(`📍 FIXED: Including progressing destination city: ${city.name}`);
-        allValidStops.push(city);
-      }
-    });
-
-    console.log(`✅ FIXED: Filtered from ${stops.length} to ${allValidStops.length} valid progressing stops`);
-    return allValidStops;
+    return validStops;
   }
 
   /**
-   * FIXED: Remove duplicate stops with better logic
+   * Remove duplicate destination cities
    */
   static removeDuplicateStops(stops: TripStop[]): TripStop[] {
-    console.log(`🔍 FIXED: Removing duplicates from ${stops.length} stops`);
+    console.log(`🔍 Removing duplicates from ${stops.length} destination cities`);
     
     const uniqueStops: TripStop[] = [];
     const seenIds = new Set<string>();
@@ -130,7 +127,7 @@ export class StopFilteringService {
     stops.forEach(stop => {
       // Skip if we've seen this ID
       if (seenIds.has(stop.id)) {
-        console.log(`⚠️ FIXED: Skipping duplicate ID: ${stop.name} (${stop.id})`);
+        console.log(`⚠️ Skipping duplicate ID: ${stop.name} (${stop.id})`);
         return;
       }
 
@@ -142,11 +139,11 @@ export class StopFilteringService {
         seenNames.add(normalizedName);
         uniqueStops.push(stop);
       } else {
-        console.log(`⚠️ FIXED: Skipping duplicate name+state: ${stop.name}, ${stop.state}`);
+        console.log(`⚠️ Skipping duplicate destination city: ${stop.name}, ${stop.state}`);
       }
     });
 
-    console.log(`✅ FIXED: Removed duplicates: ${stops.length} -> ${uniqueStops.length} unique stops`);
+    console.log(`✅ Removed duplicates: ${stops.length} → ${uniqueStops.length} unique destination cities`);
     return uniqueStops;
   }
 
@@ -154,9 +151,9 @@ export class StopFilteringService {
    * Validate circular references in stops
    */
   static validateCircularReferences(stops: TripStop[]): TripStop[] {
-    console.log(`🔍 Validating ${stops.length} stops for circular references`);
+    console.log(`🔍 Validating ${stops.length} destination cities for circular references`);
     
-    // For now, just remove exact duplicates by ID
+    // Remove exact duplicates by ID
     const validStops = stops.filter((stop, index, array) => {
       const firstIndex = array.findIndex(s => s.id === stop.id);
       if (firstIndex !== index) {
@@ -166,7 +163,7 @@ export class StopFilteringService {
       return true;
     });
 
-    console.log(`✅ Circular reference validation complete: ${stops.length} -> ${validStops.length}`);
+    console.log(`✅ Circular reference validation complete: ${stops.length} → ${validStops.length}`);
     return validStops;
   }
 }
