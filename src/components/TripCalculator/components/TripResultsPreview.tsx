@@ -21,6 +21,16 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
   const { formatDistance } = useUnits();
   const { costEstimate } = useCostEstimator(tripPlan);
 
+  // Debug: Log component render
+  React.useEffect(() => {
+    console.log('🎯 TripResultsPreview: Component rendered with:', {
+      hasTripPlan: !!tripPlan,
+      tripStartDate: tripStartDate?.toISOString(),
+      segmentCount: tripPlan?.segments?.length,
+      timestamp: new Date().toISOString()
+    });
+  }, [tripPlan, tripStartDate]);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -36,13 +46,14 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
-  // Get the current URL for sharing
-  const shareUrl = window.location.href;
-  const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+  // Build trip title for sharing
+  const startCity = tripPlan.startCity || tripPlan.segments?.[0]?.startCity || 'Route 66';
+  const endCity = tripPlan.endCity || tripPlan.segments?.[tripPlan.segments?.length - 1]?.endCity || 'Adventure';
+  const tripTitle = `${startCity} to ${endCity} Route 66 Trip`;
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* Enhanced Trip Overview Header */}
+      {/* Enhanced Trip Overview Header with Prominent Share Button */}
       <Card className="overflow-hidden shadow-xl border-0 bg-gradient-to-br from-blue-50 via-white to-blue-50">
         <CardHeader className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white p-8">
           {/* Decorative background pattern */}
@@ -53,7 +64,8 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           </div>
           
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
+            {/* Top row with Route 66 badge and PROMINENT Share Button */}
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm">
                   <Route className="w-5 h-5" />
@@ -61,20 +73,21 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
                 </div>
               </div>
               
-              {/* Always show share button */}
-              <ShareTripButton
-                shareUrl={shareUrl}
-                tripTitle={tripTitle}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/20 border-white/30 bg-white/10"
-                showText={true}
-              />
+              {/* PROMINENT Share Button - Top Right Corner */}
+              <div className="flex items-center gap-2">
+                <ShareTripButton
+                  tripTitle={tripTitle}
+                  variant="ghost"
+                  size="default"
+                  className="text-white hover:bg-white/20 border-2 border-white/30 bg-white/10 px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  showText={true}
+                />
+              </div>
             </div>
             
             <div className="text-center">
               <CardTitle className="text-3xl font-bold mb-3 text-shadow-strong">
-                {tripPlan.startCity} to {tripPlan.endCity}
+                {startCity} to {endCity}
               </CardTitle>
               
               {tripStartDate && (
@@ -140,20 +153,19 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             </div>
           </div>
 
-          {/* Additional Share Button in Content Area */}
+          {/* Secondary Share Section */}
           <div className="mt-8 pt-6 border-t border-blue-100 text-center">
             <div className="mb-3">
-              <p className="text-blue-700 font-medium mb-2">Love this trip plan?</p>
+              <p className="text-blue-700 font-medium mb-3">Love this trip plan?</p>
               <ShareTripButton
-                shareUrl={shareUrl}
                 tripTitle={tripTitle}
                 variant="default"
-                size="default"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 showText={true}
               />
             </div>
-            <p className="text-sm text-blue-600">Share your Route 66 adventure with friends and family!</p>
+            <p className="text-sm text-blue-600 mt-3">Share your Route 66 adventure with friends and family!</p>
           </div>
         </CardContent>
       </Card>
@@ -161,13 +173,24 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
       {/* Enhanced Daily Itinerary Section */}
       <Card className="overflow-hidden shadow-xl border-0 bg-gradient-to-br from-gray-50 via-white to-gray-50">
         <CardHeader className="bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 text-white p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-              <Route className="w-5 h-5" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <Route className="w-5 h-5" />
+              </div>
+              <CardTitle className="text-2xl font-bold">
+                Daily Itinerary
+              </CardTitle>
             </div>
-            <CardTitle className="text-2xl font-bold">
-              Daily Itinerary
-            </CardTitle>
+            
+            {/* Additional Share Button in Itinerary Header */}
+            <ShareTripButton
+              tripTitle={tripTitle}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20 border border-white/30"
+              showText={false}
+            />
           </div>
         </CardHeader>
         

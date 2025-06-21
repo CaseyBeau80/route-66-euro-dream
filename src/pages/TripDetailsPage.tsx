@@ -22,6 +22,11 @@ const TripDetailsPage: React.FC = () => {
 
   console.log('🔍 TripDetailsPage: Component mounting with shareCode:', shareCode);
 
+  // Debug: Log component mount
+  useEffect(() => {
+    console.log('🔗 TripDetailsPage: Component mounted for shareCode:', shareCode);
+  }, [shareCode]);
+
   // Extract trip start date from URL parameters and add to URL if missing
   useEffect(() => {
     if (trip?.trip_data?.startDate) {
@@ -172,9 +177,10 @@ const TripDetailsPage: React.FC = () => {
   }
 
   const shareUrl = TripService.getShareUrl(shareCode!);
+  const tripTitle = `${trip.trip_data?.startCity} to ${trip.trip_data?.endCity} Route 66 Trip`;
 
   console.log('🔍 TripDetailsPage: Rendering trip content:', {
-    tripTitle: trip.title,
+    tripTitle,
     shareUrl,
     hasShareUrl: !!shareUrl,
     startDate: trip.trip_data?.startDate
@@ -192,19 +198,25 @@ const TripDetailsPage: React.FC = () => {
         <div className="pt-20 pb-8">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
+              {/* Header with Prominent Share Button */}
+              <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-md p-4">
                 <TripDetailsHeader 
                   trip={trip}
                   onBackToHome={handleBackToHome}
                   onPlanNewTrip={handlePlanNewTrip}
                 />
                 
-                <ShareTripButton
-                  shareUrl={shareUrl}
-                  tripTitle={trip.title}
-                  variant="outline"
-                  size="sm"
-                />
+                {/* PROMINENT Share Button - Top Right Corner */}
+                <div className="flex items-center gap-2">
+                  <ShareTripButton
+                    shareUrl={shareUrl}
+                    tripTitle={tripTitle}
+                    variant="default"
+                    size="default"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                    showText={true}
+                  />
+                </div>
               </div>
               
               {/* Enhanced Trip Content with Error Boundary */}

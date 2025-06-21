@@ -17,7 +17,11 @@ const SharedTripPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tripStartDate, setTripStartDate] = useState<Date | null>(null);
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
+
+  // Debug: Log component mount
+  useEffect(() => {
+    console.log('🔗 SharedTripPage: Component mounted, building trip from URL parameters');
+  }, []);
 
   useEffect(() => {
     const buildTripFromUrl = async () => {
@@ -33,7 +37,6 @@ const SharedTripPage: React.FC = () => {
         if (result.success && result.tripPlan) {
           setTripPlan(result.tripPlan);
           setTripStartDate(result.tripStartDate);
-          setShareUrl(window.location.href);
 
           console.log('✅ SharedTripPage: Trip plan built successfully:', {
             title: result.tripPlan.title,
@@ -105,6 +108,7 @@ const SharedTripPage: React.FC = () => {
   };
 
   const { startCity, endCity, days } = getTripMetadata();
+  const tripTitle = `${startCity} to ${endCity} Route 66 Trip`;
 
   return (
     <>
@@ -114,12 +118,12 @@ const SharedTripPage: React.FC = () => {
         <meta property="og:title" content={tripPlan.title} />
         <meta property="og:description" content={`${days}-day Route 66 adventure from ${startCity} to ${endCity}`} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={shareUrl || ''} />
+        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        {/* Header with Prominent Share Button */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
           <div className="max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -151,12 +155,14 @@ const SharedTripPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* PROMINENT Share Button - Top Right Corner */}
               <div className="flex items-center gap-2">
                 <ShareTripButton
-                  shareUrl={shareUrl || undefined}
-                  tripTitle={tripPlan.title}
-                  variant="outline"
-                  size="sm"
+                  tripTitle={tripTitle}
+                  variant="default"
+                  size="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                  showText={true}
                 />
               </div>
             </div>
@@ -168,7 +174,7 @@ const SharedTripPage: React.FC = () => {
           <SharedTripContentRenderer
             tripPlan={tripPlan}
             tripStartDate={tripStartDate || undefined}
-            shareUrl={shareUrl}
+            shareUrl={typeof window !== 'undefined' ? window.location.href : undefined}
             isSharedView={true}
           />
         </div>
