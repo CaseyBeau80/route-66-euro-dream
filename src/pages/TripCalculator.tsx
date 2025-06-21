@@ -31,29 +31,29 @@ const TripCalculator = () => {
       <NavigationBar language={language} setLanguage={setLanguage} />
       
       {/* Main Content */}
-      <div className="pt-20 pb-8">
+      <div className="pt-16 pb-6">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* Modern Header with Blue Theme */}
-            <div className="text-center mb-8">
-              <div className="flex justify-center items-center gap-4 mb-6">
+            <div className="text-center mb-6">
+              <div className="flex justify-center items-center gap-4 mb-4">
                 {/* Removed Route 66 shield icon and Unit Toggle */}
               </div>
               
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-route66-primary mb-4">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-route66-primary mb-3">
                 Plan Your Route 66 Adventure
               </h1>
-              <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-6">Try the free trip planner tool below 👇</p>
+              <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-4">Try the free trip planner tool below 👇</p>
 
               {/* YouTube Video Section */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <YouTubeEmbed videoId="3904gZljFmY" title="Route 66 Travel Guide & Planning Tips" className="max-w-2xl mx-auto" />
               </div>
 
               {/* Feature Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                 {/* Highlighted Time Estimates Card */}
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-200 to-transparent rounded-bl-full"></div>
                   <div className="text-blue-600 text-2xl mb-2">⏱️</div>
                   <h3 className="font-bold text-blue-800 mb-2">Time Estimates</h3>
@@ -61,7 +61,7 @@ const TripCalculator = () => {
                 </div>
                 
                 {/* Highlighted Must-See Stops Card */}
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border-2 border-green-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border-2 border-green-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-200 to-transparent rounded-bl-full"></div>
                   <div className="text-green-600 text-2xl mb-2">📍</div>
                   <h3 className="font-bold text-green-800 mb-2">Destination Stops</h3>
@@ -69,7 +69,7 @@ const TripCalculator = () => {
                 </div>
                 
                 {/* Highlighted Weather Card */}
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-purple-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-purple-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-purple-200 to-transparent rounded-bl-full"></div>
                   <div className="text-purple-600 text-2xl mb-2">🌤️</div>
                   <h3 className="font-bold text-purple-800 mb-2">Weather</h3>
@@ -77,7 +77,7 @@ const TripCalculator = () => {
                 </div>
                 
                 {/* Highlighted Budget Estimates Card with Dollar Sign */}
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-300 p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-orange-200 to-transparent rounded-bl-full"></div>
                   <div className="text-orange-600 text-2xl mb-2">💲</div>
                   <h3 className="font-bold text-orange-800 mb-2">Budget Estimates</h3>
@@ -87,7 +87,7 @@ const TripCalculator = () => {
             </div>
             
             {/* Trip Planner Container */}
-            <div className="bg-white rounded-xl shadow-lg border border-route66-border p-6">
+            <div className="bg-white rounded-xl shadow-lg border border-route66-border p-4">
               <Route66TripCalculator />
             </div>
           </div>

@@ -39,16 +39,16 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   return (
     <div className="max-w-4xl mx-auto">
       {/* Unified Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-route66-primary mb-3">Trip Planner Tool</h2>
+      <div className="text-center mb-6">
+        <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
       {/* Main Form Container - Unified styling */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         
         {/* Location Selection Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-6">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-4">
+          <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             <h3 className="text-lg font-semibold text-route66-text-primary">Route Selection</h3>
           </div>
@@ -60,8 +60,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         </div>
 
         {/* Trip Details Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-6">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-4">
+          <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <h3 className="text-lg font-semibold text-route66-text-primary">Trip Details</h3>
           </div>
@@ -75,17 +75,17 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
 
         {/* Cost Estimator Card - Unified with other cards */}
         <div className="bg-white rounded-xl shadow-sm border border-route66-border overflow-hidden">
-          <div className="flex items-center gap-2 p-6 pb-0">
+          <div className="flex items-center gap-2 p-4 pb-0">
             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
             <h3 className="text-lg font-semibold text-route66-text-primary">Budget Planning</h3>
           </div>
-          <div className="p-6 pt-4">
+          <div className="p-4 pt-2">
             <CostEstimatorSection formData={formData} tripPlan={tripPlan} />
           </div>
         </div>
 
         {/* Action Buttons Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-route66-border p-4">
           <ActionButtonsSection 
             isFormValid={isFormValid} 
             isPlanning={isPlanning} 
