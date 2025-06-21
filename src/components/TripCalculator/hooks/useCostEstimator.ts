@@ -4,6 +4,9 @@ import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { CostEstimatorData, CostEstimate } from '../types/costEstimator';
 import { CostCalculationService } from '../services/CostCalculationService';
 
+// Export the CostEstimate type for use in other components
+export type { CostEstimate } from '../types/costEstimator';
+
 export const useCostEstimator = (tripPlan?: TripPlan) => {
   const [costData, setCostData] = useState<CostEstimatorData>({
     gasPrice: 3.50,

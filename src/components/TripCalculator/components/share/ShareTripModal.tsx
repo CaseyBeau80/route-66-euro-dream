@@ -66,6 +66,12 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
+  // Fix: Create a wrapper function that returns the share URL
+  const handleGenerateLink = async (): Promise<string | null> => {
+    await handleGenerateAndShare();
+    return currentShareUrl;
+  };
+
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
   return (
@@ -91,7 +97,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
           currentShareUrl={currentShareUrl}
           isGeneratingLink={isGeneratingLink}
           isTripComplete={isTripComplete}
-          onGenerateLink={handleGenerateAndShare}
+          onGenerateLink={handleGenerateLink}
           onCopyLink={handleCopyLink}
           onShareViaEmail={handleShareViaEmail}
         />

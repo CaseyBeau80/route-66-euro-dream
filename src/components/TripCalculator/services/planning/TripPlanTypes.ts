@@ -5,6 +5,7 @@ import { TripAdjustmentNotice } from './TripAdjustmentService';
 export interface TripPlan {
   id: string;
   title: string;
+  description?: string; // Add optional description field
   startCity: string;
   endCity: string;
   startLocation: string;
