@@ -1,3 +1,4 @@
+
 import { TripPlan } from './planning/TripPlanTypes';
 import { EvenPacingPlanningService } from './planning/EvenPacingPlanningService';
 import { HeritageCitiesPlanningService } from './planning/HeritageCitiesPlanningService';
@@ -21,125 +22,6 @@ export interface EnhancedTripPlanResult {
 
 export class Route66TripPlannerService {
   /**
-   * Plan a Route 66 trip using the appropriate algorithm based on trip style
-   */
-  static async planTripWithAnalysis(
-    startLocation: string,
-    endLocation: string,
-    travelDays: number,
-    tripStyle: string
-  ): Promise<EnhancedTripPlanResult> {
-    console.log(`🚗 PLANNING TRIP: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle} style`);
-    
-    const warnings: string[] = [];
-    const debugInfo = {
-      startLocation,
-      endLocation,
-      travelDays,
-      tripStyle,
-      timestamp: new Date().toISOString()
-    };
-
-    try {
-      // Load all stops from Supabase
-      const allStops = await SupabaseDataService.fetchAllStops();
-      
-      if (!allStops || allStops.length === 0) {
-        throw new Error('No Route 66 stops available in database');
-      }
-
-      console.log(`📍 Loaded ${allStops.length} Route 66 stops from Supabase`);
-
-      let tripPlan: TripPlan;
-
-      // Use the appropriate planning service based on trip style
-      if (tripStyle === 'balanced') {
-        console.log(`⚖️ Using Even Pacing planning algorithm`);
-        tripPlan = await EvenPacingPlanningService.planEvenPacingTrip(
-          startLocation,
-          endLocation,
-          travelDays,
-          allStops
-        );
-      } else if (tripStyle === 'destination-focused') {
-        console.log(`🏛️ Using Heritage Cities planning algorithm`);
-        tripPlan = await HeritageCitiesPlanningService.planHeritageCitiesTrip(
-          startLocation,
-          endLocation,
-          travelDays,
-          allStops
-        );
-      } else {
-        // Default to Heritage Cities for destination-focused experience
-        console.log(`🏛️ Unknown trip style '${tripStyle}', defaulting to Heritage Cities`);
-        warnings.push(`Unknown trip style '${tripStyle}', using Heritage Cities instead`);
-        tripPlan = await HeritageCitiesPlanningService.planHeritageCitiesTrip(
-          startLocation,
-          endLocation,
-          travelDays,
-          allStops
-        );
-      }
-
-      return {
-        tripPlan,
-        debugInfo,
-        validationResults: { driveTimeValidation: { isValid: true }, sequenceValidation: { isValid: true } },
-        warnings,
-        completionAnalysis: undefined,
-        originalRequestedDays: travelDays
-      };
-
-    } catch (error) {
-      console.error('❌ Trip planning failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Simple trip planning method for compatibility
-   */
-  static async planTrip(
-    startLocation: string,
-    endLocation: string,
-    travelDays: number,
-    tripStyle: 'balanced' | 'destination-focused'
-  ): Promise<TripPlan> {
-    const result = await this.planTripWithAnalysis(startLocation, endLocation, travelDays, tripStyle);
-    if (!result.tripPlan) {
-      throw new Error('Failed to plan trip');
-    }
-    return result.tripPlan;
-  }
-
-  /**
-   * Get data source status for debugging
-   */
-  static getDataSourceStatus(): string {
-    return 'supabase_live';
-  }
-
-  /**
-   * Check if using fallback data
-   */
-  static isUsingFallbackData(): boolean {
-    return false;
-  }
-
-  /**
-   * Get destination cities count from live database
-   */
-  static async getDestinationCitiesCount(): Promise<number> {
-    try {
-      const cities = await SupabaseDataService.getDestinationCities();
-      return cities?.length || 0;
-    } catch (error) {
-      console.error('Failed to get destination cities count:', error);
-      return 0;
-    }
-  }
-
-  /**
    * Enhanced trip planning with better destination selection
    */
   static async planTripWithAnalysis(
@@ -149,6 +31,14 @@ export class Route66TripPlannerService {
     tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
   ): Promise<EnhancedTripPlanResult> {
     console.log(`🚗 ENHANCED TRIP PLANNING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle} style`);
+
+    const debugInfo = {
+      startLocation,
+      endLocation,
+      travelDays,
+      tripStyle,
+      timestamp: new Date().toISOString()
+    };
 
     try {
       // Fetch all Route 66 data
@@ -243,6 +133,7 @@ export class Route66TripPlannerService {
 
       return {
         tripPlan,
+        debugInfo,
         validationResults: {
           isValid: true,
           issues: [],
@@ -256,14 +147,57 @@ export class Route66TripPlannerService {
       
       return {
         tripPlan: null,
+        debugInfo,
         validationResults: {
           isValid: false,
           issues: [error instanceof Error ? error.message : 'Unknown planning error'],
           recommendations: ['Please check your start and end locations and try again.']
         },
-        warnings: [],
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        warnings: []
       };
+    }
+  }
+
+  /**
+   * Simple trip planning method for compatibility
+   */
+  static async planTrip(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused'
+  ): Promise<TripPlan> {
+    const result = await this.planTripWithAnalysis(startLocation, endLocation, travelDays, tripStyle);
+    if (!result.tripPlan) {
+      throw new Error('Failed to plan trip');
+    }
+    return result.tripPlan;
+  }
+
+  /**
+   * Get data source status for debugging
+   */
+  static getDataSourceStatus(): string {
+    return 'supabase_live';
+  }
+
+  /**
+   * Check if using fallback data
+   */
+  static isUsingFallbackData(): boolean {
+    return false;
+  }
+
+  /**
+   * Get destination cities count from live database
+   */
+  static async getDestinationCitiesCount(): Promise<number> {
+    try {
+      const cities = await SupabaseDataService.getDestinationCities();
+      return cities?.length || 0;
+    } catch (error) {
+      console.error('Failed to get destination cities count:', error);
+      return 0;
     }
   }
 }
