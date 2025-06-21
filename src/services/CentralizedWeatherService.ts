@@ -69,7 +69,8 @@ export class CentralizedWeatherService {
       cityName,
       targetDate: targetDateString,
       daysFromToday,
-      withinForecastRange
+      withinForecastRange,
+      fallbackReason: undefined as string | undefined
     };
 
     // Check API key availability
