@@ -25,37 +25,24 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     city: segment.endCity,
     day: segment.day,
     tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateType: typeof tripStartDate,
-    isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-    renderTime: new Date().toISOString()
+    hasValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())
   });
 
-  // FIXED: Simplified date calculation with better validation
+  // Calculate segment date - FIXED: More robust date calculation
   const segmentDate = React.useMemo(() => {
-    // If no trip start date provided, return null (will show "set date" message)
-    if (!tripStartDate) {
-      console.log('❌ UnifiedWeatherWidget: No tripStartDate provided for', segment.endCity);
+    if (!tripStartDate || !(tripStartDate instanceof Date) || isNaN(tripStartDate.getTime())) {
+      console.log('❌ UnifiedWeatherWidget: Invalid or missing tripStartDate for', segment.endCity);
       return null;
     }
 
-    // Validate that tripStartDate is a valid Date object
-    if (!(tripStartDate instanceof Date) || isNaN(tripStartDate.getTime())) {
-      console.error('❌ UnifiedWeatherWidget: Invalid tripStartDate for', segment.endCity, {
-        tripStartDate,
-        type: typeof tripStartDate,
-        isDate: tripStartDate instanceof Date
-      });
-      return null;
-    }
-
-    // FIXED: Simple date calculation - Day 1 = trip start date, Day 2 = trip start + 1 day, etc.
+    // Simple and reliable date calculation
     const segmentDate = new Date(tripStartDate);
     segmentDate.setDate(segmentDate.getDate() + (segment.day - 1));
+    segmentDate.setHours(12, 0, 0, 0); // Normalize to noon
     
     console.log('✅ UnifiedWeatherWidget: Calculated segment date for', segment.endCity, {
       tripStartDate: tripStartDate.toISOString(),
       segmentDay: segment.day,
-      daysToAdd: segment.day - 1,
       calculatedDate: segmentDate.toISOString(),
       calculatedLocal: segmentDate.toLocaleDateString()
     });
@@ -70,10 +57,7 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
       return;
     }
 
-    console.log('🌤️ UnifiedWeatherWidget: Starting weather fetch for', segment.endCity, {
-      segmentDate: segmentDate.toISOString(),
-      segmentDateLocal: segmentDate.toLocaleDateString()
-    });
+    console.log('🌤️ UnifiedWeatherWidget: Starting weather fetch for', segment.endCity);
 
     setLoading(true);
     setError(null);
@@ -110,13 +94,13 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     }
   }, [fetchWeather]);
 
-  // FIXED: Better "no date" message
+  // Show message if no valid date
   if (!segmentDate) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
         <div className="text-blue-400 text-2xl mb-2">📅</div>
-        <p className="text-sm text-blue-700 font-medium mb-1">Set Trip Start Date</p>
-        <p className="text-xs text-blue-600">Enter a trip start date above to see weather forecasts</p>
+        <p className="text-sm text-blue-700 font-medium mb-1">Date Required for Weather</p>
+        <p className="text-xs text-blue-600">Trip start date needed to show weather forecast</p>
       </div>
     );
   }

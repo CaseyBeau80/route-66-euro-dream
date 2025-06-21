@@ -29,11 +29,40 @@ const TripResults: React.FC<TripResultsProps> = ({
     costEstimate
   } = useCostEstimator(tripPlan);
 
-  console.log('📊 TripResults rendering with trip start date:', {
+  // FIXED: Ensure we have a valid date for weather display
+  const validTripStartDate = React.useMemo(() => {
+    console.log('🔧 TripResults: Validating tripStartDate:', {
+      inputDate: tripStartDate,
+      inputType: typeof tripStartDate,
+      isDate: tripStartDate instanceof Date,
+      isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+      timestamp: new Date().toISOString()
+    });
+
+    if (tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())) {
+      const normalized = new Date(tripStartDate);
+      normalized.setHours(12, 0, 0, 0); // Normalize to noon to avoid timezone issues
+      console.log('✅ TripResults: Using valid tripStartDate:', {
+        original: tripStartDate.toISOString(),
+        normalized: normalized.toISOString()
+      });
+      return normalized;
+    }
+
+    // Use today as fallback
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    console.log('🔄 TripResults: Using today as fallback date:', {
+      fallback: today.toISOString(),
+      reason: tripStartDate ? 'invalid_date' : 'no_date_provided'
+    });
+    return today;
+  }, [tripStartDate]);
+
+  console.log('📊 TripResults rendering with validated date:', {
     hasTripPlan: !!tripPlan,
-    tripStartDate: tripStartDate?.toISOString(),
-    tripStartDateLocal: tripStartDate?.toLocaleDateString(),
-    tripStartDateValid: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+    originalTripStartDate: tripStartDate?.toISOString(),
+    validTripStartDate: validTripStartDate.toISOString(),
     segmentCount: tripPlan?.segments?.length
   });
 
@@ -143,11 +172,11 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* FIXED: Pass tripStartDate directly to weather widget */}
+            {/* FIXED: Always pass validTripStartDate to weather widget */}
             <div className="mb-4">
               <UnifiedWeatherWidget 
                 segment={segment} 
-                tripStartDate={tripStartDate}
+                tripStartDate={validTripStartDate}
               />
             </div>
 
@@ -183,7 +212,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         <div className="flex justify-center">
           <SimpleShareButton 
             tripPlan={tripPlan}
-            tripStartDate={tripStartDate}
+            tripStartDate={validTripStartDate}
           />
         </div>
         
