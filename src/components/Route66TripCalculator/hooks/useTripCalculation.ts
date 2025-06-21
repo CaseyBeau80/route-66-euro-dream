@@ -5,6 +5,7 @@ import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { EnhancedTripPlanResult } from '../../TripCalculator/services/Route66TripPlannerService';
 import { Route66TripPlannerService } from '../../TripCalculator/services/Route66TripPlannerService';
 import { GoogleMapsIntegrationService } from '../../TripCalculator/services/GoogleMapsIntegrationService';
+import { DestinationMatchingService } from '../../TripCalculator/services/DestinationMatchingService';
 import { toast } from '@/hooks/use-toast';
 
 export const useTripCalculation = () => {
@@ -16,7 +17,7 @@ export const useTripCalculation = () => {
     endLocation: '',
     travelDays: 0,
     dailyDrivingLimit: 300,
-    tripStyle: 'destination-focused', // FIXED: Only destination-focused allowed
+    tripStyle: 'destination-focused',
     tripStartDate: new Date()
   });
 
@@ -26,7 +27,7 @@ export const useTripCalculation = () => {
   ) => {
     const dataToUse = inputFormData || formData;
     
-    console.log('🚗 useTripCalculation: Starting enhanced trip calculation with Google Maps integration', { 
+    console.log('🚗 useTripCalculation: Starting enhanced trip calculation with improved matching', { 
       formData: dataToUse,
       hasGoogleMaps: GoogleMapsIntegrationService.isAvailable()
     });
@@ -36,6 +37,15 @@ export const useTripCalculation = () => {
     setPlanningResult(null);
 
     try {
+      // Validate destinations before planning
+      if (!dataToUse.startLocation.trim() || !dataToUse.endLocation.trim()) {
+        throw new Error('Please enter both start and end locations');
+      }
+
+      if (dataToUse.travelDays < 1) {
+        throw new Error('Please select at least 1 travel day');
+      }
+
       // Fix: Use the correct number of arguments and ensure tripStyle is properly typed
       const tripStyle: 'balanced' | 'destination-focused' = dataToUse.tripStyle === 'destination-focused' ? 'destination-focused' : 'balanced';
       
@@ -46,13 +56,15 @@ export const useTripCalculation = () => {
         tripStyle
       );
 
-      console.log('✅ useTripCalculation: Enhanced trip planning completed with Google Maps integration', {
+      console.log('✅ useTripCalculation: Enhanced trip planning completed', {
         success: !!result.tripPlan,
         segmentCount: result.tripPlan?.segments?.length,
         hasDebugInfo: !!result.debugInfo,
         hasValidationResults: !!result.validationResults,
         warningCount: result.warnings?.length || 0,
-        googleMapsUsed: result.tripPlan?.segments?.some(s => s.isGoogleMapsData)
+        googleMapsUsed: result.tripPlan?.segments?.some(s => s.isGoogleMapsData),
+        totalDistance: result.tripPlan?.totalDistance,
+        realDistanceData: result.tripPlan?.segments?.filter(s => s.isGoogleMapsData).length
       });
 
       if (result.tripPlan) {
@@ -66,10 +78,14 @@ export const useTripCalculation = () => {
         setTripPlan(unifiedTripPlan);
         setPlanningResult(result);
         
-        // Enhanced success message with Google Maps status
+        // Enhanced success message with real distance information
         const googleMapsStatus = result.tripPlan.segments?.some(s => s.isGoogleMapsData) 
-          ? '🗺️ Google Maps data used' 
+          ? '🗺️ Real distance data used' 
           : '📐 Estimated calculations used';
+        
+        const distanceInfo = result.tripPlan.totalDistance 
+          ? `${Math.round(result.tripPlan.totalDistance)} miles total`
+          : 'Distance calculated';
         
         const validationStatus = result.validationResults?.driveTimeValidation?.isValid && result.validationResults?.sequenceValidation?.isValid
           ? 'All constraints validated ✅'
@@ -77,7 +93,7 @@ export const useTripCalculation = () => {
         
         toast({
           title: "Trip Planned Successfully!",
-          description: `Created ${result.tripPlan.segments?.length || 0} day itinerary. ${googleMapsStatus}. ${validationStatus}`,
+          description: `Created ${result.tripPlan.segments?.length || 0} day itinerary. ${distanceInfo}. ${googleMapsStatus}. ${validationStatus}`,
           variant: result.warnings?.length > 0 ? "default" : "default"
         });
       } else {
@@ -87,7 +103,14 @@ export const useTripCalculation = () => {
     } catch (error) {
       console.error('❌ useTripCalculation: Trip calculation failed', error);
       
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      let errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Enhanced error messages for common issues
+      if (errorMessage.includes('No match found') || errorMessage.includes('not found')) {
+        errorMessage = `Could not find Route 66 destinations matching your locations. Please try major Route 66 cities like Chicago, Springfield, St. Louis, Tulsa, Oklahoma City, Amarillo, Albuquerque, Flagstaff, or Los Angeles.`;
+      } else if (errorMessage.includes('insufficient')) {
+        errorMessage = `Not enough Route 66 destinations available for a ${dataToUse.travelDays} day trip. Try reducing the number of days or selecting different start/end points.`;
+      }
       
       toast({
         title: "Trip Planning Failed",

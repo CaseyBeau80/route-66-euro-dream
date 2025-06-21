@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
-import SimpleWeatherWidget from '../../TripCalculator/components/weather/SimpleWeatherWidget';
+import EnhancedWeatherWidget from '../../TripCalculator/components/weather/EnhancedWeatherWidget';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 
@@ -90,7 +91,7 @@ const TripResults: React.FC<TripResultsProps> = ({
           {startCity} to {endCity}
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">{segments.length || 0}</div>
             <div className="text-sm text-route66-text-secondary">Days</div>
@@ -103,13 +104,9 @@ const TripResults: React.FC<TripResultsProps> = ({
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">
-              {Math.round((tripPlan.totalDistance || tripPlan.totalMiles || 0) / 55)}
+              {Math.round(tripPlan.totalDrivingTime || ((tripPlan.totalDistance || tripPlan.totalMiles || 0) / 55))}
             </div>
             <div className="text-sm text-route66-text-secondary">Drive Hours</div>
-          </div>
-          <div className="text-center">
-            
-            
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-route66-primary">
@@ -147,18 +144,29 @@ const TripResults: React.FC<TripResultsProps> = ({
                 <div className="flex items-center gap-1">
                   <Route className="w-4 h-4" />
                   {Math.round(segment.distance || segment.approximateMiles || 0)} miles
+                  {segment.isGoogleMapsData && (
+                    <span className="text-xs text-green-600 ml-1">📍</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  {Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10} hours
+                  {segment.driveTimeHours ? 
+                    `${Math.round(segment.driveTimeHours * 10) / 10}h` :
+                    `${Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10}h`
+                  }
                 </div>
               </div>
             </div>
 
-            {/* Weather Widget */}
+            {/* Enhanced Weather Widget */}
             {tripStartDate && segment.endCity && (
               <div className="mb-4">
-                <SimpleWeatherWidget segment={segment} tripStartDate={tripStartDate} isSharedView={false} />
+                <EnhancedWeatherWidget 
+                  segment={segment} 
+                  tripStartDate={tripStartDate} 
+                  isSharedView={false}
+                  isPDFExport={false}
+                />
               </div>
             )}
 
