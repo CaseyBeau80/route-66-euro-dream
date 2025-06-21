@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -6,9 +5,7 @@ import { TripPlan } from './services/Route66TripPlannerService';
 import { TripCompletionAnalysis } from './services/planning/TripCompletionService';
 import { formatTime } from './utils/distanceCalculator';
 import EnhancedTripResults from './EnhancedTripResults';
-import { Button } from '@/components/ui/button';
-import { Share2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import ShareAndExportDropdown from './components/ShareAndExportDropdown';
 
 interface TripCalculatorResultsProps {
   calculation?: TripCalculation;
@@ -120,43 +117,24 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays
   });
-
-  // Simple share handler that works
-  const handleShare = async () => {
-    try {
-      const currentUrl = window.location.href;
-      await navigator.clipboard.writeText(currentUrl);
-      
-      toast({
-        title: "Trip Link Copied!",
-        description: "Your Route 66 trip link has been copied to the clipboard. Share it with friends and family!",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error('Share failed:', error);
-      toast({
-        title: "Share Failed",
-        description: "Could not copy link. Please copy the URL manually from your browser.",
-        variant: "destructive"
-      });
-    }
-  };
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
-    console.log('✨ Rendering Enhanced Trip Results with share button');
+    console.log('✨ Rendering Enhanced Trip Results with full sharing features');
+    const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+    
     return (
       <div className="space-y-6">
-        {/* PROMINENT SHARE BUTTON */}
+        {/* COMPREHENSIVE SHARE & EXPORT DROPDOWN */}
         <div className="flex justify-center mb-6">
-          <Button
-            onClick={handleShare}
+          <ShareAndExportDropdown
+            shareUrl={shareUrl}
+            tripTitle={tripTitle}
+            tripPlan={tripPlan}
+            tripStartDate={tripStartDate}
             size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
-          >
-            <Share2 className="w-5 h-5" />
-            Share This Trip
-          </Button>
+            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl"
+          />
         </div>
 
         <EnhancedTripResults 
@@ -167,49 +145,65 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
           originalRequestedDays={originalRequestedDays}
         />
 
-        {/* BOTTOM SHARE BUTTON */}
+        {/* BOTTOM SHARE & EXPORT DROPDOWN */}
         <div className="flex justify-center mt-6">
-          <Button
-            onClick={handleShare}
+          <ShareAndExportDropdown
+            shareUrl={shareUrl}
+            tripTitle={tripTitle}
+            tripPlan={tripPlan}
+            tripStartDate={tripStartDate}
+            variant="outline"
             size="lg"
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
-          >
-            <Share2 className="w-5 h-5" />
-            Share Your Adventure
-          </Button>
+            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl border-2"
+          />
         </div>
       </div>
     );
   }
   
   if (calculation) {
-    console.log('📊 Rendering Legacy Trip Results with share button');
+    console.log('📊 Rendering Legacy Trip Results with full sharing features');
+    const tripTitle = `Route 66 Legacy Trip - ${calculation.numberOfDays} Days`;
+    
+    // Create a mock trip plan for legacy results to enable sharing
+    const mockTripPlan: TripPlan = {
+      title: tripTitle,
+      startCity: 'Chicago',
+      endCity: 'Los Angeles',
+      totalDays: calculation.numberOfDays,
+      totalDistance: calculation.totalDistance,
+      totalDrivingTime: calculation.totalDriveTime,
+      segments: [],
+      dailySegments: []
+    };
+    
     return (
       <div className="space-y-6">
-        {/* SHARE BUTTON FOR LEGACY */}
+        {/* SHARE & EXPORT FOR LEGACY */}
         <div className="flex justify-center mb-6">
-          <Button
-            onClick={handleShare}
+          <ShareAndExportDropdown
+            shareUrl={shareUrl}
+            tripTitle={tripTitle}
+            tripPlan={mockTripPlan}
+            tripStartDate={tripStartDate}
             size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
-          >
-            <Share2 className="w-5 h-5" />
-            Share This Trip
-          </Button>
+            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl"
+          />
         </div>
 
         <LegacyTripResults calculation={calculation} />
 
-        {/* BOTTOM SHARE BUTTON FOR LEGACY */}
+        {/* BOTTOM SHARE & EXPORT FOR LEGACY */}
         <div className="flex justify-center mt-6">
-          <Button
-            onClick={handleShare}
+          <ShareAndExportDropdown
+            shareUrl={shareUrl}
+            tripTitle={tripTitle}
+            tripPlan={mockTripPlan}
+            tripStartDate={tripStartDate}
+            variant="outline"
             size="lg"
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
-          >
-            <Share2 className="w-5 h-5" />
-            Share Your Adventure
-          </Button>
+            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl border-2"
+          />
         </div>
       </div>
     );
