@@ -1,100 +1,58 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Share2, Check, Copy } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface ShareTripButtonProps {
-  shareUrl?: string;
-  tripTitle?: string;
-  variant?: 'default' | 'outline' | 'ghost';
-  size?: 'default' | 'sm' | 'lg';
+  title?: string;
+  variant?: 'default' | 'outline' | 'ghost' | 'secondary';
+  size?: 'sm' | 'default' | 'lg';
   className?: string;
   showText?: boolean;
 }
 
 const ShareTripButton: React.FC<ShareTripButtonProps> = ({
-  shareUrl,
-  tripTitle = 'Route 66 Trip',
-  variant = 'outline',
-  size = 'sm',
+  title = 'Route 66 Trip',
+  variant = 'default',
+  size = 'default',
   className = '',
   showText = true
 }) => {
   const [copied, setCopied] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState<string>('');
-
-  // Debug: Log component mount
-  useEffect(() => {
-    console.log('🔗 ShareTripButton: Component mounted with props:', {
-      shareUrl,
-      tripTitle,
-      variant,
-      size,
-      showText,
-      timestamp: new Date().toISOString()
-    });
-  }, []);
-
-  // Set current URL on client side
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const url = shareUrl || window.location.href;
-      setCurrentUrl(url);
-      console.log('🔗 ShareTripButton: URL set to:', url);
-    }
-  }, [shareUrl]);
 
   const handleShare = async () => {
     try {
-      const urlToShare = currentUrl || (typeof window !== 'undefined' ? window.location.href : '');
+      const currentUrl = window.location.href;
       
-      console.log('🔗 ShareTripButton: Attempting to copy URL:', urlToShare);
+      console.log('🔗 ShareTripButton: Copying URL:', currentUrl);
       
-      if (!urlToShare) {
-        console.error('❌ ShareTripButton: No URL available to share');
-        toast({
-          title: "Share Failed",
-          description: "Unable to get URL. Please try again.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Try modern clipboard API first
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(urlToShare);
-        console.log('✅ ShareTripButton: Modern clipboard API successful');
+        await navigator.clipboard.writeText(currentUrl);
       } else {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
-        textArea.value = urlToShare;
+        textArea.value = currentUrl;
         textArea.style.position = 'fixed';
         textArea.style.opacity = '0';
-        textArea.style.left = '-9999px';
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        console.log('✅ ShareTripButton: Fallback clipboard method successful');
       }
 
       setCopied(true);
       
       toast({
-        title: "Link Copied!",
-        description: "Trip link has been copied to your clipboard.",
+        title: "Trip Link Copied!",
+        description: "Your trip link has been copied to the clipboard. Share it with friends and family!",
         variant: "default"
       });
       
-      // Reset copied state after 3 seconds
-      setTimeout(() => {
-        setCopied(false);
-        console.log('🔗 ShareTripButton: Copied state reset');
-      }, 3000);
+      setTimeout(() => setCopied(false), 3000);
       
     } catch (error) {
-      console.error('❌ ShareTripButton: Share failed:', error);
+      console.error('❌ Share failed:', error);
       
       toast({
         title: "Share Failed",
@@ -104,26 +62,17 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
     }
   };
 
-  // Debug: Log render
-  console.log('🔗 ShareTripButton: Rendering with state:', {
-    copied,
-    currentUrl,
-    hasWindow: typeof window !== 'undefined',
-    timestamp: new Date().toISOString()
-  });
-
   return (
     <Button
       onClick={handleShare}
       variant={variant}
       size={size}
-      className={`transition-all duration-300 hover:shadow-md flex items-center gap-2 ${className}`}
-      type="button"
+      className={`transition-all duration-300 flex items-center gap-2 ${className}`}
     >
       {copied ? (
         <>
           <Check className="w-4 h-4 text-green-600" />
-          {showText && <span className="text-green-600 font-medium">Copied!</span>}
+          {showText && <span>Copied!</span>}
         </>
       ) : (
         <>

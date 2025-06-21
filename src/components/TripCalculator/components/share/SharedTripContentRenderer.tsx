@@ -6,7 +6,7 @@ import { TripPlan } from '../../services/planning/TripPlanTypes';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
 import { format, addDays } from 'date-fns';
 import PreviewDailyItinerary from '../PreviewDailyItinerary';
-import SimpleShareButton from './SimpleShareButton';
+import ShareTripButton from './ShareTripButton';
 
 interface SharedTripContentRendererProps {
   tripPlan: TripPlan;
@@ -59,7 +59,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
       {!isSharedView && (
         <div className="flex justify-center mb-6">
           <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl">
-            <SimpleShareButton
+            <ShareTripButton
               title={tripTitle}
               variant="outline"
               size="lg"
@@ -89,7 +89,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
               
               {/* Share Button in Header - Only show if not shared view */}
               {!isSharedView && (
-                <SimpleShareButton
+                <ShareTripButton
                   title={tripTitle}
                   variant="outline"
                   size="default"
@@ -169,7 +169,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             <div className="mt-8 pt-6 border-t border-blue-100 text-center">
               <div className="mb-3">
                 <p className="text-blue-700 font-medium mb-3">Love this trip plan?</p>
-                <SimpleShareButton
+                <ShareTripButton
                   title={tripTitle}
                   variant="default"
                   size="lg"
@@ -197,7 +197,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             
             {/* Share Button in Itinerary Header - Only show if not shared view */}
             {!isSharedView && (
-              <SimpleShareButton
+              <ShareTripButton
                 title={tripTitle}
                 variant="outline"
                 size="sm"
@@ -233,7 +233,7 @@ const SharedTripContentRenderer: React.FC<SharedTripContentRendererProps> = ({
             Love this trip plan? Share it with friends and family! They'll get the complete itinerary with weather forecasts and attractions.
           </p>
           
-          <SimpleShareButton
+          <ShareTripButton
             title={tripTitle}
             variant="default"
             size="lg"

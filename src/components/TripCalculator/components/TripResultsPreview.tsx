@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Calendar, Clock, DollarSign, Route } from 'lucide-react';
@@ -6,7 +7,7 @@ import { useCostEstimator } from '../hooks/useCostEstimator';
 import { useUnits } from '@/contexts/UnitContext';
 import { format, addDays } from 'date-fns';
 import PreviewDailyItinerary from './PreviewDailyItinerary';
-import SimpleShareButton from './share/SimpleShareButton';
+import ShareTripButton from './share/ShareTripButton';
 
 interface TripResultsPreviewProps {
   tripPlan: TripPlan;
@@ -44,12 +45,6 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
     }).format(amount);
   };
 
-  const formatTime = (hours: number): string => {
-    const wholeHours = Math.floor(hours);
-    const minutes = Math.round((hours - wholeHours) * 60);
-    return `${wholeHours}h ${minutes}m`;
-  };
-
   // Build trip title for sharing
   const startCity = tripPlan.startCity || tripPlan.segments?.[0]?.startCity || 'Route 66';
   const endCity = tripPlan.endCity || tripPlan.segments?.[tripPlan.segments?.length - 1]?.endCity || 'Adventure';
@@ -60,7 +55,7 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
       {/* PROMINENT Share Button at the very top */}
       <div className="flex justify-center mb-6">
         <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl">
-          <SimpleShareButton
+          <ShareTripButton
             title={tripTitle}
             variant="outline"
             size="lg"
@@ -88,7 +83,7 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
               </div>
               
               {/* Share Button in Header */}
-              <SimpleShareButton
+              <ShareTripButton
                 title={tripTitle}
                 variant="outline"
                 size="default"
@@ -166,7 +161,7 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           <div className="mt-8 pt-6 border-t border-blue-100 text-center">
             <div className="mb-3">
               <p className="text-blue-700 font-medium mb-3">Love this trip plan?</p>
-              <SimpleShareButton
+              <ShareTripButton
                 title={tripTitle}
                 variant="default"
                 size="lg"
@@ -192,7 +187,7 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             </div>
             
             {/* Share Button in Itinerary Header */}
-            <SimpleShareButton
+            <ShareTripButton
               title={tripTitle}
               variant="outline"
               size="sm"
@@ -210,6 +205,33 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Bottom Share Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-4 border-blue-300 rounded-2xl p-8 text-center shadow-xl">
+        <div className="flex justify-center items-center gap-4 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <Route className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-3xl font-bold text-gray-800">
+            Share Your Route 66 Adventure!
+          </h3>
+        </div>
+        
+        <p className="text-gray-700 mb-6 text-lg max-w-2xl mx-auto">
+          Love this trip plan? Share it with friends and family! They'll get the complete itinerary with weather forecasts and attractions.
+        </p>
+        
+        <ShareTripButton
+          title={tripTitle}
+          variant="default"
+          size="lg"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 rounded-xl font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105"
+        />
+        
+        <p className="text-gray-600 mt-4">
+          🎯 Click above to copy your shareable trip link!
+        </p>
+      </div>
     </div>
   );
 };
