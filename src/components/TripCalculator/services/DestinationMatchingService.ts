@@ -1,4 +1,3 @@
-
 import { TripStop } from '../types/TripStop';
 
 export interface MatchResult {
@@ -17,6 +16,8 @@ export class DestinationMatchingService {
     const searchTerm = this.normalizeSearchTerm(searchLocation);
     const matches: MatchResult[] = [];
 
+    console.log(`🎯 DESTINATION MATCHING: Searching for "${searchLocation}" (normalized: "${searchTerm}") in ${stops.length} stops`);
+
     // 1. Exact name match (highest confidence)
     for (const stop of stops) {
       if (this.normalizeSearchTerm(stop.name) === searchTerm) {
@@ -25,6 +26,7 @@ export class DestinationMatchingService {
           confidence: 1.0,
           matchType: 'exact'
         });
+        console.log(`✅ EXACT NAME MATCH: ${stop.name}`);
       }
     }
 
@@ -36,54 +38,94 @@ export class DestinationMatchingService {
           confidence: 0.95,
           matchType: 'city'
         });
+        console.log(`✅ EXACT CITY MATCH: ${stop.city} (${stop.name})`);
       }
     }
 
-    // 3. Partial name match
-    for (const stop of stops) {
-      const normalizedName = this.normalizeSearchTerm(stop.name);
-      if (normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName)) {
-        matches.push({
-          stop,
-          confidence: 0.8,
-          matchType: 'partial'
-        });
-      }
-    }
+    // 3. Enhanced city + state matching for better specificity
+    if (searchTerm.includes(',') || searchTerm.includes(' ')) {
+      const parts = searchTerm.split(/[,\s]+/).filter(p => p.length > 0);
+      const cityPart = parts[0];
+      const statePart = parts[1];
 
-    // 4. Partial city match
-    for (const stop of stops) {
-      if (stop.city) {
-        const normalizedCity = this.normalizeSearchTerm(stop.city);
-        if (normalizedCity.includes(searchTerm) || searchTerm.includes(normalizedCity)) {
-          matches.push({
-            stop,
-            confidence: 0.7,
-            matchType: 'partial'
-          });
+      for (const stop of stops) {
+        if (stop.city && stop.state) {
+          const normalizedCity = this.normalizeSearchTerm(stop.city);
+          const normalizedState = this.normalizeSearchTerm(stop.state);
+          
+          if (normalizedCity === cityPart && 
+              (normalizedState === statePart || 
+               normalizedState.startsWith(statePart) || 
+               statePart.startsWith(normalizedState))) {
+            matches.push({
+              stop,
+              confidence: 0.98, // Higher than regular city match
+              matchType: 'city'
+            });
+            console.log(`✅ CITY+STATE MATCH: ${stop.city}, ${stop.state} (${stop.name})`);
+          }
         }
       }
     }
 
-    // 5. Fuzzy matching for typos and variations
+    // 4. Partial name match (but avoid overly broad matches)
     for (const stop of stops) {
-      const nameScore = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.name));
-      if (nameScore > 0.6) {
-        matches.push({
-          stop,
-          confidence: nameScore * 0.6,
-          matchType: 'fuzzy'
-        });
-      }
-
-      if (stop.city) {
-        const cityScore = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.city));
-        if (cityScore > 0.6) {
+      const normalizedName = this.normalizeSearchTerm(stop.name);
+      if (normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName)) {
+        // Only add if not already matched and search term is specific enough
+        if (!matches.some(m => m.stop.id === stop.id) && searchTerm.length >= 3) {
           matches.push({
             stop,
-            confidence: cityScore * 0.5,
+            confidence: 0.8,
+            matchType: 'partial'
+          });
+          console.log(`✅ PARTIAL NAME MATCH: ${stop.name}`);
+        }
+      }
+    }
+
+    // 5. Partial city match (with length check to avoid overly broad matches)
+    for (const stop of stops) {
+      if (stop.city && searchTerm.length >= 3) {
+        const normalizedCity = this.normalizeSearchTerm(stop.city);
+        if (normalizedCity.includes(searchTerm) || searchTerm.includes(normalizedCity)) {
+          // Only add if not already matched
+          if (!matches.some(m => m.stop.id === stop.id)) {
+            matches.push({
+              stop,
+              confidence: 0.7,
+              matchType: 'partial'
+            });
+            console.log(`✅ PARTIAL CITY MATCH: ${stop.city} (${stop.name})`);
+          }
+        }
+      }
+    }
+
+    // 6. Fuzzy matching for typos and variations (more conservative)
+    for (const stop of stops) {
+      // Only do fuzzy matching if no exact or partial matches found
+      if (matches.length === 0) {
+        const nameScore = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.name));
+        if (nameScore > 0.7) { // Higher threshold for name matching
+          matches.push({
+            stop,
+            confidence: nameScore * 0.6,
             matchType: 'fuzzy'
           });
+          console.log(`✅ FUZZY NAME MATCH: ${stop.name} (score: ${nameScore})`);
+        }
+
+        if (stop.city) {
+          const cityScore = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.city));
+          if (cityScore > 0.7) { // Higher threshold for city matching
+            matches.push({
+              stop,
+              confidence: cityScore * 0.5,
+              matchType: 'fuzzy'
+            });
+            console.log(`✅ FUZZY CITY MATCH: ${stop.city} (${stop.name}) (score: ${cityScore})`);
+          }
         }
       }
     }
@@ -95,15 +137,16 @@ export class DestinationMatchingService {
     const bestMatch = uniqueMatches[0];
     
     if (bestMatch) {
-      console.log(`🎯 Best match for "${searchLocation}":`, {
+      console.log(`🎯 BEST MATCH for "${searchLocation}":`, {
         found: bestMatch.stop.name,
         city: bestMatch.stop.city,
+        state: bestMatch.stop.state,
         confidence: bestMatch.confidence,
         matchType: bestMatch.matchType
       });
     } else {
-      console.warn(`❌ No match found for "${searchLocation}" in ${stops.length} stops`);
-      console.log('Available stops:', stops.map(s => `${s.name} (${s.city})`).slice(0, 10));
+      console.warn(`❌ NO MATCH found for "${searchLocation}" in ${stops.length} stops`);
+      console.log('🔍 Available stops for reference:', stops.slice(0, 10).map(s => `${s.name} (${s.city}, ${s.state})`));
     }
 
     return bestMatch || null;
@@ -186,7 +229,9 @@ export class DestinationMatchingService {
       const maxScore = Math.max(nameScore, cityScore);
 
       if (maxScore > 0.3) {
-        const displayName = stop.city ? `${stop.name}, ${stop.city}` : stop.name;
+        const displayName = stop.city && stop.state ? 
+          `${stop.name}, ${stop.city}, ${stop.state}` : 
+          stop.city ? `${stop.name}, ${stop.city}` : stop.name;
         suggestions.push({ name: displayName, score: maxScore });
       }
     }
