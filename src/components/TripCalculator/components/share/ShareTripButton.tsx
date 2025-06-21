@@ -6,6 +6,8 @@ import { toast } from '@/hooks/use-toast';
 
 interface ShareTripButtonProps {
   title?: string;
+  tripTitle?: string; // Added to support tripTitle prop
+  shareUrl?: string; // Added to support shareUrl prop
   variant?: 'default' | 'outline' | 'ghost' | 'secondary';
   size?: 'sm' | 'default' | 'lg';
   className?: string;
@@ -13,7 +15,9 @@ interface ShareTripButtonProps {
 }
 
 const ShareTripButton: React.FC<ShareTripButtonProps> = ({
-  title = 'Route 66 Trip',
+  title,
+  tripTitle, // New prop
+  shareUrl, // New prop
   variant = 'default',
   size = 'default',
   className = '',
@@ -23,16 +27,19 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
 
   const handleShare = async () => {
     try {
-      const currentUrl = window.location.href;
+      // Use shareUrl if provided, otherwise fall back to current URL
+      const urlToShare = shareUrl || window.location.href;
+      // Use tripTitle or title for the toast message
+      const displayTitle = tripTitle || title || 'Route 66 Trip';
       
-      console.log('🔗 ShareTripButton: Copying URL:', currentUrl);
+      console.log('🔗 ShareTripButton: Copying URL:', urlToShare);
       
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(currentUrl);
+        await navigator.clipboard.writeText(urlToShare);
       } else {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
-        textArea.value = currentUrl;
+        textArea.value = urlToShare;
         textArea.style.position = 'fixed';
         textArea.style.opacity = '0';
         document.body.appendChild(textArea);
@@ -45,7 +52,7 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
       
       toast({
         title: "Trip Link Copied!",
-        description: "Your trip link has been copied to the clipboard. Share it with friends and family!",
+        description: `Your ${displayTitle} link has been copied to the clipboard. Share it with friends and family!`,
         variant: "default"
       });
       
