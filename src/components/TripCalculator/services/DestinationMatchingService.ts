@@ -7,7 +7,7 @@ export interface MatchResult {
 }
 
 export class DestinationMatchingService {
-  // FIXED: Enhanced location aliases with better coverage
+  // FIXED: Enhanced location aliases with comprehensive Route 66 coverage
   private static locationAliases: Record<string, string[]> = {
     'joliet': ['joliet il', 'joliet illinois', 'chicago area', 'chicago suburbs'],
     'chicago': ['chi-town', 'windy city', 'joliet il', 'joliet illinois', 'chicago il'],
@@ -19,7 +19,69 @@ export class DestinationMatchingService {
     'flagstaff': ['flagstaff az', 'flagstaff arizona', 'flag az'],
     'amarillo': ['amarillo tx', 'amarillo texas'],
     'tulsa': ['tulsa ok', 'tulsa oklahoma'],
-    'springfield': ['springfield il', 'springfield mo', 'springfield illinois', 'springfield missouri']
+    'springfield': ['springfield il', 'springfield mo', 'springfield illinois', 'springfield missouri'],
+    // CRITICAL FIX: Add missing Route 66 cities
+    'needles': ['needles ca', 'needles california'],
+    'barstow': ['barstow ca', 'barstow california'],
+    'winslow': ['winslow az', 'winslow arizona'],
+    'holbrook': ['holbrook az', 'holbrook arizona'],
+    'gallup': ['gallup nm', 'gallup new mexico'],
+    'tucumcari': ['tucumcari nm', 'tucumcari new mexico'],
+    'santa monica': ['santa monica ca', 'santa monica california'],
+    'joplin': ['joplin mo', 'joplin missouri'],
+    'elk city': ['elk city ok', 'elk city oklahoma'],
+    'clinton': ['clinton ok', 'clinton oklahoma'],
+    'weatherford': ['weatherford ok', 'weatherford oklahoma'],
+    'el reno': ['el reno ok', 'el reno oklahoma'],
+    'yukon': ['yukon ok', 'yukon oklahoma'],
+    'bethany': ['bethany ok', 'bethany oklahoma'],
+    'edmond': ['edmond ok', 'edmond oklahoma'],
+    'arcadia': ['arcadia ok', 'arcadia oklahoma'],
+    'chandler': ['chandler ok', 'chandler oklahoma'],
+    'stroud': ['stroud ok', 'stroud oklahoma'],
+    'sapulpa': ['sapulpa ok', 'sapulpa oklahoma'],
+    'calumet': ['calumet ok', 'calumet oklahoma'],
+    'geary': ['geary ok', 'geary oklahoma'],
+    'hydro': ['hydro ok', 'hydro oklahoma'],
+    'canute': ['canute ok', 'canute oklahoma'],
+    'sayre': ['sayre ok', 'sayre oklahoma'],
+    'erick': ['erick ok', 'erick oklahoma'],
+    'shamrock': ['shamrock tx', 'shamrock texas'],
+    'mclean': ['mclean tx', 'mclean texas'],
+    'groom': ['groom tx', 'groom texas'],
+    'conway': ['conway tx', 'conway texas'],
+    'vega': ['vega tx', 'vega texas'],
+    'adrian': ['adrian tx', 'adrian texas'],
+    'santa rosa': ['santa rosa nm', 'santa rosa new mexico'],
+    'moriarty': ['moriarty nm', 'moriarty new mexico'],
+    'tijeras': ['tijeras nm', 'tijeras new mexico'],
+    'grants': ['grants nm', 'grants new mexico'],
+    'thoreau': ['thoreau nm', 'thoreau new mexico'],
+    'williams': ['williams az', 'williams arizona'],
+    'ash fork': ['ash fork az', 'ash fork arizona'],
+    'seligman': ['seligman az', 'seligman arizona'],
+    'peach springs': ['peach springs az', 'peach springs arizona'],
+    'hackberry': ['hackberry az', 'hackberry arizona'],
+    'oatman': ['oatman az', 'oatman arizona'],
+    'topock': ['topock az', 'topock arizona'],
+    'amboy': ['amboy ca', 'amboy california'],
+    'bagdad': ['bagdad ca', 'bagdad california'],
+    'newberry springs': ['newberry springs ca', 'newberry springs california'],
+    'daggett': ['daggett ca', 'daggett california'],
+    'victorville': ['victorville ca', 'victorville california'],
+    'san bernardino': ['san bernardino ca', 'san bernardino california'],
+    'rialto': ['rialto ca', 'rialto california'],
+    'fontana': ['fontana ca', 'fontana california'],
+    'rancho cucamonga': ['rancho cucamonga ca', 'rancho cucamonga california'],
+    'upland': ['upland ca', 'upland california'],
+    'claremont': ['claremont ca', 'claremont california'],
+    'la verne': ['la verne ca', 'la verne california'],
+    'san dimas': ['san dimas ca', 'san dimas california'],
+    'glendora': ['glendora ca', 'glendora california'],
+    'azusa': ['azusa ca', 'azusa california'],
+    'duarte': ['duarte ca', 'duarte california'],
+    'monrovia': ['monrovia ca', 'monrovia california'],
+    'pasadena': ['pasadena ca', 'pasadena california']
   };
 
   /**
@@ -31,9 +93,9 @@ export class DestinationMatchingService {
     const searchTerm = this.normalizeSearchTerm(searchLocation);
     const matches: MatchResult[] = [];
 
-    console.log(`🎯 FIXED MATCHING: Searching for "${searchLocation}" (normalized: "${searchTerm}") in ${stops.length} stops`);
+    console.log(`🎯 ENHANCED MATCHING: Searching for "${searchLocation}" (normalized: "${searchTerm}") in ${stops.length} stops`);
 
-    // 1. FIXED: Enhanced alias matching with priority
+    // 1. CRITICAL FIX: Enhanced alias matching with comprehensive coverage
     for (const [canonical, aliases] of Object.entries(this.locationAliases)) {
       const canonicalNormalized = this.normalizeSearchTerm(canonical);
       
@@ -44,10 +106,13 @@ export class DestinationMatchingService {
         const canonicalStop = stops.find(stop =>
           this.normalizeSearchTerm(stop.name) === canonicalNormalized ||
           this.normalizeSearchTerm(stop.city || '') === canonicalNormalized ||
-          aliases.some(alias => 
-            this.normalizeSearchTerm(stop.name).includes(this.normalizeSearchTerm(alias)) ||
-            this.normalizeSearchTerm(stop.city || '').includes(this.normalizeSearchTerm(alias))
-          )
+          this.normalizeSearchTerm(stop.name).includes(canonicalNormalized) ||
+          this.normalizeSearchTerm(stop.city || '').includes(canonicalNormalized) ||
+          aliases.some(alias => {
+            const aliasNorm = this.normalizeSearchTerm(alias);
+            return this.normalizeSearchTerm(stop.name).includes(aliasNorm) ||
+                   this.normalizeSearchTerm(stop.city || '').includes(aliasNorm);
+          })
         );
         
         if (canonicalStop) {
@@ -56,7 +121,7 @@ export class DestinationMatchingService {
             confidence: 1.0,
             matchType: 'alias'
           });
-          console.log(`✅ ENHANCED ALIAS MATCH: ${searchLocation} → ${canonicalStop.name} (${canonicalStop.city})`);
+          console.log(`✅ COMPREHENSIVE ALIAS MATCH: ${searchLocation} → ${canonicalStop.name} (${canonicalStop.city})`);
         }
       }
     }
@@ -85,7 +150,7 @@ export class DestinationMatchingService {
       }
     }
 
-    // 4. FIXED: Smart city + state parsing
+    // 4. CRITICAL FIX: Enhanced city + state parsing with better normalization
     if (searchTerm.includes(',') || searchTerm.includes(' ')) {
       const parts = searchTerm.split(/[,\s]+/).filter(p => p.length > 0);
       if (parts.length >= 2) {
@@ -98,7 +163,10 @@ export class DestinationMatchingService {
             const normalizedState = this.normalizeSearchTerm(stop.state);
             const stateAbbr = this.getStateAbbreviation(stop.state);
             
-            if (normalizedCity === cityPart && 
+            // CRITICAL: Also check stop.name for city matches
+            const normalizedStopName = this.normalizeSearchTerm(stop.name);
+            
+            if ((normalizedCity === cityPart || normalizedStopName === cityPart) && 
                 (normalizedState === statePart || 
                  normalizedState.startsWith(statePart) || 
                  statePart.startsWith(normalizedState) ||
@@ -108,25 +176,28 @@ export class DestinationMatchingService {
                 confidence: 0.97,
                 matchType: 'city'
               });
-              console.log(`✅ ENHANCED CITY+STATE MATCH: ${stop.city}, ${stop.state} (${stop.name})`);
+              console.log(`✅ ENHANCED CITY+STATE MATCH: ${stop.city || stop.name}, ${stop.state}`);
             }
           }
         }
       }
     }
 
-    // 5. FIXED: More conservative partial matching
+    // 5. FIXED: More conservative partial matching with name inclusion
     for (const stop of stops) {
       const normalizedName = this.normalizeSearchTerm(stop.name);
+      const normalizedCity = this.normalizeSearchTerm(stop.city || '');
+      
       if (searchTerm.length >= 4 && // Longer minimum length
-          (normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName))) {
+          (normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName) ||
+           normalizedCity.includes(searchTerm) || searchTerm.includes(normalizedCity))) {
         if (!matches.some(m => m.stop.id === stop.id)) {
           matches.push({
             stop,
             confidence: 0.75,
             matchType: 'partial'
           });
-          console.log(`✅ CONSERVATIVE PARTIAL MATCH: ${stop.name}`);
+          console.log(`✅ CONSERVATIVE PARTIAL MATCH: ${stop.name} (${stop.city})`);
         }
       }
     }
@@ -147,14 +218,14 @@ export class DestinationMatchingService {
       });
     } else {
       console.warn(`❌ NO MATCH found for "${searchLocation}" in ${stops.length} stops`);
-      console.log('🔍 Top available stops:', stops.slice(0, 5).map(s => `${s.name} (${s.city}, ${s.state})`));
+      console.log('🔍 Top available stops:', stops.slice(0, 10).map(s => `${s.name} (${s.city}, ${s.state})`));
     }
 
     return bestMatch || null;
   }
 
   /**
-   * FIXED: Enhanced suggestions with better scoring
+   * Enhanced suggestions with better scoring
    */
   static getSuggestions(searchLocation: string, stops: TripStop[], limit = 5): string[] {
     const searchTerm = this.normalizeSearchTerm(searchLocation);
@@ -200,12 +271,13 @@ export class DestinationMatchingService {
   }
 
   /**
-   * FIXED: Better state abbreviation handling
+   * Better state abbreviation handling
    */
   private static getStateAbbreviation(stateName: string): string {
     const stateMap: Record<string, string> = {
       'illinois': 'IL',
       'missouri': 'MO', 
+      'kansas': 'KS',
       'oklahoma': 'OK',
       'texas': 'TX',
       'new mexico': 'NM',
