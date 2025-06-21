@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
@@ -9,6 +10,7 @@ import SimpleShareButton from './SimpleShareButton';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
 import ShareTripModal from '../../TripCalculator/components/share/ShareTripModal';
+import ShareTripButton from '../../TripCalculator/components/share/ShareTripButton';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -92,6 +94,9 @@ const TripResults: React.FC<TripResultsProps> = ({
     (completionAnalysis.isCompleted || (completionAnalysis.duplicateSegments && completionAnalysis.duplicateSegments.length > 0)) &&
     (originalRequestedDays > (completionAnalysis.totalUsefulDays || 0));
 
+  // Build trip title for sharing
+  const tripTitle = `${startCity} to ${endCity} Route 66 Trip`;
+
   return (
     <div className="space-y-6 p-6">
       {/* Trip Completion Warning */}
@@ -101,6 +106,19 @@ const TripResults: React.FC<TripResultsProps> = ({
           originalRequestedDays={originalRequestedDays}
         />
       )}
+
+      {/* PROMINENT Share Button at the very top */}
+      <div className="flex justify-center mb-6">
+        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl">
+          <ShareTripButton
+            tripTitle={tripTitle}
+            variant="default"
+            size="lg"
+            className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-12 py-6 text-2xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 border-0 rounded-lg"
+            showText={true}
+          />
+        </div>
+      </div>
 
       {/* Trip Summary */}
       <div className="text-center border-b border-route66-border pb-6">
@@ -139,9 +157,20 @@ const TripResults: React.FC<TripResultsProps> = ({
 
       {/* Daily Segments with Weather */}
       <div className="space-y-4">
-        <h3 className="text-xl font-bold text-route66-primary mb-4">
-          Daily Itinerary with Weather Forecasts
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-route66-primary">
+            Daily Itinerary with Weather Forecasts
+          </h3>
+          
+          {/* Another Share Button in section header */}
+          <ShareTripButton
+            tripTitle={tripTitle}
+            variant="outline"
+            size="default"
+            className="border-2 border-blue-500 text-blue-700 hover:bg-blue-50 px-6 py-2 font-semibold"
+            showText={true}
+          />
+        </div>
         
         {segments.map((segment, index) => (
           <Card key={index} className="p-4 border border-route66-border">
@@ -203,7 +232,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* Enhanced Share Section */}
+      {/* Enhanced Share Section at the bottom */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-8 text-center shadow-lg">
         <div className="flex justify-center items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -218,13 +247,13 @@ const TripResults: React.FC<TripResultsProps> = ({
           Create a beautiful shareable link with weather forecasts, attractions, and your complete itinerary
         </p>
         
-        <Button
-          onClick={() => setIsShareModalOpen(true)}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-        >
-          <Share2 className="w-5 h-5 mr-3" />
-          Share This Trip
-        </Button>
+        <ShareTripButton
+          tripTitle={tripTitle}
+          variant="default"
+          size="lg"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 rounded-lg font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          showText={true}
+        />
         
         <p className="text-sm text-gray-500 mt-4">
           Anyone with the link can view your complete trip plan with live weather
