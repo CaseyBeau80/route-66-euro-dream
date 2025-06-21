@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Share2, Check, Link } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface ShareTripButtonProps {
@@ -23,11 +23,13 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   
-  // Use current URL if no shareUrl provided
-  const urlToShare = shareUrl || window.location.href;
+  // Always have a URL to share (fallback to current URL)
+  const urlToShare = shareUrl || (typeof window !== 'undefined' ? window.location.href : '');
 
   const handleShare = async () => {
     try {
+      console.log('🔗 ShareTripButton: Attempting to share URL:', urlToShare);
+      
       // Try native share API first (mobile devices)
       if (navigator.share && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
         await navigator.share({
@@ -35,12 +37,15 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
           text: `Check out my Route 66 trip plan: ${tripTitle}`,
           url: urlToShare,
         });
+        console.log('✅ ShareTripButton: Native share successful');
         return;
       }
       
       // Fallback to clipboard
       await navigator.clipboard.writeText(urlToShare);
       setCopied(true);
+      
+      console.log('✅ ShareTripButton: Link copied to clipboard');
       
       toast({
         title: "Link Copied!",
@@ -52,18 +57,22 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
       setTimeout(() => setCopied(false), 2000);
       
     } catch (error) {
-      console.error('Share failed:', error);
+      console.error('❌ ShareTripButton: Share failed:', error);
       
       // Manual fallback for older browsers
       try {
         const textArea = document.createElement('textarea');
         textArea.value = urlToShare;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
         
         setCopied(true);
+        console.log('✅ ShareTripButton: Fallback copy successful');
+        
         toast({
           title: "Link Copied!",
           description: "Trip link has been copied to your clipboard.",
@@ -72,6 +81,7 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
         
         setTimeout(() => setCopied(false), 2000);
       } catch (fallbackError) {
+        console.error('❌ ShareTripButton: All methods failed:', fallbackError);
         toast({
           title: "Share Failed",
           description: "Could not copy link. Please copy the URL manually from your browser.",
@@ -81,22 +91,31 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
     }
   };
 
+  console.log('🔗 ShareTripButton: Render with props:', {
+    shareUrl,
+    tripTitle,
+    variant,
+    size,
+    showText,
+    urlToShare
+  });
+
   return (
     <Button
       onClick={handleShare}
       variant={variant}
       size={size}
-      className={`transition-all duration-300 hover:shadow-md ${className}`}
+      className={`transition-all duration-300 hover:shadow-md flex items-center gap-2 ${className}`}
     >
       {copied ? (
         <>
           <Check className="w-4 h-4 text-green-600" />
-          {showText && <span className="ml-2">Copied!</span>}
+          {showText && <span>Copied!</span>}
         </>
       ) : (
         <>
           <Share2 className="w-4 h-4" />
-          {showText && <span className="ml-2">Share</span>}
+          {showText && <span>Share</span>}
         </>
       )}
     </Button>

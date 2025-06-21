@@ -36,6 +36,10 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
     return `${wholeHours}h ${minutes}m`;
   };
 
+  // Get the current URL for sharing
+  const shareUrl = window.location.href;
+  const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
+
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Enhanced Trip Overview Header */}
@@ -57,11 +61,14 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
                 </div>
               </div>
               
+              {/* Always show share button */}
               <ShareTripButton
-                tripTitle={`${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`}
+                shareUrl={shareUrl}
+                tripTitle={tripTitle}
                 variant="ghost"
                 size="sm"
-                className="text-white hover:bg-white/20 border-white/30"
+                className="text-white hover:bg-white/20 border-white/30 bg-white/10"
+                showText={true}
               />
             </div>
             
@@ -131,6 +138,22 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
                 <div className="text-sm font-medium text-purple-600">Est. Cost</div>
               </div>
             </div>
+          </div>
+
+          {/* Additional Share Button in Content Area */}
+          <div className="mt-8 pt-6 border-t border-blue-100 text-center">
+            <div className="mb-3">
+              <p className="text-blue-700 font-medium mb-2">Love this trip plan?</p>
+              <ShareTripButton
+                shareUrl={shareUrl}
+                tripTitle={tripTitle}
+                variant="default"
+                size="default"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                showText={true}
+              />
+            </div>
+            <p className="text-sm text-blue-600">Share your Route 66 adventure with friends and family!</p>
           </div>
         </CardContent>
       </Card>
