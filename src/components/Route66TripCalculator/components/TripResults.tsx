@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
@@ -9,6 +8,7 @@ import UnifiedWeatherWidget from '../../TripCalculator/components/weather/Unifie
 import SimpleShareButton from './SimpleShareButton';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
+import ShareTripModal from '../../TripCalculator/components/share/ShareTripModal';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -25,6 +25,9 @@ const TripResults: React.FC<TripResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
+  const [shareUrl, setShareUrl] = React.useState<string | null>(null);
+
   const {
     costEstimate
   } = useCostEstimator(tripPlan);
@@ -200,26 +203,48 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* Share Section */}
-      <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg p-6 text-center">
-        <h3 className="text-lg font-bold text-gray-800 mb-2">
-          Share Your Route 66 Adventure
-        </h3>
-        <p className="text-gray-600 mb-4 text-sm">
-          Generate a shareable link for your trip plan
-        </p>
-        
-        <div className="flex justify-center">
-          <SimpleShareButton 
-            tripPlan={tripPlan}
-            tripStartDate={validTripStartDate}
-          />
+      {/* Enhanced Share Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-8 text-center shadow-lg">
+        <div className="flex justify-center items-center gap-3 mb-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <Share2 className="w-6 h-6 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-800">
+            Share Your Route 66 Adventure
+          </h3>
         </div>
         
-        <p className="text-xs text-gray-500 mt-3">
-          Share your complete itinerary with friends and family
+        <p className="text-gray-600 mb-6 text-lg max-w-2xl mx-auto">
+          Create a beautiful shareable link with weather forecasts, attractions, and your complete itinerary
+        </p>
+        
+        <Button
+          onClick={() => setIsShareModalOpen(true)}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+        >
+          <Share2 className="w-5 h-5 mr-3" />
+          Share This Trip
+        </Button>
+        
+        <p className="text-sm text-gray-500 mt-4">
+          Anyone with the link can view your complete trip plan with live weather
         </p>
       </div>
+
+      {/* Share Modal */}
+      <ShareTripModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        tripPlan={tripPlan}
+        tripStartDate={validTripStartDate}
+        shareUrl={shareUrl}
+        onShareUrlGenerated={(shareCode, newShareUrl) => {
+          setShareUrl(newShareUrl);
+          if (onShareTrip) {
+            onShareTrip();
+          }
+        }}
+      />
     </div>
   );
 };
