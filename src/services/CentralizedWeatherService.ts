@@ -41,6 +41,7 @@ export class CentralizedWeatherService {
 
   /**
    * Main entry point for weather fetching with comprehensive logging
+   * ALWAYS returns weather data, never fails completely
    */
   static async fetchWeatherForCity(
     cityName: string,
@@ -129,7 +130,7 @@ export class CentralizedWeatherService {
       debugInfo.fallbackReason = reason;
     }
 
-    // Create seasonal fallback
+    // Create seasonal fallback - THIS ALWAYS SUCCEEDS
     console.log('🌱 CENTRALIZED WEATHER: Creating seasonal fallback');
     const fallbackWeather = this.createSeasonalFallback(
       cityName,
@@ -143,9 +144,11 @@ export class CentralizedWeatherService {
       cityName,
       temperature: fallbackWeather.temperature,
       source: fallbackWeather.source,
-      fetchTime
+      fetchTime,
+      guaranteedSuccess: true
     });
 
+    // ALWAYS return success with weather data
     return {
       success: true,
       weather: fallbackWeather,
@@ -360,7 +363,7 @@ export class CentralizedWeatherService {
   }
 
   /**
-   * Create seasonal fallback weather
+   * Create seasonal fallback weather - GUARANTEED to return valid weather data
    */
   private static createSeasonalFallback(
     cityName: string,
@@ -398,6 +401,14 @@ export class CentralizedWeatherService {
       0: '☀️', 1: '🌤️', 2: '☀️', 3: '☀️', 4: '☀️', 5: '☀️',
       6: '🌞', 7: '🌞', 8: '☀️', 9: '🌤️', 10: '🌤️', 11: '☀️'
     };
+
+    console.log('🌱 SEASONAL FALLBACK: Creating weather for', cityName, {
+      month,
+      baseTemp,
+      variation,
+      finalTemp: temperature,
+      description: seasonalDescs[month as keyof typeof seasonalDescs]
+    });
 
     return {
       temperature,

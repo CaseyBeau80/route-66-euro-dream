@@ -28,12 +28,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       tripStartLocal: tripStartDate.toLocaleDateString(),
       segmentDay: segment.day,
       calculatedDate: targetDate.toISOString(),
-      calculatedLocal: targetDate.toLocaleDateString(),
-      dayVerification: segment.day === 1 ? {
-        tripStartString: tripStartDate.toDateString(),
-        day1String: targetDate.toDateString(),
-        matches: tripStartDate.toDateString() === targetDate.toDateString()
-      } : null
+      calculatedLocal: targetDate.toLocaleDateString()
     });
     
     return targetDate;
@@ -54,17 +49,19 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         success: result.success,
         source: result.source,
         temperature: result.weather?.temperature,
-        isLive: result.source === 'live_api',
+        hasWeatherData: !!result.weather,
         fetchTime: result.fetchTime
       });
 
+      // Always set the result, even if there's an error - the service provides fallback
       setWeatherResult(result);
     } catch (error) {
       console.error('❌ SIMPLE WEATHER: Weather fetch failed for', segment.endCity, error);
-      // Create error result
-      setWeatherResult({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+      
+      // Create a basic fallback result with seasonal data
+      const fallbackResult: WeatherFetchResult = {
+        success: true,
+        weather: createBasicFallback(segment.endCity, segmentDate),
         source: 'seasonal_fallback',
         fetchTime: 0,
         debugInfo: {
@@ -75,11 +72,45 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
           withinForecastRange: false,
           fallbackReason: 'fetch_error'
         }
-      });
+      };
+      
+      setWeatherResult(fallbackResult);
     } finally {
       setLoading(false);
     }
   }, [segment.endCity, segmentDate]);
+
+  // Create a basic fallback weather object
+  const createBasicFallback = (cityName: string, targetDate: Date) => {
+    const month = targetDate.getMonth();
+    
+    // Seasonal temperature data
+    const seasonalTemps = {
+      0: 45, 1: 52, 2: 61, 3: 70, 4: 78, 5: 87,
+      6: 92, 7: 90, 8: 82, 9: 71, 10: 58, 11: 47
+    };
+
+    const baseTemp = seasonalTemps[month as keyof typeof seasonalTemps];
+    const temperature = Math.round(baseTemp);
+    const daysFromToday = Math.floor((targetDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+
+    return {
+      temperature,
+      highTemp: temperature + 8,
+      lowTemp: temperature - 8,
+      description: 'Partly Cloudy',
+      icon: '🌤️',
+      humidity: 60,
+      windSpeed: 8,
+      precipitationChance: 20,
+      cityName,
+      source: 'seasonal_fallback' as const,
+      isActualForecast: false,
+      confidence: 'low' as const,
+      forecastDate: targetDate,
+      daysFromToday
+    };
+  };
 
   // Fetch weather when component mounts or dependencies change
   useEffect(() => {
@@ -99,7 +130,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   }
 
   // Show weather result
-  if (weatherResult) {
+  if (weatherResult && weatherResult.weather) {
     return (
       <EnhancedWeatherDisplay
         weatherResult={weatherResult}
@@ -110,17 +141,26 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     );
   }
 
-  // Fallback state
+  // Fallback state - this should rarely be reached now
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded p-3 text-center">
-      <div className="text-gray-400 text-2xl mb-1">🌤️</div>
-      <p className="text-xs text-gray-600">Weather information not available</p>
-      <button
-        onClick={fetchWeather}
-        className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
-      >
-        Retry
-      </button>
+    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+      <div className="text-center">
+        <div className="text-amber-600 text-2xl mb-2">🌤️</div>
+        <h4 className="text-sm font-semibold text-amber-800 mb-1">
+          Weather for {segment.endCity}
+        </h4>
+        <p className="text-xs text-amber-700 mb-2">Using seasonal estimate</p>
+        <div className="text-lg font-bold text-amber-800 mb-1">
+          {createBasicFallback(segment.endCity, segmentDate).temperature}°F
+        </div>
+        <p className="text-xs text-amber-600">Partly Cloudy</p>
+        <button
+          onClick={fetchWeather}
+          className="text-xs text-amber-700 hover:text-amber-900 underline mt-2"
+        >
+          Try again
+        </button>
+      </div>
     </div>
   );
 };
