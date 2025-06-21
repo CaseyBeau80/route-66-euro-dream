@@ -4,6 +4,9 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { TripPlan, DailySegment } from './TripPlanTypes';
 
+// Re-export types so other files can import them from here
+export { TripPlan, DailySegment } from './TripPlanTypes';
+
 export class TripPlanBuilder {
   /**
    * Build trip plan with STRICT destination city enforcement
