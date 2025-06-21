@@ -8,7 +8,7 @@ import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { useShareTripOptions } from '../hooks/useShareTripOptions';
 import { useShareTripModal } from './hooks/useShareTripModal';
 import ShareTripOptions from './share/ShareTripOptions';
-import { Calendar, Share2, Download, ExternalLink } from 'lucide-react';
+import { Calendar, Share2, Download, ExternalLink, AlertCircle } from 'lucide-react';
 import CalendarExportModal from './CalendarExportModal';
 import { CalendarExportService } from '../services/CalendarExportService';
 import { GoogleCalendarService } from '../services/GoogleCalendarService';
@@ -21,6 +21,7 @@ interface ShareTripModalProps {
   tripStartDate?: Date;
   shareUrl?: string | null;
   onShareUrlGenerated?: (shareCode: string, shareUrl: string) => void;
+  onDateRequired?: () => void;
 }
 
 const ShareTripModal: React.FC<ShareTripModalProps> = ({
@@ -29,7 +30,8 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
   tripPlan,
   tripStartDate,
   shareUrl,
-  onShareUrlGenerated
+  onShareUrlGenerated,
+  onDateRequired
 }) => {
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const { shareOptions, updateShareOptions } = useShareTripOptions(tripPlan);
@@ -47,20 +49,35 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
     onClose
   });
 
+  // Enhanced date validation with better UX
+  const hasValidStartDate = tripStartDate instanceof Date && !isNaN(tripStartDate.getTime());
+  const effectiveStartDate = hasValidStartDate ? tripStartDate : null;
+
   console.log('🔴 ShareTripModal DEBUG:', {
     isOpen,
-    tripStartDate: tripStartDate?.toISOString(),
+    hasValidStartDate,
+    tripStartDate: tripStartDate?.toISOString() || 'null',
     tripPlan: tripPlan ? `${tripPlan.startCity} to ${tripPlan.endCity}` : 'null'
   });
 
   const handleGoogleCalendarExport = () => {
     console.log('🔴 Google Calendar export clicked');
-    if (!tripStartDate) {
-      toast({
-        title: "Start Date Required",
-        description: "Please set a trip start date to add to Google Calendar.",
-        variant: "destructive"
-      });
+    if (!hasValidStartDate) {
+      if (onDateRequired) {
+        toast({
+          title: "Start Date Required",
+          description: "Setting your trip start date will unlock calendar export.",
+          variant: "default"
+        });
+        onClose();
+        onDateRequired();
+      } else {
+        toast({
+          title: "Start Date Required",
+          description: "Please set a trip start date to add to Google Calendar.",
+          variant: "destructive"
+        });
+      }
       return;
     }
 
@@ -69,7 +86,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
       
       const calendarUrl = GoogleCalendarService.createTripCalendarUrl(
         tripPlan,
-        tripStartDate,
+        effectiveStartDate!,
         currentShareUrl || undefined,
         { useUTC: false }
       );
@@ -93,17 +110,27 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
 
   const handleICalendarDownload = async () => {
     console.log('🔴 iCalendar download clicked');
-    if (!tripStartDate) {
-      toast({
-        title: "Start Date Required",
-        description: "Please set a trip start date to download calendar file.",
-        variant: "destructive"
-      });
+    if (!hasValidStartDate) {
+      if (onDateRequired) {
+        toast({
+          title: "Start Date Required",
+          description: "Setting your trip start date will unlock calendar export.",
+          variant: "default"
+        });
+        onClose();
+        onDateRequired();
+      } else {
+        toast({
+          title: "Start Date Required",
+          description: "Please set a trip start date to download calendar file.",
+          variant: "destructive"
+        });
+      }
       return;
     }
 
     try {
-      const events = CalendarExportService.generateCalendarEvents(tripPlan, tripStartDate);
+      const events = CalendarExportService.generateCalendarEvents(tripPlan, effectiveStartDate!);
       const filename = `route66-trip-${tripPlan.startCity.replace(/\s+/g, '-').toLowerCase()}-to-${tripPlan.endCity.replace(/\s+/g, '-').toLowerCase()}.ics`;
       
       CalendarExportService.downloadICSFile(events, filename);
@@ -139,48 +166,89 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto space-y-6 px-1">
-            {/* CALENDAR EXPORT SECTION - FIRST AND MOST VISIBLE */}
-            <div className="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-500 p-6 rounded-lg">
-              <h3 className="font-bold text-red-800 text-xl mb-4 flex items-center gap-2">
-                🚨 CALENDAR EXPORT TEST 🚨
+            {/* CALENDAR EXPORT SECTION - Enhanced with better validation UX */}
+            <div className={`${hasValidStartDate ? 'bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300' : 'bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300'} p-6 rounded-lg`}>
+              <h3 className={`font-bold text-xl mb-4 flex items-center gap-2 ${hasValidStartDate ? 'text-green-800' : 'text-amber-800'}`}>
+                {hasValidStartDate ? '✅ CALENDAR EXPORT READY' : '📅 CALENDAR EXPORT'}
                 <Calendar className="h-6 w-6" />
               </h3>
               
+              {/* Status Information */}
               <div className="bg-white p-4 rounded border mb-4">
-                <p className="text-sm font-mono text-gray-800">
-                  DEBUG: tripStartDate = {tripStartDate ? '✅ ' + tripStartDate.toISOString() : '❌ NULL'}
-                </p>
-                <p className="text-sm font-mono text-gray-800">
-                  Modal Open: {isOpen ? '✅ YES' : '❌ NO'}
+                <div className="flex items-center gap-2 mb-2">
+                  {hasValidStartDate ? (
+                    <div className="flex items-center gap-2 text-green-700">
+                      <Calendar className="h-4 w-4" />
+                      <span className="font-semibold">Start Date: {effectiveStartDate?.toLocaleDateString()}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-amber-700">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="font-semibold">Start Date: Not Set</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600">
+                  {hasValidStartDate 
+                    ? 'Your trip is ready for calendar export!'
+                    : 'Set your trip start date to enable calendar features.'
+                  }
                 </p>
               </div>
 
               <div className="space-y-3">
                 <Button
                   onClick={handleGoogleCalendarExport}
-                  disabled={!tripStartDate}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white py-4 h-auto text-lg font-bold"
+                  disabled={!hasValidStartDate}
+                  className={`w-full py-4 h-auto text-lg font-bold transition-all ${
+                    hasValidStartDate 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   <ExternalLink className="h-6 w-6 mr-3" />
-                  Add to Google Calendar
+                  {hasValidStartDate ? 'Add to Google Calendar' : 'Google Calendar (Date Required)'}
                 </Button>
 
                 <Button
                   onClick={handleICalendarDownload}
-                  disabled={!tripStartDate}
+                  disabled={!hasValidStartDate}
                   variant="outline"
-                  className="w-full py-4 h-auto border-2 border-blue-300 hover:bg-blue-50 text-lg font-bold"
+                  className={`w-full py-4 h-auto text-lg font-bold transition-all ${
+                    hasValidStartDate 
+                      ? 'border-2 border-blue-300 hover:bg-blue-50 text-blue-700' 
+                      : 'border-2 border-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
-                  <Download className="h-6 w-6 mr-3 text-blue-600" />
-                  Download iCalendar (.ics)
+                  <Download className="h-6 w-6 mr-3" />
+                  {hasValidStartDate ? 'Download iCalendar (.ics)' : 'Download iCalendar (Date Required)'}
                 </Button>
               </div>
 
-              {!tripStartDate && (
-                <div className="mt-4 bg-amber-100 border border-amber-400 p-3 rounded">
-                  <p className="text-amber-800 font-semibold">
-                    ⚠️ Please set a trip start date to enable calendar export
-                  </p>
+              {!hasValidStartDate && (
+                <div className="mt-4 bg-amber-100 border border-amber-400 p-4 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-amber-800 font-semibold mb-2">Start Date Required</p>
+                      <p className="text-amber-700 text-sm mb-3">
+                        Calendar export needs a trip start date to create accurate events with proper timing.
+                      </p>
+                      {onDateRequired && (
+                        <Button 
+                          onClick={() => {
+                            onClose();
+                            onDateRequired();
+                          }}
+                          size="sm"
+                          className="bg-amber-600 hover:bg-amber-700 text-white"
+                        >
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Set Start Date
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -241,14 +309,16 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Calendar Export Modal */}
-      <CalendarExportModal
-        isOpen={isCalendarModalOpen}
-        onClose={() => setIsCalendarModalOpen(false)}
-        tripPlan={tripPlan}
-        tripStartDate={tripStartDate}
-        shareUrl={currentShareUrl}
-      />
+      {/* Calendar Export Modal - only show if valid date */}
+      {hasValidStartDate && (
+        <CalendarExportModal
+          isOpen={isCalendarModalOpen}
+          onClose={() => setIsCalendarModalOpen(false)}
+          tripPlan={tripPlan}
+          tripStartDate={effectiveStartDate!}
+          shareUrl={currentShareUrl}
+        />
+      )}
     </>
   );
 };

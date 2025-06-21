@@ -15,6 +15,7 @@ interface TripCalculatorResultsProps {
   tripStartDate?: Date;
   completionAnalysis?: TripCompletionAnalysis;
   originalRequestedDays?: number;
+  onDateRequired?: () => void;
 }
 
 const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
@@ -108,31 +109,57 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   shareUrl, 
   tripStartDate,
   completionAnalysis,
-  originalRequestedDays
+  originalRequestedDays,
+  onDateRequired
 }) => {
-  console.log('🎯 TripCalculatorResults render with debug info:', {
+  // Enhanced date validation
+  const hasValidStartDate = tripStartDate instanceof Date && !isNaN(tripStartDate.getTime());
+  
+  console.log('🎯 TripCalculatorResults render with enhanced date handling:', {
     hasTripPlan: !!tripPlan,
     hasCalculation: !!calculation,
     shareUrl,
-    tripStartDate: tripStartDate?.toISOString(),
+    hasValidStartDate,
+    tripStartDate: tripStartDate?.toISOString() || 'null',
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays
   });
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
-    console.log('✨ Rendering Enhanced Trip Results with full sharing features');
+    console.log('✨ Rendering Enhanced Trip Results with date-aware sharing features');
     const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
     
     return (
       <div className="space-y-6">
+        {/* Date requirement notice if no valid start date */}
+        {!hasValidStartDate && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-4 rounded-xl">
+            <div className="flex items-center gap-2 text-amber-800 mb-2">
+              <span className="text-lg">📅</span>
+              <h3 className="font-bold">Start Date Required for Full Features</h3>
+            </div>
+            <p className="text-sm text-amber-700 mb-3">
+              Set your trip start date to unlock calendar export, weather forecasts, and enhanced sharing.
+            </p>
+            {onDateRequired && (
+              <button
+                onClick={onDateRequired}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-sm font-medium"
+              >
+                Set Start Date
+              </button>
+            )}
+          </div>
+        )}
+
         {/* COMPREHENSIVE SHARE & EXPORT DROPDOWN */}
         <div className="flex justify-center mb-6">
           <ShareAndExportDropdown
             shareUrl={shareUrl}
             tripTitle={tripTitle}
             tripPlan={tripPlan}
-            tripStartDate={tripStartDate}
+            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
             size="lg"
             className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl"
           />
@@ -141,7 +168,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
         <EnhancedTripResults 
           tripPlan={tripPlan} 
           shareUrl={shareUrl} 
-          tripStartDate={tripStartDate}
+          tripStartDate={hasValidStartDate ? tripStartDate : undefined}
           completionAnalysis={completionAnalysis}
           originalRequestedDays={originalRequestedDays}
         />
@@ -152,7 +179,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
             shareUrl={shareUrl}
             tripTitle={tripTitle}
             tripPlan={tripPlan}
-            tripStartDate={tripStartDate}
+            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
             variant="outline"
             size="lg"
             className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl border-2"
@@ -163,7 +190,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   }
   
   if (calculation) {
-    console.log('📊 Rendering Legacy Trip Results with full sharing features');
+    console.log('📊 Rendering Legacy Trip Results with date-aware sharing features');
     const tripTitle = `Route 66 Legacy Trip - ${calculation.numberOfDays} Days`;
     
     // Create a properly structured mock trip plan for legacy results to enable sharing
@@ -174,7 +201,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
       endCity: 'Los Angeles',
       startLocation: 'Chicago, IL',
       endLocation: 'Los Angeles, CA',
-      startDate: tripStartDate || new Date(),
+      startDate: hasValidStartDate ? tripStartDate! : new Date(),
       totalDays: calculation.numberOfDays,
       totalDistance: calculation.totalDistance,
       totalMiles: Math.round(calculation.totalDistance),
@@ -188,13 +215,34 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     
     return (
       <div className="space-y-6">
+        {/* Date requirement notice for legacy trips */}
+        {!hasValidStartDate && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-4 rounded-xl">
+            <div className="flex items-center gap-2 text-amber-800 mb-2">
+              <span className="text-lg">📅</span>
+              <h3 className="font-bold">Start Date Required for Calendar Export</h3>
+            </div>
+            <p className="text-sm text-amber-700 mb-3">
+              Set your trip start date to enable calendar export and enhanced sharing features.
+            </p>
+            {onDateRequired && (
+              <button
+                onClick={onDateRequired}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-sm font-medium"
+              >
+                Set Start Date
+              </button>
+            )}
+          </div>
+        )}
+
         {/* SHARE & EXPORT FOR LEGACY */}
         <div className="flex justify-center mb-6">
           <ShareAndExportDropdown
             shareUrl={shareUrl}
             tripTitle={tripTitle}
             tripPlan={mockTripPlan}
-            tripStartDate={tripStartDate}
+            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
             size="lg"
             className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl"
           />
@@ -208,7 +256,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
             shareUrl={shareUrl}
             tripTitle={tripTitle}
             tripPlan={mockTripPlan}
-            tripStartDate={tripStartDate}
+            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
             variant="outline"
             size="lg"
             className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl border-2"
