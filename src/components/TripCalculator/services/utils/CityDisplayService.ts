@@ -3,6 +3,24 @@ import { TripStop } from '../../types/TripStop';
 
 export class CityDisplayService {
   /**
+   * Get standardized city display name from a TripStop
+   */
+  static getCityDisplayName(stop: TripStop): string {
+    if (!stop) {
+      return 'Unknown Location';
+    }
+    
+    const city = stop.city_name || stop.city || stop.name;
+    const state = stop.state;
+    
+    if (state && state !== 'Unknown') {
+      return `${city}, ${state}`;
+    }
+    
+    return city;
+  }
+
+  /**
    * Format city display string from a TripStop
    */
   static formatCityDisplay(stop: TripStop): string {

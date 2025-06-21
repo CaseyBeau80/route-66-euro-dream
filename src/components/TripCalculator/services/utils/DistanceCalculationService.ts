@@ -25,6 +25,56 @@ export class DistanceCalculationService {
   }
 
   /**
+   * Calculate distance between two TripStop objects
+   */
+  static calculateDistanceBetweenObjects(stop1: any, stop2: any): number {
+    if (!stop1 || !stop2 || !stop1.latitude || !stop1.longitude || !stop2.latitude || !stop2.longitude) {
+      return 0;
+    }
+    
+    return this.calculateDistance(
+      stop1.latitude,
+      stop1.longitude,
+      stop2.latitude,
+      stop2.longitude
+    );
+  }
+
+  /**
+   * Validate inputs for distance calculation
+   */
+  static validateDistanceInputs(stop1: any, stop2: any): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    if (!stop1) {
+      errors.push('First stop is null or undefined');
+    } else {
+      if (typeof stop1.latitude !== 'number' || isNaN(stop1.latitude)) {
+        errors.push('First stop latitude is not a valid number');
+      }
+      if (typeof stop1.longitude !== 'number' || isNaN(stop1.longitude)) {
+        errors.push('First stop longitude is not a valid number');
+      }
+    }
+    
+    if (!stop2) {
+      errors.push('Second stop is null or undefined');
+    } else {
+      if (typeof stop2.latitude !== 'number' || isNaN(stop2.latitude)) {
+        errors.push('Second stop latitude is not a valid number');
+      }
+      if (typeof stop2.longitude !== 'number' || isNaN(stop2.longitude)) {
+        errors.push('Second stop longitude is not a valid number');
+      }
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
+  /**
    * Convert degrees to radians
    */
   private static toRadians(degrees: number): number {
@@ -36,5 +86,12 @@ export class DistanceCalculationService {
    */
   static calculateDrivingTime(distanceMiles: number, averageSpeedMph: number = 50): number {
     return distanceMiles / averageSpeedMph;
+  }
+
+  /**
+   * Alias for calculateDrivingTime for backward compatibility
+   */
+  static calculateDriveTime(distanceMiles: number, averageSpeedMph: number = 50): number {
+    return this.calculateDrivingTime(distanceMiles, averageSpeedMph);
   }
 }
