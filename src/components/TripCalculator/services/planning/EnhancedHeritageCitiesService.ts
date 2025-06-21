@@ -86,21 +86,28 @@ export class EnhancedHeritageCitiesService {
 
       const tripPlan: TripPlan = {
         id: `heritage-trip-${Date.now()}`,
+        title: `Route 66 Heritage Cities: ${startLocation} to ${endLocation}`,
         startLocation: startLocation,
         endLocation: endLocation,
         startCity: startStop.city || startStop.name,
         endCity: endStop.city || endStop.name,
+        startDate: new Date(),
         totalDays: travelDays,
         totalDistance: Math.round(totalDistance),
+        totalMiles: Math.round(totalDistance),
         totalDrivingTime: totalDrivingTime,
         segments: segments,
+        dailySegments: segments,
+        stops: stops,
         tripStyle: 'destination-focused',
+        lastUpdated: new Date(),
         summary: {
           startLocation: startLocation,
           endLocation: endLocation,
           totalDays: travelDays,
           totalDistance: Math.round(totalDistance),
-          totalDriveTime: totalDrivingTime
+          totalDriveTime: totalDrivingTime,
+          tripStyle: 'destination-focused'
         }
       };
 
