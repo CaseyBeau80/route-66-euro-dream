@@ -1,114 +1,123 @@
 
 import { TripStop } from '../../types/TripStop';
-import { TripPlan, DailySegment, DriveTimeBalance, WeatherData, RecommendedStop, DriveTimeCategory } from './TripPlanTypes';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 
-export interface DriveTimeTarget {
+export interface DailySegment {
   day: number;
-  targetHours: number;
-}
-
-export interface SegmentTiming {
-  startTime: string;
-  endTime: string;
-  city: string;
-  state: string;
-  latitude: number;
-  longitude: number;
-  distanceFromLastStop: number;
-  driveTimeHours: number;
-  fromStop: TripStop;
-  toStop: TripStop;
+  startCity: string;
+  endCity: string;
   distance: number;
-  driveTime: number;
-  distanceMiles: number;
-  drivingTime: number;
+  driveTimeHours: number;
+  recommendedStops?: TripStop[];
+  attractions?: any[];
+  driveTimeWarning?: string;
 }
 
-export interface RouteProgression {
-  segmentNumber: number;
-  progressPercentage: number;
-  cumulativeDistance: number;
+export interface TripPlan {
+  title: string;
+  startCity: string;
+  endCity: string;
+  totalDays: number;
   totalDistance: number;
+  segments: DailySegment[];
+  tripStyle?: 'balanced' | 'destination-focused';
 }
 
-// Re-export the TripPlan interface from TripPlanTypes for convenience
-export type { TripPlan, DailySegment, DriveTimeBalance, WeatherData, RecommendedStop, DriveTimeCategory } from './TripPlanTypes';
+export class TripPlanBuilder {
+  /**
+   * Build trip plan with STRICT destination city enforcement
+   */
+  static buildTripPlan(
+    startStop: TripStop,
+    endStop: TripStop,
+    selectedDestinations: TripStop[],
+    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
+  ): TripPlan {
+    console.log(`🏗️ STRICT: Building trip plan with ${selectedDestinations.length} destination cities`);
+    
+    // CRITICAL: Validate all destinations are destination cities
+    const validation = StrictDestinationCityEnforcer.validateAllAreDestinationCities(selectedDestinations);
+    if (!validation.isValid) {
+      console.error(`❌ STRICT: Invalid destinations found:`, validation.violations);
+      // Filter out invalid destinations
+      const validDestinations = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(selectedDestinations);
+      console.log(`🔧 STRICT: Using only ${validDestinations.length} valid destination cities`);
+      selectedDestinations = validDestinations;
+    }
 
-// Enhanced TripPlanDataValidator with proper return types
-export class TripPlanDataValidator {
-  static validate(tripPlan: TripPlan): boolean {
-    return !!(tripPlan.id && tripPlan.startLocation && tripPlan.endLocation && tripPlan.segments?.length > 0);
+    // Create route points: start → destinations → end
+    const routePoints = [startStop, ...selectedDestinations, endStop];
+    const segments: DailySegment[] = [];
+    let totalDistance = 0;
+
+    // Build segments between consecutive destination cities
+    for (let i = 0; i < routePoints.length - 1; i++) {
+      const currentPoint = routePoints[i];
+      const nextPoint = routePoints[i + 1];
+      
+      const segmentDistance = DistanceCalculationService.calculateDistance(
+        currentPoint.latitude,
+        currentPoint.longitude,
+        nextPoint.latitude,
+        nextPoint.longitude
+      );
+      
+      const driveTimeHours = segmentDistance / 60; // Assume 60 mph average
+      totalDistance += segmentDistance;
+
+      const segment: DailySegment = {
+        day: i + 1,
+        startCity: currentPoint.name,
+        endCity: nextPoint.name,
+        distance: segmentDistance,
+        driveTimeHours,
+        recommendedStops: [], // Will be populated later with destination cities only
+        attractions: []
+      };
+
+      // Add drive time warning if over 8 hours
+      if (driveTimeHours > 8) {
+        segment.driveTimeWarning = `Long drive day: ${driveTimeHours.toFixed(1)} hours. Consider breaking this into multiple days.`;
+      }
+
+      segments.push(segment);
+    }
+
+    const tripPlan: TripPlan = {
+      title: `${startStop.name} to ${endStop.name} Road Trip`,
+      startCity: startStop.name,
+      endCity: endStop.name,
+      totalDays: segments.length,
+      totalDistance,
+      segments,
+      tripStyle
+    };
+
+    console.log(`✅ STRICT: Trip plan built with ${segments.length} days, all destinations are cities`);
+    return tripPlan;
   }
 
-  static validateTripPlan(tripPlan: TripPlan): boolean {
-    return this.validate(tripPlan);
+  /**
+   * Validate trip plan ensures all overnight stops are destination cities
+   */
+  static validateTripPlan(tripPlan: TripPlan): { isValid: boolean; violations: string[] } {
+    console.log(`🛡️ STRICT: Validating trip plan for destination city compliance`);
+    
+    return StrictDestinationCityEnforcer.validateTripPlan(tripPlan.segments);
   }
 
+  /**
+   * Sanitize trip plan to remove non-destination cities
+   */
   static sanitizeTripPlan(tripPlan: TripPlan): TripPlan {
+    console.log(`🧹 STRICT: Sanitizing trip plan to only include destination cities`);
+    
+    const sanitizedSegments = StrictDestinationCityEnforcer.sanitizeTripPlan(tripPlan.segments);
+    
     return {
       ...tripPlan,
-      // Ensure required properties exist
-      title: tripPlan.title || `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`,
-      startLocation: tripPlan.startLocation || tripPlan.startCity || '',
-      endLocation: tripPlan.endLocation || tripPlan.endCity || '',
-      stops: tripPlan.stops || [],
-      dailySegments: tripPlan.dailySegments || tripPlan.segments || [],
-      startDate: tripPlan.startDate || new Date(),
-      totalMiles: tripPlan.totalMiles || Math.round(tripPlan.totalDistance || 0),
-      tripStyle: tripPlan.tripStyle || 'balanced',
-      lastUpdated: tripPlan.lastUpdated || new Date(),
-      // Sanitize segments to ensure they have proper driveTimeCategory and recommendedStops
-      segments: (tripPlan.segments || []).map(segment => ({
-        ...segment,
-        recommendedStops: segment.recommendedStops || [],
-        driveTimeCategory: segment.driveTimeCategory ? {
-          ...segment.driveTimeCategory,
-          category: ['short', 'optimal', 'long', 'extreme'].includes(segment.driveTimeCategory.category as any) 
-            ? segment.driveTimeCategory.category as 'short' | 'optimal' | 'long' | 'extreme'
-            : 'optimal'
-        } : undefined
-      }))
-    };
-  }
-
-  // Additional validation methods that components might expect
-  static validateSegments(segments: DailySegment[]): { isValid: boolean; issues: string[] } {
-    const issues: string[] = [];
-    
-    if (!segments || segments.length === 0) {
-      issues.push('No segments provided');
-    }
-    
-    segments.forEach((segment, index) => {
-      if (!segment.recommendedStops) {
-        issues.push(`Segment ${index + 1} missing recommendedStops`);
-      }
-      if (!segment.destination?.city) {
-        issues.push(`Segment ${index + 1} missing destination city`);
-      }
-    });
-    
-    return {
-      isValid: issues.length === 0,
-      issues
-    };
-  }
-
-  static validateTripPlanStructure(tripPlan: TripPlan): { isValid: boolean; issues: string[] } {
-    const issues: string[] = [];
-    
-    if (!tripPlan.startLocation) issues.push('Missing startLocation');
-    if (!tripPlan.endLocation) issues.push('Missing endLocation');
-    if (!tripPlan.stops) issues.push('Missing stops array');
-    if (!tripPlan.segments || tripPlan.segments.length === 0) issues.push('Missing or empty segments');
-    
-    return {
-      isValid: issues.length === 0,
-      issues
+      segments: sanitizedSegments
     };
   }
 }
-
-export const getDestinationCityName = (segment: DailySegment): string => {
-  return segment.destination?.city || segment.endCity || 'Unknown';
-};

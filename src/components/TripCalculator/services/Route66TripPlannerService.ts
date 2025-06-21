@@ -1,202 +1,127 @@
-import { TripPlan } from './planning/TripPlanTypes';
-import { EvenPacingPlanningService } from './planning/EvenPacingPlanningService';
-import { HeritageCitiesPlanningService } from './planning/HeritageCitiesPlanningService';
-import { SupabaseDataService } from './data/SupabaseDataService';
-import { DistanceCalculationService } from './utils/DistanceCalculationService';
-import { TripStyleLogic } from './planning/TripStyleLogic';
-import { TripSegmentBuilderV2 } from './planning/TripSegmentBuilderV2';
+
+import { TripPlan, TripPlanBuilder, DailySegment } from './planning/TripPlanBuilder';
 import { TripDestinationOptimizer } from './planning/TripDestinationOptimizer';
-
-// Export TripPlan type for external use - fix for isolatedModules
-export type { TripPlan } from './planning/TripPlanTypes';
-
-export interface EnhancedTripPlanResult {
-  tripPlan: TripPlan | null;
-  debugInfo: any;
-  validationResults: any;
-  warnings: string[];
-  completionAnalysis?: any;
-  originalRequestedDays?: number;
-}
+import { Route66StopsService } from './Route66StopsService';
+import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
+import { TripStop } from '../types/TripStop';
 
 export class Route66TripPlannerService {
   /**
-   * Enhanced trip planning with better destination selection
+   * Plan a Route 66 trip with STRICT destination city enforcement
    */
-  static async planTripWithAnalysis(
-    startLocation: string,
-    endLocation: string,
-    travelDays: number,
-    tripStyle: 'destination-focused' = 'destination-focused'
-  ): Promise<EnhancedTripPlanResult> {
-    console.log(`🚗 ENHANCED TRIP PLANNING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle} style`);
-
-    const debugInfo = {
-      startLocation,
-      endLocation,
-      travelDays,
-      tripStyle,
-      timestamp: new Date().toISOString()
-    };
-
+  static async planTrip(
+    startCity: string,
+    endCity: string,
+    requestedDays: number,
+    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
+  ): Promise<TripPlan> {
+    console.log(`🚗 STRICT PLANNER: Planning ${requestedDays}-day trip from ${startCity} to ${endCity}`);
+    
     try {
-      // Fetch all Route 66 data
-      const allStops = await SupabaseDataService.fetchAllStops();
-      console.log(`📊 Loaded ${allStops.length} Route 66 stops from database`);
-
-      // Find start and end stops
-      const startStop = SupabaseDataService.findBestMatchingStop(startLocation, allStops);
-      const endStop = SupabaseDataService.findBestMatchingStop(endLocation, allStops);
-
-      if (!startStop) {
-        throw new Error(`Start location "${startLocation}" not found on Route 66. Try cities like Chicago IL, St. Louis MO, or Springfield MO.`);
+      // Get all available stops from database
+      const allStops = await Route66StopsService.getAllStops();
+      console.log(`📊 STRICT: Found ${allStops.length} total stops in database`);
+      
+      // STEP 1: Filter to destination cities ONLY
+      const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
+      console.log(`🏛️ STRICT: Filtered to ${destinationCities.length} destination cities`);
+      
+      if (destinationCities.length === 0) {
+        throw new Error('No destination cities found in database');
       }
 
-      if (!endStop) {
-        throw new Error(`End location "${endLocation}" not found on Route 66. Try destinations like Amarillo TX, Flagstaff AZ, or Los Angeles CA.`);
+      // Find start and end cities from destination cities
+      const startStop = this.findDestinationCity(destinationCities, startCity);
+      const endStop = this.findDestinationCity(destinationCities, endCity);
+      
+      if (!startStop || !endStop) {
+        throw new Error(`Start city "${startCity}" or end city "${endCity}" not found in destination cities`);
       }
 
-      console.log(`📍 Route: ${startStop.name} (${startStop.state}) → ${endStop.name} (${endStop.state})`);
-
-      // Calculate total route distance
-      const totalDistance = DistanceCalculationService.calculateDistance(
-        startStop.latitude,
-        startStop.longitude,
-        endStop.latitude,
-        endStop.longitude
-      );
-
-      console.log(`📏 Total route distance: ${totalDistance.toFixed(0)} miles`);
-
-      // Use the new optimizer to select destinations
+      // STEP 2: Select optimal destination cities for the trip
       const { destinations, actualDays, limitMessage } = TripDestinationOptimizer.ensureMinimumViableTrip(
         startStop,
         endStop,
-        allStops,
-        travelDays
+        destinationCities,
+        requestedDays
       );
 
-      console.log(`🎯 Trip optimization result:`, {
-        requestedDays: travelDays,
-        actualDays,
-        destinationCount: destinations.length,
-        hasLimitMessage: !!limitMessage
-      });
+      console.log(`🎯 STRICT: Selected ${destinations.length} intermediate destination cities for ${actualDays} days`);
 
-      // Get trip style configuration
-      const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
-
-      // Build segments using the enhanced segment builder
-      const segments = await TripSegmentBuilderV2.buildSegmentsWithDestinationCities(
+      // STEP 3: Build trip plan using only destination cities
+      const tripPlan = TripPlanBuilder.buildTripPlan(
         startStop,
         endStop,
         destinations,
-        actualDays,
-        styleConfig
+        tripStyle
       );
 
-      console.log(`🏗️ Built ${segments.length} daily segments`);
-
-      if (segments.length === 0) {
-        throw new Error(`No valid trip segments could be created. Please try different locations or adjust the number of days.`);
+      // STEP 4: Final validation - ensure all stops are destination cities
+      const validation = TripPlanBuilder.validateTripPlan(tripPlan);
+      if (!validation.isValid) {
+        console.warn(`⚠️ STRICT: Trip plan validation warnings:`, validation.violations);
+        // Sanitize the plan to remove any non-destination cities
+        const sanitizedPlan = TripPlanBuilder.sanitizeTripPlan(tripPlan);
+        console.log(`🧹 STRICT: Trip plan sanitized successfully`);
+        return sanitizedPlan;
       }
 
-      // Create the final trip plan
-      const tripPlan: TripPlan = {
-        id: `trip-${Date.now()}`,
-        title: `${startStop.name} to ${endStop.name} Route 66 Adventure`,
-        startCity: startStop.name,
-        endCity: endStop.name,
-        startLocation: `${startStop.name}, ${startStop.state}`,
-        endLocation: `${endStop.name}, ${endStop.state}`,
-        totalDays: segments.length,
-        totalDistance: totalDistance,
-        totalMiles: Math.round(totalDistance),
-        totalDrivingTime: segments.reduce((total, seg) => total + (seg.drivingTime || 0), 0),
-        segments: segments,
-        dailySegments: segments,
-        stops: destinations,
-        tripStyle: tripStyle,
-        startDate: new Date(),
-        lastUpdated: new Date(),
-        originalRequestedDays: travelDays !== actualDays ? travelDays : undefined,
-        limitMessage: limitMessage
-      };
+      // Add limit message if applicable
+      if (limitMessage) {
+        console.log(`📝 STRICT: ${limitMessage}`);
+      }
 
-      console.log(`✅ ENHANCED TRIP PLAN CREATED:`, {
-        segments: tripPlan.segments.length,
-        totalMiles: tripPlan.totalMiles,
-        totalDrivingTime: tripPlan.totalDrivingTime?.toFixed(1),
-        wasLimited: !!limitMessage
-      });
-
-      return {
-        tripPlan,
-        debugInfo,
-        validationResults: {
-          isValid: true,
-          issues: [],
-          recommendations: limitMessage ? [limitMessage] : []
-        },
-        warnings: limitMessage ? [limitMessage] : []
-      };
-
-    } catch (error) {
-      console.error('❌ Enhanced trip planning failed:', error);
+      console.log(`✅ STRICT PLANNER: Trip plan completed with ${tripPlan.totalDays} days, all destinations are cities`);
+      return tripPlan;
       
-      return {
-        tripPlan: null,
-        debugInfo,
-        validationResults: {
-          isValid: false,
-          issues: [error instanceof Error ? error.message : 'Unknown planning error'],
-          recommendations: ['Please check your start and end locations and try again.']
-        },
-        warnings: []
-      };
-    }
-  }
-
-  /**
-   * Simple trip planning method for compatibility
-   */
-  static async planTrip(
-    startLocation: string,
-    endLocation: string,
-    travelDays: number,
-    tripStyle: 'destination-focused'
-  ): Promise<TripPlan> {
-    const result = await this.planTripWithAnalysis(startLocation, endLocation, travelDays, tripStyle);
-    if (!result.tripPlan) {
-      throw new Error('Failed to plan trip');
-    }
-    return result.tripPlan;
-  }
-
-  /**
-   * Get data source status for debugging
-   */
-  static getDataSourceStatus(): string {
-    return 'supabase_live';
-  }
-
-  /**
-   * Check if using fallback data
-   */
-  static isUsingFallbackData(): boolean {
-    return false;
-  }
-
-  /**
-   * Get destination cities count from live database
-   */
-  static async getDestinationCitiesCount(): Promise<number> {
-    try {
-      const cities = await SupabaseDataService.getDestinationCities();
-      return cities?.length || 0;
     } catch (error) {
-      console.error('Failed to get destination cities count:', error);
-      return 0;
+      console.error('❌ STRICT PLANNER: Error planning trip:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find destination city by name (case-insensitive)
+   */
+  private static findDestinationCity(destinationCities: TripStop[], cityName: string): TripStop | null {
+    const normalizedName = cityName.toLowerCase().trim();
+    
+    // Try exact match first
+    let found = destinationCities.find(city => 
+      city.name.toLowerCase().includes(normalizedName) ||
+      normalizedName.includes(city.name.toLowerCase())
+    );
+    
+    if (!found) {
+      // Try partial match
+      found = destinationCities.find(city => {
+        const cityNameLower = city.name.toLowerCase();
+        return cityNameLower.includes(normalizedName) || normalizedName.includes(cityNameLower);
+      });
+    }
+    
+    if (found) {
+      console.log(`✅ STRICT: Found destination city: ${found.name} for "${cityName}"`);
+    } else {
+      console.warn(`⚠️ STRICT: No destination city found for "${cityName}"`);
+    }
+    
+    return found || null;
+  }
+
+  /**
+   * Get available destination cities for trip planning
+   */
+  static async getAvailableDestinationCities(): Promise<TripStop[]> {
+    try {
+      const allStops = await Route66StopsService.getAllStops();
+      const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
+      
+      console.log(`🏛️ STRICT: Available destination cities: ${destinationCities.length}`);
+      return destinationCities;
+    } catch (error) {
+      console.error('❌ Error getting destination cities:', error);
+      return [];
     }
   }
 }
