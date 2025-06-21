@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TripPlan } from '../services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../services/planning/TripCompletionService';
@@ -22,14 +23,16 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
-  // FIXED: Ensure valid tripStartDate is passed to all child components
+  // FIXED: Ensure valid tripStartDate with fallback to today
   const validTripStartDate = React.useMemo(() => {
     if (tripStartDate && !isNaN(tripStartDate.getTime())) {
       console.log('✅ FIXED CALCULATOR: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
     
+    // If no date provided, use today as default for weather calculations
     const today = new Date();
+    today.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
     console.log('🔄 FIXED CALCULATOR: Using today as fallback tripStartDate:', today.toISOString());
     return today;
   }, [tripStartDate]);

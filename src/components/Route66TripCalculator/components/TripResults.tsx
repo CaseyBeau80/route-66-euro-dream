@@ -29,15 +29,16 @@ const TripResults: React.FC<TripResultsProps> = ({
     costEstimate
   } = useCostEstimator(tripPlan);
 
-  // Ensure we have a valid trip start date
+  // FIXED: Ensure we always have a valid trip start date for weather calculations
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate && !isNaN(tripStartDate.getTime())) {
       console.log('✅ FIXED TRIP RESULTS: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
     }
     
-    // Default to today if no date provided
+    // Use today as fallback with noon time to avoid timezone issues
     const today = new Date();
+    today.setHours(12, 0, 0, 0);
     console.log('🔄 FIXED TRIP RESULTS: Using today as fallback:', today.toISOString());
     return today;
   }, [tripStartDate]);
@@ -171,7 +172,7 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* FIXED: Priority Weather Widget with proper tripStartDate */}
+            {/* FIXED: Priority Weather Widget with guaranteed tripStartDate */}
             <div className="mb-4">
               <PriorityWeatherWidget 
                 segment={segment} 
@@ -201,25 +202,38 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* FIXED: Action Buttons - Ensure Share Button is Visible */}
-      <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6 border-t border-route66-border">
-        <TripShareButton 
-          tripPlan={tripPlan}
-          tripStartDate={effectiveTripStartDate}
-          useLiveWeather={true}
-          className="bg-route66-primary hover:bg-route66-primary/90 text-white px-6 py-3 min-w-[200px] flex items-center justify-center gap-2"
-        />
+      {/* FIXED: Prominent Share Button Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg p-6 text-center">
+        <h3 className="text-lg font-bold text-gray-800 mb-2">
+          Share Your Route 66 Adventure
+        </h3>
+        <p className="text-gray-600 mb-4 text-sm">
+          Generate a shareable link with live weather forecasts for your trip
+        </p>
         
-        {onShareTrip && (
-          <Button 
-            onClick={handleShareTrip}
-            className="bg-route66-accent hover:bg-route66-accent/90 text-white px-6 py-3 min-w-[200px]"
-            variant="outline"
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Custom Share
-          </Button>
-        )}
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <TripShareButton 
+            tripPlan={tripPlan}
+            tripStartDate={effectiveTripStartDate}
+            useLiveWeather={true}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold text-base shadow-lg transition-all duration-200 hover:shadow-xl"
+          />
+          
+          {onShareTrip && (
+            <Button 
+              onClick={handleShareTrip}
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold text-base shadow-lg"
+              variant="default"
+            >
+              <Share2 className="w-5 h-5 mr-2" />
+              Custom Share
+            </Button>
+          )}
+        </div>
+        
+        <p className="text-xs text-gray-500 mt-3">
+          Share links include live weather data and work on any device
+        </p>
       </div>
     </div>
   );
