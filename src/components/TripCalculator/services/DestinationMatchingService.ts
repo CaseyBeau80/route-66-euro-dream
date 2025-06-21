@@ -85,7 +85,7 @@ export class DestinationMatchingService {
   };
 
   /**
-   * FIXED: Enhanced destination matching with better confidence scoring
+   * FIXED: Enhanced destination matching with aggressive fallback strategies
    */
   static findBestMatch(searchLocation: string, stops: TripStop[]): MatchResult | null {
     if (!searchLocation || !stops.length) return null;
@@ -95,39 +95,25 @@ export class DestinationMatchingService {
 
     console.log(`🎯 ENHANCED MATCHING: Searching for "${searchLocation}" (normalized: "${searchTerm}") in ${stops.length} stops`);
 
-    // 1. CRITICAL FIX: Enhanced alias matching with comprehensive coverage
-    for (const [canonical, aliases] of Object.entries(this.locationAliases)) {
-      const canonicalNormalized = this.normalizeSearchTerm(canonical);
+    // CRITICAL DEBUG: Log all available stops for Needles debugging
+    if (searchTerm.includes('needles')) {
+      console.log('🔍 NEEDLES DEBUG: All available stops:', stops.map(s => ({
+        name: s.name,
+        city: s.city,
+        state: s.state,
+        id: s.id
+      })));
       
-      if (canonicalNormalized === searchTerm || 
-          aliases.some(alias => this.normalizeSearchTerm(alias) === searchTerm)) {
-        
-        // Find the canonical city in stops with better matching
-        const canonicalStop = stops.find(stop =>
-          this.normalizeSearchTerm(stop.name) === canonicalNormalized ||
-          this.normalizeSearchTerm(stop.city || '') === canonicalNormalized ||
-          this.normalizeSearchTerm(stop.name).includes(canonicalNormalized) ||
-          this.normalizeSearchTerm(stop.city || '').includes(canonicalNormalized) ||
-          aliases.some(alias => {
-            const aliasNorm = this.normalizeSearchTerm(alias);
-            return this.normalizeSearchTerm(stop.name).includes(aliasNorm) ||
-                   this.normalizeSearchTerm(stop.city || '').includes(aliasNorm);
-          })
-        );
-        
-        if (canonicalStop) {
-          matches.push({
-            stop: canonicalStop,
-            confidence: 1.0,
-            matchType: 'alias'
-          });
-          console.log(`✅ COMPREHENSIVE ALIAS MATCH: ${searchLocation} → ${canonicalStop.name} (${canonicalStop.city})`);
-        }
-      }
+      const needlesStops = stops.filter(s => 
+        s.name.toLowerCase().includes('needles') || 
+        (s.city && s.city.toLowerCase().includes('needles'))
+      );
+      console.log('🔍 NEEDLES DEBUG: Stops containing "needles":', needlesStops);
     }
 
-    // 2. Exact name match (high confidence)
+    // 1. ENHANCED: Try exact matching with multiple strategies
     for (const stop of stops) {
+      // Exact name match
       if (this.normalizeSearchTerm(stop.name) === searchTerm) {
         matches.push({
           stop,
@@ -136,10 +122,8 @@ export class DestinationMatchingService {
         });
         console.log(`✅ EXACT NAME MATCH: ${stop.name}`);
       }
-    }
-
-    // 3. FIXED: Enhanced city matching with state awareness
-    for (const stop of stops) {
+      
+      // Exact city match
       if (stop.city && this.normalizeSearchTerm(stop.city) === searchTerm) {
         matches.push({
           stop,
@@ -150,27 +134,75 @@ export class DestinationMatchingService {
       }
     }
 
-    // 4. CRITICAL FIX: Enhanced city + state parsing with better normalization
+    // 2. CRITICAL FIX: Enhanced alias matching with broader search
+    for (const [canonical, aliases] of Object.entries(this.locationAliases)) {
+      const canonicalNormalized = this.normalizeSearchTerm(canonical);
+      
+      if (canonicalNormalized === searchTerm || 
+          aliases.some(alias => this.normalizeSearchTerm(alias) === searchTerm)) {
+        
+        console.log(`🎯 ALIAS MATCH ATTEMPT: Looking for canonical "${canonical}" in stops`);
+        
+        // ENHANCED: Try multiple matching strategies for the canonical city
+        const potentialStops = stops.filter(stop => {
+          const nameMatch = this.normalizeSearchTerm(stop.name).includes(canonicalNormalized) ||
+                           canonicalNormalized.includes(this.normalizeSearchTerm(stop.name));
+          const cityMatch = stop.city && (
+            this.normalizeSearchTerm(stop.city).includes(canonicalNormalized) ||
+            canonicalNormalized.includes(this.normalizeSearchTerm(stop.city))
+          );
+          const stateMatch = canonical.includes(stop.state?.toLowerCase() || '');
+          
+          return nameMatch || cityMatch || stateMatch;
+        });
+        
+        console.log(`🎯 ALIAS SEARCH: Found ${potentialStops.length} potential stops for "${canonical}"`);
+        
+        if (potentialStops.length > 0) {
+          // Use the first match, but prefer exact matches
+          const exactMatch = potentialStops.find(stop => 
+            this.normalizeSearchTerm(stop.name) === canonicalNormalized ||
+            (stop.city && this.normalizeSearchTerm(stop.city) === canonicalNormalized)
+          );
+          
+          const selectedStop = exactMatch || potentialStops[0];
+          matches.push({
+            stop: selectedStop,
+            confidence: exactMatch ? 1.0 : 0.9,
+            matchType: 'alias'
+          });
+          console.log(`✅ ALIAS MATCH: ${searchLocation} → ${selectedStop.name} (${selectedStop.city}, ${selectedStop.state})`);
+        }
+      }
+    }
+
+    // 3. ENHANCED: City + state parsing with better normalization
     if (searchTerm.includes(',') || searchTerm.includes(' ')) {
       const parts = searchTerm.split(/[,\s]+/).filter(p => p.length > 0);
       if (parts.length >= 2) {
         const cityPart = parts[0];
         const statePart = parts[1];
 
+        console.log(`🔍 PARSING: City="${cityPart}", State="${statePart}"`);
+
         for (const stop of stops) {
           if (stop.city && stop.state) {
             const normalizedCity = this.normalizeSearchTerm(stop.city);
             const normalizedState = this.normalizeSearchTerm(stop.state);
             const stateAbbr = this.getStateAbbreviation(stop.state);
-            
-            // CRITICAL: Also check stop.name for city matches
             const normalizedStopName = this.normalizeSearchTerm(stop.name);
             
-            if ((normalizedCity === cityPart || normalizedStopName === cityPart) && 
-                (normalizedState === statePart || 
-                 normalizedState.startsWith(statePart) || 
-                 statePart.startsWith(normalizedState) ||
-                 stateAbbr === statePart.toUpperCase())) {
+            const cityMatches = normalizedCity === cityPart || 
+                               normalizedStopName === cityPart ||
+                               normalizedCity.includes(cityPart) ||
+                               cityPart.includes(normalizedCity);
+                               
+            const stateMatches = normalizedState === statePart || 
+                                normalizedState.startsWith(statePart) || 
+                                statePart.startsWith(normalizedState) ||
+                                stateAbbr === statePart.toUpperCase();
+            
+            if (cityMatches && stateMatches) {
               matches.push({
                 stop,
                 confidence: 0.97,
@@ -183,21 +215,47 @@ export class DestinationMatchingService {
       }
     }
 
-    // 5. FIXED: More conservative partial matching with name inclusion
-    for (const stop of stops) {
-      const normalizedName = this.normalizeSearchTerm(stop.name);
-      const normalizedCity = this.normalizeSearchTerm(stop.city || '');
+    // 4. AGGRESSIVE FALLBACK: Partial matching with lower threshold
+    if (matches.length === 0) {
+      console.log('🔍 AGGRESSIVE FALLBACK: No exact matches found, trying partial matching');
       
-      if (searchTerm.length >= 4 && // Longer minimum length
-          (normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName) ||
-           normalizedCity.includes(searchTerm) || searchTerm.includes(normalizedCity))) {
-        if (!matches.some(m => m.stop.id === stop.id)) {
+      for (const stop of stops) {
+        const normalizedName = this.normalizeSearchTerm(stop.name);
+        const normalizedCity = this.normalizeSearchTerm(stop.city || '');
+        
+        // More aggressive partial matching
+        if (searchTerm.length >= 3) {
+          const nameIncludes = normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName);
+          const cityIncludes = normalizedCity.includes(searchTerm) || searchTerm.includes(normalizedCity);
+          
+          if (nameIncludes || cityIncludes) {
+            matches.push({
+              stop,
+              confidence: 0.7,
+              matchType: 'partial'
+            });
+            console.log(`✅ AGGRESSIVE PARTIAL MATCH: ${stop.name} (${stop.city})`);
+          }
+        }
+      }
+    }
+
+    // 5. LAST RESORT: Fuzzy matching for common typos and variations
+    if (matches.length === 0) {
+      console.log('🔍 LAST RESORT: Trying fuzzy matching');
+      
+      for (const stop of stops) {
+        const nameSimilarity = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.name));
+        const citySimilarity = stop.city ? this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.city)) : 0;
+        const maxSimilarity = Math.max(nameSimilarity, citySimilarity);
+        
+        if (maxSimilarity > 0.6) {
           matches.push({
             stop,
-            confidence: 0.75,
-            matchType: 'partial'
+            confidence: maxSimilarity * 0.8, // Reduce confidence for fuzzy matches
+            matchType: 'fuzzy'
           });
-          console.log(`✅ CONSERVATIVE PARTIAL MATCH: ${stop.name} (${stop.city})`);
+          console.log(`✅ FUZZY MATCH: ${stop.name} (similarity: ${maxSimilarity.toFixed(2)})`);
         }
       }
     }
@@ -218,7 +276,13 @@ export class DestinationMatchingService {
       });
     } else {
       console.warn(`❌ NO MATCH found for "${searchLocation}" in ${stops.length} stops`);
-      console.log('🔍 Top available stops:', stops.slice(0, 10).map(s => `${s.name} (${s.city}, ${s.state})`));
+      console.log('🔍 Available stop samples:', stops.slice(0, 20).map(s => `${s.name} (${s.city}, ${s.state})`));
+      
+      // EXTRA DEBUG for Needles
+      if (searchTerm.includes('needles')) {
+        console.log('🚨 NEEDLES SPECIFIC DEBUG: No match found despite comprehensive search');
+        console.log('🚨 This suggests Needles may not exist in the Route 66 stops data');
+      }
     }
 
     return bestMatch || null;
