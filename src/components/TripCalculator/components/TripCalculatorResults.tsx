@@ -23,11 +23,21 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
-  // UNIFIED: Ensure valid tripStartDate with comprehensive validation and fallback
+  console.log('🔧 TripCalculatorResults: Received props:', {
+    hasTripPlan: !!tripPlan,
+    hasCalculation: !!calculation,
+    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateType: typeof tripStartDate,
+    tripStartDateValid: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+    originalRequestedDays
+  });
+
+  // CRITICAL FIX: Ensure valid tripStartDate with comprehensive validation and fallback
   const validTripStartDate = React.useMemo(() => {
-    console.log('🔧 UNIFIED CALCULATOR: Comprehensive date validation:', {
-      inputDate: tripStartDate?.toISOString(),
+    console.log('🔧 TripCalculatorResults: Validating tripStartDate:', {
+      inputDate: tripStartDate,
       inputType: typeof tripStartDate,
+      isDate: tripStartDate instanceof Date,
       isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
       timestamp: Date.now()
     });
@@ -41,7 +51,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
         tripStartDate.getDate(),
         12, 0, 0, 0
       );
-      console.log('✅ UNIFIED CALCULATOR: Using provided tripStartDate:', {
+      console.log('✅ TripCalculatorResults: Using provided tripStartDate:', {
         original: tripStartDate.toISOString(),
         normalized: normalized.toISOString(),
         localDate: normalized.toLocaleDateString()
@@ -52,7 +62,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     // Fallback to today with proper normalization
     const today = new Date();
     const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
-    console.log('🔄 UNIFIED CALCULATOR: Using today as fallback:', {
+    console.log('🔄 TripCalculatorResults: Using today as fallback:', {
       today: today.toISOString(),
       normalized: normalizedToday.toISOString(),
       localDate: normalizedToday.toLocaleDateString(),
@@ -61,14 +71,14 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     return normalizedToday;
   }, [tripStartDate]);
 
-  console.log('🎯 UNIFIED TripCalculatorResults rendering:', {
+  console.log('🎯 TripCalculatorResults rendering with valid date:', {
     hasTripPlan: !!tripPlan,
     hasCalculation: !!calculation,
     validTripStartDate: validTripStartDate.toISOString(),
     validTripStartLocal: validTripStartDate.toLocaleDateString(),
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays,
-    unifiedWeatherSystem: true
+    weatherSystemFixed: true
   });
 
   if (!tripPlan) {

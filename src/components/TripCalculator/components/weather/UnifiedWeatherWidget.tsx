@@ -21,10 +21,23 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  console.log('🌤️ UnifiedWeatherWidget render:', {
+    city: segment.endCity,
+    day: segment.day,
+    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateValid: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+    renderTime: new Date().toISOString()
+  });
+
   // Calculate segment date with proper validation
   const segmentDate = React.useMemo(() => {
-    if (!tripStartDate || isNaN(tripStartDate.getTime())) {
-      console.error('🚨 UNIFIED: Invalid tripStartDate:', tripStartDate);
+    if (!tripStartDate || !(tripStartDate instanceof Date) || isNaN(tripStartDate.getTime())) {
+      console.error('🚨 UnifiedWeatherWidget: Invalid or missing tripStartDate:', {
+        tripStartDate,
+        type: typeof tripStartDate,
+        isDate: tripStartDate instanceof Date,
+        isValid: tripStartDate instanceof Date ? !isNaN(tripStartDate.getTime()) : false
+      });
       return null;
     }
 
@@ -32,7 +45,8 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     const baseDate = new Date(tripStartDate);
     const targetDate = new Date(baseDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
     
-    console.log('📅 UNIFIED: Date calculation for', segment.endCity, {
+    console.log('📅 UnifiedWeatherWidget: Date calculation:', {
+      city: segment.endCity,
       tripStartDate: tripStartDate.toISOString(),
       segmentDay: segment.day,
       calculatedDate: targetDate.toISOString(),
@@ -45,11 +59,11 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   // Fetch weather using secure service
   const fetchWeather = React.useCallback(async () => {
     if (!segmentDate) {
-      console.log('❌ UNIFIED: No valid segment date for', segment.endCity);
+      console.log('❌ UnifiedWeatherWidget: No valid segment date for', segment.endCity);
       return;
     }
 
-    console.log('🌤️ UNIFIED: Starting weather fetch for', segment.endCity, {
+    console.log('🌤️ UnifiedWeatherWidget: Starting weather fetch for', segment.endCity, {
       segmentDate: segmentDate.toISOString(),
       usingSecureService: true
     });
@@ -64,18 +78,18 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
       );
 
       if (weatherData) {
-        console.log('✅ UNIFIED: Weather fetch successful for', segment.endCity, {
+        console.log('✅ UnifiedWeatherWidget: Weather fetch successful for', segment.endCity, {
           temperature: weatherData.temperature,
           source: weatherData.source,
           isActualForecast: weatherData.isActualForecast
         });
         setWeather(weatherData);
       } else {
-        console.log('⚠️ UNIFIED: No weather data returned for', segment.endCity);
+        console.log('⚠️ UnifiedWeatherWidget: No weather data returned for', segment.endCity);
         setError('Weather data unavailable');
       }
     } catch (error) {
-      console.error('❌ UNIFIED: Weather fetch failed for', segment.endCity, error);
+      console.error('❌ UnifiedWeatherWidget: Weather fetch failed for', segment.endCity, error);
       setError('Failed to load weather');
     } finally {
       setLoading(false);
@@ -88,6 +102,17 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
       fetchWeather();
     }
   }, [fetchWeather]);
+
+  // No date fallback - show message to set trip start date
+  if (!segmentDate) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+        <div className="text-gray-400 text-2xl mb-2">📅</div>
+        <p className="text-xs text-gray-600 font-medium mb-1">Weather Forecast Unavailable</p>
+        <p className="text-xs text-gray-500">Set trip start date to see weather forecast</p>
+      </div>
+    );
+  }
 
   // Loading state
   if (loading) {
@@ -186,16 +211,6 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
             )}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  // No date fallback
-  if (!segmentDate) {
-    return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
-        <div className="text-gray-400 text-2xl mb-2">📅</div>
-        <p className="text-xs text-gray-600">Set trip start date for weather forecast</p>
       </div>
     );
   }
