@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { WeatherUtilityService } from './services/WeatherUtilityService';
-import { useUnifiedWeather } from './hooks/useUnifiedWeather';
-import SegmentWeatherContent from './SegmentWeatherContent';
+import { SecureWeatherService } from '@/services/SecureWeatherService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface UnifiedWeatherWidgetProps {
   segment: DailySegment;
@@ -18,74 +17,202 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
   isSharedView = false,
   isPDFExport = false
 }) => {
-  // FIXED: Calculate segment date properly
+  const [weather, setWeather] = React.useState<ForecastWeatherData | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  // Calculate segment date with proper validation
   const segmentDate = React.useMemo(() => {
-    if (tripStartDate) {
-      return WeatherUtilityService.getSegmentDate(tripStartDate, segment.day);
+    if (!tripStartDate || isNaN(tripStartDate.getTime())) {
+      console.error('🚨 UNIFIED: Invalid tripStartDate:', tripStartDate);
+      return null;
     }
-    return null;
-  }, [tripStartDate, segment.day]);
 
-  // FIXED: Use unified weather hook with proper error handling
-  const { 
-    weather, 
-    loading, 
-    error, 
-    hasApiKey, 
-    retryCount, 
-    refetch 
-  } = useUnifiedWeather({
-    cityName: segment.endCity,
-    segmentDate,
-    segmentDay: segment.day,
-    prioritizeCachedData: isSharedView || isPDFExport,
-    cachedWeather: null
-  });
+    // Calculate the date for this segment
+    const baseDate = new Date(tripStartDate);
+    const targetDate = new Date(baseDate.getTime() + (segment.day - 1) * 24 * 60 * 60 * 1000);
+    
+    console.log('📅 UNIFIED: Date calculation for', segment.endCity, {
+      tripStartDate: tripStartDate.toISOString(),
+      segmentDay: segment.day,
+      calculatedDate: targetDate.toISOString(),
+      isValid: !isNaN(targetDate.getTime())
+    });
+    
+    return targetDate;
+  }, [tripStartDate, segment.day, segment.endCity]);
 
-  console.log('🌤️ FIXED UNIFIED WEATHER:', {
-    cityName: segment.endCity,
-    day: segment.day,
-    hasWeather: !!weather,
-    weatherSource: weather?.source,
-    isActualForecast: weather?.isActualForecast,
-    loading,
-    error,
-    hasApiKey,
-    segmentDate: segmentDate?.toISOString(),
-    isSharedView,
-    isPDFExport
-  });
+  // Fetch weather using secure service
+  const fetchWeather = React.useCallback(async () => {
+    if (!segmentDate) {
+      console.log('❌ UNIFIED: No valid segment date for', segment.endCity);
+      return;
+    }
 
-  const handleApiKeySet = React.useCallback(() => {
-    console.log('🔑 FIXED: API key set, refetching weather for', segment.endCity);
-    refetch();
-  }, [refetch, segment.endCity]);
+    console.log('🌤️ UNIFIED: Starting weather fetch for', segment.endCity, {
+      segmentDate: segmentDate.toISOString(),
+      usingSecureService: true
+    });
 
-  const handleTimeout = React.useCallback(() => {
-    console.log('⏰ FIXED: Weather timeout for', segment.endCity);
-  }, [segment.endCity]);
+    setLoading(true);
+    setError(null);
 
-  const handleRetry = React.useCallback(() => {
-    console.log('🔄 FIXED: Retrying weather fetch for', segment.endCity);
-    refetch();
-  }, [refetch, segment.endCity]);
+    try {
+      const weatherData = await SecureWeatherService.fetchWeatherForecast(
+        segment.endCity,
+        segmentDate
+      );
 
-  return (
-    <SegmentWeatherContent
-      hasApiKey={hasApiKey}
-      loading={loading}
-      weather={weather}
-      error={error}
-      retryCount={retryCount}
-      segmentEndCity={segment.endCity}
-      segmentDate={segmentDate}
-      onApiKeySet={handleApiKeySet}
-      onTimeout={handleTimeout}
-      onRetry={handleRetry}
-      isSharedView={isSharedView}
-      isPDFExport={isPDFExport}
-    />
-  );
+      if (weatherData) {
+        console.log('✅ UNIFIED: Weather fetch successful for', segment.endCity, {
+          temperature: weatherData.temperature,
+          source: weatherData.source,
+          isActualForecast: weatherData.isActualForecast
+        });
+        setWeather(weatherData);
+      } else {
+        console.log('⚠️ UNIFIED: No weather data returned for', segment.endCity);
+        setError('Weather data unavailable');
+      }
+    } catch (error) {
+      console.error('❌ UNIFIED: Weather fetch failed for', segment.endCity, error);
+      setError('Failed to load weather');
+    } finally {
+      setLoading(false);
+    }
+  }, [segment.endCity, segmentDate]);
+
+  // Fetch weather on mount and when dependencies change
+  React.useEffect(() => {
+    if (segmentDate) {
+      fetchWeather();
+    }
+  }, [fetchWeather]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-center gap-2 text-blue-600">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+          <span className="text-sm">Loading weather for {segment.endCity}...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && !weather) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+        <div className="text-center">
+          <div className="text-amber-600 text-2xl mb-2">⚠️</div>
+          <p className="text-xs text-amber-700 font-medium mb-2">{error}</p>
+          <button
+            onClick={fetchWeather}
+            className="text-xs text-amber-700 hover:text-amber-900 underline"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Success state with weather data
+  if (weather) {
+    const daysFromToday = segmentDate ? 
+      Math.ceil((segmentDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)) : 0;
+
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-sky-50 border border-sky-200 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{getWeatherIcon(weather.icon)}</span>
+            <div>
+              <h4 className="text-sm font-semibold text-gray-800">
+                Weather for {segment.endCity}
+              </h4>
+              <p className="text-xs text-gray-600">
+                {segmentDate?.toLocaleDateString('en-US', { 
+                  weekday: 'short', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </p>
+            </div>
+          </div>
+          
+          <div className="text-right">
+            <div className="text-2xl font-bold text-sky-700">
+              {weather.temperature}°F
+            </div>
+            {weather.highTemp && weather.lowTemp && (
+              <div className="text-xs text-gray-600">
+                H: {weather.highTemp}° L: {weather.lowTemp}°
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-2">
+          <div className="text-center">
+            <div className="font-medium">{weather.humidity}%</div>
+            <div>Humidity</div>
+          </div>
+          <div className="text-center">
+            <div className="font-medium">{weather.windSpeed} mph</div>
+            <div>Wind</div>
+          </div>
+          <div className="text-center">
+            <div className="font-medium">{weather.precipitationChance}%</div>
+            <div>Rain</div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-700 capitalize">{weather.description}</p>
+          <div className="flex items-center gap-1">
+            {weather.isActualForecast ? (
+              <>
+                <span className="text-green-600 text-xs">🟢</span>
+                <span className="text-xs text-green-700 font-medium">Live Forecast</span>
+              </>
+            ) : (
+              <>
+                <span className="text-orange-500 text-xs">🟡</span>
+                <span className="text-xs text-orange-700 font-medium">Seasonal Est.</span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No date fallback
+  if (!segmentDate) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
+        <div className="text-gray-400 text-2xl mb-2">📅</div>
+        <p className="text-xs text-gray-600">Set trip start date for weather forecast</p>
+      </div>
+    );
+  }
+
+  return null;
+};
+
+// Helper function to get weather icon
+const getWeatherIcon = (iconCode: string): string => {
+  const iconMap: { [key: string]: string } = {
+    '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️',
+    '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
+    '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌦️',
+    '11d': '⛈️', '11n': '⛈️', '13d': '❄️', '13n': '❄️',
+    '50d': '🌫️', '50n': '🌫️'
+  };
+  return iconMap[iconCode] || '🌤️';
 };
 
 export default UnifiedWeatherWidget;

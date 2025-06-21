@@ -5,7 +5,7 @@ import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/T
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
-import SegmentWeatherWidget from '../../TripCalculator/components/SegmentWeatherWidget';
+import UnifiedWeatherWidget from '../../TripCalculator/components/weather/UnifiedWeatherWidget';
 import SimpleShareButton from './SimpleShareButton';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
@@ -29,7 +29,7 @@ const TripResults: React.FC<TripResultsProps> = ({
     costEstimate
   } = useCostEstimator(tripPlan);
 
-  // FIXED: Ensure we always have a valid trip start date with proper timezone handling
+  // UNIFIED: Ensure we always have a valid trip start date with comprehensive validation
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate && !isNaN(tripStartDate.getTime())) {
       // Normalize to prevent timezone drift
@@ -39,7 +39,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         tripStartDate.getDate(),
         12, 0, 0, 0
       );
-      console.log('✅ Using provided tripStartDate:', {
+      console.log('✅ UNIFIED TripResults: Using provided tripStartDate:', {
         original: tripStartDate.toISOString(),
         normalized: normalized.toISOString(),
         originalLocal: tripStartDate.toLocaleDateString(),
@@ -51,7 +51,7 @@ const TripResults: React.FC<TripResultsProps> = ({
     // Use today as fallback with proper normalization
     const today = new Date();
     const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
-    console.log('🔄 Using today as fallback:', {
+    console.log('🔄 UNIFIED TripResults: Using today as fallback:', {
       today: today.toISOString(),
       normalized: normalizedToday.toISOString(),
       todayLocal: today.toLocaleDateString(),
@@ -60,14 +60,14 @@ const TripResults: React.FC<TripResultsProps> = ({
     return normalizedToday;
   }, [tripStartDate]);
 
-  console.log('📊 TripResults rendering with FIXED weather system:', {
+  console.log('📊 UNIFIED TripResults rendering:', {
     tripPlan: !!tripPlan,
     segmentCount: tripPlan?.segments?.length,
     effectiveTripStartDate: effectiveTripStartDate.toISOString(),
     effectiveTripStartLocal: effectiveTripStartDate.toLocaleDateString(),
     hasCostEstimate: !!costEstimate,
     totalCost: costEstimate?.breakdown?.totalCost,
-    fixedWeatherSystem: 'TripCalculator/SegmentWeatherWidget'
+    unifiedWeatherSystem: true
   });
 
   if (!tripPlan) {
@@ -138,7 +138,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         </div>
       </div>
 
-      {/* Daily Segments with FIXED Weather */}
+      {/* Daily Segments with UNIFIED Weather */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-route66-primary mb-4">
           Daily Itinerary with Weather Forecasts
@@ -176,15 +176,11 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* FIXED Weather Widget - Using TripCalculator's SegmentWeatherWidget */}
+            {/* UNIFIED Weather Widget */}
             <div className="mb-4">
-              <SegmentWeatherWidget 
+              <UnifiedWeatherWidget 
                 segment={segment} 
                 tripStartDate={effectiveTripStartDate}
-                cardIndex={index}
-                sectionKey="enhanced-trip-results"
-                forceExpanded={true}
-                isCollapsible={false}
               />
             </div>
 

@@ -23,33 +23,52 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
-  // FIXED: Ensure valid tripStartDate with fallback to today and proper logging
+  // UNIFIED: Ensure valid tripStartDate with comprehensive validation and fallback
   const validTripStartDate = React.useMemo(() => {
-    console.log('🔧 FIXED CALCULATOR: Date validation input:', {
-      tripStartDate: tripStartDate?.toISOString(),
-      isValidDate: tripStartDate && !isNaN(tripStartDate.getTime())
+    console.log('🔧 UNIFIED CALCULATOR: Comprehensive date validation:', {
+      inputDate: tripStartDate?.toISOString(),
+      inputType: typeof tripStartDate,
+      isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+      timestamp: Date.now()
     });
 
-    if (tripStartDate && !isNaN(tripStartDate.getTime())) {
-      console.log('✅ FIXED CALCULATOR: Using provided tripStartDate:', tripStartDate.toISOString());
-      return tripStartDate;
+    // Check if we have a valid Date object
+    if (tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())) {
+      // Normalize to prevent timezone issues
+      const normalized = new Date(
+        tripStartDate.getFullYear(),
+        tripStartDate.getMonth(),
+        tripStartDate.getDate(),
+        12, 0, 0, 0
+      );
+      console.log('✅ UNIFIED CALCULATOR: Using provided tripStartDate:', {
+        original: tripStartDate.toISOString(),
+        normalized: normalized.toISOString(),
+        localDate: normalized.toLocaleDateString()
+      });
+      return normalized;
     }
     
-    // If no date provided, use today as default for weather calculations
+    // Fallback to today with proper normalization
     const today = new Date();
-    today.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
-    console.log('🔄 FIXED CALCULATOR: Using today as fallback tripStartDate:', today.toISOString());
-    return today;
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
+    console.log('🔄 UNIFIED CALCULATOR: Using today as fallback:', {
+      today: today.toISOString(),
+      normalized: normalizedToday.toISOString(),
+      localDate: normalizedToday.toLocaleDateString(),
+      reason: tripStartDate ? 'invalid_date' : 'no_date_provided'
+    });
+    return normalizedToday;
   }, [tripStartDate]);
 
-  console.log('🎯 FIXED TripCalculatorResults render:', {
+  console.log('🎯 UNIFIED TripCalculatorResults rendering:', {
     hasTripPlan: !!tripPlan,
     hasCalculation: !!calculation,
-    originalTripStartDate: tripStartDate?.toISOString(),
     validTripStartDate: validTripStartDate.toISOString(),
+    validTripStartLocal: validTripStartDate.toLocaleDateString(),
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays,
-    fixedDateHandling: true
+    unifiedWeatherSystem: true
   });
 
   if (!tripPlan) {
