@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -5,6 +6,9 @@ import { TripPlan } from './services/Route66TripPlannerService';
 import { TripCompletionAnalysis } from './services/planning/TripCompletionService';
 import { formatTime } from './utils/distanceCalculator';
 import EnhancedTripResults from './EnhancedTripResults';
+import { Button } from '@/components/ui/button';
+import { Share2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface TripCalculatorResultsProps {
   calculation?: TripCalculation;
@@ -116,24 +120,99 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays
   });
+
+  // Simple share handler that works
+  const handleShare = async () => {
+    try {
+      const currentUrl = window.location.href;
+      await navigator.clipboard.writeText(currentUrl);
+      
+      toast({
+        title: "Trip Link Copied!",
+        description: "Your Route 66 trip link has been copied to the clipboard. Share it with friends and family!",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Share failed:', error);
+      toast({
+        title: "Share Failed",
+        description: "Could not copy link. Please copy the URL manually from your browser.",
+        variant: "destructive"
+      });
+    }
+  };
   
   // Prioritize enhanced trip plan over legacy calculation
   if (tripPlan) {
-    console.log('✨ Rendering Enhanced Trip Results with debug panel and validation');
+    console.log('✨ Rendering Enhanced Trip Results with share button');
     return (
-      <EnhancedTripResults 
-        tripPlan={tripPlan} 
-        shareUrl={shareUrl} 
-        tripStartDate={tripStartDate}
-        completionAnalysis={completionAnalysis}
-        originalRequestedDays={originalRequestedDays}
-      />
+      <div className="space-y-6">
+        {/* PROMINENT SHARE BUTTON */}
+        <div className="flex justify-center mb-6">
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
+          >
+            <Share2 className="w-5 h-5" />
+            Share This Trip
+          </Button>
+        </div>
+
+        <EnhancedTripResults 
+          tripPlan={tripPlan} 
+          shareUrl={shareUrl} 
+          tripStartDate={tripStartDate}
+          completionAnalysis={completionAnalysis}
+          originalRequestedDays={originalRequestedDays}
+        />
+
+        {/* BOTTOM SHARE BUTTON */}
+        <div className="flex justify-center mt-6">
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
+          >
+            <Share2 className="w-5 h-5" />
+            Share Your Adventure
+          </Button>
+        </div>
+      </div>
     );
   }
   
   if (calculation) {
-    console.log('📊 Rendering Legacy Trip Results');
-    return <LegacyTripResults calculation={calculation} />;
+    console.log('📊 Rendering Legacy Trip Results with share button');
+    return (
+      <div className="space-y-6">
+        {/* SHARE BUTTON FOR LEGACY */}
+        <div className="flex justify-center mb-6">
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
+          >
+            <Share2 className="w-5 h-5" />
+            Share This Trip
+          </Button>
+        </div>
+
+        <LegacyTripResults calculation={calculation} />
+
+        {/* BOTTOM SHARE BUTTON FOR LEGACY */}
+        <div className="flex justify-center mt-6">
+          <Button
+            onClick={handleShare}
+            size="lg"
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-bold shadow-lg rounded-xl gap-3"
+          >
+            <Share2 className="w-5 h-5" />
+            Share Your Adventure
+          </Button>
+        </div>
+      </div>
+    );
   }
   
   console.log('⚠️ No trip data to display');
