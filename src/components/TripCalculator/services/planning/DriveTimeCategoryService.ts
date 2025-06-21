@@ -1,6 +1,6 @@
 
 import { DriveTimeConstraints } from './DriveTimeConstraints';
-import { DriveTimeCategory } from './TripPlanBuilder';
+import { DriveTimeCategory } from './TripPlanTypes';
 
 export class DriveTimeCategoryService {
   static getDriveTimeCategory(driveTimeHours: number): DriveTimeCategory {

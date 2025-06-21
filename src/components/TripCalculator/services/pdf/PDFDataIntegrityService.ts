@@ -1,5 +1,5 @@
-
-import { TripPlan, DailySegment, TripPlanDataValidator } from '../planning/TripPlanBuilder';
+import { TripPlan, DailySegment } from '../planning/TripPlanTypes';
+import { TripPlanDataValidator } from '../planning/TripPlanDataValidator';
 
 export interface ValidationResult {
   isValid: boolean;

@@ -1,6 +1,6 @@
 
 import { TripPlan, DailySegment } from './TripPlanTypes';
-import { getDestinationCityName } from './TripPlanHelpers';
+import { getDestinationCityName } from './TripPlanBuilder';
 
 // Enhanced data validation service
 export class TripPlanDataValidator {
@@ -41,6 +41,10 @@ export class TripPlanDataValidator {
     
     return { isValid: issues.length === 0, issues };
   }
+
+  static validateTripPlanStructure(tripPlan: TripPlan): { isValid: boolean; issues: string[] } {
+    return this.validateTripPlan(tripPlan);
+  }
   
   static validateSegment(segment: DailySegment, index: number): string[] {
     const issues: string[] = [];
@@ -67,7 +71,7 @@ export class TripPlanDataValidator {
       issues.push(`${prefix}: Distance is invalid (${segment.distance})`);
     }
     
-    if (isNaN(segment.driveTimeHours) || segment.driveTimeHours < 0) {
+    if (isNaN(segment.driveTimeHours || 0) || (segment.driveTimeHours || 0) < 0) {
       issues.push(`${prefix}: Drive time is invalid (${segment.driveTimeHours})`);
     }
     
@@ -78,7 +82,7 @@ export class TripPlanDataValidator {
     return {
       ...segment,
       distance: isNaN(segment.distance) ? 0 : Math.max(0, segment.distance),
-      driveTimeHours: isNaN(segment.driveTimeHours) ? 0 : Math.max(0, segment.driveTimeHours),
+      driveTimeHours: isNaN(segment.driveTimeHours || 0) ? 0 : Math.max(0, segment.driveTimeHours || 0),
       startCity: segment.startCity || 'Unknown',
       endCity: segment.endCity || getDestinationCityName(segment.destination) || 'Unknown',
       approximateMiles: segment.approximateMiles || Math.round(segment.distance || 0),

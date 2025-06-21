@@ -1,5 +1,5 @@
-import { DailySegment } from './TripPlanBuilder';
-import { DriveTimeCategory } from './TripPlanBuilder';
+
+import { DailySegment, DriveTimeCategory } from './TripPlanTypes';
 
 export interface DriveTimeValidationResult {
   isValid: boolean;
@@ -23,14 +23,14 @@ export class DriveTimeValidationService {
       const adjustedSegment = this.validateSegmentDriveTime(segment);
       
       if (adjustedSegment.drivingTime !== segment.drivingTime) {
-        issues.push(`Day ${segment.day}: Adjusted drive time from ${segment.drivingTime.toFixed(1)}h to ${adjustedSegment.drivingTime.toFixed(1)}h`);
+        issues.push(`Day ${segment.day}: Adjusted drive time from ${segment.drivingTime?.toFixed(1)}h to ${adjustedSegment.drivingTime?.toFixed(1)}h`);
       }
 
       adjustedSegments.push(adjustedSegment);
     }
 
     // Check for overall balance
-    const totalDriveTime = adjustedSegments.reduce((sum, seg) => sum + seg.drivingTime, 0);
+    const totalDriveTime = adjustedSegments.reduce((sum, seg) => sum + (seg.drivingTime || 0), 0);
     const averageDriveTime = totalDriveTime / adjustedSegments.length;
     
     if (averageDriveTime > this.RECOMMENDED_MAX_DRIVE_TIME) {
@@ -56,7 +56,7 @@ export class DriveTimeValidationService {
    * Validate and fix a single segment's drive time
    */
   private static validateSegmentDriveTime(segment: DailySegment): DailySegment {
-    let adjustedDriveTime = segment.drivingTime;
+    let adjustedDriveTime = segment.drivingTime || 0;
 
     // Fix extreme values
     if (adjustedDriveTime > this.MAX_DAILY_DRIVE_TIME) {
@@ -118,7 +118,7 @@ export class DriveTimeValidationService {
     recommendedDays: number;
     reason: string;
   } {
-    const extremeDays = segments.filter(seg => seg.drivingTime > this.RECOMMENDED_MAX_DRIVE_TIME);
+    const extremeDays = segments.filter(seg => (seg.drivingTime || 0) > this.RECOMMENDED_MAX_DRIVE_TIME);
     
     if (extremeDays.length === 0) {
       return {

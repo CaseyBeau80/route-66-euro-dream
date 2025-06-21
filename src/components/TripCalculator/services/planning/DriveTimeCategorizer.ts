@@ -1,5 +1,5 @@
 
-import { DriveTimeCategory } from './TripPlanBuilder';
+import { DriveTimeCategory } from './TripPlanTypes';
 
 export class DriveTimeCategorizer {
   /**

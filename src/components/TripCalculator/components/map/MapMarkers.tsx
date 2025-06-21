@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Marker, Polyline } from '@react-google-maps/api';
-import { DailySegment, RecommendedStop } from '../../services/planning/TripPlanBuilder';
+import { DailySegment, RecommendedStop } from '../../services/planning/TripPlanTypes';
 import { createStartMarkerIcon, createEndMarkerIcon, createStopMarkerIcon } from './MapMarkerIcons';
 
 interface MapMarkersProps {

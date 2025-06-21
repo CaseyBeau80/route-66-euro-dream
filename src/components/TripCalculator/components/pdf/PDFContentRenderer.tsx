@@ -1,6 +1,6 @@
-
 import React from 'react';
-import { TripPlan, TripPlanDataValidator } from '../../services/planning/TripPlanBuilder';
+import { TripPlan } from '../../services/planning/TripPlanBuilder';
+import { TripPlanDataValidator } from '../../services/planning/TripPlanDataValidator';
 import { PDFDataIntegrityService } from '../../services/pdf/PDFDataIntegrityService';
 import { useCostEstimator } from '../../hooks/useCostEstimator';
 import PDFDaySegmentCard from './PDFDaySegmentCard';

@@ -1,6 +1,6 @@
 
 import { TripStop } from '../../types/TripStop';
-import { DailySegment, RecommendedStop } from './TripPlanBuilder';
+import { DailySegment, RecommendedStop } from './TripPlanTypes';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
 import { AttractionFinder } from './AttractionFinder';

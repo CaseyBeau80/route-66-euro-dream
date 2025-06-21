@@ -2,10 +2,16 @@
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
-import { TripPlan, DailySegment } from './TripPlanTypes';
+import { TripPlan, DailySegment, RecommendedStop, DriveTimeCategory, DestinationInfo } from './TripPlanTypes';
 
 // Re-export types so other files can import them from here
-export { TripPlan, DailySegment } from './TripPlanTypes';
+export type { TripPlan, DailySegment, RecommendedStop, DriveTimeCategory, DestinationInfo } from './TripPlanTypes';
+
+// Helper function to get destination city name
+export function getDestinationCityName(destination?: DestinationInfo | { city?: string; state?: string }): string {
+  if (!destination) return 'Unknown';
+  return destination.city || 'Unknown';
+}
 
 export class TripPlanBuilder {
   /**

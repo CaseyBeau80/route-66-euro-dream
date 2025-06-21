@@ -16,7 +16,7 @@ export interface EnhancedTripPlanResult {
   debugInfo?: any;
 }
 
-export { TripPlanType as TripPlan };
+export type { TripPlanType as TripPlan };
 
 export class Route66TripPlannerService {
   /**

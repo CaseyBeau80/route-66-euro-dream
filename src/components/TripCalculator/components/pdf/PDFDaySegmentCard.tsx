@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { DailySegment, getDestinationCityName } from '../../services/planning/TripPlanBuilder';
 import PDFDaySegmentCardHeader from './PDFDaySegmentCardHeader';
@@ -27,7 +28,7 @@ const PDFDaySegmentCard: React.FC<PDFDaySegmentCardProps> = ({
     undefined;
 
   // Safely get destination city name - fix the function call
-  const destinationCity = segment.endCity || getDestinationCityName(segment);
+  const destinationCity = segment.endCity || getDestinationCityName(segment.destination);
 
   return (
     <div className="pdf-day-card no-page-break mb-6 bg-white border-2 border-route66-border rounded-lg shadow-lg overflow-hidden">
