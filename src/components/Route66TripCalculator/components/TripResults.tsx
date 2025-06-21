@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
@@ -29,26 +28,45 @@ const TripResults: React.FC<TripResultsProps> = ({
     costEstimate
   } = useCostEstimator(tripPlan);
 
-  // FIXED: Ensure we always have a valid trip start date
+  // FIXED: Ensure we always have a valid trip start date with proper timezone handling
   const effectiveTripStartDate = React.useMemo(() => {
     if (tripStartDate && !isNaN(tripStartDate.getTime())) {
-      console.log('✅ Using provided tripStartDate:', tripStartDate.toISOString());
-      return tripStartDate;
+      // Normalize to prevent timezone drift
+      const normalized = new Date(
+        tripStartDate.getFullYear(),
+        tripStartDate.getMonth(),
+        tripStartDate.getDate(),
+        12, 0, 0, 0
+      );
+      console.log('✅ Using provided tripStartDate:', {
+        original: tripStartDate.toISOString(),
+        normalized: normalized.toISOString(),
+        originalLocal: tripStartDate.toLocaleDateString(),
+        normalizedLocal: normalized.toLocaleDateString()
+      });
+      return normalized;
     }
     
-    // Use today as fallback
+    // Use today as fallback with proper normalization
     const today = new Date();
-    today.setHours(12, 0, 0, 0);
-    console.log('🔄 Using today as fallback:', today.toISOString());
-    return today;
+    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
+    console.log('🔄 Using today as fallback:', {
+      today: today.toISOString(),
+      normalized: normalizedToday.toISOString(),
+      todayLocal: today.toLocaleDateString(),
+      normalizedLocal: normalizedToday.toLocaleDateString()
+    });
+    return normalizedToday;
   }, [tripStartDate]);
 
-  console.log('📊 TripResults rendering with simplified components:', {
+  console.log('📊 TripResults rendering with enhanced weather system:', {
     tripPlan: !!tripPlan,
     segmentCount: tripPlan?.segments?.length,
     effectiveTripStartDate: effectiveTripStartDate.toISOString(),
+    effectiveTripStartLocal: effectiveTripStartDate.toLocaleDateString(),
     hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost
+    totalCost: costEstimate?.breakdown?.totalCost,
+    enhancedWeatherSystem: true
   });
 
   if (!tripPlan) {
@@ -119,10 +137,10 @@ const TripResults: React.FC<TripResultsProps> = ({
         </div>
       </div>
 
-      {/* Daily Segments with Simplified Weather */}
+      {/* Daily Segments with Enhanced Weather */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-route66-primary mb-4">
-          Daily Itinerary with Weather
+          Daily Itinerary with Enhanced Weather Forecasts
         </h3>
         
         {segments.map((segment, index) => (
@@ -157,7 +175,7 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* Simplified Weather Widget */}
+            {/* Enhanced Weather Widget */}
             <div className="mb-4">
               <SimpleWeatherWidget 
                 segment={segment} 
@@ -185,7 +203,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* Simplified Share Section */}
+      {/* Share Section */}
       <div className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg p-6 text-center">
         <h3 className="text-lg font-bold text-gray-800 mb-2">
           Share Your Route 66 Adventure
