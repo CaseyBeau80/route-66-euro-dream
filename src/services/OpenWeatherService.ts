@@ -49,9 +49,7 @@ export class OpenWeatherService {
       
       console.log('🌍 OpenWeatherService: Geocoding request for', cleanCityName);
       
-      const response = await fetch(url, {
-        timeout: OPENWEATHER_CONFIG.timeout
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Geocoding API error: ${response.status} ${response.statusText}`);
@@ -97,9 +95,7 @@ export class OpenWeatherService {
         targetDate: targetDate?.toISOString()
       });
 
-      const response = await fetch(url, {
-        timeout: OPENWEATHER_CONFIG.timeout
-      });
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Weather API error: ${response.status} ${response.statusText}`);
