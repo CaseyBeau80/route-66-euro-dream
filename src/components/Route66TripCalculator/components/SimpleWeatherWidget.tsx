@@ -16,8 +16,23 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   const [weatherResult, setWeatherResult] = useState<WeatherFetchResult | null>(null);
   const [loading, setLoading] = useState(false);
 
+  console.log('🔧 SIMPLE WEATHER WIDGET: Component render with props:', {
+    segmentEndCity: segment.endCity,
+    segmentDay: segment.day,
+    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateIsValid: tripStartDate && !isNaN(tripStartDate.getTime()),
+    renderTime: new Date().toISOString()
+  });
+
   // Calculate segment date with proper timezone handling
   const segmentDate = React.useMemo(() => {
+    if (!tripStartDate || isNaN(tripStartDate.getTime())) {
+      console.error('🚨 SIMPLE WEATHER: Invalid tripStartDate provided:', tripStartDate);
+      const fallbackDate = new Date();
+      fallbackDate.setHours(12, 0, 0, 0);
+      return fallbackDate;
+    }
+
     const baseDate = new Date(tripStartDate);
     // Normalize to prevent timezone drift
     const normalizedBase = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 12, 0, 0, 0);
@@ -32,11 +47,15 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     });
     
     return targetDate;
-  }, [tripStartDate, segment.day]);
+  }, [tripStartDate, segment.day, segment.endCity]);
 
   // Fetch weather using centralized service
   const fetchWeather = React.useCallback(async () => {
-    console.log('🌤️ SIMPLE WEATHER: Starting weather fetch for', segment.endCity);
+    console.log('🌤️ SIMPLE WEATHER: Starting weather fetch for', segment.endCity, {
+      segmentDate: segmentDate.toISOString(),
+      isValidDate: !isNaN(segmentDate.getTime())
+    });
+    
     setLoading(true);
 
     try {
@@ -114,6 +133,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
 
   // Fetch weather when component mounts or dependencies change
   useEffect(() => {
+    console.log('🔧 SIMPLE WEATHER: useEffect triggered for', segment.endCity, {
+      hasValidDate: !isNaN(segmentDate.getTime()),
+      segmentDate: segmentDate.toISOString()
+    });
     fetchWeather();
   }, [fetchWeather]);
 

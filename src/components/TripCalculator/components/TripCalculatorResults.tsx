@@ -23,8 +23,13 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
-  // FIXED: Ensure valid tripStartDate with fallback to today
+  // FIXED: Ensure valid tripStartDate with fallback to today and proper logging
   const validTripStartDate = React.useMemo(() => {
+    console.log('🔧 FIXED CALCULATOR: Date validation input:', {
+      tripStartDate: tripStartDate?.toISOString(),
+      isValidDate: tripStartDate && !isNaN(tripStartDate.getTime())
+    });
+
     if (tripStartDate && !isNaN(tripStartDate.getTime())) {
       console.log('✅ FIXED CALCULATOR: Using provided tripStartDate:', tripStartDate.toISOString());
       return tripStartDate;
@@ -40,6 +45,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   console.log('🎯 FIXED TripCalculatorResults render:', {
     hasTripPlan: !!tripPlan,
     hasCalculation: !!calculation,
+    originalTripStartDate: tripStartDate?.toISOString(),
     validTripStartDate: validTripStartDate.toISOString(),
     hasCompletionAnalysis: !!completionAnalysis,
     originalRequestedDays,
