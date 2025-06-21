@@ -1,8 +1,8 @@
-
 import { TripPlan } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
 import { SupabaseDataService } from '../data/SupabaseDataService';
 import { DestinationMatchingService } from '../DestinationMatchingService';
+import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
 
 export class EnhancedHeritageCitiesService {
   /**
@@ -206,7 +206,7 @@ export class EnhancedHeritageCitiesService {
   }
 
   /**
-   * Build daily segments with proper day distribution
+   * Build daily segments with proper day distribution and IMPROVED drive time calculation
    */
   private static async buildDailySegments(
     startStop: TripStop,
@@ -247,9 +247,15 @@ export class EnhancedHeritageCitiesService {
         currentStopIndex = nextIndex;
       }
 
-      // Calculate distance and drive time
+      // Calculate distance and drive time using IMPROVED calculation
       const distance = this.calculateDistance(dayStartStop, dayEndStop);
-      const driveTimeHours = distance / 55; // Assume 55 mph average
+      const driveTimeHours = calculateRealisticDriveTime(distance);
+
+      console.log(`🚗 Day ${day}: ${dayStartStop.city || dayStartStop.name} → ${dayEndStop.city || dayEndStop.name}`, {
+        distance: distance.toFixed(1),
+        driveTimeHours: driveTimeHours.toFixed(1),
+        improvedCalculation: true
+      });
 
       // Find attractions near the end city
       const attractions = await this.findNearbyAttractions(dayEndStop, allStops);
@@ -273,7 +279,7 @@ export class EnhancedHeritageCitiesService {
       }
     }
 
-    console.log(`✅ Built ${segments.length} daily segments`);
+    console.log(`✅ Built ${segments.length} daily segments with improved drive times`);
     return segments;
   }
 

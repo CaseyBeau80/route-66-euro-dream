@@ -18,67 +18,52 @@ export const formatTime = (hours: number): string => {
   return `${wholeHours}h ${minutes}m`;
 };
 
-// STRICT DRIVE TIME CALCULATION: Enforces absolute 10-hour maximum
+// IMPROVED DRIVE TIME CALCULATION: More realistic and distance-proportional
 export const calculateRealisticDriveTime = (distance: number): number => {
-  console.log(`🚨 STRICT CALCULATION: Computing drive time for ${distance.toFixed(1)} miles with ABSOLUTE 10h limit`);
-  
-  // Absolute constants - no exceptions
-  const ABSOLUTE_MAX_DRIVE_HOURS = 10; // NEVER exceed this
-  const RECOMMENDED_MAX_HOURS = 8;     // Comfortable maximum
-  const OPTIMAL_MAX_HOURS = 6;         // Ideal range top
-  const MIN_MEANINGFUL_HOURS = 2;      // Minimum useful drive time
+  console.log(`🚗 IMPROVED CALCULATION: Computing drive time for ${distance.toFixed(1)} miles`);
   
   // Handle edge cases
   if (distance <= 0 || !isFinite(distance) || isNaN(distance)) {
-    console.log(`🚨 Invalid distance ${distance}, returning 2h minimum`);
-    return MIN_MEANINGFUL_HOURS;
+    console.log(`🚗 Invalid distance ${distance}, returning 1h minimum`);
+    return 1;
   }
   
   // Calculate realistic Route 66 speed based on distance and road conditions
   let avgSpeed: number;
+  let bufferMultiplier: number;
   
-  if (distance < 100) {
-    avgSpeed = 40; // City driving, frequent stops, tourist areas
-  } else if (distance < 200) {
+  if (distance < 50) {
+    avgSpeed = 35; // Local roads, city driving, frequent stops
+    bufferMultiplier = 1.3; // 30% buffer for local attractions and stops
+  } else if (distance < 150) {
     avgSpeed = 45; // Mixed driving with some highway
+    bufferMultiplier = 1.25; // 25% buffer for stops
   } else if (distance < 300) {
     avgSpeed = 50; // Mostly highway driving
-  } else if (distance < 400) {
-    avgSpeed = 52; // Long highway stretches
+    bufferMultiplier = 1.2; // 20% buffer for Route 66 attractions
+  } else if (distance < 500) {
+    avgSpeed = 55; // Long highway stretches
+    bufferMultiplier = 1.15; // 15% buffer for fuel stops and breaks
   } else {
-    avgSpeed = 55; // Maximum for very long distances
+    avgSpeed = 58; // Very long distances, mostly interstate
+    bufferMultiplier = 1.1; // 10% buffer for necessary stops
   }
   
   const baseTime = distance / avgSpeed;
-  
-  // Add realistic buffer for Route 66 experience (stops, sightseeing, traffic)
-  const bufferMultiplier = 1.20; // 20% buffer for Route 66 attractions and stops
   const calculatedTime = baseTime * bufferMultiplier;
   
-  // ABSOLUTE ENFORCEMENT: Never allow more than 10 hours
-  let finalTime = calculatedTime;
-  
-  if (calculatedTime > ABSOLUTE_MAX_DRIVE_HOURS) {
-    console.error(`🚨 CRITICAL: ${calculatedTime.toFixed(1)}h exceeds ABSOLUTE 10h limit - FORCING to 10h`);
-    finalTime = ABSOLUTE_MAX_DRIVE_HOURS;
-  } else if (calculatedTime > RECOMMENDED_MAX_HOURS) {
-    console.warn(`⚠️ LONG DAY: ${calculatedTime.toFixed(1)}h exceeds recommended ${RECOMMENDED_MAX_HOURS}h`);
-  }
-  
-  // Ensure minimum meaningful time
-  finalTime = Math.max(finalTime, MIN_MEANINGFUL_HOURS);
+  // Ensure minimum meaningful time (30 minutes for any drive)
+  const finalTime = Math.max(calculatedTime, 0.5);
   
   // Log calculation details
-  console.log(`✅ STRICT drive time calculation:`, {
+  console.log(`✅ IMPROVED drive time calculation:`, {
     distance: distance.toFixed(1),
     avgSpeed,
     baseTime: baseTime.toFixed(1),
+    bufferMultiplier,
     withBuffer: calculatedTime.toFixed(1),
     finalTime: finalTime.toFixed(1),
-    wasForced: calculatedTime > ABSOLUTE_MAX_DRIVE_HOURS,
-    category: finalTime <= OPTIMAL_MAX_HOURS ? 'optimal' : 
-              finalTime <= RECOMMENDED_MAX_HOURS ? 'acceptable' : 
-              finalTime < ABSOLUTE_MAX_DRIVE_HOURS ? 'long' : 'maximum'
+    hoursPerMile: (finalTime / distance).toFixed(3)
   });
   
   return finalTime;

@@ -19,7 +19,7 @@ interface TripResultsProps {
 
 const TripResults: React.FC<TripResultsProps> = ({
   tripPlan,
-  tripStartDate,
+  tripStartDate = new Date(), // Default to today if not provided
   completionAnalysis,
   originalRequestedDays,
   onShareTrip
@@ -158,51 +158,47 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* Enhanced Weather Widget */}
-            {tripStartDate && segment.endCity && (
-              <div className="mb-4">
-                <EnhancedWeatherWidget 
-                  segment={segment} 
-                  tripStartDate={tripStartDate} 
-                  isSharedView={false}
-                  isPDFExport={false}
-                />
-              </div>
-            )}
+            {/* Enhanced Weather Widget with proper date */}
+            <div className="mb-4">
+              <EnhancedWeatherWidget 
+                segment={segment} 
+                tripStartDate={tripStartDate} 
+                isSharedView={false}
+                isPDFExport={false}
+              />
+            </div>
 
             {/* Attractions */}
             {segment.attractions && segment.attractions.length > 0 && (
               <div className="mt-4">
-                <h5 className="font-medium text-route66-text-primary mb-2">
+                <h5 className="text-sm font-semibold text-route66-text-primary mb-2">
                   Recommended Stops:
                 </h5>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {segment.attractions.slice(0, 4).map((attraction, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm">
-                      <MapPin className="w-3 h-3 text-route66-primary flex-shrink-0" />
-                      <span className="text-route66-text-secondary truncate">
-                        {attraction.name || attraction.title}
-                      </span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {segment.attractions.map((attraction: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm text-route66-text-secondary">
+                      <MapPin className="w-3 h-3 text-route66-accent" />
+                      <span>{attraction.name}</span>
                     </div>
                   ))}
                 </div>
-                {segment.attractions.length > 4 && (
-                  <p className="text-xs text-route66-text-secondary mt-2">
-                    +{segment.attractions.length - 4} more attractions
-                  </p>
-                )}
               </div>
             )}
           </Card>
         ))}
       </div>
 
-      {/* Action Buttons - FIXED: Ensure share button is always visible */}
-      <div className="flex justify-center pt-4">
-        <Button onClick={handleShareTrip} className="bg-route66-primary hover:bg-route66-primary/90 text-white px-6 py-2">
-          <Share2 className="w-4 h-4 mr-2" />
-          Share Trip
-        </Button>
+      {/* Action Buttons */}
+      <div className="flex justify-center gap-4 pt-6">
+        {onShareTrip && (
+          <Button 
+            onClick={handleShareTrip}
+            className="bg-route66-primary hover:bg-route66-primary/90 text-white"
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Share Trip
+          </Button>
+        )}
       </div>
     </div>
   );
