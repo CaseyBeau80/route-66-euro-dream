@@ -3,10 +3,22 @@ import { TripStop } from '../types/TripStop';
 export interface MatchResult {
   stop: TripStop;
   confidence: number;
-  matchType: 'exact' | 'city' | 'partial' | 'fuzzy';
+  matchType: 'exact' | 'city' | 'partial' | 'fuzzy' | 'alias';
 }
 
 export class DestinationMatchingService {
+  // Common location aliases and variations
+  private static locationAliases: Record<string, string[]> = {
+    'joliet': ['joliet il', 'joliet illinois', 'chicago area'],
+    'chicago': ['chi-town', 'windy city', 'joliet il', 'joliet illinois'],
+    'kingman': ['kingman az', 'kingman arizona'],
+    'los angeles': ['la', 'los angeles ca', 'los angeles california'],
+    'oklahoma city': ['okc', 'oklahoma city ok'],
+    'st louis': ['saint louis', 'st. louis', 'st louis mo'],
+    'albuquerque': ['albuquerque nm', 'albuquerque new mexico'],
+    'flagstaff': ['flagstaff az', 'flagstaff arizona']
+  };
+
   /**
    * Find the best matching destination from available stops
    */
@@ -18,7 +30,29 @@ export class DestinationMatchingService {
 
     console.log(`🎯 DESTINATION MATCHING: Searching for "${searchLocation}" (normalized: "${searchTerm}") in ${stops.length} stops`);
 
-    // 1. Exact name match (highest confidence)
+    // 1. Check aliases first (highest priority)
+    for (const [canonical, aliases] of Object.entries(this.locationAliases)) {
+      if (aliases.some(alias => this.normalizeSearchTerm(alias) === searchTerm) || 
+          this.normalizeSearchTerm(canonical) === searchTerm) {
+        
+        // Find the canonical city in stops
+        const canonicalStop = stops.find(stop =>
+          this.normalizeSearchTerm(stop.name) === this.normalizeSearchTerm(canonical) ||
+          this.normalizeSearchTerm(stop.city || '') === this.normalizeSearchTerm(canonical)
+        );
+        
+        if (canonicalStop) {
+          matches.push({
+            stop: canonicalStop,
+            confidence: 1.0,
+            matchType: 'alias'
+          });
+          console.log(`✅ ALIAS MATCH: ${searchLocation} → ${canonicalStop.name}`);
+        }
+      }
+    }
+
+    // 2. Exact name match
     for (const stop of stops) {
       if (this.normalizeSearchTerm(stop.name) === searchTerm) {
         matches.push({
@@ -30,7 +64,7 @@ export class DestinationMatchingService {
       }
     }
 
-    // 2. Exact city match
+    // 3. Exact city match
     for (const stop of stops) {
       if (stop.city && this.normalizeSearchTerm(stop.city) === searchTerm) {
         matches.push({
@@ -42,7 +76,7 @@ export class DestinationMatchingService {
       }
     }
 
-    // 3. Enhanced city + state matching for better specificity
+    // 4. Enhanced city + state matching
     if (searchTerm.includes(',') || searchTerm.includes(' ')) {
       const parts = searchTerm.split(/[,\s]+/).filter(p => p.length > 0);
       const cityPart = parts[0];
@@ -59,7 +93,7 @@ export class DestinationMatchingService {
                statePart.startsWith(normalizedState))) {
             matches.push({
               stop,
-              confidence: 0.98, // Higher than regular city match
+              confidence: 0.98,
               matchType: 'city'
             });
             console.log(`✅ CITY+STATE MATCH: ${stop.city}, ${stop.state} (${stop.name})`);
@@ -68,7 +102,7 @@ export class DestinationMatchingService {
       }
     }
 
-    // 4. Partial name match (but avoid overly broad matches)
+    // 5. Partial name match (but avoid overly broad matches)
     for (const stop of stops) {
       const normalizedName = this.normalizeSearchTerm(stop.name);
       if (normalizedName.includes(searchTerm) || searchTerm.includes(normalizedName)) {
@@ -84,7 +118,7 @@ export class DestinationMatchingService {
       }
     }
 
-    // 5. Partial city match (with length check to avoid overly broad matches)
+    // 6. Partial city match (with length check to avoid overly broad matches)
     for (const stop of stops) {
       if (stop.city && searchTerm.length >= 3) {
         const normalizedCity = this.normalizeSearchTerm(stop.city);
@@ -102,7 +136,7 @@ export class DestinationMatchingService {
       }
     }
 
-    // 6. Fuzzy matching for typos and variations (more conservative)
+    // 7. Fuzzy matching for typos and variations (more conservative)
     for (const stop of stops) {
       // Only do fuzzy matching if no exact or partial matches found
       if (matches.length === 0) {
@@ -150,6 +184,51 @@ export class DestinationMatchingService {
     }
 
     return bestMatch || null;
+  }
+
+  /**
+   * Get enhanced suggestions for failed matches
+   */
+  static getSuggestions(searchLocation: string, stops: TripStop[], limit = 5): string[] {
+    const searchTerm = this.normalizeSearchTerm(searchLocation);
+    const suggestions: Array<{ name: string; score: number }> = [];
+
+    // Check if it might be a common alias
+    for (const [canonical, aliases] of Object.entries(this.locationAliases)) {
+      if (aliases.some(alias => this.normalizeSearchTerm(alias).includes(searchTerm) || 
+                              searchTerm.includes(this.normalizeSearchTerm(alias)))) {
+        
+        const canonicalStop = stops.find(stop =>
+          this.normalizeSearchTerm(stop.name) === this.normalizeSearchTerm(canonical) ||
+          this.normalizeSearchTerm(stop.city || '') === this.normalizeSearchTerm(canonical)
+        );
+        
+        if (canonicalStop) {
+          suggestions.push({
+            name: `${canonicalStop.name}, ${canonicalStop.state}`,
+            score: 0.9
+          });
+        }
+      }
+    }
+
+    for (const stop of stops) {
+      const nameScore = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.name));
+      const cityScore = stop.city ? this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.city)) : 0;
+      const maxScore = Math.max(nameScore, cityScore);
+
+      if (maxScore > 0.3) {
+        const displayName = stop.city && stop.state ? 
+          `${stop.name}, ${stop.city}, ${stop.state}` : 
+          stop.city ? `${stop.name}, ${stop.city}` : stop.name;
+        suggestions.push({ name: displayName, score: maxScore });
+      }
+    }
+
+    return suggestions
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(s => s.name);
   }
 
   /**
@@ -214,31 +293,5 @@ export class DestinationMatchingService {
     }
 
     return unique;
-  }
-
-  /**
-   * Get suggestions for failed matches
-   */
-  static getSuggestions(searchLocation: string, stops: TripStop[], limit = 5): string[] {
-    const searchTerm = this.normalizeSearchTerm(searchLocation);
-    const suggestions: Array<{ name: string; score: number }> = [];
-
-    for (const stop of stops) {
-      const nameScore = this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.name));
-      const cityScore = stop.city ? this.calculateSimilarity(searchTerm, this.normalizeSearchTerm(stop.city)) : 0;
-      const maxScore = Math.max(nameScore, cityScore);
-
-      if (maxScore > 0.3) {
-        const displayName = stop.city && stop.state ? 
-          `${stop.name}, ${stop.city}, ${stop.state}` : 
-          stop.city ? `${stop.name}, ${stop.city}` : stop.name;
-        suggestions.push({ name: displayName, score: maxScore });
-      }
-    }
-
-    return suggestions
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit)
-      .map(s => s.name);
   }
 }

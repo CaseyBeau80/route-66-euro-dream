@@ -1,4 +1,3 @@
-
 import { TripStop, convertToTripStop } from '../../types/TripStop';
 import { CoordinateAccessSafety } from '../planning/CoordinateAccessSafety';
 
@@ -117,11 +116,23 @@ export class SupabaseDataService {
   }
 
   /**
-   * Get mock stops for testing - replace with real Supabase query
+   * Get enhanced mock stops with more Route 66 cities - replace with real Supabase query
    */
   private static async getMockStops(): Promise<any[]> {
-    // Mock data with some valid and invalid coordinates for testing
+    // Enhanced mock data with more Route 66 cities including common starting points
     return [
+      {
+        id: 'joliet-il',
+        name: 'Joliet',
+        description: 'Historic Route 66 starting point near Chicago',
+        category: 'destination_city',
+        city_name: 'Joliet',
+        city: 'Joliet',
+        state: 'Illinois',
+        latitude: 41.5250,
+        longitude: -88.0817,
+        heritage_value: 'high'
+      },
       {
         id: 'chicago-start',
         name: 'Chicago',
@@ -135,6 +146,18 @@ export class SupabaseDataService {
         heritage_value: 'high'
       },
       {
+        id: 'springfield-il',
+        name: 'Springfield',
+        description: 'Illinois capital and Route 66 heritage city',
+        category: 'destination_city',
+        city_name: 'Springfield',
+        city: 'Springfield',
+        state: 'Illinois',
+        latitude: 39.7817,
+        longitude: -89.6501,
+        heritage_value: 'high'
+      },
+      {
         id: 'st-louis',
         name: 'St. Louis',
         description: 'Gateway to the West',
@@ -144,6 +167,42 @@ export class SupabaseDataService {
         state: 'Missouri',
         latitude: 38.6270,
         longitude: -90.1994,
+        heritage_value: 'high'
+      },
+      {
+        id: 'springfield-mo',
+        name: 'Springfield',
+        description: 'Missouri Route 66 heritage city',
+        category: 'destination_city',
+        city_name: 'Springfield',
+        city: 'Springfield',
+        state: 'Missouri',
+        latitude: 37.2153,
+        longitude: -93.2982,
+        heritage_value: 'medium'
+      },
+      {
+        id: 'joplin-mo',
+        name: 'Joplin',
+        description: 'Missouri Route 66 city',
+        category: 'destination_city',
+        city_name: 'Joplin',
+        city: 'Joplin',
+        state: 'Missouri',
+        latitude: 37.0842,
+        longitude: -94.5133,
+        heritage_value: 'medium'
+      },
+      {
+        id: 'tulsa-ok',
+        name: 'Tulsa',
+        description: 'Oklahoma Route 66 heritage city',
+        category: 'destination_city',
+        city_name: 'Tulsa',
+        city: 'Tulsa',
+        state: 'Oklahoma',
+        latitude: 36.1540,
+        longitude: -95.9928,
         heritage_value: 'high'
       },
       {
@@ -171,6 +230,18 @@ export class SupabaseDataService {
         heritage_value: 'medium'
       },
       {
+        id: 'tucumcari-nm',
+        name: 'Tucumcari',
+        description: 'New Mexico Route 66 town',
+        category: 'destination_city',
+        city_name: 'Tucumcari',
+        city: 'Tucumcari',
+        state: 'New Mexico',
+        latitude: 35.1717,
+        longitude: -103.7250,
+        heritage_value: 'medium'
+      },
+      {
         id: 'albuquerque',
         name: 'Albuquerque',
         description: 'Southwest charm on Route 66',
@@ -183,6 +254,18 @@ export class SupabaseDataService {
         heritage_value: 'high'
       },
       {
+        id: 'gallup-nm',
+        name: 'Gallup',
+        description: 'New Mexico Route 66 city',
+        category: 'destination_city',
+        city_name: 'Gallup',
+        city: 'Gallup',
+        state: 'New Mexico',
+        latitude: 35.5281,
+        longitude: -108.7426,
+        heritage_value: 'medium'
+      },
+      {
         id: 'flagstaff',
         name: 'Flagstaff',
         description: 'Mountain town on the Mother Road',
@@ -192,6 +275,30 @@ export class SupabaseDataService {
         state: 'Arizona',
         latitude: 35.1983,
         longitude: -111.6513,
+        heritage_value: 'medium'
+      },
+      {
+        id: 'kingman-az',
+        name: 'Kingman',
+        description: 'Historic Arizona Route 66 city',
+        category: 'destination_city',
+        city_name: 'Kingman',
+        city: 'Kingman',
+        state: 'Arizona',
+        latitude: 35.1894,
+        longitude: -114.0530,
+        heritage_value: 'high'
+      },
+      {
+        id: 'barstow-ca',
+        name: 'Barstow',
+        description: 'California Route 66 desert city',
+        category: 'destination_city',
+        city_name: 'Barstow',
+        city: 'Barstow',
+        state: 'California',
+        latitude: 34.8958,
+        longitude: -117.0228,
         heritage_value: 'medium'
       },
       {
