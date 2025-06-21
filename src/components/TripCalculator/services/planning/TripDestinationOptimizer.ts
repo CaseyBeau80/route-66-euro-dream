@@ -1,10 +1,11 @@
+
 import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StopFilteringService } from './StopFilteringService';
 
 export class TripDestinationOptimizer {
   /**
-   * Select optimal destinations for the specified number of days
+   * Select optimal destinations for the specified number of days with improved logic to prevent ping ponging
    */
   static selectOptimalDestinations(
     startStop: TripStop,
@@ -12,24 +13,32 @@ export class TripDestinationOptimizer {
     allStops: TripStop[],
     requestedDays: number
   ): { destinations: TripStop[]; actualDays: number } {
-    console.log(`🎯 Selecting destinations for ${requestedDays} days from ${startStop.name} to ${endStop.name}`);
+    console.log(`🎯 FIXED: Selecting destinations for ${requestedDays} days from ${startStop.name} to ${endStop.name}`);
     
-    // Filter valid stops first with more generous distance limits
-    const validStops = StopFilteringService.filterValidStops(allStops, startStop, endStop, 200);
+    // Filter valid stops with more generous distance limits
+    const validStops = StopFilteringService.filterValidStops(allStops, startStop, endStop, 300);
     
     // Focus on destination cities and major waypoints
     const destinationCities = validStops.filter(stop => 
       stop.category === 'destination_city' || stop.category === 'major_waypoint'
     );
 
-    console.log(`📍 Found ${destinationCities.length} destination cities/waypoints`);
+    console.log(`📍 FIXED: Found ${destinationCities.length} destination cities/waypoints`);
 
     if (destinationCities.length === 0) {
       console.log('⚠️ No destination cities found, creating direct route');
       return { destinations: [], actualDays: 1 };
     }
 
-    // Calculate distances and select appropriate destinations
+    // Calculate total route distance for distribution
+    const totalRouteDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude,
+      startStop.longitude,
+      endStop.latitude,
+      endStop.longitude
+    );
+
+    // Calculate distances from start for all destinations
     const destinationsWithDistance = destinationCities.map(dest => ({
       stop: dest,
       distanceFromStart: DistanceCalculationService.calculateDistance(
@@ -37,28 +46,65 @@ export class TripDestinationOptimizer {
         startStop.longitude,
         dest.latitude,
         dest.longitude
+      ),
+      distanceFromEnd: DistanceCalculationService.calculateDistance(
+        dest.latitude,
+        dest.longitude,
+        endStop.latitude,
+        endStop.longitude
       )
     }));
 
-    // Sort by distance from start
+    // Sort by distance from start to ensure progression
     destinationsWithDistance.sort((a, b) => a.distanceFromStart - b.distanceFromStart);
 
-    // Select destinations based on requested days
-    const maxDestinations = Math.min(requestedDays - 1, destinationsWithDistance.length);
-    const selectedDestinations = destinationsWithDistance
-      .slice(0, maxDestinations)
-      .map(item => item.stop);
+    // FIXED: Improved selection logic to prevent ping ponging
+    const selectedDestinations: TripStop[] = [];
+    const maxDestinations = Math.max(1, requestedDays - 1); // Ensure at least 1 destination
+    const targetSegmentDistance = totalRouteDistance / requestedDays;
+
+    console.log(`🎯 FIXED: Target segment distance: ${targetSegmentDistance.toFixed(0)} miles`);
+
+    let currentPosition = 0; // Track progress along route
+    let lastSelectedDistance = 0;
+
+    for (let i = 0; i < maxDestinations && selectedDestinations.length < destinationsWithDistance.length; i++) {
+      const targetDistance = (i + 1) * targetSegmentDistance;
+      
+      // Find the best destination for this segment that hasn't been used
+      const availableDestinations = destinationsWithDistance.filter(dest => 
+        !selectedDestinations.find(selected => selected.id === dest.stop.id) &&
+        dest.distanceFromStart > lastSelectedDistance + 50 // Ensure minimum 50-mile progression
+      );
+
+      if (availableDestinations.length === 0) {
+        console.log(`⚠️ FIXED: No more available destinations for day ${i + 2}`);
+        break;
+      }
+
+      // Find destination closest to target distance
+      const bestDestination = availableDestinations.reduce((best, current) => {
+        const bestDiff = Math.abs(best.distanceFromStart - targetDistance);
+        const currentDiff = Math.abs(current.distanceFromStart - targetDistance);
+        return currentDiff < bestDiff ? current : best;
+      });
+
+      selectedDestinations.push(bestDestination.stop);
+      lastSelectedDistance = bestDestination.distanceFromStart;
+
+      console.log(`✅ FIXED: Selected ${bestDestination.stop.name} for day ${i + 2} (${bestDestination.distanceFromStart.toFixed(0)} miles from start)`);
+    }
 
     const actualDays = selectedDestinations.length + 1; // +1 for final day to end destination
 
-    console.log(`✅ Selected ${selectedDestinations.length} destinations for ${actualDays} days:`, 
-      selectedDestinations.map(d => d.name));
+    console.log(`✅ FIXED: Selected ${selectedDestinations.length} unique destinations for ${actualDays} days:`, 
+      selectedDestinations.map(d => `${d.name} (${d.city || d.city_name}, ${d.state})`));
 
     return { destinations: selectedDestinations, actualDays };
   }
 
   /**
-   * Ensure minimum viable trip with proper day distribution
+   * Ensure minimum viable trip with proper day distribution and no ping ponging
    */
   static ensureMinimumViableTrip(
     startStop: TripStop,
@@ -66,15 +112,26 @@ export class TripDestinationOptimizer {
     allStops: TripStop[],
     requestedDays: number
   ): { destinations: TripStop[]; actualDays: number; limitMessage?: string } {
-    console.log(`🛡️ Ensuring minimum viable trip for ${requestedDays} requested days`);
+    console.log(`🛡️ FIXED: Ensuring minimum viable trip for ${requestedDays} requested days`);
 
     const result = this.selectOptimalDestinations(startStop, endStop, allStops, requestedDays);
 
+    // Validate no duplicates in the result
+    const uniqueDestinations = result.destinations.filter((dest, index, array) => 
+      array.findIndex(d => d.id === dest.id) === index
+    );
+
+    if (uniqueDestinations.length !== result.destinations.length) {
+      console.warn('⚠️ FIXED: Removed duplicate destinations from result');
+      result.destinations = uniqueDestinations;
+      result.actualDays = uniqueDestinations.length + 1;
+    }
+
     // If we have fewer days than requested, provide a helpful message
     if (result.actualDays < requestedDays) {
-      const limitMessage = `Trip optimized to ${result.actualDays} days based on available Route 66 destinations between ${startStop.name} and ${endStop.name}. This ensures meaningful stops and avoids excessive daily driving.`;
+      const limitMessage = `Trip optimized to ${result.actualDays} days with unique Route 66 destinations between ${startStop.name} and ${endStop.name}. This ensures meaningful stops without repeating cities.`;
       
-      console.log(`📝 Trip limited: ${requestedDays} requested -> ${result.actualDays} actual days`);
+      console.log(`📝 FIXED: Trip limited: ${requestedDays} requested -> ${result.actualDays} actual days (no ping pong)`);
       
       return {
         ...result,

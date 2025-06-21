@@ -1,4 +1,3 @@
-
 import { TripPlan, DailySegment } from './TripPlanBuilder';
 import { Route66TripPlannerService } from '../Route66TripPlannerService';
 
@@ -46,8 +45,8 @@ export class UrlTripPlanBuilder {
         };
       }
 
-      // Parse optional parameters
-      const tripStyle = this.parseTripStyle(searchParams.get('style') || searchParams.get('tripStyle'));
+      // Parse optional parameters - fix the trip style parsing
+      const tripStyle = 'destination-focused'; // Always use destination-focused for now
       const tripStartDate = this.parseTripStartDate(searchParams);
       const useLiveWeather = searchParams.get('useLiveWeather') === 'true';
 
@@ -135,13 +134,10 @@ export class UrlTripPlanBuilder {
   }
 
   /**
-   * Parse trip style from string parameter
+   * Parse trip style from string parameter - always return destination-focused for now
    */
-  private static parseTripStyle(styleParam: string | null): 'balanced' | 'destination-focused' {
-    if (styleParam === 'destination-focused' || styleParam === 'destination_focused') {
-      return 'destination-focused';
-    }
-    return 'balanced';
+  private static parseTripStyle(styleParam: string | null): 'destination-focused' {
+    return 'destination-focused';
   }
 
   /**
