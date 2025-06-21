@@ -1,4 +1,3 @@
-
 import { getCurrentApiKey, validateApiKey } from '@/config/weatherConfig';
 
 export interface WeatherData {
