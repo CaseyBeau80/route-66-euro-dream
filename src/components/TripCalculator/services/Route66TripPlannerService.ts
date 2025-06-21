@@ -1,4 +1,3 @@
-
 import { TripPlan } from './planning/TripPlanTypes';
 import { EvenPacingPlanningService } from './planning/EvenPacingPlanningService';
 import { HeritageCitiesPlanningService } from './planning/HeritageCitiesPlanningService';
@@ -28,7 +27,7 @@ export class Route66TripPlannerService {
     startLocation: string,
     endLocation: string,
     travelDays: number,
-    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
+    tripStyle: 'destination-focused' = 'destination-focused'
   ): Promise<EnhancedTripPlanResult> {
     console.log(`🚗 ENHANCED TRIP PLANNING: ${startLocation} → ${endLocation}, ${travelDays} days, ${tripStyle} style`);
 
@@ -165,7 +164,7 @@ export class Route66TripPlannerService {
     startLocation: string,
     endLocation: string,
     travelDays: number,
-    tripStyle: 'balanced' | 'destination-focused'
+    tripStyle: 'destination-focused'
   ): Promise<TripPlan> {
     const result = await this.planTripWithAnalysis(startLocation, endLocation, travelDays, tripStyle);
     if (!result.tripPlan) {
