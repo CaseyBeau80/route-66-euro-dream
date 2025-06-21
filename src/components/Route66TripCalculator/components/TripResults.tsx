@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
@@ -5,12 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
 import UnifiedWeatherWidget from '../../TripCalculator/components/weather/UnifiedWeatherWidget';
-import SimpleShareButton from './SimpleShareButton';
-import SimpleTripShareButton from './SimpleTripShareButton';
+import SimpleShareButton from '../../TripCalculator/components/share/SimpleShareButton';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
-import ShareTripModal from '../../TripCalculator/components/share/ShareTripModal';
-import ShareTripButton from '../../TripCalculator/components/share/ShareTripButton';
 
 interface TripResultsProps {
   tripPlan: TripPlan;
@@ -27,9 +25,6 @@ const TripResults: React.FC<TripResultsProps> = ({
   originalRequestedDays,
   onShareTrip
 }) => {
-  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false);
-  const [shareUrl, setShareUrl] = React.useState<string | null>(null);
-
   const {
     costEstimate
   } = useCostEstimator(tripPlan);
@@ -107,12 +102,14 @@ const TripResults: React.FC<TripResultsProps> = ({
         />
       )}
 
-      {/* SUPER PROMINENT Share Button at the very top */}
+      {/* PROMINENT Share Button at the very top */}
       <div className="flex justify-center mb-8">
-        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-2 rounded-2xl shadow-2xl animate-pulse">
-          <SimpleTripShareButton
-            tripTitle={tripTitle}
-            className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-16 py-8 text-3xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 border-0 rounded-xl transform hover:scale-105"
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1 rounded-xl shadow-2xl">
+          <SimpleShareButton
+            title={tripTitle}
+            variant="outline"
+            size="lg"
+            className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-12 py-6 text-xl font-bold shadow-xl border-0 rounded-lg"
           />
         </div>
       </div>
@@ -160,12 +157,11 @@ const TripResults: React.FC<TripResultsProps> = ({
           </h3>
           
           {/* Another Share Button in section header */}
-          <ShareTripButton
-            tripTitle={tripTitle}
+          <SimpleShareButton
+            title={tripTitle}
             variant="outline"
             size="default"
-            className="border-2 border-blue-500 text-blue-700 hover:bg-blue-50 px-6 py-2 font-semibold"
-            showText={true}
+            className="border-2 border-blue-500 text-blue-700 hover:bg-blue-50"
           />
         </div>
         
@@ -229,45 +225,32 @@ const TripResults: React.FC<TripResultsProps> = ({
         ))}
       </div>
 
-      {/* MASSIVE Share Section at the bottom */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-4 border-blue-300 rounded-2xl p-12 text-center shadow-2xl">
+      {/* LARGE Share Section at the bottom */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-4 border-blue-300 rounded-2xl p-8 text-center shadow-xl">
         <div className="flex justify-center items-center gap-4 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center animate-bounce">
-            <Share2 className="w-8 h-8 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <Share2 className="w-6 h-6 text-white" />
           </div>
-          <h3 className="text-4xl font-bold text-gray-800">
+          <h3 className="text-3xl font-bold text-gray-800">
             Share Your Route 66 Adventure!
           </h3>
         </div>
         
-        <p className="text-gray-700 mb-8 text-xl max-w-3xl mx-auto font-medium">
+        <p className="text-gray-700 mb-6 text-lg max-w-2xl mx-auto">
           Love this trip plan? Share it with friends and family! They'll get the complete itinerary with weather forecasts and attractions.
         </p>
         
-        <SimpleTripShareButton
-          tripTitle={tripTitle}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-16 py-8 rounded-2xl font-bold text-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110"
+        <SimpleShareButton
+          title={tripTitle}
+          variant="default"
+          size="lg"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 rounded-xl font-bold text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105"
         />
         
-        <p className="text-lg text-gray-600 mt-6 font-medium">
+        <p className="text-gray-600 mt-4">
           🎯 Click above to copy your shareable trip link!
         </p>
       </div>
-
-      {/* Share Modal */}
-      <ShareTripModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        tripPlan={tripPlan}
-        tripStartDate={validTripStartDate}
-        shareUrl={shareUrl}
-        onShareUrlGenerated={(shareCode, newShareUrl) => {
-          setShareUrl(newShareUrl);
-          if (onShareTrip) {
-            onShareTrip();
-          }
-        }}
-      />
     </div>
   );
 };

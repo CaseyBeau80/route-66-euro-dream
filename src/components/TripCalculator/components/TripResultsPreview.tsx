@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Calendar, Clock, DollarSign, Route } from 'lucide-react';
@@ -7,7 +6,7 @@ import { useCostEstimator } from '../hooks/useCostEstimator';
 import { useUnits } from '@/contexts/UnitContext';
 import { format, addDays } from 'date-fns';
 import PreviewDailyItinerary from './PreviewDailyItinerary';
-import ShareTripButton from './share/ShareTripButton';
+import SimpleShareButton from './share/SimpleShareButton';
 
 interface TripResultsPreviewProps {
   tripPlan: TripPlan;
@@ -59,14 +58,13 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* PROMINENT Share Button at the very top */}
-      <div className="flex justify-end mb-4">
-        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl animate-pulse">
-          <ShareTripButton
-            tripTitle={tripTitle}
-            variant="default"
+      <div className="flex justify-center mb-6">
+        <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 p-1 rounded-xl shadow-2xl">
+          <SimpleShareButton
+            title={tripTitle}
+            variant="outline"
             size="lg"
-            className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-8 py-4 text-xl font-bold shadow-xl hover:shadow-2xl transition-all duration-300 border-0"
-            showText={true}
+            className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-10 py-4 text-xl font-bold shadow-xl border-0 rounded-lg"
           />
         </div>
       </div>
@@ -89,13 +87,12 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
                 </div>
               </div>
               
-              {/* Another Share Button in Header */}
-              <ShareTripButton
-                tripTitle={tripTitle}
-                variant="ghost"
+              {/* Share Button in Header */}
+              <SimpleShareButton
+                title={tripTitle}
+                variant="outline"
                 size="default"
-                className="text-white hover:bg-white/20 border-2 border-white/30 bg-white/10 px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                showText={true}
+                className="text-white hover:bg-white/20 border-2 border-white/30 bg-white/10"
               />
             </div>
             
@@ -169,12 +166,11 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
           <div className="mt-8 pt-6 border-t border-blue-100 text-center">
             <div className="mb-3">
               <p className="text-blue-700 font-medium mb-3">Love this trip plan?</p>
-              <ShareTripButton
-                tripTitle={tripTitle}
+              <SimpleShareButton
+                title={tripTitle}
                 variant="default"
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                showText={true}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl"
               />
             </div>
             <p className="text-sm text-blue-600 mt-3">Share your Route 66 adventure with friends and family!</p>
@@ -196,12 +192,11 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             </div>
             
             {/* Share Button in Itinerary Header */}
-            <ShareTripButton
-              tripTitle={tripTitle}
-              variant="ghost"
+            <SimpleShareButton
+              title={tripTitle}
+              variant="outline"
               size="sm"
               className="text-white hover:bg-white/20 border border-white/30"
-              showText={false}
             />
           </div>
         </CardHeader>
