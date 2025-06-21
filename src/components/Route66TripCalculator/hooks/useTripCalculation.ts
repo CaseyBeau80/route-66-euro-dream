@@ -186,7 +186,7 @@ export const useTripCalculation = () => {
           errorMessage += ` Try destinations like: Amarillo TX, Albuquerque NM, Flagstaff AZ, Kingman AZ, Barstow CA, or Los Angeles CA.`;
         }
       } else if (errorMessage.includes('insufficient')) {
-        errorMessage = `Not enough Route 66 destinations for a ${adjustedTravelDays || dataToUse.travelDays} day trip between these locations. Try reducing days or selecting cities farther apart.`;
+        errorMessage = `Not enough Route 66 destinations for a ${dataToUse.travelDays} day trip between these locations. Try reducing days or selecting cities farther apart.`;
       }
       
       toast({
