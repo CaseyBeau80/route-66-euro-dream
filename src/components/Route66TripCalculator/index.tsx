@@ -1,154 +1,175 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { TripFormData } from '../TripCalculator/types/tripCalculator';
+import Route66TripForm from './components/Route66TripForm';
+import TripCalculatorResults from '../TripCalculator/components/TripCalculatorResults';
+import { Route66TripPlannerService, TripPlan } from '../TripCalculator/services/Route66TripPlannerService';
+import { TripCompletionService, TripCompletionAnalysis } from '../TripCalculator/services/planning/TripCompletionService';
 import { toast } from '@/hooks/use-toast';
-import { useTripCalculation } from './hooks/useTripCalculation';
-import TripCalculatorForm from '../TripCalculator/components/TripCalculatorForm';
-import TripCalculatorResults from '../TripCalculator/TripCalculatorResults';
-import GoogleMapsApiInput from '../TripCalculator/components/GoogleMapsApiInput';
-import DistanceCalculationProgress from '../TripCalculator/components/DistanceCalculationProgress';
-import { GoogleMapsIntegrationService } from '../TripCalculator/services/GoogleMapsIntegrationService';
+import ShareTripModal from '../TripCalculator/components/ShareTripModal';
 
 const Route66TripCalculator: React.FC = () => {
-  const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip } = useTripCalculation();
-  const [hasGoogleMapsApi, setHasGoogleMapsApi] = useState(false);
-  const [calculationProgress, setCalculationProgress] = useState({
-    isVisible: false,
-    current: 0,
-    total: 0,
-    currentSegment: '',
-    accuracy: 'estimated'
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tripStartDate, setTripStartDate] = useState<Date>(new Date());
+  const [completionAnalysis, setCompletionAnalysis] = useState<TripCompletionAnalysis | null>(null);
+  const [originalRequestedDays, setOriginalRequestedDays] = useState<number | undefined>();
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
+  // Load trip from URL parameters on mount
   useEffect(() => {
-    // Check if Google Maps API is already configured
-    setHasGoogleMapsApi(GoogleMapsIntegrationService.isAvailable());
-  }, []);
+    const startLocation = searchParams.get('startLocation');
+    const endLocation = searchParams.get('endLocation');
+    const travelDays = searchParams.get('travelDays');
+    const tripStartParam = searchParams.get('tripStartDate');
 
-  const handleApiKeySet = useCallback((hasKey: boolean) => {
-    setHasGoogleMapsApi(hasKey);
-    if (hasKey) {
-      console.log('🗺️ Google Maps API connected - enhanced accuracy enabled');
-      // Clear cache when API key changes
-      GoogleMapsIntegrationService.clearCache();
-    } else {
-      console.log('📐 Google Maps API disconnected - using estimated calculations');
+    if (startLocation && endLocation && travelDays) {
+      const days = parseInt(travelDays, 10);
+      if (!isNaN(days)) {
+        if (tripStartParam) {
+          const startDate = new Date(tripStartParam);
+          if (!isNaN(startDate.getTime())) {
+            setTripStartDate(startDate);
+          }
+        }
+        
+        handleTripCalculation(startLocation, endLocation, days);
+      }
     }
-  }, []);
+  }, [searchParams]);
 
-  const handleCalculateTrip = useCallback(async (formData: TripFormData) => {
-    console.log('🚗 Starting enhanced trip calculation with Google Maps integration:', {
-      hasGoogleMapsApi,
-      formData
-    });
-
-    // Show progress indicator
-    setCalculationProgress({
-      isVisible: true,
-      current: 0,
-      total: formData.travelDays || 1,
-      currentSegment: `${formData.startLocation} → ${formData.endLocation}`,
-      accuracy: hasGoogleMapsApi ? 'high' : 'estimated'
-    });
+  const handleTripCalculation = useCallback(async (
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+  ) => {
+    setLoading(true);
+    setError(null);
+    setOriginalRequestedDays(travelDays);
 
     try {
-      // Start the trip calculation with progress tracking
-      await calculateTrip(formData, (current: number, total: number, currentSegment?: string) => {
-        setCalculationProgress(prev => ({
-          ...prev,
-          current,
-          total,
-          currentSegment: currentSegment || prev.currentSegment
-        }));
+      console.log('🚗 Route66TripCalculator: Planning trip with params:', {
+        startLocation,
+        endLocation,
+        travelDays,
+        tripStyle,
+        tripStartDate: tripStartDate.toISOString()
       });
-      
-      // Hide progress after completion
-      setTimeout(() => {
-        setCalculationProgress(prev => ({ ...prev, isVisible: false }));
-      }, 1000);
-      
-    } catch (error) {
-      console.error('❌ Enhanced trip calculation failed:', error);
-      setCalculationProgress(prev => ({ ...prev, isVisible: false }));
-    }
-  }, [calculateTrip, hasGoogleMapsApi]);
 
-  const handleResetTrip = useCallback(() => {
-    resetTrip();
-    setCalculationProgress({
-      isVisible: false,
-      current: 0,
-      total: 0,
-      currentSegment: '',
-      accuracy: 'estimated'
+      const result = await Route66TripPlannerService.planTrip(
+        startLocation,
+        endLocation,
+        travelDays,
+        tripStyle
+      );
+
+      console.log('✅ Route66TripCalculator: Trip planned successfully:', {
+        title: result.title,
+        segments: result.segments.length,
+        totalDistance: result.totalDistance
+      });
+
+      // Analyze trip completion
+      const analysis = TripCompletionService.analyzeTripCompletion(result, travelDays);
+      setCompletionAnalysis(analysis);
+
+      setTripPlan(result);
+
+      // Update URL parameters
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('startLocation', startLocation);
+      newParams.set('endLocation', endLocation);
+      newParams.set('travelDays', travelDays.toString());
+      newParams.set('tripStartDate', tripStartDate.toISOString());
+      setSearchParams(newParams, { replace: true });
+
+      toast({
+        title: "Trip Planned Successfully! 🎉",
+        description: `Your ${travelDays}-day Route 66 adventure from ${startLocation} to ${endLocation} is ready!`,
+        variant: "default"
+      });
+
+    } catch (err) {
+      console.error('❌ Route66TripCalculator: Error planning trip:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to plan trip';
+      setError(errorMessage);
+      
+      toast({
+        title: "Planning Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [tripStartDate, searchParams, setSearchParams]);
+
+  const handleShareTrip = useCallback(() => {
+    if (tripPlan) {
+      setIsShareModalOpen(true);
+    } else {
+      toast({
+        title: "No Trip to Share",
+        description: "Please create a trip plan first before sharing.",
+        variant: "destructive"
+      });
+    }
+  }, [tripPlan]);
+
+  const handleShareUrlGenerated = useCallback((shareCode: string, generatedShareUrl: string) => {
+    setShareUrl(generatedShareUrl);
+    console.log('📤 Route66TripCalculator: Share URL generated:', {
+      shareCode,
+      shareUrl: generatedShareUrl
     });
-  }, [resetTrip]);
+  }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Google Maps API Configuration */}
-      <GoogleMapsApiInput 
-        onApiKeySet={handleApiKeySet}
-        className="mb-4"
-      />
-
-      {/* Trip Calculation Progress */}
-      <DistanceCalculationProgress {...calculationProgress} />
-
+    <div className="space-y-8">
       {/* Trip Planning Form */}
-      <Card className="vintage-paper-texture border-2 border-route66-vintage-brown">
-        <CardHeader className="bg-gradient-to-r from-route66-orange to-route66-vintage-yellow text-white">
-          <CardTitle className="font-route66 text-xl text-center flex items-center justify-center gap-2">
-            🛣️ ROUTE 66 TRIP PLANNER
-            {hasGoogleMapsApi && (
-              <span className="text-sm bg-green-500 text-white px-2 py-1 rounded-full">
-                🗺️ Enhanced
-              </span>
-            )}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center text-route66-primary">
+            🛣️ Plan Your Route 66 Adventure
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {!tripPlan ? (
-              <>
-                <TripCalculatorForm 
-                  onCalculate={handleCalculateTrip} 
-                  isCalculating={isCalculating}
-                />
-                
-                {/* Accuracy Notice */}
-                <div className="text-center text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                  {hasGoogleMapsApi ? (
-                    <p>✅ <strong>Enhanced Accuracy:</strong> Using Google Maps for precise distance and drive time calculations</p>
-                  ) : (
-                    <p>📊 <strong>Estimated Calculations:</strong> Connect Google Maps API above for enhanced accuracy</p>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="text-center space-y-4">
-                <Button 
-                  onClick={handleResetTrip}
-                  variant="outline"
-                  className="font-travel"
-                >
-                  🔄 Plan Another Trip
-                </Button>
-              </div>
-            )}
-          </div>
+        <CardContent>
+          <Route66TripForm
+            onTripCalculation={handleTripCalculation}
+            loading={loading}
+            tripStartDate={tripStartDate}
+            onTripStartDateChange={setTripStartDate}
+            error={error}
+            onClearError={() => setError(null)}
+          />
         </CardContent>
       </Card>
 
       {/* Trip Results */}
-      {tripPlan && planningResult && (
-        <TripCalculatorResults 
+      <TripCalculatorResults
+        tripPlan={tripPlan}
+        calculation={null}
+        shareUrl={shareUrl}
+        tripStartDate={tripStartDate}
+        completionAnalysis={completionAnalysis}
+        originalRequestedDays={originalRequestedDays}
+        onShareTrip={handleShareTrip}
+      />
+
+      {/* Share Modal */}
+      {tripPlan && (
+        <ShareTripModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
           tripPlan={tripPlan}
-          tripStartDate={planningResult.debugInfo?.tripStartDate}
-          completionAnalysis={planningResult.completionAnalysis}
-          originalRequestedDays={planningResult.originalRequestedDays}
+          tripStartDate={tripStartDate}
+          shareUrl={shareUrl}
+          onShareUrlGenerated={handleShareUrlGenerated}
         />
       )}
     </div>

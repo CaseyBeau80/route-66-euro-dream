@@ -2,7 +2,7 @@
 import React from 'react';
 import { TripPlan } from '../services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../services/planning/TripCompletionService';
-import EnhancedTripResults from '@/components/Route66TripCalculator/components/TripResults';
+import TripResultsPreview from './TripResultsPreview';
 
 interface TripCalculatorResultsProps {
   tripPlan: TripPlan | null;
@@ -62,12 +62,9 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
 
   return (
     <div className="space-y-6">
-      <EnhancedTripResults
+      <TripResultsPreview
         tripPlan={tripPlan}
         tripStartDate={validTripStartDate}
-        completionAnalysis={completionAnalysis}
-        originalRequestedDays={originalRequestedDays}
-        onShareTrip={onShareTrip}
       />
     </div>
   );
