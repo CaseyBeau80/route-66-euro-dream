@@ -29,45 +29,12 @@ const TripResults: React.FC<TripResultsProps> = ({
     costEstimate
   } = useCostEstimator(tripPlan);
 
-  // UNIFIED: Ensure we always have a valid trip start date with comprehensive validation
-  const effectiveTripStartDate = React.useMemo(() => {
-    if (tripStartDate && !isNaN(tripStartDate.getTime())) {
-      // Normalize to prevent timezone drift
-      const normalized = new Date(
-        tripStartDate.getFullYear(),
-        tripStartDate.getMonth(),
-        tripStartDate.getDate(),
-        12, 0, 0, 0
-      );
-      console.log('✅ UNIFIED TripResults: Using provided tripStartDate:', {
-        original: tripStartDate.toISOString(),
-        normalized: normalized.toISOString(),
-        originalLocal: tripStartDate.toLocaleDateString(),
-        normalizedLocal: normalized.toLocaleDateString()
-      });
-      return normalized;
-    }
-    
-    // Use today as fallback with proper normalization
-    const today = new Date();
-    const normalizedToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0, 0);
-    console.log('🔄 UNIFIED TripResults: Using today as fallback:', {
-      today: today.toISOString(),
-      normalized: normalizedToday.toISOString(),
-      todayLocal: today.toLocaleDateString(),
-      normalizedLocal: normalizedToday.toLocaleDateString()
-    });
-    return normalizedToday;
-  }, [tripStartDate]);
-
-  console.log('📊 UNIFIED TripResults rendering:', {
-    tripPlan: !!tripPlan,
-    segmentCount: tripPlan?.segments?.length,
-    effectiveTripStartDate: effectiveTripStartDate.toISOString(),
-    effectiveTripStartLocal: effectiveTripStartDate.toLocaleDateString(),
-    hasCostEstimate: !!costEstimate,
-    totalCost: costEstimate?.breakdown?.totalCost,
-    unifiedWeatherSystem: true
+  console.log('📊 TripResults rendering with trip start date:', {
+    hasTripPlan: !!tripPlan,
+    tripStartDate: tripStartDate?.toISOString(),
+    tripStartDateLocal: tripStartDate?.toLocaleDateString(),
+    tripStartDateValid: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+    segmentCount: tripPlan?.segments?.length
   });
 
   if (!tripPlan) {
@@ -138,7 +105,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         </div>
       </div>
 
-      {/* Daily Segments with UNIFIED Weather */}
+      {/* Daily Segments with Weather */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-route66-primary mb-4">
           Daily Itinerary with Weather Forecasts
@@ -176,11 +143,11 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* UNIFIED Weather Widget */}
+            {/* FIXED: Pass tripStartDate directly to weather widget */}
             <div className="mb-4">
               <UnifiedWeatherWidget 
                 segment={segment} 
-                tripStartDate={effectiveTripStartDate}
+                tripStartDate={tripStartDate}
               />
             </div>
 
@@ -216,7 +183,7 @@ const TripResults: React.FC<TripResultsProps> = ({
         <div className="flex justify-center">
           <SimpleShareButton 
             tripPlan={tripPlan}
-            tripStartDate={effectiveTripStartDate}
+            tripStartDate={tripStartDate}
           />
         </div>
         
