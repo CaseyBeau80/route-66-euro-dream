@@ -28,7 +28,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   onShareTrip,
   onDateRequired
 }) => {
-  // CRITICAL FIX: Provide default date logic with user guidance
+  // IMPROVED: Provide smart default date logic with better UX
   const getEffectiveStartDate = React.useMemo(() => {
     if (tripStartDate instanceof Date && !isNaN(tripStartDate.getTime())) {
       console.log('✅ TripCalculatorResults: Using provided valid tripStartDate:', {
@@ -38,25 +38,20 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
       return tripStartDate;
     }
 
-    // Don't auto-assign a date - instead guide user to set one
-    console.log('⚠️ TripCalculatorResults: No valid start date provided, requiring user input');
-    return null;
+    // Auto-assign today as default with user-friendly messaging
+    const today = new Date();
+    today.setHours(12, 0, 0, 0); // Normalize to noon
+    console.log('🔄 TripCalculatorResults: Auto-assigning today as default start date:', {
+      defaultDate: today.toISOString(),
+      reason: tripStartDate ? 'invalid_date_provided' : 'no_date_provided'
+    });
+    return today;
   }, [tripStartDate]);
 
-  const hasValidStartDate = getEffectiveStartDate !== null;
+  const hasExplicitStartDate = tripStartDate instanceof Date && !isNaN(tripStartDate.getTime());
 
-  // Enhanced share handler with date validation
+  // Enhanced share handler
   const handleShare = async () => {
-    if (!hasValidStartDate && onDateRequired) {
-      toast({
-        title: "Start Date Required",
-        description: "Please set your trip start date first to enable full sharing and calendar features.",
-        variant: "default"
-      });
-      onDateRequired();
-      return;
-    }
-
     try {
       const currentUrl = window.location.href;
       await navigator.clipboard.writeText(currentUrl);
@@ -76,15 +71,12 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     }
   };
 
-  // DEBUG: Log what we're receiving
+  // DEBUG: Log what we're rendering
   console.log('🎯 TripCalculatorResults: Component state debug:', {
     hasTripPlan: !!tripPlan,
-    tripPlanType: typeof tripPlan,
-    tripPlanTitle: tripPlan?.title || 'no title',
-    tripPlanSegments: tripPlan?.segments?.length || 0,
-    hasValidStartDate,
+    hasExplicitStartDate,
     effectiveStartDate: getEffectiveStartDate?.toISOString() || 'null',
-    componentWillRender: !!tripPlan ? 'TripResultsPreview' : 'empty state'
+    willAutoAssignDate: !hasExplicitStartDate
   });
 
   if (!tripPlan) {
@@ -98,48 +90,45 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     );
   }
 
-  console.log('✅ TripCalculatorResults: Rendering trip plan with enhanced sharing');
+  console.log('✅ TripCalculatorResults: Rendering trip plan with smart date handling');
 
   return (
     <div className="space-y-6">
-      {/* Date Requirement Notice - Show prominently if no valid start date */}
-      {!hasValidStartDate && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-6 rounded-xl shadow-sm">
+      {/* Smart Date Notice - Only show if using auto-assigned date */}
+      {!hasExplicitStartDate && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 p-6 rounded-xl shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-amber-500 rounded-full p-2">
+            <div className="bg-blue-500 rounded-full p-2">
               <Calendar className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-amber-800">Start Date Required</h3>
-              <p className="text-sm text-amber-700">Set your trip start date to unlock calendar export and enhanced sharing features</p>
+              <h3 className="text-lg font-semibold text-blue-800">📅 Trip Start Date</h3>
+              <p className="text-sm text-blue-700">Using today's date as your trip start</p>
             </div>
           </div>
           
-          <div className="bg-white/70 rounded-lg p-4 border border-amber-200">
-            <p className="text-sm text-amber-800 mb-3">
-              📅 <strong>Why do I need a start date?</strong>
+          <div className="bg-white/70 rounded-lg p-4 border border-blue-200 mb-4">
+            <p className="text-sm text-blue-800 mb-2">
+              <strong>Current start date:</strong> {getEffectiveStartDate.toLocaleDateString()}
             </p>
-            <ul className="text-xs text-amber-700 space-y-1 ml-4">
-              <li>• Enable calendar export to Google Calendar or iCalendar</li>
-              <li>• Provide accurate weather forecasts for each destination</li>
-              <li>• Create shareable itinerary with specific dates</li>
-              <li>• Optimize timing for seasonal attractions and events</li>
-            </ul>
+            <p className="text-xs text-blue-700">
+              Weather forecasts and calendar exports are calculated from this date. You can customize it anytime!
+            </p>
           </div>
 
           {onDateRequired && (
             <Button
               onClick={onDateRequired}
-              className="mt-4 bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
             >
               <Calendar className="w-4 h-4 mr-2" />
-              Set Start Date Now
+              Choose Different Start Date
             </Button>
           )}
         </div>
       )}
 
-      {/* Enhanced Share Section */}
+      {/* Enhanced Share Section - Always functional */}
       <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 p-3 rounded-2xl shadow-2xl mb-6">
         <div className="bg-white rounded-xl p-8 text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-6">🎯 SHARE YOUR TRIP 🎯</h2>
@@ -152,10 +141,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
             SHARE THIS TRIP NOW!
           </Button>
           <p className="text-gray-600 mt-6 text-xl font-bold">
-            {hasValidStartDate 
-              ? "Click above to copy your shareable trip link!" 
-              : "Set your start date first to unlock full sharing features!"
-            }
+            Click above to copy your shareable trip link!
           </p>
         </div>
       </div>
@@ -180,11 +166,9 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
           <p className="text-gray-600 mt-6 text-xl font-bold">
             Share your Route 66 adventure with friends and family!
           </p>
-          {!hasValidStartDate && (
-            <p className="text-amber-600 mt-2 text-sm font-semibold">
-              ⚠️ Calendar export available after setting start date
-            </p>
-          )}
+          <p className="text-green-600 mt-2 text-sm font-semibold">
+            ✅ Calendar export ready with {hasExplicitStartDate ? 'your chosen' : 'auto-assigned'} start date
+          </p>
         </div>
       </div>
     </div>
