@@ -1,4 +1,3 @@
-
 import { PlanningAdjustment } from './PlanningPolicy';
 import { TripAdjustmentNotice } from './TripAdjustmentService';
 
@@ -27,6 +26,10 @@ export interface TripPlan {
   planningAdjustments?: PlanningAdjustment[];
   adjustmentNotice?: TripAdjustmentNotice | null;
   originalRequestedDays?: number;
+  
+  // Validation-related properties
+  validationScore?: number;
+  wasOptimized?: boolean;
   
   // Additional properties used by components
   summary?: {
