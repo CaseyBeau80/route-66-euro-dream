@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { TripPlan } from '../../TripCalculator/services/planning/TripPlanTypes';
 import { TripCompletionAnalysis } from '../../TripCalculator/services/planning/TripCompletionService';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Clock, Route, Share2, DollarSign } from 'lucide-react';
-import SimpleWeatherWidget from './SimpleWeatherWidget';
+import SegmentWeatherWidget from '../../TripCalculator/components/SegmentWeatherWidget';
 import SimpleShareButton from './SimpleShareButton';
 import TripCompletionWarning from '../../TripCalculator/components/TripCompletionWarning';
 import { useCostEstimator } from '../../TripCalculator/hooks/useCostEstimator';
@@ -59,14 +60,14 @@ const TripResults: React.FC<TripResultsProps> = ({
     return normalizedToday;
   }, [tripStartDate]);
 
-  console.log('📊 TripResults rendering with enhanced weather system:', {
+  console.log('📊 TripResults rendering with FIXED weather system:', {
     tripPlan: !!tripPlan,
     segmentCount: tripPlan?.segments?.length,
     effectiveTripStartDate: effectiveTripStartDate.toISOString(),
     effectiveTripStartLocal: effectiveTripStartDate.toLocaleDateString(),
     hasCostEstimate: !!costEstimate,
     totalCost: costEstimate?.breakdown?.totalCost,
-    enhancedWeatherSystem: true
+    fixedWeatherSystem: 'TripCalculator/SegmentWeatherWidget'
   });
 
   if (!tripPlan) {
@@ -137,10 +138,10 @@ const TripResults: React.FC<TripResultsProps> = ({
         </div>
       </div>
 
-      {/* Daily Segments with Enhanced Weather */}
+      {/* Daily Segments with FIXED Weather */}
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-route66-primary mb-4">
-          Daily Itinerary with Enhanced Weather Forecasts
+          Daily Itinerary with Weather Forecasts
         </h3>
         
         {segments.map((segment, index) => (
@@ -175,11 +176,15 @@ const TripResults: React.FC<TripResultsProps> = ({
               </div>
             </div>
 
-            {/* Enhanced Weather Widget */}
+            {/* FIXED Weather Widget - Using TripCalculator's SegmentWeatherWidget */}
             <div className="mb-4">
-              <SimpleWeatherWidget 
+              <SegmentWeatherWidget 
                 segment={segment} 
                 tripStartDate={effectiveTripStartDate}
+                cardIndex={index}
+                sectionKey="enhanced-trip-results"
+                forceExpanded={true}
+                isCollapsible={false}
               />
             </div>
 
