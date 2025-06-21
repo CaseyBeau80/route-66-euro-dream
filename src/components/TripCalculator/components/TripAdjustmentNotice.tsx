@@ -7,21 +7,33 @@ interface TripAdjustmentNoticeProps {
   actualDays: number;
   adjustmentMessage?: string;
   className?: string;
+  // Support for notice object prop for backward compatibility
+  notice?: {
+    originalDays?: number;
+    actualDays: number;
+    adjustmentMessage?: string;
+  };
 }
 
 const TripAdjustmentNotice: React.FC<TripAdjustmentNoticeProps> = ({
   originalDays,
   actualDays,
   adjustmentMessage,
-  className = ''
+  className = '',
+  notice
 }) => {
+  // Use notice object if provided, otherwise use direct props
+  const finalOriginalDays = notice?.originalDays || originalDays;
+  const finalActualDays = notice?.actualDays || actualDays;
+  const finalAdjustmentMessage = notice?.adjustmentMessage || adjustmentMessage;
+
   // Only show if there was an adjustment
-  if (!originalDays || originalDays === actualDays) {
+  if (!finalOriginalDays || finalOriginalDays === finalActualDays) {
     return null;
   }
 
-  const wasReduced = actualDays < originalDays;
-  const difference = Math.abs(originalDays - actualDays);
+  const wasReduced = finalActualDays < finalOriginalDays;
+  const difference = Math.abs(finalOriginalDays - finalActualDays);
 
   return (
     <div className={`bg-blue-50 border border-blue-200 rounded-lg p-4 ${className}`}>
@@ -29,20 +41,20 @@ const TripAdjustmentNotice: React.FC<TripAdjustmentNoticeProps> = ({
         <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
           <h4 className="font-semibold text-blue-800 mb-2">
-            Trip Optimized: {actualDays} Days
+            Trip Optimized: {finalActualDays} Days
           </h4>
           <div className="space-y-2 text-sm text-blue-700">
             <p>
-              <strong>Requested:</strong> {originalDays} days → <strong>Optimized:</strong> {actualDays} days
+              <strong>Requested:</strong> {finalOriginalDays} days → <strong>Optimized:</strong> {finalActualDays} days
               {wasReduced && (
                 <span className="ml-2 text-blue-600">
                   ({difference} day{difference > 1 ? 's' : ''} reduced)
                 </span>
               )}
             </p>
-            {adjustmentMessage && (
+            {finalAdjustmentMessage && (
               <p className="bg-blue-100 rounded p-2 border-l-2 border-blue-300">
-                {adjustmentMessage}
+                {finalAdjustmentMessage}
               </p>
             )}
             <p className="text-xs text-blue-600 italic">

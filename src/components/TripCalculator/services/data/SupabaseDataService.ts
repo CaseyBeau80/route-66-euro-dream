@@ -130,6 +130,52 @@ export class SupabaseDataService {
   }
 
   /**
+   * Find best matching stop by location name
+   */
+  static findBestMatchingStop(locationName: string, allStops: TripStop[]): TripStop | null {
+    console.log(`🔍 Finding best matching stop for: ${locationName}`);
+    
+    const normalizedSearch = locationName.toLowerCase().trim();
+    
+    // Try exact name match first
+    let match = allStops.find(stop => 
+      stop.name.toLowerCase().trim() === normalizedSearch
+    );
+    
+    if (match) {
+      console.log(`✅ Found exact name match: ${match.name}`);
+      return match;
+    }
+    
+    // Try city name match
+    match = allStops.find(stop => 
+      stop.city_name.toLowerCase().trim() === normalizedSearch ||
+      stop.city.toLowerCase().trim() === normalizedSearch
+    );
+    
+    if (match) {
+      console.log(`✅ Found city match: ${match.name} in ${match.city}`);
+      return match;
+    }
+    
+    // Try partial matches
+    match = allStops.find(stop => 
+      stop.name.toLowerCase().includes(normalizedSearch) ||
+      stop.city_name.toLowerCase().includes(normalizedSearch) ||
+      normalizedSearch.includes(stop.name.toLowerCase()) ||
+      normalizedSearch.includes(stop.city_name.toLowerCase())
+    );
+    
+    if (match) {
+      console.log(`✅ Found partial match: ${match.name}`);
+      return match;
+    }
+    
+    console.log(`❌ No matching stop found for: ${locationName}`);
+    return null;
+  }
+
+  /**
    * Get destination cities specifically
    */
   static async getDestinationCities(): Promise<TripStop[]> {

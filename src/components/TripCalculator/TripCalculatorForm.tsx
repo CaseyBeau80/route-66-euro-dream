@@ -85,9 +85,11 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       </div>
 
       {/* Trip Adjustment Notice - Show when trip is planned and adjustments were made */}
-      {tripPlan && tripPlan.adjustmentNotice && (
+      {tripPlan && tripPlan.originalRequestedDays && tripPlan.originalRequestedDays !== tripPlan.totalDays && (
         <TripAdjustmentNotice 
-          notice={tripPlan.adjustmentNotice}
+          originalDays={tripPlan.originalRequestedDays}
+          actualDays={tripPlan.totalDays}
+          adjustmentMessage={tripPlan.limitMessage}
           className="animate-in slide-in-from-top-2 duration-300"
         />
       )}
