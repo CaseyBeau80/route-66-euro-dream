@@ -1,89 +1,138 @@
 
-import { TripPlan } from './TripPlanTypes';
+import { TripPlan, DailySegment } from './TripPlanTypes';
 import { TripStop } from '../../types/TripStop';
+import { SupabaseDataService } from '../data/SupabaseDataService';
+import { StopValidationService } from './StopValidationService';
+import { SegmentDestinationPlanner } from './SegmentDestinationPlanner';
+import { SegmentCreationLoop } from './SegmentCreationLoop';
+import { TripSegmentValidator } from './TripSegmentValidator';
+import { DriveTimeBalancingService } from './DriveTimeBalancingService';
+import { DistanceCalculationService } from '../utils/DistanceCalculationService';
+import { CityDisplayService } from '../utils/CityDisplayService';
 
 export class EvenPacingPlanningService {
+  /**
+   * Plan an evenly-paced Route 66 trip with enhanced validation
+   */
   static async planEvenPacingTrip(
     startLocation: string,
     endLocation: string,
-    travelDays: number,
+    totalDays: number,
     allStops: TripStop[]
   ): Promise<TripPlan> {
-    console.log(`⚖️ Planning Even Pacing trip: ${startLocation} to ${endLocation} in ${travelDays} days`);
+    console.log(`⚖️ EVEN PACING PLANNING: ${startLocation} → ${endLocation}, ${totalDays} days`);
 
-    try {
-      // Find start and end stops
-      const startStop = allStops.find(stop => 
-        stop.name.toLowerCase().includes(startLocation.toLowerCase()) ||
-        stop.city?.toLowerCase().includes(startLocation.toLowerCase())
-      );
-      
-      const endStop = allStops.find(stop => 
-        stop.name.toLowerCase().includes(endLocation.toLowerCase()) ||
-        stop.city?.toLowerCase().includes(endLocation.toLowerCase())
-      );
+    // Find start and end stops
+    const startStop = SupabaseDataService.findBestMatchingStop(startLocation, allStops);
+    const endStop = SupabaseDataService.findBestMatchingStop(endLocation, allStops);
 
-      if (!startStop || !endStop) {
-        throw new Error(`Could not find stops for ${startLocation} or ${endLocation}`);
-      }
-
-      // Calculate total distance (mock calculation)
-      const totalDistance = this.calculateDistance(startStop, endStop);
-      const totalDrivingTime = totalDistance / 55; // Assuming 55 mph average
-
-      // Create the trip plan with all required properties
-      const tripPlan: TripPlan = {
-        id: `even-pacing-${Date.now()}`,
-        title: `${startLocation} to ${endLocation} Route 66 Trip`,
-        startCity: startLocation,
-        endCity: endLocation,
-        startLocation: startLocation,
-        endLocation: endLocation,
-        startDate: new Date(),
-        totalDays: travelDays,
-        totalDistance: totalDistance,
-        totalMiles: Math.round(totalDistance),
-        totalDrivingTime: totalDrivingTime,
-        tripStyle: 'balanced' as const,
-        lastUpdated: new Date(),
-        segments: [], // Will be populated by actual planning logic
-        dailySegments: [], // Will be populated by actual planning logic
-        stops: [startStop, endStop],
-        summary: {
-          totalDays: travelDays,
-          totalDistance: totalDistance,
-          totalDriveTime: totalDrivingTime,
-          startLocation: startLocation,
-          endLocation: endLocation,
-          tripStyle: 'balanced'
-        }
-      };
-
-      console.log(`✅ Even Pacing trip plan created for ${startLocation} to ${endLocation}`);
-      return tripPlan;
-
-    } catch (error) {
-      console.error('❌ Error in Even Pacing trip planning:', error);
-      throw error;
+    if (!startStop || !endStop) {
+      throw new Error(`Could not find Route 66 stops for: ${!startStop ? startLocation : endLocation}`);
     }
-  }
 
-  private static calculateDistance(startStop: TripStop, endStop: TripStop): number {
-    const R = 3959; // Earth's radius in miles
-    const dLat = this.toRad(endStop.latitude - startStop.latitude);
-    const dLon = this.toRad(endStop.longitude - startStop.longitude);
-    
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(this.toRad(startStop.latitude)) * Math.cos(this.toRad(endStop.latitude)) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    
-    return Math.round(distance);
-  }
+    // Calculate total distance
+    const totalDistance = DistanceCalculationService.calculateDistance(
+      startStop.latitude, startStop.longitude,
+      endStop.latitude, endStop.longitude
+    );
 
-  private static toRad(deg: number): number {
-    return deg * (Math.PI / 180);
+    console.log(`📏 Total route distance: ${totalDistance.toFixed(0)} miles`);
+
+    // Get remaining stops (excluding start and end)
+    const remainingStops = StopValidationService.validateAndDeduplicateStops(
+      allStops,
+      startStop,
+      endStop
+    );
+
+    // Select destinations for even pacing
+    const selectedDestinations = SegmentDestinationPlanner.selectDailyDestinations(
+      startStop,
+      endStop,
+      remainingStops,
+      totalDays
+    );
+
+    console.log(`🎯 Selected ${selectedDestinations.length} destinations for ${totalDays} requested days`);
+
+    // Create balanced drive time targets
+    const driveTimeTargets = DriveTimeBalancingService.createBalancedDriveTimeTargets(
+      totalDistance,
+      totalDays
+    );
+
+    const balanceMetrics = DriveTimeBalancingService.calculateDriveTimeBalance(
+      totalDistance,
+      totalDays
+    );
+
+    // Create daily segments
+    const dailySegments = await SegmentCreationLoop.createDailySegments(
+      startStop,
+      selectedDestinations,
+      endStop,
+      remainingStops,
+      totalDistance,
+      driveTimeTargets,
+      balanceMetrics
+    );
+
+    console.log(`📅 Created ${dailySegments.length} daily segments`);
+
+    // ENHANCED VALIDATION: Check for quality issues
+    const validationResult = TripSegmentValidator.validateTripSegments(dailySegments);
+    
+    let finalSegments = dailySegments;
+    let adjustmentMessage: string | undefined;
+    
+    if (!validationResult.isValid && validationResult.shouldTruncate) {
+      console.log(`⚠️ Trip quality issues detected - truncating to ${validationResult.optimalDays} days`);
+      
+      finalSegments = TripSegmentValidator.truncateSegments(dailySegments, validationResult);
+      adjustmentMessage = validationResult.recommendations.join(' ');
+      
+      // Update total days to reflect truncation
+      totalDays = validationResult.optimalDays;
+    }
+
+    // Calculate actual metrics from final segments
+    const actualTotalDistance = finalSegments.reduce((sum, segment) => sum + (segment.distance || 0), 0);
+    const actualTotalDriveTime = finalSegments.reduce((sum, segment) => sum + (segment.driveTimeHours || 0), 0);
+
+    // Create trip plan
+    const tripPlan: TripPlan = {
+      id: `balanced-${Date.now()}`,
+      title: `${startLocation} to ${endLocation} Balanced Adventure`,
+      description: adjustmentMessage ? `${adjustmentMessage} This ${finalSegments.length}-day journey provides evenly-paced daily drives with diverse Route 66 experiences.` : `A ${finalSegments.length}-day journey with evenly-paced daily drives and diverse Route 66 experiences.`,
+      startCity: startLocation,
+      endCity: endLocation,
+      startLocation: CityDisplayService.formatCityDisplay(startStop),
+      endLocation: CityDisplayService.formatCityDisplay(endStop),
+      startDate: new Date(),
+      totalDays: finalSegments.length,
+      totalDistance: actualTotalDistance,
+      totalMiles: Math.round(actualTotalDistance),
+      totalDrivingTime: actualTotalDriveTime,
+      segments: finalSegments,
+      dailySegments: finalSegments,
+      stops: [],
+      tripStyle: 'balanced',
+      lastUpdated: new Date(),
+      
+      // Add truncation/adjustment information
+      ...(adjustmentMessage && {
+        limitMessage: adjustmentMessage,
+        stopsLimited: true,
+        originalRequestedDays: totalDays !== finalSegments.length ? totalDays : undefined
+      })
+    };
+
+    console.log(`✅ Even pacing trip planned: ${finalSegments.length} days, ${Math.round(actualTotalDistance)} miles, ${actualTotalDriveTime.toFixed(1)}h total drive time`);
+    
+    if (adjustmentMessage) {
+      console.log(`📝 Trip adjustment applied: ${adjustmentMessage}`);
+    }
+
+    return tripPlan;
   }
 }

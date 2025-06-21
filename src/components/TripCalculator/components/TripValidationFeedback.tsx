@@ -4,22 +4,40 @@ import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { TripValidationResult, OptimizationSuggestion } from '../services/validation/TripValidationService';
 import TripFeasibilityMeter from './TripFeasibilityMeter';
 import TripOptimizationSuggestions from './TripOptimizationSuggestions';
+import TripAdjustmentNotice from './TripAdjustmentNotice';
 
 interface TripValidationFeedbackProps {
   validation: TripValidationResult;
   onOptimizationClick: (suggestion: OptimizationSuggestion) => void;
   className?: string;
+  // Additional props for showing trip adjustments
+  tripPlan?: {
+    originalRequestedDays?: number;
+    totalDays: number;
+    limitMessage?: string;
+    stopsLimited?: boolean;
+  };
 }
 
 const TripValidationFeedback: React.FC<TripValidationFeedbackProps> = ({
   validation,
   onOptimizationClick,
-  className = ''
+  className = '',
+  tripPlan
 }) => {
   const { isValid, issues, recommendations, canBeOptimized, optimizationSuggestions } = validation;
 
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Trip Adjustment Notice - Show if trip was truncated/adjusted */}
+      {tripPlan?.stopsLimited && tripPlan.originalRequestedDays && (
+        <TripAdjustmentNotice
+          originalDays={tripPlan.originalRequestedDays}
+          actualDays={tripPlan.totalDays}
+          adjustmentMessage={tripPlan.limitMessage}
+        />
+      )}
+
       {/* Feasibility Meter */}
       <TripFeasibilityMeter validation={validation} />
 
