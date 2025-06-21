@@ -38,14 +38,14 @@ export class Route66TripPlannerService {
     };
 
     try {
-      // Load all stops - fix method name
+      // Load all stops from Supabase
       const allStops = await SupabaseDataService.fetchAllStops();
       
       if (!allStops || allStops.length === 0) {
-        throw new Error('No Route 66 stops available');
+        throw new Error('No Route 66 stops available in database');
       }
 
-      console.log(`📍 Loaded ${allStops.length} Route 66 stops`);
+      console.log(`📍 Loaded ${allStops.length} Route 66 stops from Supabase`);
 
       let tripPlan: TripPlan;
 
@@ -67,10 +67,10 @@ export class Route66TripPlannerService {
           allStops
         );
       } else {
-        // Default to Even Pacing for unknown styles
-        console.log(`⚖️ Unknown trip style '${tripStyle}', defaulting to Even Pacing`);
-        warnings.push(`Unknown trip style '${tripStyle}', using Even Pacing instead`);
-        tripPlan = await EvenPacingPlanningService.planEvenPacingTrip(
+        // Default to Heritage Cities for destination-focused experience
+        console.log(`🏛️ Unknown trip style '${tripStyle}', defaulting to Heritage Cities`);
+        warnings.push(`Unknown trip style '${tripStyle}', using Heritage Cities instead`);
+        tripPlan = await HeritageCitiesPlanningService.planHeritageCitiesTrip(
           startLocation,
           endLocation,
           travelDays,
@@ -113,7 +113,7 @@ export class Route66TripPlannerService {
    * Get data source status for debugging
    */
   static getDataSourceStatus(): string {
-    return 'supabase';
+    return 'supabase_live';
   }
 
   /**
@@ -124,12 +124,12 @@ export class Route66TripPlannerService {
   }
 
   /**
-   * Get destination cities count
+   * Get destination cities count from live database
    */
   static async getDestinationCitiesCount(): Promise<number> {
     try {
-      const stops = await SupabaseDataService.fetchAllStops();
-      return stops?.length || 0;
+      const cities = await SupabaseDataService.getDestinationCities();
+      return cities?.length || 0;
     } catch (error) {
       console.error('Failed to get destination cities count:', error);
       return 0;
