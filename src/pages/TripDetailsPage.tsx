@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -9,6 +10,7 @@ import TripDetailsLoading from './TripDetailsPage/components/TripDetailsLoading'
 import TripDetailsError from './TripDetailsPage/components/TripDetailsError';
 import TripDetailsContent from './TripDetailsPage/components/TripDetailsContent';
 import TripDetailsErrorBoundary from './TripDetailsPage/components/TripDetailsErrorBoundary';
+import ShareTripButton from '@/components/TripCalculator/components/share/ShareTripButton';
 
 const TripDetailsPage: React.FC = () => {
   const { shareCode } = useParams<{ shareCode: string }>();
@@ -190,11 +192,20 @@ const TripDetailsPage: React.FC = () => {
         <div className="pt-20 pb-8">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <TripDetailsHeader 
-                trip={trip}
-                onBackToHome={handleBackToHome}
-                onPlanNewTrip={handlePlanNewTrip}
-              />
+              <div className="flex items-center justify-between mb-6">
+                <TripDetailsHeader 
+                  trip={trip}
+                  onBackToHome={handleBackToHome}
+                  onPlanNewTrip={handlePlanNewTrip}
+                />
+                
+                <ShareTripButton
+                  shareUrl={shareUrl}
+                  tripTitle={trip.title}
+                  variant="outline"
+                  size="sm"
+                />
+              </div>
               
               {/* Enhanced Trip Content with Error Boundary */}
               <TripDetailsContent 

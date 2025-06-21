@@ -7,6 +7,7 @@ import { useCostEstimator } from '../hooks/useCostEstimator';
 import { useUnits } from '@/contexts/UnitContext';
 import { format, addDays } from 'date-fns';
 import PreviewDailyItinerary from './PreviewDailyItinerary';
+import ShareTripButton from './share/ShareTripButton';
 
 interface TripResultsPreviewProps {
   tripPlan: TripPlan;
@@ -47,21 +48,34 @@ const TripResultsPreview: React.FC<TripResultsPreviewProps> = ({
             <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-white rounded-full"></div>
           </div>
           
-          <div className="relative z-10 text-center">
-            <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm">
-              <Route className="w-5 h-5" />
-              <span className="text-sm font-medium">Route 66 Adventure</span>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm">
+                  <Route className="w-5 h-5" />
+                  <span className="text-sm font-medium">Route 66 Adventure</span>
+                </div>
+              </div>
+              
+              <ShareTripButton
+                tripTitle={`${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 border-white/30"
+              />
             </div>
             
-            <CardTitle className="text-3xl font-bold mb-3 text-shadow-strong">
-              {tripPlan.startCity} to {tripPlan.endCity}
-            </CardTitle>
-            
-            {tripStartDate && (
-              <p className="text-blue-100 text-lg font-medium">
-                Journey begins: {format(tripStartDate, 'EEEE, MMMM d, yyyy')}
-              </p>
-            )}
+            <div className="text-center">
+              <CardTitle className="text-3xl font-bold mb-3 text-shadow-strong">
+                {tripPlan.startCity} to {tripPlan.endCity}
+              </CardTitle>
+              
+              {tripStartDate && (
+                <p className="text-blue-100 text-lg font-medium">
+                  Journey begins: {format(tripStartDate, 'EEEE, MMMM d, yyyy')}
+                </p>
+              )}
+            </div>
           </div>
         </CardHeader>
         

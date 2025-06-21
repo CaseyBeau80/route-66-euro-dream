@@ -8,6 +8,7 @@ import { ArrowLeft, MapPin, Calendar, Users } from 'lucide-react';
 import { TripPlan } from '@/components/TripCalculator/services/planning/TripPlanBuilder';
 import { UrlTripPlanBuilder } from '@/components/TripCalculator/services/planning/UrlTripPlanBuilder';
 import SharedTripContentRenderer from '@/components/TripCalculator/components/share/SharedTripContentRenderer';
+import ShareTripButton from '@/components/TripCalculator/components/share/ShareTripButton';
 
 const SharedTripPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -151,14 +152,12 @@ const SharedTripPage: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button
+                <ShareTripButton
+                  shareUrl={shareUrl || undefined}
+                  tripTitle={tripPlan.title}
                   variant="outline"
                   size="sm"
-                  onClick={() => navigator.clipboard.writeText(shareUrl || '')}
-                  className="hidden md:inline-flex"
-                >
-                  Share Trip
-                </Button>
+                />
               </div>
             </div>
           </div>
