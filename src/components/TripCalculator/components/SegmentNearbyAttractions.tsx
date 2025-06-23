@@ -98,13 +98,15 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
               40 // 40 mile radius
             );
 
-            // Add geographic attractions that aren't already included
-            const existingNames = new Set(allAttractions.map(a => a.name.toLowerCase()));
-            const newAttractions = searchResult.attractions.filter(
-              attraction => !existingNames.has(attraction.name.toLowerCase())
-            );
+            if (searchResult.status === 'SUCCESS') {
+              // Add geographic attractions that aren't already included
+              const existingNames = new Set(allAttractions.map(a => a.name.toLowerCase()));
+              const newAttractions = searchResult.attractions.filter(
+                attraction => !existingNames.has(attraction.name.toLowerCase())
+              );
 
-            allAttractions.push(...newAttractions);
+              allAttractions.push(...newAttractions);
+            }
           } catch (geoError) {
             console.warn('⚠️ Geographic attraction search failed:', geoError);
           }
