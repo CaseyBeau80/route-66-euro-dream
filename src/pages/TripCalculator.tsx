@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import { Share2, Calendar, Mail } from "lucide-react";
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
@@ -50,7 +51,7 @@ const TripCalculator = () => {
                 <YouTubeEmbed videoId="3904gZljFmY" title="Route 66 Travel Guide & Planning Tips" className="max-w-2xl mx-auto" />
               </div>
 
-              {/* Feature Cards */}
+              {/* Feature Cards with Share/Calendar/Email Icons */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                 {/* Highlighted Time Estimates Card */}
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
@@ -83,6 +84,30 @@ const TripCalculator = () => {
                   <h3 className="font-bold text-orange-800 mb-2">Budget Estimates</h3>
                   <p className="text-sm text-orange-700">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
                 </div>
+              </div>
+
+              {/* NEW: Share & Export Features Banner */}
+              <div className="bg-gradient-to-r from-indigo-50 to-cyan-50 border-2 border-indigo-200 rounded-xl p-4 mb-6 shadow-lg">
+                <h3 className="text-lg font-bold text-indigo-800 mb-3">📤 Share Your Adventure</h3>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-100">
+                    <Share2 className="h-5 w-5 text-indigo-600" />
+                    <span className="text-sm font-medium text-indigo-700">Share Link</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-100">
+                    <Calendar className="h-5 w-5 text-red-600" />
+                    <span className="text-sm font-medium text-red-700">Google Calendar</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-100">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700">iPhone Calendar</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-100">
+                    <Mail className="h-5 w-5 text-green-600" />
+                    <span className="text-sm font-medium text-green-700">Email Trip</span>
+                  </div>
+                </div>
+                <p className="text-sm text-indigo-600 mt-2">Plan your trip below and easily share it with friends or sync to your calendar!</p>
               </div>
             </div>
             
