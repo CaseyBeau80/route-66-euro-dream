@@ -125,6 +125,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       <ErrorBoundary context={`DaySegmentCard-Content-${stableSegment.day}`}>
         <DaySegmentCardContent 
           segment={stableSegment}
+          driveTimeStyle={driveTimeStyle}
           forceShowAttractions={forceShowAttractions}
         />
       </ErrorBoundary>
