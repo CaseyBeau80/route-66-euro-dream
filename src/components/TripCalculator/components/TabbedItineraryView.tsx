@@ -61,7 +61,7 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
     });
   }
   
-  console.log('📱 TabbedItineraryView render:', {
+  console.log('📱 TabbedItineraryView render - FIXED duplicate weather issue:', {
     segmentsCount: stableSegments.length,
     activeTab,
     tripStartDate: tripStartDate ? tripStartDate.toISOString() : 'Not set',
@@ -69,7 +69,8 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
     segmentDetails: stableSegments.map(s => ({ day: s.day, endCity: s.endCity })),
     expectedDays,
     actualDays,
-    missingDays
+    missingDays,
+    fixApplied: 'PREVENT_DUPLICATE_WEATHER_DISPLAYS'
   });
 
   if (!stableSegments || stableSegments.length === 0) {
@@ -105,13 +106,14 @@ const TabbedItineraryView: React.FC<TabbedItineraryViewProps> = ({
           onTabChange={setActiveTab}
         />
 
-        {/* Tab Content */}
+        {/* Tab Content - FIXED: Prevent duplicate weather rendering */}
         <div className="mt-4">
           <RouteTabContent
             segments={stableSegments}
             tripStartDate={tripStartDate}
             tripId={tripId}
             isVisible={activeTab === 'route'}
+            showWeather={false}
           />
 
           <WeatherTabContent

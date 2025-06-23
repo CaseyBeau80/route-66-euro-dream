@@ -9,14 +9,30 @@ interface RouteTabContentProps {
   tripStartDate?: Date;
   tripId?: string;
   isVisible: boolean;
+  showWeather?: boolean;
 }
 
 const RouteTabContent: React.FC<RouteTabContentProps> = ({
   segments,
   tripStartDate,
   tripId,
-  isVisible
+  isVisible,
+  showWeather = true
 }) => {
+  console.log('🛣️ RouteTabContent render - FIXED attractions display:', {
+    isVisible,
+    segmentsCount: segments.length,
+    showWeather,
+    segments: segments.map(s => ({
+      day: s.day,
+      endCity: s.endCity,
+      attractionsCount: s.attractions?.length || 0,
+      recommendedStopsCount: s.recommendedStops?.length || 0,
+      stopsCount: s.stops?.length || 0
+    })),
+    fixApplied: 'ENSURE_ATTRACTIONS_DISPLAY'
+  });
+
   if (!isVisible) {
     return null;
   }
@@ -25,24 +41,23 @@ const RouteTabContent: React.FC<RouteTabContentProps> = ({
     <div className="space-y-4">
       <div className="mb-3">
         <h4 className="text-sm font-medium text-route66-text-secondary uppercase tracking-wider">
-          Route & Recommended Stops
+          Daily Route & Attractions
         </h4>
       </div>
       
-      {segments.map((segment, index) => {
-        console.log(`🗺️ Rendering route segment ${index + 1}:`, { day: segment.day, endCity: segment.endCity });
-        return (
-          <ErrorBoundary key={`route-segment-${segment.day}-${segment.endCity}-${index}`} context={`RouteTab-Segment-${index}`}>
-            <DaySegmentCard 
-              segment={segment}
-              tripStartDate={tripStartDate}
-              cardIndex={index}
-              tripId={tripId}
-              sectionKey="route-tab"
-            />
-          </ErrorBoundary>
-        );
-      })}
+      {segments.map((segment, index) => (
+        <ErrorBoundary key={`route-day-${segment.day}-${segment.endCity}`} context={`RouteTab-Day-${segment.day}`}>
+          <DaySegmentCard
+            segment={segment}
+            tripStartDate={tripStartDate}
+            cardIndex={index}
+            tripId={tripId}
+            sectionKey="route-tab"
+            showWeather={showWeather}
+            forceShowAttractions={true}
+          />
+        </ErrorBoundary>
+      ))}
     </div>
   );
 };

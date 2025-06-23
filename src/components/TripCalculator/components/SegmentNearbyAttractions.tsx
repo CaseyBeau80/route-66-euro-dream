@@ -1,214 +1,216 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { AttractionSearchStatus } from '../services/attractions/AttractionSearchResult';
+import { GeographicAttractionService, NearbyAttraction } from '../services/attractions/GeographicAttractionService';
 import { AttractionLimitingService } from '../services/attractions/AttractionLimitingService';
-import { useUITimeout } from '../hooks/useUITimeout';
-import { useAttractionLoader } from './attractions/useAttractionLoader';
-import AttractionErrorDisplay from './attractions/AttractionErrorDisplay';
-import AttractionLoadingDisplay from './attractions/AttractionLoadingDisplay';
-import AttractionEmptyDisplay from './attractions/AttractionEmptyDisplay';
-import AttractionCard from './attractions/AttractionCard';
+import { getDestinationCityWithState } from '../utils/DestinationUtils';
+import AttractionItem from './AttractionItem';
 import ErrorBoundary from './ErrorBoundary';
 
 interface SegmentNearbyAttractionsProps {
   segment: DailySegment;
   maxAttractions?: number;
+  forceDisplay?: boolean;
 }
 
-const UI_TIMEOUT_MS = 10000; // 10 seconds
-
-const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({ 
-  segment, 
-  maxAttractions 
+const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
+  segment,
+  maxAttractions = 3,
+  forceDisplay = false
 }) => {
-  const context = `SegmentNearbyAttractions-Day${segment.day}-${segment.endCity}`;
-  
-  console.log('🔍 SegmentNearbyAttractions using centralized limiting:', {
-    segmentDay: segment.day,
+  const [attractions, setAttractions] = useState<NearbyAttraction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const context = `SegmentNearbyAttractions-Day${segment.day}`;
+
+  console.log('🎯 SegmentNearbyAttractions - FIXED attraction loading:', {
+    day: segment.day,
     endCity: segment.endCity,
-    requestedMax: maxAttractions,
-    context
+    forceDisplay,
+    maxAttractions,
+    existingData: {
+      attractionsCount: segment.attractions?.length || 0,
+      recommendedStopsCount: segment.recommendedStops?.length || 0,
+      stopsCount: segment.stops?.length || 0
+    },
+    fixApplied: 'COMPREHENSIVE_ATTRACTION_DISPLAY'
   });
 
-  // Enhanced UI timeout fallback handler
-  const handleUITimeout = () => {
-    console.log(`⏰ UI timeout triggered after ${UI_TIMEOUT_MS}ms for ${segment.endCity}`);
-    // Let the hook handle timeout internally - don't try to set state directly
-  };
-
-  const { clearUITimeout, getRemainingTime } = useUITimeout({
-    timeoutMs: UI_TIMEOUT_MS,
-    onTimeout: handleUITimeout,
-    isActive: false // Will be controlled by the loader hook
-  });
-
-  const {
-    searchResult,
-    isLoading,
-    retryCount,
-    searchStartTime,
-    debugInfo,
-    loadAttractions,
-    handleDebugInfo
-  } = useAttractionLoader({
-    segment,
-    onUITimeout: handleUITimeout,
-    clearUITimeout
-  });
-
+  // Load attractions from multiple sources
   useEffect(() => {
-    console.log(`🎯 SegmentNearbyAttractions effect triggered:`, {
-      endCity: segment?.endCity,
-      day: segment?.day,
-      context
-    });
-    
+    const loadAttractions = async () => {
+      if (!segment?.endCity) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Collect attractions from all available sources
+        const allAttractions: NearbyAttraction[] = [];
+
+        // 1. Use existing segment attractions if available
+        if (segment.attractions && segment.attractions.length > 0) {
+          const segmentAttractions = segment.attractions.map((attraction: any) => ({
+            id: attraction.id || `attraction-${attraction.name}`,
+            name: attraction.name,
+            description: attraction.description || attraction.title || '',
+            category: attraction.category || 'attraction',
+            distanceFromCity: 0, // These are already associated with the city
+            latitude: attraction.latitude || 0,
+            longitude: attraction.longitude || 0,
+            source: 'segment_data' as const
+          }));
+          allAttractions.push(...segmentAttractions);
+        }
+
+        // 2. Use recommended stops if available
+        if (segment.recommendedStops && segment.recommendedStops.length > 0) {
+          const recommendedAttractions = segment.recommendedStops.map((stop: any) => ({
+            id: stop.id || stop.stopId || `stop-${stop.name}`,
+            name: stop.name,
+            description: stop.description || '',
+            category: stop.category || 'recommended_stop',
+            distanceFromCity: 0,
+            latitude: stop.latitude || 0,
+            longitude: stop.longitude || 0,
+            source: 'recommended_stops' as const
+          }));
+          allAttractions.push(...recommendedAttractions);
+        }
+
+        // 3. If we still don't have enough attractions or forceDisplay is true, search for more
+        if (allAttractions.length < maxAttractions || forceDisplay) {
+          try {
+            const { city, state } = getDestinationCityWithState(segment.endCity);
+            const searchResult = await GeographicAttractionService.findAttractionsNearCity(
+              city,
+              state,
+              40 // 40 mile radius
+            );
+
+            // Add geographic attractions that aren't already included
+            const existingNames = new Set(allAttractions.map(a => a.name.toLowerCase()));
+            const newAttractions = searchResult.attractions.filter(
+              attraction => !existingNames.has(attraction.name.toLowerCase())
+            );
+
+            allAttractions.push(...newAttractions);
+          } catch (geoError) {
+            console.warn('⚠️ Geographic attraction search failed:', geoError);
+          }
+        }
+
+        // Apply centralized limiting
+        const limitResult = AttractionLimitingService.limitAttractions(
+          allAttractions,
+          context,
+          maxAttractions
+        );
+
+        setAttractions(limitResult.limitedAttractions);
+
+        console.log('✅ SegmentNearbyAttractions loaded successfully:', {
+          day: segment.day,
+          endCity: segment.endCity,
+          totalFound: allAttractions.length,
+          afterLimiting: limitResult.limitedAttractions.length,
+          sources: {
+            segmentAttractions: segment.attractions?.length || 0,
+            recommendedStops: segment.recommendedStops?.length || 0,
+            geographic: allAttractions.filter(a => a.source === 'geographic').length
+          },
+          fixApplied: 'COMPREHENSIVE_LOADING_SUCCESS'
+        });
+
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load attractions';
+        setError(errorMessage);
+        console.error('❌ SegmentNearbyAttractions loading failed:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadAttractions();
-  }, [segment?.endCity, segment?.day, loadAttractions]);
-  
+  }, [segment.endCity, segment.day, maxAttractions, forceDisplay]);
+
+  // Validate the attraction limit
+  if (attractions.length > 0 && !AttractionLimitingService.validateAttractionLimit(attractions, context)) {
+    console.error(`🚨 CRITICAL: Attraction limit validation failed for ${context}`);
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-red-600 mb-2">⚠️ Attraction Limit Error</h4>
+        <p className="text-xs text-red-500">Attraction limiting failed for this segment.</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          Recommended Stops
+        </h4>
+        <p className="text-xs text-yellow-700">
+          {error}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
+        <h4 className="font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
-          Nearby Attractions (max {AttractionLimitingService.getMaxAttractions()})
+          Recommended Stops
+          <span className="text-xs text-gray-500">(loading...)</span>
         </h4>
-        <AttractionLoadingDisplay 
-          cityName={segment.endCity || 'destination'} 
-          searchStartTime={searchStartTime}
-          remainingTime={getRemainingTime()}
-        />
-      </div>
-    );
-  }
-  
-  if (!searchResult) {
-    return (
-      <div className="space-y-3">
-        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          Nearby Attractions (max {AttractionLimitingService.getMaxAttractions()})
-        </h4>
-        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm text-gray-500">No search results available</p>
+        <div className="animate-pulse space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-16 bg-gray-200 rounded"></div>
+          ))}
         </div>
       </div>
     );
   }
 
-  // Handle error states
-  if (searchResult.status === AttractionSearchStatus.ERROR || 
-      searchResult.status === AttractionSearchStatus.TIMEOUT ||
-      searchResult.status === AttractionSearchStatus.CITY_NOT_FOUND) {
+  if (attractions.length === 0) {
     return (
-      <div className="space-y-3">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
           <MapPin className="h-4 w-4" />
-          Nearby Attractions (max {AttractionLimitingService.getMaxAttractions()})
+          Recommended Stops
         </h4>
-        <AttractionErrorDisplay
-          searchResult={searchResult}
-          onRetry={() => loadAttractions(true)}
-          onDebug={handleDebugInfo}
-        />
-        
-        {debugInfo && (
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="text-xs font-mono text-gray-600">
-              <div className="font-bold mb-2">Debug Information:</div>
-              <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
-            </div>
-          </div>
-        )}
+        <p className="text-sm text-gray-600">
+          No attractions found for {segment.endCity}. Explore the area when you arrive!
+        </p>
       </div>
     );
   }
-  
-  // Handle no attractions found
-  if (searchResult.status === AttractionSearchStatus.NO_ATTRACTIONS) {
-    return (
-      <div className="space-y-3">
-        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          Nearby Attractions (max {AttractionLimitingService.getMaxAttractions()})
-        </h4>
-        <AttractionEmptyDisplay
-          searchResult={searchResult}
-          onDebug={handleDebugInfo}
-        />
-        
-        {debugInfo && (
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="text-xs font-mono text-gray-600">
-              <div className="font-bold mb-2">Debug Information:</div>
-              <pre className="whitespace-pre-wrap">{JSON.stringify(debugInfo, null, 2)}</pre>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-  
-  // CRITICAL: Apply centralized attraction limiting
-  const rawAttractions = searchResult.attractions || [];
-  const limitResult = AttractionLimitingService.limitAttractions(
-    rawAttractions, 
-    context,
-    maxAttractions
-  );
-  
-  // Final validation check
-  if (!AttractionLimitingService.validateAttractionLimit(limitResult.limitedAttractions, context)) {
-    console.error('🚨 CRITICAL: Post-limiting validation failed!', {
-      context,
-      limitedCount: limitResult.limitedAttractions.length,
-      maxAllowed: AttractionLimitingService.getMaxAttractions()
-    });
-    
-    return (
-      <div className="space-y-3">
-        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          Nearby Attractions ({AttractionLimitingService.getMaxAttractions()})
-        </h4>
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-700 font-medium">⚠️ Attraction limit enforcement failure detected</p>
-        </div>
-      </div>
-    );
-  }
-  
+
   return (
     <div className="space-y-3">
-      <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
+      <h4 className="font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2">
         <MapPin className="h-4 w-4" />
-        Nearby Attractions ({limitResult.hasMoreAttractions ? `${limitResult.limitedAttractions.length} of ${limitResult.totalAttractions}` : limitResult.limitedAttractions.length} • max {limitResult.limitApplied})
-        {retryCount > 0 && (
-          <span className="text-xs text-gray-500">(retry {retryCount})</span>
-        )}
+        Recommended Stops ({attractions.length})
       </h4>
       
-      <div className="space-y-2">
-        {limitResult.limitedAttractions.map((attraction, index) => (
-          <ErrorBoundary key={`${attraction.id}-${index}`} context={`AttractionCard-${index}`}>
-            <AttractionCard attraction={attraction} />
+      <div className="space-y-3">
+        {attractions.map((attraction, index) => (
+          <ErrorBoundary key={`${attraction.id}-${index}`} context={`AttractionItem-${index}`}>
+            <AttractionItem attraction={attraction} index={index} />
           </ErrorBoundary>
         ))}
-      </div>
-      
-      {limitResult.hasMoreAttractions && (
-        <div className="text-xs text-gray-600 italic text-center p-2 bg-yellow-50 rounded border border-yellow-200">
-          🚫 Showing only {limitResult.limitedAttractions.length} of {limitResult.totalAttractions} attractions (limited to max {limitResult.limitApplied})
-          <div className="text-xs text-gray-500 mt-1">
-            + {limitResult.remainingCount} more attraction{limitResult.remainingCount !== 1 ? 's' : ''} nearby
-          </div>
-        </div>
-      )}
-      
-      <div className="text-xs text-blue-600 italic text-center p-2 bg-blue-50 rounded border border-blue-200">
-        ✨ {searchResult.message}
       </div>
     </div>
   );

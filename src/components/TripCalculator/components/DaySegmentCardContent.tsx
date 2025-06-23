@@ -18,6 +18,7 @@ interface DaySegmentCardContentProps {
   cardIndex?: number;
   tripId?: string;
   sectionKey?: string;
+  forceShowAttractions?: boolean;
 }
 
 const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
@@ -26,18 +27,26 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   driveTimeStyle,
   cardIndex = 0,
   tripId,
-  sectionKey = 'itinerary'
+  sectionKey = 'itinerary',
+  forceShowAttractions = false
 }) => {
   // CRITICAL: Use centralized service for consistent limiting
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
   
-  console.log('🔍 DaySegmentCardContent using CENTRALIZED attraction limiting:', {
+  console.log('🔍 DaySegmentCardContent - FIXED attractions display:', {
     segmentDay: segment.day,
     endCity: segment.endCity,
     maxAttractions,
     context,
-    sectionKey
+    sectionKey,
+    forceShowAttractions,
+    availableAttractions: {
+      attractionsCount: segment.attractions?.length || 0,
+      recommendedStopsCount: segment.recommendedStops?.length || 0,
+      stopsCount: segment.stops?.length || 0
+    },
+    fixApplied: 'FORCE_SHOW_ATTRACTIONS_WHEN_NEEDED'
   });
 
   return (
@@ -59,13 +68,14 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
         </div>
       )}
 
-      {/* Route & Stops Content */}
+      {/* Route & Stops Content - ALWAYS SHOW ATTRACTIONS */}
       <div className="space-y-4">
-        {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT */}
+        {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT with force display */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
           <SegmentNearbyAttractions 
             segment={segment} 
             maxAttractions={maxAttractions}
+            forceDisplay={forceShowAttractions}
           />
         </ErrorBoundary>
       </div>
