@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -112,7 +111,20 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   originalRequestedDays,
   onDateRequired
 }) => {
-  // Enhanced date validation
+  // DEBUG: Enhanced logging to track tripStartDate prop
+  console.log('🔍 TripCalculatorResults: Prop debugging:', {
+    hasTripPlan: !!tripPlan,
+    hasCalculation: !!calculation,
+    tripStartDate: tripStartDate?.toISOString() || 'NULL',
+    tripStartDateType: typeof tripStartDate,
+    isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
+    shareUrl,
+    hasCompletionAnalysis: !!completionAnalysis,
+    originalRequestedDays,
+    timestamp: new Date().toISOString()
+  });
+
+  // Enhanced date validation with detailed logging
   const hasValidStartDate = tripStartDate instanceof Date && !isNaN(tripStartDate.getTime());
   
   console.log('🎯 TripCalculatorResults render with enhanced date handling:', {
@@ -122,7 +134,8 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     hasValidStartDate,
     tripStartDate: tripStartDate?.toISOString() || 'null',
     hasCompletionAnalysis: !!completionAnalysis,
-    originalRequestedDays
+    originalRequestedDays,
+    validationResult: hasValidStartDate ? 'VALID' : 'INVALID'
   });
   
   // Prioritize enhanced trip plan over legacy calculation
@@ -132,7 +145,7 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
     
     return (
       <div className="space-y-6">
-        {/* Date requirement notice if no valid start date */}
+        {/* Date requirement notice if no valid start date - FIXED: Should not show when date is valid */}
         {!hasValidStartDate && (
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-4 rounded-xl">
             <div className="flex items-center gap-2 text-amber-800 mb-2">

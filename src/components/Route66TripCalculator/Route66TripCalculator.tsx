@@ -12,6 +12,15 @@ const Route66TripCalculator: React.FC = () => {
 
   console.log('✨ Route66TripCalculator: Component mounted');
 
+  // DEBUG: Log form data and trip start date to track the issue
+  console.log('🔍 Route66TripCalculator: Form data debug:', {
+    hasFormData: !!formData,
+    tripStartDate: formData?.tripStartDate?.toISOString() || 'NULL',
+    tripStartDateType: typeof formData?.tripStartDate,
+    isValidDate: formData?.tripStartDate instanceof Date && !isNaN(formData.tripStartDate.getTime()),
+    timestamp: new Date().toISOString()
+  });
+
   // PHASE 3: Custom error handler for coordinate errors
   const handleCoordinateError = (error: Error, errorInfo: React.ErrorInfo) => {
     console.error('🚨 PHASE 3: Coordinate error captured in Route66TripCalculator:', {
@@ -41,6 +50,11 @@ const Route66TripCalculator: React.FC = () => {
 
   const handleStartDateChange = (date: Date | undefined) => {
     if (date) {
+      console.log('📅 Route66TripCalculator: Start date changed:', {
+        newDate: date.toISOString(),
+        isValid: !isNaN(date.getTime()),
+        timestamp: new Date().toISOString()
+      });
       setFormData(prev => ({ ...prev, tripStartDate: date }));
     }
   };
@@ -81,7 +95,7 @@ const Route66TripCalculator: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Trip Results */}
+        {/* Trip Results - FIXED: Add missing tripStartDate prop */}
         {(tripPlan || isCalculating) && (
           <CoordinateErrorBoundary 
             fallbackMessage="There was an issue displaying the trip results."
@@ -91,6 +105,7 @@ const Route66TripCalculator: React.FC = () => {
               tripPlan={tripPlan}
               completionAnalysis={planningResult?.completionAnalysis}
               originalRequestedDays={planningResult?.originalRequestedDays}
+              tripStartDate={formData.tripStartDate}
             />
           </CoordinateErrorBoundary>
         )}
