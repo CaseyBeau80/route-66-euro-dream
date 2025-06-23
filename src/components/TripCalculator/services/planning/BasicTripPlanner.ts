@@ -3,6 +3,7 @@ import { TripPlan, DailySegment } from './TripPlanBuilder';
 import { TripBoundaryService } from './TripBoundaryService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { Route66StopsService } from '../Route66StopsService';
+import { calculateRealisticDriveTime } from '../../utils/distanceCalculator';
 
 export class BasicTripPlanner {
   static async planBasicTrip(
@@ -11,7 +12,7 @@ export class BasicTripPlanner {
     travelDays: number,
     tripStyle: 'destination-focused'
   ): Promise<TripPlan> {
-    console.log('🗺️ BasicTripPlanner: Starting trip planning with distance calculations');
+    console.log('🗺️ BasicTripPlanner: Starting trip planning with enhanced drive time calculations');
 
     try {
       // Get Route 66 stops
@@ -89,7 +90,7 @@ export class BasicTripPlanner {
     travelDays: number,
     totalDistance: number
   ): DailySegment[] {
-    console.log('🛠️ Creating segments with proper distance calculations');
+    console.log('🛠️ Creating segments with enhanced distance and drive time calculations');
 
     const segments: DailySegment[] = [];
     const allStops = [startStop, ...routeStops, endStop];
@@ -112,6 +113,8 @@ export class BasicTripPlanner {
     // Distribute stops across days
     if (travelDays === 1) {
       // Single day trip
+      const driveTimeHours = calculateRealisticDriveTime(totalDistance);
+      
       const segment: DailySegment = {
         day: 1,
         title: `Day 1: ${startStop.city_name || startStop.name} to ${endStop.city_name || endStop.name}`,
@@ -119,7 +122,8 @@ export class BasicTripPlanner {
         endCity: endStop.city_name || endStop.name,
         distance: totalDistance,
         approximateMiles: Math.round(totalDistance),
-        driveTimeHours: DistanceCalculationService.calculateDriveTime(totalDistance),
+        driveTimeHours: driveTimeHours,
+        drivingTime: driveTimeHours, // Ensure both properties are set
         destination: {
           city: endStop.city_name || endStop.name,
           state: endStop.state || 'Unknown'
@@ -130,7 +134,7 @@ export class BasicTripPlanner {
           title: stop.name,
           description: stop.description,
           city: stop.city_name || stop.name,
-          category: stop.category || 'attraction' // Add required category property
+          category: stop.category || 'attraction'
         }))
       };
 
@@ -173,7 +177,8 @@ export class BasicTripPlanner {
               name: routeStops[currentStopIndex].name,
               title: routeStops[currentStopIndex].name,
               description: routeStops[currentStopIndex].description,
-              city: routeStops[currentStopIndex].city_name || routeStops[currentStopIndex].name
+              city: routeStops[currentStopIndex].city_name || routeStops[currentStopIndex].name,
+              category: routeStops[currentStopIndex].category || 'attraction'
             });
             currentStopIndex++;
           } else {
@@ -186,16 +191,19 @@ export class BasicTripPlanner {
           startCity = segments[day - 2].endCity;
         }
 
-        const driveTimeHours = DistanceCalculationService.calculateDriveTime(dayDistance);
+        // Use realistic drive time calculation
+        const validDayDistance = Math.max(dayDistance, 1);
+        const driveTimeHours = calculateRealisticDriveTime(validDayDistance);
 
         const segment: DailySegment = {
           day,
           title: `Day ${day}: ${startCity} to ${endCity}`,
           startCity,
           endCity,
-          distance: Math.max(dayDistance, 1), // Ensure minimum 1 mile
-          approximateMiles: Math.round(Math.max(dayDistance, 1)),
-          driveTimeHours: Math.max(driveTimeHours, 0.1), // Ensure minimum drive time
+          distance: validDayDistance,
+          approximateMiles: Math.round(validDayDistance),
+          driveTimeHours: driveTimeHours,
+          drivingTime: driveTimeHours, // Ensure both properties are set
           destination: {
             city: endCity,
             state: day === travelDays ? (endStop.state || 'Unknown') : (routeStops[Math.min(currentStopIndex - 1, routeStops.length - 1)]?.state || 'Unknown')
@@ -205,9 +213,9 @@ export class BasicTripPlanner {
         };
 
         segments.push(segment);
-        currentDistance += dayDistance;
+        currentDistance += validDayDistance;
 
-        console.log(`📅 Day ${day}: ${startCity} → ${endCity}, ${dayDistance.toFixed(1)} miles, ${driveTimeHours.toFixed(1)} hours`);
+        console.log(`📅 Day ${day}: ${startCity} → ${endCity}, ${validDayDistance.toFixed(1)} miles, ${driveTimeHours.toFixed(1)} hours`);
       }
     }
 

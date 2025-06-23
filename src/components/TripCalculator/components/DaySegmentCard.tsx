@@ -29,76 +29,106 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   forceShowAttractions = false
 }) => {
   const stableSegment = useStableSegment(segment);
-  const driveTimeStyle = DriveTimeStyleCalculator.getStyle(stableSegment?.driveTimeHours || 0);
   
-  console.log('🗂️ DaySegmentCard render - FIXED attractions logic:', {
+  // Ensure we have valid drive time data
+  const driveTimeHours = stableSegment?.driveTimeHours || stableSegment?.drivingTime || 0;
+  const distance = stableSegment?.distance || stableSegment?.approximateMiles || 0;
+  
+  const driveTimeStyle = DriveTimeStyleCalculator.getStyle(driveTimeHours);
+  
+  console.log('🗂️ DaySegmentCard render - FIXED drive time and distance display:', {
     day: stableSegment?.day,
     endCity: stableSegment?.endCity,
+    driveTimeHours,
+    distance,
+    originalSegment: {
+      driveTimeHours: stableSegment?.driveTimeHours,
+      drivingTime: stableSegment?.drivingTime,
+      distance: stableSegment?.distance,
+      approximateMiles: stableSegment?.approximateMiles
+    },
     sectionKey,
     showWeather,
     forceShowAttractions,
-    attractions: {
-      attractionsCount: stableSegment?.attractions?.length || 0,
-      recommendedStopsCount: stableSegment?.recommendedStops?.length || 0,
-      stopsCount: stableSegment?.stops?.length || 0,
-      hasAttractions: !!(stableSegment?.attractions?.length || stableSegment?.recommendedStops?.length || stableSegment?.stops?.length)
-    },
-    fixApplied: 'ENSURE_ATTRACTIONS_VISIBLE'
+    fixApplied: 'ENSURE_DRIVE_TIME_AND_DISTANCE_VISIBLE'
   });
 
   if (!stableSegment) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-600 text-sm">
-          Error: Unable to render day segment card - invalid segment data
-        </p>
+      <div className="bg-white border border-route66-border rounded-lg p-4">
+        <div className="text-center text-gray-500">
+          <p>Loading segment data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>
-      <div className="bg-white rounded-xl shadow-md border border-route66-border hover:shadow-lg transition-shadow duration-300">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-route66-border">
-          <DaySegmentCardHeader 
-            segment={stableSegment} 
-            tripStartDate={tripStartDate}
-            cardIndex={cardIndex}
-          />
-        </div>
+    <div className="bg-white border-2 border-route66-border rounded-lg shadow-lg overflow-hidden">
+      <ErrorBoundary context={`DaySegmentCard-Header-${stableSegment.day}`}>
+        <DaySegmentCardHeader 
+          segment={stableSegment} 
+          tripStartDate={tripStartDate}
+          cardIndex={cardIndex}
+        />
+      </ErrorBoundary>
 
-        {/* Weather Section - Only show if showWeather is true */}
-        {showWeather && (
-          <div className="px-6 py-4 bg-route66-background-alt border-t border-route66-border">
-            <ErrorBoundary context={`DaySegmentCardWeather-Day${stableSegment.day}`}>
-              <SegmentWeatherWidget
-                segment={stableSegment}
-                tripStartDate={tripStartDate}
-                cardIndex={cardIndex}
-                tripId={tripId}
-                sectionKey={sectionKey}
-                forceExpanded={false}
-                isCollapsible={true}
-              />
-            </ErrorBoundary>
+      {/* Drive Time and Distance Stats - FIXED to always show */}
+      <div className="px-4 py-3 bg-route66-cream border-b border-route66-border">
+        <div className="grid grid-cols-2 gap-4">
+          {/* Distance Display */}
+          <div className="text-center p-3 bg-white rounded border border-route66-tan">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <MapPin className="h-4 w-4 text-route66-primary" />
+            </div>
+            <div className="font-route66 text-lg text-route66-vintage-red mb-1">
+              {Math.round(distance)} miles
+            </div>
+            <div className="font-travel text-xs text-route66-vintage-brown">
+              Total Distance
+            </div>
           </div>
-        )}
-
-        {/* Main Content with Route & Attractions */}
-        <div className="px-6 py-4">
-          <DaySegmentCardContent
-            segment={stableSegment}
-            tripStartDate={tripStartDate}
-            driveTimeStyle={driveTimeStyle}
-            cardIndex={cardIndex}
-            tripId={tripId}
-            sectionKey={sectionKey}
-            forceShowAttractions={forceShowAttractions}
-          />
+          
+          {/* Drive Time Display */}
+          <div className="text-center p-3 bg-white rounded border border-route66-tan">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Clock className="h-4 w-4 text-route66-primary" />
+            </div>
+            <div className={`font-route66 text-lg mb-1 ${driveTimeHours > 7 ? driveTimeStyle.text : 'text-route66-vintage-red'}`}>
+              {DriveTimeStyleCalculator.formatDriveTime(driveTimeHours)}
+            </div>
+            <div className="font-travel text-xs text-route66-vintage-brown">
+              Drive Time
+            </div>
+            {driveTimeHours > 7 && (
+              <div className="text-xs text-orange-600 font-semibold mt-1 bg-orange-50 px-2 py-1 rounded">
+                ⚠️ Long Drive
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </ErrorBoundary>
+
+      {/* Weather Widget */}
+      {showWeather && (
+        <ErrorBoundary context={`DaySegmentCard-Weather-${stableSegment.day}`}>
+          <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
+            <SegmentWeatherWidget 
+              segment={stableSegment} 
+              tripStartDate={tripStartDate}
+            />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {/* Main Content */}
+      <ErrorBoundary context={`DaySegmentCard-Content-${stableSegment.day}`}>
+        <DaySegmentCardContent 
+          segment={stableSegment}
+          forceShowAttractions={forceShowAttractions}
+        />
+      </ErrorBoundary>
+    </div>
   );
 };
 

@@ -13,9 +13,22 @@ export const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2
 };
 
 export const formatTime = (hours: number): string => {
-  const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
-  return `${wholeHours}h ${minutes}m`;
+  // Ensure we have a valid number
+  const validHours = hours || 0;
+  
+  if (validHours < 1) {
+    const minutes = Math.round(validHours * 60);
+    return `${minutes}min`;
+  }
+  
+  const wholeHours = Math.floor(validHours);
+  const minutes = Math.round((validHours - wholeHours) * 60);
+  
+  if (minutes === 0) {
+    return `${wholeHours}h`;
+  }
+  
+  return `${wholeHours}h ${minutes}min`;
 };
 
 // IMPROVED DRIVE TIME CALCULATION: More realistic and distance-proportional
