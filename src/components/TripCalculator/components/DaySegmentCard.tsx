@@ -60,11 +60,13 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     <ErrorBoundary context={`DaySegmentCard-Day${stableSegment.day}`}>
       <div className="bg-white rounded-xl shadow-md border border-route66-border hover:shadow-lg transition-shadow duration-300">
         {/* Header */}
-        <DaySegmentCardHeader 
-          segment={stableSegment} 
-          tripStartDate={tripStartDate}
-          cardIndex={cardIndex}
-        />
+        <div className="px-6 py-4 border-b border-route66-border">
+          <DaySegmentCardHeader 
+            segment={stableSegment} 
+            tripStartDate={tripStartDate}
+            cardIndex={cardIndex}
+          />
+        </div>
 
         {/* Weather Section - Only show if showWeather is true */}
         {showWeather && (

@@ -6,19 +6,23 @@ import { DailySegment } from '../services/planning/TripPlanBuilder';
 
 interface DaySegmentCardHeaderProps {
   segment: DailySegment;
-  segmentDate?: Date;
-  driveTimeStyle: {
-    bg: string;
-    text: string;
-    border: string;
-  };
+  tripStartDate?: Date;
+  cardIndex?: number;
 }
 
 const DaySegmentCardHeader: React.FC<DaySegmentCardHeaderProps> = ({
   segment,
-  segmentDate,
-  driveTimeStyle
+  tripStartDate,
+  cardIndex = 0
 }) => {
+  // Calculate the date for this segment
+  const segmentDate = React.useMemo(() => {
+    if (!tripStartDate) return undefined;
+    const date = new Date(tripStartDate);
+    date.setDate(date.getDate() + (segment.day - 1));
+    return date;
+  }, [tripStartDate, segment.day]);
+
   return (
     <div className="space-y-3">
       {/* Blue Badge Header - Matching Preview Style */}
@@ -41,7 +45,7 @@ const DaySegmentCardHeader: React.FC<DaySegmentCardHeaderProps> = ({
         </div>
         
         {/* Drive Time Warning */}
-        {segment.driveTimeHours > 7 && (
+        {segment.driveTimeHours && segment.driveTimeHours > 7 && (
           <div className="flex items-center gap-1 text-orange-600">
             <AlertTriangle className="h-4 w-4" />
             <span className="text-xs font-medium">Long Drive Day</span>

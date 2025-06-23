@@ -57,9 +57,13 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
             name: attraction.name,
             description: attraction.description || attraction.title || '',
             category: attraction.category || 'attraction',
+            attractionType: attraction.category || 'attraction',
             distanceFromCity: 0, // These are already associated with the city
             latitude: attraction.latitude || 0,
             longitude: attraction.longitude || 0,
+            city_name: segment.endCity,
+            state: '',
+            city: segment.endCity,
             source: 'segment_data' as const
           }));
           allAttractions.push(...segmentAttractions);
@@ -72,9 +76,13 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
             name: stop.name,
             description: stop.description || '',
             category: stop.category || 'recommended_stop',
+            attractionType: stop.category || 'recommended_stop',
             distanceFromCity: 0,
             latitude: stop.latitude || 0,
             longitude: stop.longitude || 0,
+            city_name: stop.city_name || segment.endCity,
+            state: stop.state || '',
+            city: stop.city || segment.endCity,
             source: 'recommended_stops' as const
           }));
           allAttractions.push(...recommendedAttractions);

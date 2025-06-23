@@ -46,8 +46,6 @@ const PreviewDailyItinerary: React.FC<PreviewDailyItineraryProps> = ({
             tripStartDate={tripStartDate}
             cardIndex={index}
             sectionKey="preview-itinerary"
-            isSharedView={false}
-            isPDFExport={false}
           />
         </ErrorBoundary>
       ))}
