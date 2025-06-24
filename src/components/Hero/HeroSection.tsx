@@ -67,7 +67,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
 
   return (
     <>
-      <section className="relative min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
+      <section className="relative min-h-fit bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div 
@@ -78,8 +78,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
           ></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-24 pb-0">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start min-h-[80vh]">
+        <div className="relative z-10 container mx-auto px-4 pt-24 pb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-8">
               {/* Title - Bold, uppercase, bright blue */}
@@ -128,7 +128,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
             </div>
 
             {/* Right Column - Big Bo Ramble Image */}
-            <div className="relative flex flex-col justify-center lg:justify-end space-y-8">
+            <div className="relative flex flex-col justify-center space-y-8">
               {/* Image Container */}
               <div className="relative w-full h-full flex items-center justify-center">
                 {/* Decorative Elements */}
@@ -156,7 +156,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
       </section>
 
       {/* Scroll Indicator */}
-      <div className="relative bg-route66-background py-8">
+      <div className="relative bg-route66-background py-4">
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-bounce">
           <div className="flex flex-col items-center text-route66-text-muted">
             <div className="text-sm font-medium mb-2">Scroll to explore</div>
