@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MapPin, Navigation, Camera, Info } from 'lucide-react';
+import { MapPin, Calendar, Star, Eye, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Route66Map from '../Route66Map';
 
@@ -16,27 +16,33 @@ const mapContent = {
     features: [
       { 
         icon: MapPin, 
-        title: "Historic Towns", 
-        description: "Visit authentic Route 66 communities",
+        title: "Destination Cities", 
+        description: "Explore major Route 66 cities and their unique attractions",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Navigation, 
-        title: "Turn-by-Turn", 
-        description: "GPS navigation for the full route",
+        icon: Calendar, 
+        title: "Events", 
+        description: "Discover local festivals and seasonal celebrations",
         bgColor: "bg-green-100"
       },
       { 
-        icon: Camera, 
-        title: "Photo Spots", 
-        description: "Instagram-worthy roadside attractions",
+        icon: Star, 
+        title: "Attractions", 
+        description: "Find must-see landmarks and roadside attractions",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Info, 
-        title: "Local Tips", 
-        description: "Insider knowledge from locals",
+        icon: Eye, 
+        title: "Hidden Gems", 
+        description: "Uncover secret spots and local favorites",
         bgColor: "bg-orange-100"
+      },
+      { 
+        icon: Cloud, 
+        title: "Weather", 
+        description: "Check current conditions and forecasts",
+        bgColor: "bg-yellow-100"
       }
     ]
   },
@@ -47,27 +53,33 @@ const mapContent = {
     features: [
       { 
         icon: MapPin, 
-        title: "Historische Städte", 
-        description: "Besuche authentische Route 66 Gemeinden",
+        title: "Zielstädte", 
+        description: "Entdecke große Route 66 Städte und ihre einzigartigen Attraktionen",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Navigation, 
-        title: "Abbiegehinweise", 
-        description: "GPS-Navigation für die gesamte Route",
+        icon: Calendar, 
+        title: "Veranstaltungen", 
+        description: "Entdecke lokale Festivals und saisonale Feierlichkeiten",
         bgColor: "bg-green-100"
       },
       { 
-        icon: Camera, 
-        title: "Foto-Spots", 
-        description: "Instagram-würdige Straßenattraktionen",
+        icon: Star, 
+        title: "Attraktionen", 
+        description: "Finde sehenswerte Wahrzeichen und Straßenattraktionen",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Info, 
-        title: "Lokale Tipps", 
-        description: "Insider-Wissen von Einheimischen",
+        icon: Eye, 
+        title: "Versteckte Perlen", 
+        description: "Entdecke geheime Orte und lokale Favoriten",
         bgColor: "bg-orange-100"
+      },
+      { 
+        icon: Cloud, 
+        title: "Wetter", 
+        description: "Prüfe aktuelle Bedingungen und Vorhersagen",
+        bgColor: "bg-yellow-100"
       }
     ]
   },
@@ -78,27 +90,33 @@ const mapContent = {
     features: [
       { 
         icon: MapPin, 
-        title: "Villes Historiques", 
-        description: "Visitez d'authentiques communautés de la Route 66",
+        title: "Villes de Destination", 
+        description: "Explorez les grandes villes de la Route 66 et leurs attractions uniques",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Navigation, 
-        title: "Navigation", 
-        description: "Navigation GPS pour tout l'itinéraire",
+        icon: Calendar, 
+        title: "Événements", 
+        description: "Découvrez les festivals locaux et les célébrations saisonnières",
         bgColor: "bg-green-100"
       },
       { 
-        icon: Camera, 
-        title: "Spots Photo", 
-        description: "Attractions routières dignes d'Instagram",
+        icon: Star, 
+        title: "Attractions", 
+        description: "Trouvez des monuments incontournables et des attractions routières",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Info, 
-        title: "Conseils Locaux", 
-        description: "Connaissances d'initiés des locaux",
+        icon: Eye, 
+        title: "Joyaux Cachés", 
+        description: "Découvrez des endroits secrets et des favoris locaux",
         bgColor: "bg-orange-100"
+      },
+      { 
+        icon: Cloud, 
+        title: "Météo", 
+        description: "Vérifiez les conditions actuelles et les prévisions",
+        bgColor: "bg-yellow-100"
       }
     ]
   },
@@ -109,27 +127,33 @@ const mapContent = {
     features: [
       { 
         icon: MapPin, 
-        title: "Cidades Históricas", 
-        description: "Visite comunidades autênticas da Rota 66",
+        title: "Cidades de Destino", 
+        description: "Explore as principais cidades da Rota 66 e suas atrações únicas",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Navigation, 
-        title: "Navegação", 
-        description: "Navegação GPS para toda a rota",
+        icon: Calendar, 
+        title: "Eventos", 
+        description: "Descubra festivais locais e celebrações sazonais",
         bgColor: "bg-green-100"
       },
       { 
-        icon: Camera, 
-        title: "Pontos Fotográficos", 
-        description: "Atrações rodoviárias dignas do Instagram",
+        icon: Star, 
+        title: "Atrações", 
+        description: "Encontre marcos imperdíveis e atrações rodoviárias",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Info, 
-        title: "Dicas Locais", 
-        description: "Conhecimento interno dos moradores locais",
+        icon: Eye, 
+        title: "Joias Escondidas", 
+        description: "Descubra locais secretos e favoritos locais",
         bgColor: "bg-orange-100"
+      },
+      { 
+        icon: Cloud, 
+        title: "Clima", 
+        description: "Verifique condições atuais e previsões",
+        bgColor: "bg-yellow-100"
       }
     ]
   }
@@ -161,8 +185,8 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
           </div>
         </div>
 
-        {/* Feature Cards Grid - Matching Trip Planner Format */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        {/* Feature Cards Grid - Updated to 5 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16">
           {content.features.map((feature, index) => (
             <div 
               key={index}
