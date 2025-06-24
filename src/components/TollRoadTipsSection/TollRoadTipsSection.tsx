@@ -54,47 +54,47 @@ const TollRoadTipsSection: React.FC<TollRoadTipsSectionProps> = ({ language }) =
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Toll Roads Information */}
-          <div>
-            <Card className="shadow-2xl border-2 border-route66-border h-fit">
-              <CardHeader className="bg-route66-background-section border-b border-route66-border">
-                <CardTitle className="flex items-center gap-3 text-route66-primary">
-                  <DollarSign className="h-6 w-6 text-route66-primary" />
-                  Toll Road Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <TollRoads language={language} />
-              </CardContent>
-            </Card>
-          </div>
+        {/* Main Toll Roads Information - Full Width */}
+        <div className="mb-12">
+          <Card className="shadow-2xl border-2 border-route66-border">
+            <CardHeader className="bg-route66-background-section border-b border-route66-border">
+              <CardTitle className="flex items-center gap-3 text-route66-primary">
+                <DollarSign className="h-6 w-6 text-route66-primary" />
+                Toll Road Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <TollRoads language={language} />
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Travel Tips */}
-          <div className="space-y-6">
-            <Card className="shadow-lg border-2 border-route66-border">
-              <CardHeader className="bg-route66-background-section border-b border-route66-border">
-                <CardTitle className="flex items-center gap-3 text-route66-primary">
-                  <MapPin className="h-6 w-6 text-route66-primary" />
-                  Essential Travel Tips
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 gap-4">
-                  {travelTips.map((tip, index) => (
-                    <div key={index} className="flex items-start gap-4 p-4 bg-route66-background-section rounded-lg border border-route66-border">
-                      <tip.icon className="h-6 w-6 text-route66-primary mt-1 flex-shrink-0" />
-                      <div className="flex-1">
-                        <h4 className="font-bold text-route66-text-primary mb-1">{tip.title}</h4>
-                        <p className="text-sm text-route66-text-secondary mb-2">{tip.description}</p>
-                        <p className="text-xs text-route66-primary font-medium">💡 {tip.tip}</p>
-                      </div>
+        {/* Travel Tips Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          <Card className="shadow-lg border-2 border-route66-border">
+            <CardHeader className="bg-route66-background-section border-b border-route66-border">
+              <CardTitle className="flex items-center gap-3 text-route66-primary">
+                <MapPin className="h-6 w-6 text-route66-primary" />
+                Essential Travel Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 gap-4">
+                {travelTips.map((tip, index) => (
+                  <div key={index} className="flex items-start gap-4 p-4 bg-route66-background-section rounded-lg border border-route66-border">
+                    <tip.icon className="h-6 w-6 text-route66-primary mt-1 flex-shrink-0" />
+                    <div className="flex-1">
+                      <h4 className="font-bold text-route66-text-primary mb-1">{tip.title}</h4>
+                      <p className="text-sm text-route66-text-secondary mb-2">{tip.description}</p>
+                      <p className="text-xs text-route66-primary font-medium">💡 {tip.tip}</p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
+          <div className="space-y-6">
             {/* Emergency Contacts */}
             <Card className="shadow-lg border-2 border-route66-primary bg-route66-primary/5">
               <CardHeader>
