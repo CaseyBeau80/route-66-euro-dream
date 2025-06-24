@@ -1,9 +1,8 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Route66TripForm from './components/Route66TripForm';
-import TripCalculatorResults from '../TripCalculator/components/TripCalculatorResults';
+import TripCalculatorResults from '../TripCalculator/TripCalculatorResults';
 import { Route66TripPlannerService, TripPlan } from '../TripCalculator/services/Route66TripPlannerService';
 import { TripCompletionService, TripCompletionAnalysis } from '../TripCalculator/services/planning/TripCompletionService';
 import { toast } from '@/hooks/use-toast';
@@ -129,6 +128,11 @@ const Route66TripCalculator: React.FC = () => {
     });
   }, []);
 
+  const handleDateRequired = useCallback(() => {
+    // Handle date selection requirement
+    console.log('📅 Date selection required');
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* Trip Planning Form */}
@@ -150,15 +154,15 @@ const Route66TripCalculator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Trip Results */}
+      {/* FIXED: Use the correct TripCalculatorResults component with share modal */}
       <TripCalculatorResults
         tripPlan={tripPlan}
-        calculation={null}
         shareUrl={shareUrl}
         tripStartDate={tripStartDate}
         completionAnalysis={completionAnalysis}
         originalRequestedDays={originalRequestedDays}
-        onShareTrip={handleShareTrip}
+        onDateRequired={handleDateRequired}
+        onShareUrlGenerated={handleShareUrlGenerated}
       />
 
       {/* Share Modal */}
