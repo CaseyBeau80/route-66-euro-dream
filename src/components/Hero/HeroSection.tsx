@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 
 interface HeroSectionProps {
   language: string;
@@ -9,45 +9,60 @@ interface HeroSectionProps {
 
 const heroContent = {
   en: {
-    badge: "America's Most Historic Highway",
-    title: "Discover the Magic of Route 66",
-    subtitle: "From Chicago to Santa Monica",
-    description: "Experience the ultimate American road trip adventure along the legendary Mother Road. Discover iconic landmarks, hidden gems, and authentic Americana on your journey through the heart of America.",
-    primaryCta: "Plan Your Journey",
-    secondaryCta: "Watch Video",
-    mascotAlt: "Route 66 Adventure Mascot"
+    title: "Plan Route 66 Without the Headache",
+    painPoints: [
+      "Too much time spent spinning your Route 66 wheels?",
+      "Are you bouncing between websites, still unsure where or how to start your Route 66 trip? Planning shouldn't feel like guesswork.",
+      "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?",
+      "Here. You come right here."
+    ],
+    ctaButton: "Start Exploring",
+    mascotAlt: "Ramble 66 Mascot"
   },
   de: {
-    badge: "Amerikas Historischste Straße",
-    title: "Entdecke die Magie der Route 66",
-    subtitle: "Von Chicago nach Santa Monica",
-    description: "Erlebe das ultimative amerikanische Roadtrip-Abenteuer entlang der legendären Mother Road. Entdecke ikonische Wahrzeichen, versteckte Perlen und authentisches Americana auf deiner Reise durch das Herz Amerikas.",
-    primaryCta: "Reise Planen",
-    secondaryCta: "Video Ansehen",
-    mascotAlt: "Route 66 Abenteuer-Maskottchen"
+    title: "Route 66 ohne Kopfschmerzen planen",
+    painPoints: [
+      "Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?",
+      "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst? Planung sollte sich nicht wie Rätselraten anfühlen.",
+      "Fragst du dich, wo andere hingehen, um ihre Route 66-Reise zu planen — Stadtveranstaltungen, Attraktionen, versteckte Perlen, Drive-Ins, Diners, Wetter, Fahrzeiten und Zielstopps?",
+      "Hier. Du kommst genau hierher."
+    ],
+    ctaButton: "Erkunden Beginnen",
+    mascotAlt: "Ramble 66 Maskottchen"
   },
   fr: {
-    badge: "La Route la Plus Historique d'Amérique",
-    title: "Découvrez la Magie de la Route 66",
-    subtitle: "De Chicago à Santa Monica",
-    description: "Vivez l'ultime aventure de road trip américain le long de la légendaire Mother Road. Découvrez des monuments emblématiques, des joyaux cachés et l'Americana authentique lors de votre voyage à travers le cœur de l'Amérique.",
-    primaryCta: "Planifier Votre Voyage",
-    secondaryCta: "Regarder la Vidéo",
-    mascotAlt: "Mascotte d'Aventure Route 66"
+    title: "Planifiez la Route 66 sans mal de tête",
+    painPoints: [
+      "Trop de temps passé à faire tourner vos roues de Route 66?",
+      "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66? La planification ne devrait pas ressembler à de la devinette.",
+      "Vous vous demandez où les autres vont pour planifier leur voyage Route 66 — événements de ville, attractions, joyaux cachés, drive-ins, restaurants, météo, temps de conduite et arrêts de destination?",
+      "Ici. Vous venez exactement ici."
+    ],
+    ctaButton: "Commencer l'Exploration",
+    mascotAlt: "Mascotte Ramble 66"
   },
   "pt-BR": {
-    badge: "A Rodovia Mais Histórica da América",
-    title: "Descubra a Magia da Rota 66",
-    subtitle: "De Chicago a Santa Monica",
-    description: "Viva a definitiva aventura de viagem americana pela lendária Mother Road. Descubra marcos icônicos, joias escondidas e autêntica Americana em sua jornada pelo coração da América.",
-    primaryCta: "Planejar Sua Viagem",
-    secondaryCta: "Assistir Vídeo",
-    mascotAlt: "Mascote da Aventura Rota 66"
+    title: "Planeje a Rota 66 sem dor de cabeça",
+    painPoints: [
+      "Muito tempo gasto girando as rodas da Rota 66?",
+      "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66? O planejamento não deveria parecer adivinhação.",
+      "Imaginando onde outros vão para planejar sua viagem na Rota 66 — eventos da cidade, atrações, joias escondidas, drive-ins, restaurantes, clima, tempos de direção e paradas de destino?",
+      "Aqui. Você vem exatamente aqui."
+    ],
+    ctaButton: "Começar a Explorar",
+    mascotAlt: "Mascote Ramble 66"
   }
 };
 
 const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
   const content = heroContent[language as keyof typeof heroContent] || heroContent.en;
+
+  const scrollToInteractiveMap = () => {
+    const mapSection = document.getElementById('interactive-map');
+    if (mapSection) {
+      mapSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
@@ -63,63 +78,38 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
 
       <div className="relative z-10 container mx-auto px-4 pt-24 pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
-          {/* Left Column - Content */}
+          {/* Left Column - Pain Points Content */}
           <div className="space-y-8">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-route66-primary/10 text-route66-primary px-4 py-2 rounded-full text-sm font-semibold border border-route66-primary/20">
-              <div className="w-2 h-2 bg-route66-primary rounded-full animate-pulse"></div>
-              {content.badge}
-            </div>
-
             {/* Title */}
-            <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl xl:text-7xl font-route66 font-bold text-route66-text-primary leading-tight">
-                {content.title}
-              </h1>
-              <p className="text-2xl lg:text-3xl font-highway text-route66-accent-red font-semibold">
-                {content.subtitle}
-              </p>
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold text-route66-text-primary leading-tight">
+              {content.title}
+            </h1>
+
+            {/* Pain Points - Tightly Stacked */}
+            <div className="space-y-6">
+              {content.painPoints.map((point, index) => (
+                <div key={index} className="text-lg lg:text-xl text-route66-text-secondary leading-relaxed">
+                  {index < 3 ? (
+                    <p>{index + 1}. {point}</p>
+                  ) : (
+                    <p className="text-2xl lg:text-3xl font-highway text-route66-accent-red font-semibold">
+                      {point}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
 
-            {/* Description */}
-            <p className="text-lg lg:text-xl text-route66-text-secondary leading-relaxed max-w-2xl">
-              {content.description}
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            {/* CTA Button */}
+            <div className="pt-4">
               <Button 
+                onClick={scrollToInteractiveMap}
                 size="lg" 
                 className="bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-4 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
-                {content.primaryCta}
-                <ArrowRight className="ml-2 h-5 w-5" />
+                {content.ctaButton}
+                <ArrowDown className="ml-2 h-5 w-5" />
               </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-2 border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white font-bold py-4 px-8 text-lg rounded-xl transition-all duration-300"
-              >
-                <Play className="mr-2 h-5 w-5" />
-                {content.secondaryCta}
-              </Button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-route66-border">
-              <div className="text-center">
-                <div className="text-3xl font-route66 font-bold text-route66-primary">2,448</div>
-                <div className="text-sm text-route66-text-muted">Total Miles</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-route66 font-bold text-route66-primary">8</div>
-                <div className="text-sm text-route66-text-muted">States</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-route66 font-bold text-route66-primary">100+</div>
-                <div className="text-sm text-route66-text-muted">Attractions</div>
-              </div>
             </div>
           </div>
 
@@ -132,7 +122,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
               {/* Mascot Container */}
               <div className="relative bg-white rounded-full p-8 shadow-2xl border-4 border-route66-primary/20">
                 <img 
-                  src="/lovable-uploads/0a31764a-ace1-4bcf-973c-cba1bac689fe.png"
+                  src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png"
                   alt={content.mascotAlt}
                   className="w-64 h-64 lg:w-80 lg:h-80 object-contain"
                 />
@@ -145,7 +135,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
               </div>
               
               <div className="absolute -bottom-2 -left-6 w-12 h-15 bg-route66-accent-red rounded-lg border-2 border-white shadow-xl flex flex-col items-center justify-center transform -rotate-12 animate-bounce" style={{ animationDelay: '0.5s' }}>
-                <div className="text-white text-[10px] font-semibold">HISTORIC</div>
+                <div className="text-white text-[10px] font-semibold">RAMBLE</div>
                 <div className="text-white text-sm font-black">66</div>
               </div>
             </div>
