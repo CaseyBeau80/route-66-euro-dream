@@ -12,7 +12,6 @@ export class Route66TripPlannerService {
     };
   }
 
-  // ADDED: Missing methods for DeveloperDebugTools
   static isUsingFallbackData(): boolean {
     return !GoogleDistanceMatrixService.isAvailable();
   }
@@ -51,95 +50,142 @@ export class Route66TripPlannerService {
 
     console.log(`🗺️ Route includes ${routeCities.length} cities:`, routeCities.map(c => c.name));
 
-    // FIXED: Calculate distances and create segments with proper day distribution
-    const segments: DailySegment[] = [];
-    
-    // First, determine which cities will be endpoints for each day
-    const dayEndpoints: DestinationCity[] = [];
-    
-    // Distribute cities across days more evenly
-    const citiesPerDay = Math.max(1, Math.floor((routeCities.length - 1) / travelDays));
-    
-    for (let day = 1; day <= travelDays; day++) {
-      if (day === travelDays) {
-        // Last day always ends at the final city
-        dayEndpoints.push(endCity);
-      } else {
-        // Calculate which city this day should end at
-        const cityIndex = Math.min(
-          startIndex + (day * citiesPerDay),
-          routeCities.length - 2 // Ensure we don't go past the second-to-last city
-        );
-        dayEndpoints.push(routeCities[cityIndex] || endCity);
+    // FIXED: Calculate actual route distances using Google API for each consecutive city pair
+    const routeSegmentDistances: { distance: number; duration: number; isGoogle: boolean }[] = [];
+    let totalRouteDistance = 0;
+    let totalRouteDuration = 0;
+    let hasGoogleData = false;
+
+    if (GoogleDistanceMatrixService.isAvailable()) {
+      console.log('🗺️ Using Google Distance Matrix API for accurate route calculations');
+      
+      // Calculate distance for each consecutive city pair in the route
+      for (let i = 0; i < routeCities.length - 1; i++) {
+        try {
+          const result = await GoogleDistanceMatrixService.calculateDistance(routeCities[i], routeCities[i + 1]);
+          routeSegmentDistances.push({
+            distance: result.distance,
+            duration: result.duration,
+            isGoogle: true
+          });
+          totalRouteDistance += result.distance;
+          totalRouteDuration += result.duration;
+          hasGoogleData = true;
+          
+          console.log(`✅ Segment ${i + 1}: ${routeCities[i].name} → ${routeCities[i + 1].name} = ${result.distance} miles, ${this.formatDuration(result.duration)}`);
+          
+          // Small delay to respect API rate limits
+          if (i < routeCities.length - 2) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        } catch (error) {
+          console.error(`❌ Google API failed for ${routeCities[i].name} → ${routeCities[i + 1].name}:`, error);
+          // Fallback to haversine distance for this segment
+          const fallbackDistance = this.calculateHaversineDistance(routeCities[i], routeCities[i + 1]);
+          const fallbackDuration = (fallbackDistance / 55) * 3600;
+          routeSegmentDistances.push({
+            distance: fallbackDistance,
+            duration: fallbackDuration,
+            isGoogle: false
+          });
+          totalRouteDistance += fallbackDistance;
+          totalRouteDuration += fallbackDuration;
+        }
+      }
+    } else {
+      console.log('📏 Using fallback distance calculations');
+      // Fallback calculations for all segments
+      for (let i = 0; i < routeCities.length - 1; i++) {
+        const distance = this.calculateHaversineDistance(routeCities[i], routeCities[i + 1]);
+        const duration = (distance / 55) * 3600;
+        routeSegmentDistances.push({
+          distance,
+          duration,
+          isGoogle: false
+        });
+        totalRouteDistance += distance;
+        totalRouteDuration += duration;
       }
     }
 
-    console.log(`📍 Day endpoints:`, dayEndpoints.map((city, idx) => `Day ${idx + 1}: ${city.name}`));
+    console.log(`📊 Total route: ${Math.round(totalRouteDistance)} miles, ${this.formatDuration(totalRouteDuration)} (Google: ${hasGoogleData})`);
 
-    // Now create segments with actual distances between consecutive day endpoints
-    let currentStartCity = startCity;
+    // Now distribute the route segments across the requested days
+    const segments: DailySegment[] = [];
+    const segmentsPerDay = Math.max(1, Math.floor(routeSegmentDistances.length / travelDays));
     
+    let segmentIndex = 0;
     for (let day = 1; day <= travelDays; day++) {
-      const dayEndCity = dayEndpoints[day - 1];
-      let segmentDistance = 0;
-      let segmentDuration = 0;
-      let isGoogleData = false;
-
-      // Calculate direct distance from current start to day end
-      if (GoogleDistanceMatrixService.isAvailable()) {
-        try {
-          const result = await GoogleDistanceMatrixService.calculateDistance(currentStartCity, dayEndCity);
-          segmentDistance = result.distance;
-          segmentDuration = result.duration;
-          isGoogleData = true;
-          console.log(`✅ Day ${day} Google API: ${currentStartCity.name} → ${dayEndCity.name} = ${segmentDistance} miles`);
-        } catch (error) {
-          console.error(`❌ Google API failed for Day ${day}:`, error);
-          segmentDistance = this.calculateHaversineDistance(currentStartCity, dayEndCity);
-          segmentDuration = (segmentDistance / 55) * 3600;
-        }
+      const isLastDay = day === travelDays;
+      
+      // Determine how many route segments to include in this day
+      let daySegmentCount: number;
+      if (isLastDay) {
+        // Last day gets all remaining segments
+        daySegmentCount = routeSegmentDistances.length - segmentIndex;
       } else {
-        segmentDistance = this.calculateHaversineDistance(currentStartCity, dayEndCity);
-        segmentDuration = (segmentDistance / 55) * 3600;
-        console.log(`📏 Day ${day} Fallback: ${currentStartCity.name} → ${dayEndCity.name} = ${segmentDistance} miles`);
+        // Calculate segments for this day, ensuring we don't exceed remaining segments
+        const remainingSegments = routeSegmentDistances.length - segmentIndex;
+        const remainingDays = travelDays - day + 1;
+        daySegmentCount = Math.min(segmentsPerDay, Math.floor(remainingSegments / remainingDays));
+        daySegmentCount = Math.max(1, daySegmentCount); // Ensure at least 1 segment per day
       }
 
-      // Create the segment with UNIQUE distance for this day
-      const segment: DailySegment = {
+      // Calculate this day's metrics by summing the included route segments
+      let dayDistance = 0;
+      let dayDuration = 0;
+      let dayIsGoogleData = true;
+      
+      const dayStartCityIndex = segmentIndex;
+      const dayEndCityIndex = Math.min(segmentIndex + daySegmentCount, routeCities.length - 1);
+      
+      // Sum up the distances for all segments included in this day
+      for (let i = 0; i < daySegmentCount && segmentIndex < routeSegmentDistances.length; i++) {
+        const segment = routeSegmentDistances[segmentIndex];
+        dayDistance += segment.distance;
+        dayDuration += segment.duration;
+        if (!segment.isGoogle) {
+          dayIsGoogleData = false;
+        }
+        segmentIndex++;
+      }
+
+      const startCity = routeCities[dayStartCityIndex];
+      const endCity = routeCities[dayEndCityIndex];
+
+      const dailySegment: DailySegment = {
         day,
-        title: `Day ${day}: ${currentStartCity.name} to ${dayEndCity.name}`,
-        startCity: currentStartCity.name,
-        endCity: dayEndCity.name,
-        distance: Math.round(segmentDistance), // UNIQUE distance per day
-        approximateMiles: Math.round(segmentDistance),
-        driveTimeHours: Math.round((segmentDuration / 3600) * 10) / 10,
-        drivingTime: Math.round((segmentDuration / 3600) * 10) / 10,
+        title: `Day ${day}: ${startCity.name} to ${endCity.name}`,
+        startCity: startCity.name,
+        endCity: endCity.name,
+        distance: Math.round(dayDistance),
+        approximateMiles: Math.round(dayDistance),
+        driveTimeHours: Math.round((dayDuration / 3600) * 10) / 10,
+        drivingTime: Math.round((dayDuration / 3600) * 10) / 10,
         destination: {
-          city: dayEndCity.name,
-          state: dayEndCity.state
+          city: endCity.name,
+          state: endCity.state
         },
-        attractions: dayEndCity.attractions.map(name => ({ 
+        attractions: endCity.attractions.map(name => ({ 
           name, 
           title: name,
-          description: `Historic attraction in ${dayEndCity.name}`,
-          city: dayEndCity.name,
+          description: `Historic attraction in ${endCity.name}`,
+          city: endCity.name,
           category: 'attraction' 
         })),
         recommendedStops: [],
-        isGoogleMapsData: isGoogleData
+        isGoogleMapsData: dayIsGoogleData
       };
 
-      segments.push(segment);
+      segments.push(dailySegment);
       
-      console.log(`🎯 Day ${day} CREATED: ${currentStartCity.name} → ${dayEndCity.name} = ${Math.round(segmentDistance)} miles, ${Math.round((segmentDuration / 3600) * 10) / 10}h (Google: ${isGoogleData})`);
+      console.log(`🎯 Day ${day} CREATED: ${startCity.name} → ${endCity.name} = ${Math.round(dayDistance)} miles, ${Math.round((dayDuration / 3600) * 10) / 10}h (${daySegmentCount} route segments, Google: ${dayIsGoogleData})`);
       
-      // Move to next day's starting point
-      currentStartCity = dayEndCity;
+      // Break if we've used all route segments
+      if (segmentIndex >= routeSegmentDistances.length) {
+        break;
+      }
     }
-
-    // Calculate totals from the actual segments
-    const totalRouteDistance = segments.reduce((sum, segment) => sum + segment.distance, 0);
-    const totalRouteDuration = segments.reduce((sum, segment) => sum + (segment.driveTimeHours || 0), 0);
 
     const tripPlan: TripPlan = {
       id: `trip-${Date.now()}`,
@@ -150,9 +196,9 @@ export class Route66TripPlannerService {
       endCity: endCity.name,
       startDate: new Date(),
       totalDays: travelDays,
-      totalDistance: totalRouteDistance,
-      totalMiles: totalRouteDistance,
-      totalDrivingTime: totalRouteDuration,
+      totalDistance: Math.round(totalRouteDistance),
+      totalMiles: Math.round(totalRouteDistance),
+      totalDrivingTime: Math.round((totalRouteDuration / 3600) * 10) / 10,
       segments,
       dailySegments: segments,
       stops: [],
@@ -161,14 +207,14 @@ export class Route66TripPlannerService {
       summary: {
         startLocation,
         endLocation,
-        totalDriveTime: totalRouteDuration,
+        totalDriveTime: Math.round((totalRouteDuration / 3600) * 10) / 10,
         totalDays: travelDays,
-        totalDistance: totalRouteDistance,
+        totalDistance: Math.round(totalRouteDistance),
         tripStyle
       }
     };
 
-    console.log('🎯 FINAL TRIP PLAN - Each day now has UNIQUE distances:', {
+    console.log('🎯 FINAL TRIP PLAN with UNIQUE daily distances:', {
       segments: segments.map(s => ({ 
         day: s.day, 
         route: `${s.startCity} → ${s.endCity}`,
@@ -176,11 +222,22 @@ export class Route66TripPlannerService {
         driveTime: s.driveTimeHours,
         isGoogle: s.isGoogleMapsData
       })),
-      totalDistance: totalRouteDistance,
-      totalDriveTime: totalRouteDuration
+      totalDistance: Math.round(totalRouteDistance),
+      totalDriveTime: Math.round((totalRouteDuration / 3600) * 10) / 10
     });
 
     return tripPlan;
+  }
+
+  private static formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+    
+    if (hours === 0) {
+      return `${minutes}m`;
+    }
+    
+    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
   }
 
   private static calculateHaversineDistance(city1: DestinationCity, city2: DestinationCity): number {
