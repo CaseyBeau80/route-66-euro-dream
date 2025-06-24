@@ -12,6 +12,15 @@ export class Route66TripPlannerService {
     };
   }
 
+  // ADDED: Missing methods for DeveloperDebugTools
+  static isUsingFallbackData(): boolean {
+    return !GoogleDistanceMatrixService.isAvailable();
+  }
+
+  static async getDestinationCitiesCount(): Promise<number> {
+    return ROUTE_66_DESTINATION_CITIES.length;
+  }
+
   static async planTrip(
     startLocation: string,
     endLocation: string,

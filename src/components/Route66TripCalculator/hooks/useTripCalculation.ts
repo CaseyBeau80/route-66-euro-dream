@@ -50,8 +50,8 @@ export const useTripCalculation = () => {
       // Set the start date from form data
       result.startDate = data.tripStartDate || new Date();
 
-      // Analyze trip completion
-      const analysis = TripCompletionService.analyzeTripCompletion(result, data.travelDays);
+      // Analyze trip completion - FIXED: Only pass the trip plan, not the days
+      const analysis = TripCompletionService.analyzeTripCompletion(result);
       
       setTripPlan(result);
       setPlanningResult({
