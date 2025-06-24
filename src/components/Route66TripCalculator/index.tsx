@@ -72,7 +72,13 @@ const Route66TripCalculator: React.FC = () => {
         title: result.title,
         segments: result.segments.length,
         totalDistance: result.totalDistance,
-        segmentDistances: result.segments.map(s => ({ day: s.day, distance: s.distance, approximateMiles: s.approximateMiles }))
+        segmentDistances: result.segments.map(s => ({ 
+          day: s.day, 
+          distance: s.distance, 
+          approximateMiles: s.approximateMiles,
+          startCity: s.startCity,
+          endCity: s.endCity
+        }))
       });
 
       // Analyze trip completion
@@ -111,6 +117,7 @@ const Route66TripCalculator: React.FC = () => {
   }, [tripStartDate, searchParams, setSearchParams]);
 
   const handleShareTrip = useCallback(() => {
+    console.log('📤 handleShareTrip called with tripPlan:', !!tripPlan);
     if (tripPlan) {
       setIsShareModalOpen(true);
     } else {
@@ -156,7 +163,7 @@ const Route66TripCalculator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* FIXED: Use the correct TripCalculatorResults component with share functionality */}
+      {/* ENSURE: Use the correct TripCalculatorResults component with ALL props */}
       <TripCalculatorResults
         tripPlan={tripPlan}
         calculation={null}
