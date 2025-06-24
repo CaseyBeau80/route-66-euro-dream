@@ -19,6 +19,7 @@ interface TripCalculatorResultsProps {
   originalRequestedDays?: number;
   onDateRequired?: () => void;
   onShareUrlGenerated?: (shareCode: string, shareUrl: string) => void;
+  onShareTrip?: () => void;
 }
 
 const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
@@ -85,35 +86,33 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   completionAnalysis,
   originalRequestedDays,
   onDateRequired,
-  onShareUrlGenerated
+  onShareUrlGenerated,
+  onShareTrip
 }) => {
   console.log('📊 TripCalculatorResults render:', {
     hasCalculation: !!calculation,
     hasTripPlan: !!tripPlan,
     hasShareUrl: !!shareUrl,
     hasTripStartDate: !!tripStartDate,
-    hasCompletionAnalysis: !!completionAnalysis
+    hasCompletionAnalysis: !!completionAnalysis,
+    hasOnShareTrip: !!onShareTrip
   });
 
   // If we have a modern trip plan, show enhanced results
   if (tripPlan) {
     return (
       <div className="space-y-6">
-        {/* PROMINENT Share Button at the top */}
-        <div className="flex justify-center">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1 rounded-xl shadow-2xl">
-            <ShareTripButton
-              tripPlan={tripPlan}
-              tripStartDate={tripStartDate}
-              shareUrl={shareUrl}
-              onShareUrlGenerated={onShareUrlGenerated}
-              variant="default"
+        {/* GIANT Share Button at the very top */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-2xl shadow-2xl">
+            <Button
+              onClick={onShareTrip}
               size="lg"
-              className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-12 py-6 text-xl font-bold shadow-xl border-0 rounded-lg flex items-center gap-3"
+              className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-16 py-8 text-2xl font-bold shadow-xl border-0 rounded-xl flex items-center gap-4"
             >
-              <Share2 className="h-6 w-6" />
-              Share Your Route 66 Adventure
-            </ShareTripButton>
+              <Share2 className="h-8 w-8" />
+              🎯 SHARE YOUR ROUTE 66 TRIP! 🎯
+            </Button>
           </div>
         </div>
 
@@ -126,21 +125,17 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
           onDateRequired={onDateRequired}
         />
         
-        {/* Bottom Share Button Section */}
-        <div className="flex justify-center pt-4">
-          <div className="bg-gradient-to-r from-green-500 to-blue-600 p-1 rounded-xl shadow-2xl">
-            <ShareTripButton
-              tripPlan={tripPlan}
-              tripStartDate={tripStartDate}  
-              shareUrl={shareUrl}
-              onShareUrlGenerated={onShareUrlGenerated}
-              variant="default"
+        {/* Another Big Share Button at the bottom */}
+        <div className="flex justify-center pt-8">
+          <div className="bg-gradient-to-r from-green-500 to-blue-600 p-2 rounded-2xl shadow-2xl">
+            <Button
+              onClick={onShareTrip}
               size="lg"
-              className="bg-white hover:bg-gray-50 text-green-700 hover:text-green-800 px-8 py-4 text-lg font-bold shadow-xl border-0 rounded-lg flex items-center gap-2"
+              className="bg-white hover:bg-gray-50 text-green-700 hover:text-green-800 px-12 py-6 text-xl font-bold shadow-xl border-0 rounded-xl flex items-center gap-3"
             >
-              <Share2 className="h-5 w-5" />
-              Share Trip Again
-            </ShareTripButton>
+              <Share2 className="h-6 w-6" />
+              Share This Amazing Trip!
+            </Button>
           </div>
         </div>
       </div>

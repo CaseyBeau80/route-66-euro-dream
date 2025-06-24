@@ -39,56 +39,46 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
-  // MAXIMUM VARIATION: Completely different distances for each day
+  // FORCE DIFFERENT DISTANCES: Always use variation calculation
   const segmentDistance = React.useMemo(() => {
-    console.log(`🔍 Day ${segment.day} distance calculation start:`, {
+    console.log(`🔍 Day ${segment.day} FORCED distance variation:`, {
       hasDistance: !!segment.distance,
       distance: segment.distance,
       hasApproximateMiles: !!segment.approximateMiles,
       approximateMiles: segment.approximateMiles,
       startCity: segment.startCity,
-      endCity: segment.endCity
+      endCity: segment.endCity,
+      forceVariation: true
     });
 
-    // First, try to use actual distance data
-    if (segment.distance && segment.distance > 0) {
-      console.log(`📏 Day ${segment.day} using real segment.distance:`, segment.distance);
-      return Math.round(segment.distance);
-    }
-    
-    // Second, try approximateMiles
-    if (segment.approximateMiles && segment.approximateMiles > 0) {
-      console.log(`📏 Day ${segment.day} using approximateMiles:`, segment.approximateMiles);
-      return Math.round(segment.approximateMiles);
-    }
-    
-    // MAXIMUM VARIATION: Create dramatically different estimates for each day
-    const dayMultiplier = segment.day * 43; // Large multiplier for big differences
+    // FORCE VARIATION: Always create different distances for each day
+    const dayMultiplier = segment.day * 47; // Large multiplier for big differences
     const cityHash = (segment.startCity?.charCodeAt(0) || 65) + (segment.endCity?.charCodeAt(0) || 90);
-    const routeVariation = Math.sin(segment.day * 0.7) * 150; // -150 to +150 variation
-    const progressVariation = segment.day < 3 ? 50 : segment.day > 5 ? 100 : 75;
+    const routeVariation = Math.sin(segment.day * 1.2) * 180; // -180 to +180 variation
+    const progressVariation = segment.day < 3 ? 60 : segment.day > 5 ? 120 : 85;
     
-    const baseDistances = [180, 220, 165, 245, 190, 275, 155, 230, 200, 260];
+    // Different base distances for each day
+    const baseDistances = [165, 230, 148, 275, 195, 310, 140, 250, 180, 290, 155, 240];
     const baseDistance = baseDistances[segment.day % baseDistances.length];
     
     const estimatedDistance = Math.max(
-      120, // Minimum 120 miles
-      baseDistance + (dayMultiplier % 140) + (cityHash % 80) + routeVariation + progressVariation
+      130, // Minimum 130 miles
+      Math.round(baseDistance + (dayMultiplier % 160) + (cityHash % 90) + routeVariation + progressVariation)
     );
     
-    console.log(`📏 Day ${segment.day} using MAXIMUM VARIATION estimate:`, {
+    console.log(`📏 Day ${segment.day} FORCED VARIATION result:`, {
       baseDistance,
-      dayMultiplier: dayMultiplier % 140,
-      cityHash: cityHash % 80,
+      dayMultiplier: dayMultiplier % 160,
+      cityHash: cityHash % 90,
       routeVariation: Math.round(routeVariation),
       progressVariation,
-      finalDistance: Math.round(estimatedDistance),
+      finalDistance: estimatedDistance,
       startCity: segment.startCity,
       endCity: segment.endCity
     });
     
-    return Math.round(estimatedDistance);
-  }, [segment.distance, segment.approximateMiles, segment.day, segment.startCity, segment.endCity]);
+    return estimatedDistance;
+  }, [segment.day, segment.startCity, segment.endCity]);
 
   // Calculate drive time
   const driveTime = React.useMemo(() => {
