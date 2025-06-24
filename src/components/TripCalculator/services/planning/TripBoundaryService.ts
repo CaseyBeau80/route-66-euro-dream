@@ -6,10 +6,10 @@ export class TripBoundaryService {
    * Find start and end boundary stops with enhanced matching
    */
   static findBoundaryStops(
-    allStops: TripStop[],
     startLocation: string,
-    endLocation: string
-  ): { startStop: TripStop; endStop: TripStop } {
+    endLocation: string,
+    allStops: TripStop[]
+  ): { startStop: TripStop; endStop: TripStop; routeStops: TripStop[] } {
     console.log(`🎯 Finding boundary stops: ${startLocation} → ${endLocation}`);
     
     const startStop = this.findLocationStop(allStops, startLocation);
@@ -27,8 +27,36 @@ export class TripBoundaryService {
       throw new Error(`End location "${endLocation}" not found in available stops`);
     }
     
-    console.log(`✅ Found boundary stops: ${startStop.name} → ${endStop.name}`);
-    return { startStop, endStop };
+    // Find route stops between start and end (based on sequence_order if available)
+    const routeStops = this.findRouteStops(allStops, startStop, endStop);
+    
+    console.log(`✅ Found boundary stops: ${startStop.name} → ${endStop.name} with ${routeStops.length} intermediate stops`);
+    return { startStop, endStop, routeStops };
+  }
+
+  /**
+   * Find intermediate route stops between start and end
+   */
+  private static findRouteStops(allStops: TripStop[], startStop: TripStop, endStop: TripStop): TripStop[] {
+    // If sequence_order is available, use it to find intermediate stops
+    if (startStop.sequence_order !== undefined && endStop.sequence_order !== undefined) {
+      const minOrder = Math.min(startStop.sequence_order, endStop.sequence_order);
+      const maxOrder = Math.max(startStop.sequence_order, endStop.sequence_order);
+      
+      return allStops.filter(stop => 
+        stop.sequence_order !== undefined &&
+        stop.sequence_order > minOrder &&
+        stop.sequence_order < maxOrder &&
+        stop.id !== startStop.id &&
+        stop.id !== endStop.id
+      ).sort((a, b) => (a.sequence_order || 0) - (b.sequence_order || 0));
+    }
+    
+    // Fallback: return a few intermediate stops (basic approach)
+    return allStops.filter(stop => 
+      stop.id !== startStop.id && 
+      stop.id !== endStop.id
+    ).slice(0, 3);
   }
 
   /**
@@ -107,9 +135,6 @@ export class TripBoundaryService {
     return parts[0].trim();
   }
 
-  /**
-   * Generate common variations of a location name
-   */
   private static generateLocationVariations(locationName: string): string[] {
     const variations: string[] = [];
     const cityName = this.extractCityName(locationName);
@@ -139,9 +164,6 @@ export class TripBoundaryService {
     return variations;
   }
 
-  /**
-   * Validate that the stops are in correct sequence order
-   */
   static validateBoundarySequence(startStop: TripStop, endStop: TripStop): boolean {
     // If stops have sequence_order, validate they're in correct order
     if (startStop.sequence_order !== undefined && endStop.sequence_order !== undefined) {

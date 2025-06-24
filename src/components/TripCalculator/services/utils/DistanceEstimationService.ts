@@ -39,12 +39,12 @@ export class DistanceEstimationService {
       return null;
     }
 
-    // Calculate distance using the existing service
+    // Calculate distance using coordinates
     const distance = DistanceCalculationService.calculateDistance(
-      startTown.latLng[0], // latitude
-      startTown.latLng[1], // longitude
-      endTown.latLng[0],
-      endTown.latLng[1]
+      startTown.coordinates.lat,
+      startTown.coordinates.lng,
+      endTown.coordinates.lat,
+      endTown.coordinates.lng
     );
 
     console.log('📏 Distance estimation:', {
