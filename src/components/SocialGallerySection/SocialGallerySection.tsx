@@ -7,7 +7,7 @@ import { Camera, Share2, Trophy, Users, Instagram, Hash } from 'lucide-react';
 
 const SocialGallerySection: React.FC = () => {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-route66-background-section">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -27,19 +27,19 @@ const SocialGallerySection: React.FC = () => {
         {/* Social Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
           <div className="text-center bg-pink-50 rounded-xl p-4 border border-pink-200">
-            <div className="text-2xl font-bold text-pink-600 mb-1">25K+</div>
+            <div className="text-2xl font-bold text-route66-primary mb-1">25K+</div>
             <div className="text-sm text-gray-600">Community Members</div>
           </div>
           <div className="text-center bg-purple-50 rounded-xl p-4 border border-purple-200">
-            <div className="text-2xl font-bold text-purple-600 mb-1">150K+</div>
+            <div className="text-2xl font-bold text-route66-primary mb-1">150K+</div>
             <div className="text-sm text-gray-600">Photos Shared</div>
           </div>
           <div className="text-center bg-blue-50 rounded-xl p-4 border border-blue-200">
-            <div className="text-2xl font-bold text-blue-600 mb-1">50+</div>
+            <div className="text-2xl font-bold text-route66-primary mb-1">50+</div>
             <div className="text-sm text-gray-600">Active Challenges</div>
           </div>
           <div className="text-center bg-green-50 rounded-xl p-4 border border-green-200">
-            <div className="text-2xl font-bold text-green-600 mb-1">Daily</div>
+            <div className="text-2xl font-bold text-route66-primary mb-1">Daily</div>
             <div className="text-sm text-gray-600">New Content</div>
           </div>
         </div>
@@ -93,13 +93,13 @@ const SocialGallerySection: React.FC = () => {
               <Card className="shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <Share2 className="h-6 w-6 text-blue-600" />
+                    <Share2 className="h-6 w-6 text-route66-primary" />
                     <h4 className="font-bold text-gray-800">Share Your Photos</h4>
                   </div>
                   <p className="text-gray-600 mb-4">
                     Tag @route66heritage and use #Route66Adventure to be featured!
                   </p>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white">
                     <Hash className="mr-2 h-4 w-4" />
                     #Route66Adventure
                   </Button>
@@ -109,13 +109,13 @@ const SocialGallerySection: React.FC = () => {
               <Card className="shadow-md">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <Users className="h-6 w-6 text-green-600" />
+                    <Users className="h-6 w-6 text-route66-primary" />
                     <h4 className="font-bold text-gray-800">Join Community</h4>
                   </div>
                   <p className="text-gray-600 mb-4">
                     Connect with fellow travelers and share tips, stories, and experiences
                   </p>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white">
                     <Users className="mr-2 h-4 w-4" />
                     Connect Now
                   </Button>
@@ -136,7 +136,7 @@ const SocialGallerySection: React.FC = () => {
                     { name: "Route 66 Shields", count: 2156, emoji: "🛡️" },
                     { name: "Desert Views", count: 892, emoji: "🏜️" }
                   ].map((category, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-3 text-center">
+                    <div key={index} className="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
                       <div className="text-2xl mb-1">{category.emoji}</div>
                       <div className="font-semibold text-sm text-gray-800">{category.name}</div>
                       <div className="text-xs text-gray-600">{category.count} photos</div>

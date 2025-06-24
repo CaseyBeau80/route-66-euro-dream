@@ -9,7 +9,7 @@ const InteractiveMapSection: React.FC = () => {
   const [isMapVisible, setIsMapVisible] = useState(false);
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-route66-background-section">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -65,7 +65,7 @@ const InteractiveMapSection: React.FC = () => {
 
         {/* Interactive Map Container */}
         {isMapVisible && (
-          <Card className="shadow-2xl border-2 border-route66-border overflow-hidden">
+          <Card className="shadow-2xl border-2 border-route66-border overflow-hidden mb-12">
             <CardContent className="p-0">
               <div className="bg-gradient-to-r from-route66-primary to-route66-primary-light text-white p-6">
                 <div className="flex items-center gap-3 mb-2">
@@ -84,18 +84,18 @@ const InteractiveMapSection: React.FC = () => {
         )}
 
         {/* Map Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-md">
             <MapPin className="h-12 w-12 text-route66-primary mx-auto mb-4" />
             <h4 className="text-lg font-bold text-gray-800 mb-2">Heritage Cities</h4>
             <p className="text-gray-600">Discover authentic Route 66 destinations with rich history and culture</p>
           </div>
-          <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-md">
             <Route className="h-12 w-12 text-green-600 mx-auto mb-4" />
             <h4 className="text-lg font-bold text-gray-800 mb-2">Historic Route</h4>
             <p className="text-gray-600">Follow the original path through America's heartland</p>
           </div>
-          <div className="text-center p-6 bg-gray-50 rounded-xl border border-gray-200">
+          <div className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-md">
             <Clock className="h-12 w-12 text-red-600 mx-auto mb-4" />
             <h4 className="text-lg font-bold text-gray-800 mb-2">Real-time Info</h4>
             <p className="text-gray-600">Get current weather, events, and travel conditions</p>

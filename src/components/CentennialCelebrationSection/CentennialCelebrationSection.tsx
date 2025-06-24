@@ -6,7 +6,7 @@ import { Calendar, Star, Award, Clock } from 'lucide-react';
 
 const CentennialCelebrationSection: React.FC = () => {
   return (
-    <section className="py-20 bg-route66-background-section">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -34,9 +34,9 @@ const CentennialCelebrationSection: React.FC = () => {
           </Card>
           <Card className="shadow-lg border-2 border-blue-200 bg-blue-50">
             <CardContent className="p-6 text-center">
-              <Star className="h-10 w-10 text-blue-600 mx-auto mb-3" />
-              <h4 className="font-bold text-blue-800 mb-2">Special Events</h4>
-              <p className="text-sm text-blue-700">Exclusive centennial celebrations nationwide</p>
+              <Star className="h-10 w-10 text-route66-primary mx-auto mb-3" />
+              <h4 className="font-bold text-route66-primary mb-2">Special Events</h4>
+              <p className="text-sm text-route66-text-secondary">Exclusive centennial celebrations nationwide</p>
             </CardContent>
           </Card>
           <Card className="shadow-lg border-2 border-yellow-200 bg-yellow-50">
@@ -56,7 +56,7 @@ const CentennialCelebrationSection: React.FC = () => {
         </div>
 
         {/* Main Centennial Content */}
-        <div className="bg-white rounded-xl shadow-2xl border-2 border-route66-border overflow-hidden">
+        <div className="bg-white rounded-xl shadow-2xl border-2 border-route66-border overflow-hidden mb-12">
           <div className="bg-gradient-to-r from-red-500 via-white to-blue-500 h-2"></div>
           <div className="p-8">
             <CentennialSection />
@@ -64,7 +64,7 @@ const CentennialCelebrationSection: React.FC = () => {
         </div>
 
         {/* Centennial Call to Action */}
-        <div className="mt-12 text-center">
+        <div className="text-center">
           <Card className="shadow-lg border-2 border-route66-primary bg-gradient-to-r from-blue-50 to-red-50">
             <CardContent className="p-8">
               <h3 className="text-2xl font-bold text-route66-primary mb-4">
@@ -80,7 +80,7 @@ const CentennialCelebrationSection: React.FC = () => {
                   <div className="text-gray-600">Route 66 Established</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600 mb-1">2026</div>
+                  <div className="text-2xl font-bold text-route66-primary mb-1">2026</div>
                   <div className="text-gray-600">Centennial Celebration</div>
                 </div>
                 <div className="text-center">

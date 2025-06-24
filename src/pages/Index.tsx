@@ -15,7 +15,7 @@ import BackToTopButton from "../components/BackToTopButton";
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   
-  console.log("🏠 Index page: Rendering with new vertical scrollable Route 66 experience");
+  console.log("🏠 Index page: Rendering with vertical scrollable Route 66 experience");
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>

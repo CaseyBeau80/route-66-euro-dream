@@ -6,7 +6,7 @@ import { MapPin, Building, Utensils, Bed, Star, Camera } from 'lucide-react';
 
 const ExploreDirectorySection: React.FC = () => {
   return (
-    <section className="py-20 bg-route66-background-section">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Section Header */}
         <div className="text-center mb-12">
@@ -25,42 +25,42 @@ const ExploreDirectorySection: React.FC = () => {
 
         {/* Category Overview */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border border-route66-border">
             <CardContent className="p-4 text-center">
               <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-gray-800 mb-1">Attractions</h4>
               <p className="text-xs text-gray-600">Historic Sites</p>
             </CardContent>
           </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border border-route66-border">
             <CardContent className="p-4 text-center">
               <Utensils className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-gray-800 mb-1">Diners</h4>
               <p className="text-xs text-gray-600">Classic Eats</p>
             </CardContent>
           </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border border-route66-border">
             <CardContent className="p-4 text-center">
-              <Bed className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+              <Bed className="h-8 w-8 text-route66-primary mx-auto mb-2" />
               <h4 className="font-bold text-sm text-gray-800 mb-1">Motels</h4>
               <p className="text-xs text-gray-600">Vintage Stays</p>
             </CardContent>
           </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border border-route66-border">
             <CardContent className="p-4 text-center">
               <Camera className="h-8 w-8 text-purple-500 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-gray-800 mb-1">Drive-Ins</h4>
               <p className="text-xs text-gray-600">Movie Magic</p>
             </CardContent>
           </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border border-route66-border">
             <CardContent className="p-4 text-center">
               <MapPin className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-gray-800 mb-1">Hidden Gems</h4>
               <p className="text-xs text-gray-600">Secret Spots</p>
             </CardContent>
           </Card>
-          <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <Card className="shadow-md hover:shadow-lg transition-shadow border border-route66-border">
             <CardContent className="p-4 text-center">
               <Building className="h-8 w-8 text-orange-500 mx-auto mb-2" />
               <h4 className="font-bold text-sm text-gray-800 mb-1">Cities</h4>
@@ -70,7 +70,7 @@ const ExploreDirectorySection: React.FC = () => {
         </div>
 
         {/* Route 66 Directory Carousel */}
-        <div className="bg-white rounded-xl shadow-2xl border-2 border-route66-border overflow-hidden">
+        <div className="bg-white rounded-xl shadow-2xl border-2 border-route66-border overflow-hidden mb-12">
           <div className="bg-gradient-to-r from-route66-primary to-route66-primary-light text-white p-6">
             <h3 className="text-2xl font-bold mb-2">Browse Route 66 Destinations</h3>
             <p className="text-blue-100">
@@ -83,18 +83,18 @@ const ExploreDirectorySection: React.FC = () => {
         </div>
 
         {/* Directory Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div className="text-center p-6 bg-white rounded-xl shadow-md border border-route66-border">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center p-6 bg-route66-background-section rounded-xl shadow-md border border-route66-border">
             <Star className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
             <h4 className="text-lg font-bold text-gray-800 mb-2">Curated Experiences</h4>
             <p className="text-gray-600">Hand-picked destinations that capture the true spirit of Route 66</p>
           </div>
-          <div className="text-center p-6 bg-white rounded-xl shadow-md border border-route66-border">
+          <div className="text-center p-6 bg-route66-background-section rounded-xl shadow-md border border-route66-border">
             <MapPin className="h-12 w-12 text-route66-primary mx-auto mb-4" />
             <h4 className="text-lg font-bold text-gray-800 mb-2">Heritage Focus</h4>
             <p className="text-gray-600">Authentic locations with rich history and cultural significance</p>
           </div>
-          <div className="text-center p-6 bg-white rounded-xl shadow-md border border-route66-border">
+          <div className="text-center p-6 bg-route66-background-section rounded-xl shadow-md border border-route66-border">
             <Camera className="h-12 w-12 text-green-600 mx-auto mb-4" />
             <h4 className="text-lg font-bold text-gray-800 mb-2">Photo Opportunities</h4>
             <p className="text-gray-600">Perfect spots for capturing memorable Route 66 moments</p>
