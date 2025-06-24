@@ -127,28 +127,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
 
           {/* Right Column - Big Bo Ramble Image */}
           <div className="relative flex justify-center lg:justify-end">
-            <div className="relative">
+            <div className="relative w-full h-full flex items-center justify-center">
               {/* Decorative Elements */}
               <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
               
-              {/* Image Container with rounded corners */}
-              <div className="relative bg-white rounded-2xl p-8 shadow-2xl border-4 border-route66-primary/20">
+              {/* Image Container - Now much larger */}
+              <div className="relative bg-white rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
                 <img 
                   src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png"
                   alt={content.mascotAlt}
-                  className="w-64 h-64 lg:w-80 lg:h-80 object-contain rounded-xl"
+                  className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]"
                 />
-              </div>
-
-              {/* Floating Route 66 Badges */}
-              <div className="absolute -top-4 -right-4 w-16 h-20 bg-route66-primary rounded-lg border-2 border-white shadow-xl flex flex-col items-center justify-center transform rotate-12 animate-bounce">
-                <div className="text-white text-xs font-semibold">ROUTE</div>
-                <div className="text-white text-xl font-black">66</div>
-              </div>
-              
-              <div className="absolute -bottom-2 -left-6 w-12 h-15 bg-route66-accent-red rounded-lg border-2 border-white shadow-xl flex flex-col items-center justify-center transform -rotate-12 animate-bounce" style={{ animationDelay: '0.5s' }}>
-                <div className="text-white text-[10px] font-semibold">RAMBLE</div>
-                <div className="text-white text-sm font-black">66</div>
               </div>
             </div>
           </div>
