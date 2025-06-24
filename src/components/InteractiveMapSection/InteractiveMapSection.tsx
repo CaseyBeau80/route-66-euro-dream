@@ -28,17 +28,17 @@ const InteractiveMapSection: React.FC = () => {
 
         {/* Map Stats */}
         <div className="grid grid-cols-3 gap-6 mb-8 max-w-2xl mx-auto">
-          <div className="text-center bg-blue-50 rounded-xl p-4 border border-blue-200">
+          <div className="text-center bg-route66-primary/10 rounded-xl p-4 border border-route66-primary/20">
             <div className="text-2xl font-bold text-route66-primary mb-1">2,448</div>
-            <div className="text-sm text-gray-600">Miles to Explore</div>
+            <div className="text-sm text-route66-text-secondary">Miles to Explore</div>
           </div>
-          <div className="text-center bg-green-50 rounded-xl p-4 border border-green-200">
-            <div className="text-2xl font-bold text-green-600 mb-1">8</div>
-            <div className="text-sm text-gray-600">States to Visit</div>
+          <div className="text-center bg-route66-primary/10 rounded-xl p-4 border border-route66-primary/20">
+            <div className="text-2xl font-bold text-route66-primary mb-1">8</div>
+            <div className="text-sm text-route66-text-secondary">States to Visit</div>
           </div>
-          <div className="text-center bg-red-50 rounded-xl p-4 border border-red-200">
-            <div className="text-2xl font-bold text-route66-accent-red mb-1">100+</div>
-            <div className="text-sm text-gray-600">Historic Sites</div>
+          <div className="text-center bg-route66-primary/10 rounded-xl p-4 border border-route66-primary/20">
+            <div className="text-2xl font-bold text-route66-primary mb-1">100+</div>
+            <div className="text-sm text-route66-text-secondary">Historic Sites</div>
           </div>
         </div>
 
@@ -67,12 +67,12 @@ const InteractiveMapSection: React.FC = () => {
         {isMapVisible && (
           <Card className="shadow-2xl border-2 border-route66-border overflow-hidden mb-12">
             <CardContent className="p-0">
-              <div className="bg-gradient-to-r from-route66-primary to-route66-primary-light text-white p-6">
+              <div className="bg-route66-primary text-white p-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <Route className="h-6 w-6 text-yellow-300" />
+                  <Route className="h-6 w-6 text-route66-accent-gold" />
                   <h3 className="text-xl font-bold">Interactive Route 66 Map</h3>
                 </div>
-                <p className="text-blue-100">
+                <p className="text-route66-primary-light">
                   Click on destinations to explore attractions, plan your route, and discover hidden gems
                 </p>
               </div>
@@ -85,20 +85,20 @@ const InteractiveMapSection: React.FC = () => {
 
         {/* Map Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-md">
+          <div className="text-center p-6 bg-white rounded-xl border border-route66-border shadow-md">
             <MapPin className="h-12 w-12 text-route66-primary mx-auto mb-4" />
-            <h4 className="text-lg font-bold text-gray-800 mb-2">Heritage Cities</h4>
-            <p className="text-gray-600">Discover authentic Route 66 destinations with rich history and culture</p>
+            <h4 className="text-lg font-bold text-route66-primary mb-2">Heritage Cities</h4>
+            <p className="text-route66-text-secondary">Discover authentic Route 66 destinations with rich history and culture</p>
           </div>
-          <div className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-md">
-            <Route className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <h4 className="text-lg font-bold text-gray-800 mb-2">Historic Route</h4>
-            <p className="text-gray-600">Follow the original path through America's heartland</p>
+          <div className="text-center p-6 bg-white rounded-xl border border-route66-border shadow-md">
+            <Route className="h-12 w-12 text-route66-primary mx-auto mb-4" />
+            <h4 className="text-lg font-bold text-route66-primary mb-2">Historic Route</h4>
+            <p className="text-route66-text-secondary">Follow the original path through America's heartland</p>
           </div>
-          <div className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-md">
-            <Clock className="h-12 w-12 text-red-600 mx-auto mb-4" />
-            <h4 className="text-lg font-bold text-gray-800 mb-2">Real-time Info</h4>
-            <p className="text-gray-600">Get current weather, events, and travel conditions</p>
+          <div className="text-center p-6 bg-white rounded-xl border border-route66-border shadow-md">
+            <Clock className="h-12 w-12 text-route66-primary mx-auto mb-4" />
+            <h4 className="text-lg font-bold text-route66-primary mb-2">Real-time Info</h4>
+            <p className="text-route66-text-secondary">Get current weather, events, and travel conditions</p>
           </div>
         </div>
       </div>
