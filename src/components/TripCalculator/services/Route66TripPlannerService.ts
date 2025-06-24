@@ -5,10 +5,12 @@ export interface EnhancedTripPlanResult {
   tripPlan: TripPlan;
   completionAnalysis: any;
   originalRequestedDays: number;
+  validationResults?: any; // Add missing property
+  warnings?: string[]; // Add missing property
 }
 
 // Re-export the types from TripPlanTypes for backward compatibility
-export { TripPlan, DailySegment } from './planning/TripPlanTypes';
+export type { TripPlan, DailySegment } from './planning/TripPlanTypes';
 
 export class Route66TripPlannerService {
   static async planTrip(
@@ -144,7 +146,9 @@ export class Route66TripPlannerService {
     return {
       tripPlan,
       completionAnalysis,
-      originalRequestedDays: travelDays
+      originalRequestedDays: travelDays,
+      validationResults: {}, // Add missing property
+      warnings: [] // Add missing property
     };
   }
 
