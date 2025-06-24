@@ -1,13 +1,10 @@
 
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { MapPin, Clock, Route, Calendar } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
-import { Clock, MapPin } from 'lucide-react';
-import { useStableSegment } from '../hooks/useStableSegments';
-import { DriveTimeStyleCalculator } from '../services/planning/DriveTimeStyleCalculator';
-import DaySegmentCardHeader from './DaySegmentCardHeader';
-import DaySegmentCardContent from './DaySegmentCardContent';
-import SegmentWeatherWidget from './SegmentWeatherWidget';
-import ErrorBoundary from './ErrorBoundary';
+import { format, addDays } from 'date-fns';
+import UnifiedWeatherWidget from './weather/UnifiedWeatherWidget';
 
 interface DaySegmentCardProps {
   segment: DailySegment;
@@ -17,7 +14,6 @@ interface DaySegmentCardProps {
   sectionKey?: string;
   showWeather?: boolean;
   forceShowAttractions?: boolean;
-  isCompact?: boolean;
 }
 
 const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
@@ -27,109 +23,134 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
   tripId,
   sectionKey = 'default',
   showWeather = true,
-  forceShowAttractions = false,
-  isCompact = false
+  forceShowAttractions = false
 }) => {
-  const stableSegment = useStableSegment(segment);
-  
-  // Ensure we have valid drive time data
-  const driveTimeHours = stableSegment?.driveTimeHours || stableSegment?.drivingTime || 0;
-  const distance = stableSegment?.distance || stableSegment?.approximateMiles || 0;
-  
-  const driveTimeStyle = DriveTimeStyleCalculator.getStyle(driveTimeHours);
-  
-  // Detect if we're in the split-screen compact mode
-  const isInCompactMode = isCompact || sectionKey?.includes('compact');
-  
-  console.log('🗂️ DaySegmentCard render:', {
-    day: stableSegment?.day,
-    endCity: stableSegment?.endCity,
-    driveTimeHours,
-    distance,
-    isInCompactMode,
-    sectionKey,
-    showWeather
-  });
+  // Calculate the actual date for this segment
+  const segmentDate = React.useMemo(() => {
+    if (!tripStartDate || !segment.day) return null;
+    
+    try {
+      const baseDate = new Date(tripStartDate);
+      const dayOffset = segment.day - 1; // Day 1 should be +0 days
+      return addDays(baseDate, dayOffset);
+    } catch (error) {
+      console.error('Error calculating segment date:', error);
+      return null;
+    }
+  }, [tripStartDate, segment.day]);
 
-  if (!stableSegment) {
-    return (
-      <div className="bg-white border border-route66-border rounded-lg p-4">
-        <div className="text-center text-gray-500">
-          <p>Loading segment data...</p>
-        </div>
-      </div>
-    );
-  }
+  // Calculate segment distance with proper fallback logic
+  const segmentDistance = React.useMemo(() => {
+    const distance = segment.distance || segment.approximateMiles || 0;
+    console.log(`📏 DaySegmentCard Day ${segment.day} distance calculation:`, {
+      segmentDistance: segment.distance,
+      approximateMiles: segment.approximateMiles,
+      finalDistance: distance
+    });
+    return Math.round(distance);
+  }, [segment.distance, segment.approximateMiles, segment.day]);
+
+  // Calculate drive time
+  const driveTime = React.useMemo(() => {
+    if (segment.driveTimeHours) {
+      return `${Math.round(segment.driveTimeHours * 10) / 10}h`;
+    }
+    // Fallback calculation: assume 55 mph average
+    const hours = segmentDistance / 55;
+    return `${Math.round(hours * 10) / 10}h`;
+  }, [segment.driveTimeHours, segmentDistance]);
+
+  const startCity = segment.startCity || 'Start Location';
+  const endCity = segment.endCity || 'End Location';
 
   return (
-    <div className={`bg-white border-2 border-route66-border rounded-lg shadow-lg overflow-hidden ${isInCompactMode ? 'shadow-sm' : ''}`}>
-      <ErrorBoundary context={`DaySegmentCard-Header-${stableSegment.day}`}>
-        <DaySegmentCardHeader 
-          segment={stableSegment} 
-          tripStartDate={tripStartDate}
-          cardIndex={cardIndex}
-          isCompact={isInCompactMode}
-        />
-      </ErrorBoundary>
-
-      {/* Drive Time and Distance Stats */}
-      <div className={`px-4 py-${isInCompactMode ? '2' : '3'} bg-route66-cream border-b border-route66-border`}>
-        <div className="grid grid-cols-2 gap-4">
-          {/* Distance Display */}
-          <div className={`text-center p-${isInCompactMode ? '2' : '3'} bg-white rounded border border-route66-tan`}>
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <MapPin className={`${isInCompactMode ? 'h-3 w-3' : 'h-4 w-4'} text-route66-primary`} />
+    <Card className="border border-route66-border hover:shadow-lg transition-shadow duration-300">
+      <CardContent className="p-6">
+        {/* Day Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-route66-primary text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold">
+              {segment.day}
             </div>
-            <div className={`font-route66 ${isInCompactMode ? 'text-base' : 'text-lg'} text-route66-vintage-red mb-1`}>
-              {Math.round(distance)} miles
-            </div>
-            <div className={`font-travel ${isInCompactMode ? 'text-xs' : 'text-xs'} text-route66-vintage-brown`}>
-              Total Distance
+            <div>
+              <h3 className="text-lg font-bold text-route66-text-primary">
+                Day {segment.day}
+              </h3>
+              {segmentDate && (
+                <div className="flex items-center gap-1 text-sm text-route66-text-secondary">
+                  <Calendar className="w-4 h-4" />
+                  {format(segmentDate, 'EEEE, MMMM d')}
+                </div>
+              )}
             </div>
           </div>
           
-          {/* Drive Time Display */}
-          <div className={`text-center p-${isInCompactMode ? '2' : '3'} bg-white rounded border border-route66-tan`}>
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Clock className={`${isInCompactMode ? 'h-3 w-3' : 'h-4 w-4'} text-route66-primary`} />
+          {/* Distance and Time */}
+          <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
+            <div className="flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
+              <Route className="w-4 h-4 text-blue-600" />
+              <span className="font-semibold text-blue-800">{segmentDistance} miles</span>
             </div>
-            <div className={`font-route66 ${isInCompactMode ? 'text-base' : 'text-lg'} mb-1 ${driveTimeHours > 7 ? driveTimeStyle.text : 'text-route66-vintage-red'}`}>
-              {DriveTimeStyleCalculator.formatDriveTime(driveTimeHours)}
+            <div className="flex items-center gap-1 bg-green-50 px-3 py-1 rounded-full">
+              <Clock className="w-4 h-4 text-green-600" />
+              <span className="font-semibold text-green-800">{driveTime}</span>
             </div>
-            <div className={`font-travel ${isInCompactMode ? 'text-xs' : 'text-xs'} text-route66-vintage-brown`}>
-              Drive Time
-            </div>
-            {driveTimeHours > 7 && (
-              <div className={`${isInCompactMode ? 'text-xs' : 'text-xs'} text-orange-600 font-semibold mt-1 bg-orange-50 px-2 py-1 rounded`}>
-                ⚠️ Long Drive
-              </div>
-            )}
           </div>
         </div>
-      </div>
 
-      {/* Weather Widget - Only show in full mode */}
-      {showWeather && !isInCompactMode && (
-        <ErrorBoundary context={`DaySegmentCard-Weather-${stableSegment.day}`}>
-          <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-            <SegmentWeatherWidget 
-              segment={stableSegment} 
+        {/* Route Information */}
+        <div className="mb-4 p-3 bg-route66-vintage-beige rounded-lg border border-route66-tan">
+          <div className="flex items-center gap-2 text-route66-text-primary">
+            <MapPin className="w-4 h-4 text-route66-accent" />
+            <span className="font-semibold">{startCity}</span>
+            <span className="text-route66-text-secondary">→</span>
+            <span className="font-semibold">{endCity}</span>
+          </div>
+        </div>
+
+        {/* Weather Widget */}
+        {showWeather && segmentDate && (
+          <div className="mb-4">
+            <UnifiedWeatherWidget 
+              segment={segment} 
               tripStartDate={tripStartDate}
             />
           </div>
-        </ErrorBoundary>
-      )}
+        )}
 
-      {/* Main Content */}
-      <ErrorBoundary context={`DaySegmentCard-Content-${stableSegment.day}`}>
-        <DaySegmentCardContent 
-          segment={stableSegment}
-          driveTimeStyle={driveTimeStyle}
-          forceShowAttractions={forceShowAttractions}
-          isCompact={isInCompactMode}
-        />
-      </ErrorBoundary>
-    </div>
+        {/* Attractions/Stops */}
+        {(segment.attractions && segment.attractions.length > 0) && (
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-route66-text-primary mb-3 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-route66-accent" />
+              Recommended Stops ({segment.attractions.length})
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {segment.attractions.slice(0, 4).map((attraction: any, idx: number) => (
+                <div key={idx} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-route66-accent transition-colors">
+                  <div className="w-2 h-2 bg-route66-accent rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-route66-text-primary text-sm truncate">
+                      {attraction.name}
+                    </div>
+                    {attraction.type && (
+                      <div className="text-xs text-route66-text-secondary">
+                        {attraction.type}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {segment.attractions.length > 4 && (
+              <p className="text-xs text-route66-text-secondary mt-2 text-center">
+                + {segment.attractions.length - 4} more stops
+              </p>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

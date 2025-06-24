@@ -7,6 +7,8 @@ import { TripCompletionAnalysis } from './services/planning/TripCompletionServic
 import { formatTime } from './utils/distanceCalculator';
 import EnhancedTripResults from './EnhancedTripResults';
 import ShareTripButton from './components/ShareTripButton';
+import { Button } from '@/components/ui/button';
+import { Share2 } from 'lucide-react';
 
 interface TripCalculatorResultsProps {
   calculation?: TripCalculation;
@@ -97,6 +99,24 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
   if (tripPlan) {
     return (
       <div className="space-y-6">
+        {/* PROMINENT Share Button at the top */}
+        <div className="flex justify-center">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-1 rounded-xl shadow-2xl">
+            <ShareTripButton
+              tripPlan={tripPlan}
+              tripStartDate={tripStartDate}
+              shareUrl={shareUrl}
+              onShareUrlGenerated={onShareUrlGenerated}
+              variant="default"
+              size="lg"
+              className="bg-white hover:bg-gray-50 text-blue-700 hover:text-blue-800 px-12 py-6 text-xl font-bold shadow-xl border-0 rounded-lg flex items-center gap-3"
+            >
+              <Share2 className="h-6 w-6" />
+              Share Your Route 66 Adventure
+            </ShareTripButton>
+          </div>
+        </div>
+
         <EnhancedTripResults
           tripPlan={tripPlan}
           shareUrl={shareUrl}
@@ -106,19 +126,22 @@ const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
           onDateRequired={onDateRequired}
         />
         
-        {/* Share Button Section */}
+        {/* Bottom Share Button Section */}
         <div className="flex justify-center pt-4">
-          <ShareTripButton
-            tripPlan={tripPlan}
-            tripStartDate={tripStartDate}
-            shareUrl={shareUrl}
-            onShareUrlGenerated={onShareUrlGenerated}
-            variant="default"
-            size="lg"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            Share Your Route 66 Adventure
-          </ShareTripButton>
+          <div className="bg-gradient-to-r from-green-500 to-blue-600 p-1 rounded-xl shadow-2xl">
+            <ShareTripButton
+              tripPlan={tripPlan}
+              tripStartDate={tripStartDate}  
+              shareUrl={shareUrl}
+              onShareUrlGenerated={onShareUrlGenerated}
+              variant="default"
+              size="lg"
+              className="bg-white hover:bg-gray-50 text-green-700 hover:text-green-800 px-8 py-4 text-lg font-bold shadow-xl border-0 rounded-lg flex items-center gap-2"
+            >
+              <Share2 className="h-5 w-5" />
+              Share Trip Again
+            </ShareTripButton>
+          </div>
         </div>
       </div>
     );
