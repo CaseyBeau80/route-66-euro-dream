@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
@@ -104,25 +103,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
                 ))}
               </div>
 
-              {/* CTA Button - Rounded, blue background (#004FCC), white text */}
+              {/* Enhanced CTA Button */}
               <div className="pt-6">
                 <Button 
                   onClick={scrollToInteractiveMap}
                   size="lg" 
-                  className="font-bold py-4 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  className="
+                    font-bold py-6 px-12 text-xl rounded-xl shadow-lg
+                    hover:shadow-2xl transform hover:scale-105 transition-all duration-300
+                    animate-pulse-slow
+                    group relative overflow-hidden
+                  "
                   style={{ 
                     backgroundColor: '#004FCC',
                     color: 'white'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#003A99';
+                    e.currentTarget.style.transform = 'scale(1.05)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = '#004FCC';
+                    e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
                   {content.ctaButton}
-                  <ArrowDown className="ml-2 h-5 w-5" />
+                  <ArrowDown className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:animate-bounce" />
                 </Button>
               </div>
             </div>
