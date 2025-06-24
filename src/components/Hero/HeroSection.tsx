@@ -80,17 +80,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
           {/* Left Column - Pain Points Content */}
           <div className="space-y-8">
-            {/* Title - Bold, uppercase, dark navy */}
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight" style={{ color: '#1A1A1A' }}>
+            {/* Title - Bold, uppercase, bright blue */}
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
               {content.title}
             </h1>
 
-            {/* Pain Points - Tightly stacked with medium grey text */}
+            {/* Pain Points - Tightly stacked with blue text */}
             <div className="space-y-6">
               {content.painPoints.map((point, index) => (
                 <div key={index}>
                   {index < 3 ? (
-                    <p className="text-lg lg:text-xl leading-relaxed" style={{ color: '#444444' }}>
+                    <p className="text-lg lg:text-xl leading-relaxed text-route66-primary-light">
                       {point}
                     </p>
                   ) : (
