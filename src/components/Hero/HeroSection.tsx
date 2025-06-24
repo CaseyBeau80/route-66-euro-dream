@@ -79,7 +79,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
         </div>
 
         <div className="relative z-10 container mx-auto px-4 pt-24 pb-2">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start min-h-[80vh]">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-8">
               {/* Title - Bold, uppercase, bright blue */}
@@ -127,8 +127,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
               </div>
             </div>
 
-            {/* Right Column - Big Bo Ramble Image */}
-            <div className="relative flex justify-center lg:justify-end">
+            {/* Right Column - Big Bo Ramble Image + Benefits Row */}
+            <div className="relative flex flex-col justify-center lg:justify-end space-y-8">
+              {/* Image Container */}
               <div className="relative w-full h-full flex items-center justify-center">
                 {/* Decorative Elements */}
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
@@ -142,13 +143,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
                   />
                 </div>
               </div>
+
+              {/* Benefits Row - Now positioned directly below the image */}
+              <div className="w-full">
+                <BenefitsRow language={language} />
+              </div>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Benefits Row - Positioned directly below Hero with minimal spacing */}
-      <BenefitsRow language={language} />
 
       {/* Scroll Indicator */}
       <div className="relative bg-route66-background py-8">
