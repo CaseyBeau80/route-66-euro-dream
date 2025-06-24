@@ -10,7 +10,7 @@ interface InteractiveMapSectionProps {
 const mapContent = {
   en: {
     title: "Explore Route 66 Google Map",
-    subtitle: "Your personalized, interactive Mother Road travel map",
+    subtitle: "Your personalized, interactive Route 66 travel map.",
     exploreButton: "Start Exploring",
     features: [
       { 
@@ -47,7 +47,7 @@ const mapContent = {
   },
   de: {
     title: "Erkunde Route 66 Google Map",
-    subtitle: "Ihre personalisierte, interaktive Mother Road Reisekarte",
+    subtitle: "Ihre personalisierte, interaktive Route 66 Reisekarte.",
     exploreButton: "Erkunden Beginnen",
     features: [
       { 
@@ -84,7 +84,7 @@ const mapContent = {
   },
   fr: {
     title: "Explorez Route 66 Google Map",
-    subtitle: "Votre carte de voyage personnalisée et interactive de la Mother Road",
+    subtitle: "Votre carte de voyage Route 66 personnalisée et interactive.",
     exploreButton: "Commencer l'Exploration",
     features: [
       { 
@@ -121,7 +121,7 @@ const mapContent = {
   },
   "pt-BR": {
     title: "Explore Route 66 Google Map",
-    subtitle: "Seu mapa de viagem personalizado e interativo da Mother Road",
+    subtitle: "Seu mapa de viagem Route 66 personalizado e interativo.",
     exploreButton: "Começar a Explorar",
     features: [
       { 
