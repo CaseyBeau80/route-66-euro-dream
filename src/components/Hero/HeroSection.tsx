@@ -17,7 +17,7 @@ const heroContent = {
       "Here. You come right here."
     ],
     ctaButton: "Start Exploring",
-    mascotAlt: "Ramble 66 Mascot"
+    mascotAlt: "Big Bo Ramble - Route 66 Mascot"
   },
   de: {
     title: "Route 66 ohne Kopfschmerzen planen",
@@ -28,7 +28,7 @@ const heroContent = {
       "Hier. Du kommst genau hierher."
     ],
     ctaButton: "Erkunden Beginnen",
-    mascotAlt: "Ramble 66 Maskottchen"
+    mascotAlt: "Big Bo Ramble - Route 66 Maskottchen"
   },
   fr: {
     title: "Planifiez la Route 66 sans mal de tête",
@@ -39,7 +39,7 @@ const heroContent = {
       "Ici. Vous venez exactement ici."
     ],
     ctaButton: "Commencer l'Exploration",
-    mascotAlt: "Mascotte Ramble 66"
+    mascotAlt: "Big Bo Ramble - Mascotte Route 66"
   },
   "pt-BR": {
     title: "Planeje a Rota 66 sem dor de cabeça",
@@ -50,7 +50,7 @@ const heroContent = {
       "Aqui. Você vem exatamente aqui."
     ],
     ctaButton: "Começar a Explorar",
-    mascotAlt: "Mascote Ramble 66"
+    mascotAlt: "Big Bo Ramble - Mascote Rota 66"
   }
 };
 
@@ -77,22 +77,24 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 pt-24 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
           {/* Left Column - Pain Points Content */}
           <div className="space-y-8">
-            {/* Title */}
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold text-route66-text-primary leading-tight">
+            {/* Title - Bold, uppercase, dark navy */}
+            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight" style={{ color: '#1A1A1A' }}>
               {content.title}
             </h1>
 
-            {/* Pain Points - Tightly Stacked */}
+            {/* Pain Points - Tightly stacked with medium grey text */}
             <div className="space-y-6">
               {content.painPoints.map((point, index) => (
-                <div key={index} className="text-lg lg:text-xl text-route66-text-secondary leading-relaxed">
+                <div key={index}>
                   {index < 3 ? (
-                    <p>{index + 1}. {point}</p>
+                    <p className="text-lg lg:text-xl leading-relaxed" style={{ color: '#444444' }}>
+                      {point}
+                    </p>
                   ) : (
-                    <p className="text-2xl lg:text-3xl font-highway text-route66-accent-red font-semibold">
+                    <p className="text-2xl lg:text-3xl font-highway font-bold text-route66-accent-red">
                       {point}
                     </p>
                   )}
@@ -100,12 +102,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
               ))}
             </div>
 
-            {/* CTA Button */}
-            <div className="pt-4">
+            {/* CTA Button - Rounded, blue background (#004FCC), white text */}
+            <div className="pt-6">
               <Button 
                 onClick={scrollToInteractiveMap}
                 size="lg" 
-                className="bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-4 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="font-bold py-4 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                style={{ 
+                  backgroundColor: '#004FCC',
+                  color: 'white'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#003A99';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#004FCC';
+                }}
               >
                 {content.ctaButton}
                 <ArrowDown className="ml-2 h-5 w-5" />
@@ -113,18 +125,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
             </div>
           </div>
 
-          {/* Right Column - Mascot */}
+          {/* Right Column - Big Bo Ramble Image */}
           <div className="relative flex justify-center lg:justify-end">
             <div className="relative">
               {/* Decorative Elements */}
               <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
               
-              {/* Mascot Container */}
-              <div className="relative bg-white rounded-full p-8 shadow-2xl border-4 border-route66-primary/20">
+              {/* Image Container with rounded corners */}
+              <div className="relative bg-white rounded-2xl p-8 shadow-2xl border-4 border-route66-primary/20">
                 <img 
                   src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png"
                   alt={content.mascotAlt}
-                  className="w-64 h-64 lg:w-80 lg:h-80 object-contain"
+                  className="w-64 h-64 lg:w-80 lg:h-80 object-contain rounded-xl"
                 />
               </div>
 
