@@ -25,7 +25,7 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
           value={formData.startLocation} 
           onValueChange={(value) => {
             console.log('🏁 Start location changed:', value);
-            setFormData({ ...formData, startLocation: value });
+            setFormData({ ...formData, startLocation: value, endLocation: '' });
           }}
         >
           <SelectTrigger className="w-full">
@@ -33,7 +33,7 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
           </SelectTrigger>
           <SelectContent>
             {route66Towns.map((town) => (
-              <SelectItem key={town.name} value={town.name}>
+              <SelectItem key={`${town.name}-${town.state}`} value={town.name}>
                 {town.name}, {town.state}
               </SelectItem>
             ))}
@@ -50,13 +50,14 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
             console.log('🎯 End location changed:', value);
             setFormData({ ...formData, endLocation: value });
           }}
+          disabled={!formData.startLocation}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Choose your destination" />
           </SelectTrigger>
           <SelectContent>
             {availableEndLocations.map((town) => (
-              <SelectItem key={town.name} value={town.name}>
+              <SelectItem key={`${town.name}-${town.state}`} value={town.name}>
                 {town.name}, {town.state}
               </SelectItem>
             ))}
