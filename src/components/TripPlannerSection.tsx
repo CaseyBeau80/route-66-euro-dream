@@ -1,23 +1,26 @@
 
 import React from 'react';
+import { Share2 } from 'lucide-react';
 import Route66TripCalculator from './Route66TripCalculator';
 
 const TripPlannerSection = () => {
   return (
     <section className="py-16 bg-route66-background">
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-16 bg-route66-background-section p-8 rounded-xl shadow-2xl border-4 border-route66-primary">
-          <h2 className="text-4xl font-route66 text-route66-primary mb-4 font-bold">Plan Your Route 66 Adventure</h2>
-          <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
-            Create your perfect Mother Road journey with our comprehensive trip planning tools
-          </p>
+        {/* Header - Made equally wide as the main heading */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="text-center bg-route66-background-section p-8 rounded-xl shadow-2xl border-4 border-route66-primary">
+            <h2 className="text-4xl font-route66 text-route66-primary mb-4 font-bold">Plan Your Route 66 Adventure</h2>
+            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
+              Create your perfect Mother Road journey with our comprehensive trip planning tools
+            </p>
+          </div>
         </div>
 
         {/* Trip Calculator - Exact copy from dedicated page */}
         <div className="max-w-4xl mx-auto">
-          {/* Feature Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {/* Feature Cards - Updated to include Shareable */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
             {/* Time Estimates Card */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-200 to-transparent rounded-bl-full"></div>
@@ -48,6 +51,16 @@ const TripPlannerSection = () => {
               <div className="text-orange-600 text-2xl mb-2">💲</div>
               <h3 className="font-bold text-orange-800 mb-2">Budget Estimates</h3>
               <p className="text-sm text-orange-700">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
+            </div>
+
+            {/* Shareable Card - New addition */}
+            <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg border-2 border-pink-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-pink-200 to-transparent rounded-bl-full"></div>
+              <div className="text-pink-600 mb-2 flex justify-center">
+                <Share2 className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-pink-800 mb-2">Shareable</h3>
+              <p className="text-sm text-pink-700">Share the link, email direct, and/or add to your Google or Apple calendar</p>
             </div>
           </div>
           

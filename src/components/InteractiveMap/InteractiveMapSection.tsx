@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { MapPin, Calendar, Star, Eye, Cloud, Share2 } from 'lucide-react';
+import { MapPin, Calendar, Star, Eye, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Route66Map from '../Route66Map';
 
@@ -42,12 +43,6 @@ const mapContent = {
         title: "Weather", 
         description: "Check current conditions and forecasts",
         bgColor: "bg-yellow-100"
-      },
-      { 
-        icon: Share2, 
-        title: "Shareable", 
-        description: "Share the link, email direct, and/or add to your Google or Apple calendar",
-        bgColor: "bg-pink-100"
       }
     ]
   },
@@ -85,12 +80,6 @@ const mapContent = {
         title: "Wetter", 
         description: "Prüfe aktuelle Bedingungen und Vorhersagen",
         bgColor: "bg-yellow-100"
-      },
-      { 
-        icon: Share2, 
-        title: "Teilbar", 
-        description: "Teile den Link, sende direkt per E-Mail und/oder füge zu deinem Google- oder Apple-Kalender hinzu",
-        bgColor: "bg-pink-100"
       }
     ]
   },
@@ -128,12 +117,6 @@ const mapContent = {
         title: "Météo", 
         description: "Vérifiez les conditions actuelles et les prévisions",
         bgColor: "bg-yellow-100"
-      },
-      { 
-        icon: Share2, 
-        title: "Partageable", 
-        description: "Partagez le lien, envoyez directement par e-mail et/ou adicione à votre calendrier Google ou Apple",
-        bgColor: "bg-pink-100"
       }
     ]
   },
@@ -171,12 +154,6 @@ const mapContent = {
         title: "Clima", 
         description: "Verifique condições atuais e previsões",
         bgColor: "bg-yellow-100"
-      },
-      { 
-        icon: Share2, 
-        title: "Compartilhável", 
-        description: "Compartilhe o link, envie direto por e-mail e/ou adicione ao seu calendário Google ou Apple",
-        bgColor: "bg-pink-100"
       }
     ]
   }
@@ -208,8 +185,8 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
           </div>
         </div>
 
-        {/* Feature Cards Grid - Updated to 6 cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-16">
+        {/* Feature Cards Grid - Back to 5 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16">
           {content.features.map((feature, index) => (
             <div 
               key={index}
