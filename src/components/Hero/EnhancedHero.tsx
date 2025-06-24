@@ -1,14 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown, ChevronUp, Map, Calendar, MapPin } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight, MapPin, Calendar } from "lucide-react";
 import ScrollIndicator from "../ScrollIndicator";
 
 type EnhancedHeroProps = {
   language: string;
-  onExploreMap?: () => void;
-  isMapOpen?: boolean;
-  onPlanTrip?: () => void;
 };
 
 const heroContent = {
@@ -17,8 +13,6 @@ const heroContent = {
     subtitle: "Experience America's legendary highway from Chicago to Santa Monica",
     description: "Discover 100 years of Route 66 heritage with our comprehensive travel guide, interactive maps, and personalized trip planning tools.",
     ctaPrimary: "Plan Your Journey",
-    ctaSecondary: "Explore Interactive Map",
-    hideMap: "Hide Map",
     features: [
       "🗺️ Interactive Route 66 Map",
       "📅 Custom Trip Planning",
@@ -31,8 +25,6 @@ const heroContent = {
     subtitle: "Erleben Sie Amerikas legendäre Straße von Chicago nach Santa Monica",
     description: "Entdecken Sie 100 Jahre Route 66 Geschichte mit unserem umfassenden Reiseführer, interaktiven Karten und personalisierten Reiseplanungstools.",
     ctaPrimary: "Reise Planen",
-    ctaSecondary: "Interaktive Karte Erkunden",
-    hideMap: "Karte Verstecken",
     features: [
       "🗺️ Interaktive Route 66 Karte",
       "📅 Individuelle Reiseplanung",
@@ -45,8 +37,6 @@ const heroContent = {
     subtitle: "Découvrez la route légendaire d'Amérique de Chicago à Santa Monica",
     description: "Découvrez 100 ans d'histoire de la Route 66 avec notre guide de voyage complet, nos cartes interactives et nos outils de planification de voyage personnalisés.",
     ctaPrimary: "Planifier le Voyage",
-    ctaSecondary: "Explorer la Carte Interactive",
-    hideMap: "Masquer la Carte",
     features: [
       "🗺️ Carte Interactive Route 66",
       "📅 Planification de Voyage Personnalisée",
@@ -56,9 +46,15 @@ const heroContent = {
   }
 };
 
-const EnhancedHero = ({ language, onExploreMap, isMapOpen = false, onPlanTrip }: EnhancedHeroProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const EnhancedHero = ({ language }: EnhancedHeroProps) => {
   const content = heroContent[language as keyof typeof heroContent] || heroContent.en;
+  
+  const scrollToTripPlanner = () => {
+    const element = document.getElementById('trip-planner');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   
   return (
     <>
@@ -113,10 +109,10 @@ const EnhancedHero = ({ language, onExploreMap, isMapOpen = false, onPlanTrip }:
             ))}
           </div>
           
-          {/* Enhanced call to action buttons */}
+          {/* Enhanced call to action button */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
             <Button 
-              onClick={onPlanTrip}
+              onClick={scrollToTripPlanner}
               size="lg" 
               className="bg-route66-primary hover:bg-route66-primary-dark text-white border-0 text-xl py-7 px-12 transform hover:scale-105 transition-all duration-300 shadow-2xl font-bold rounded-xl"
             >
@@ -124,17 +120,6 @@ const EnhancedHero = ({ language, onExploreMap, isMapOpen = false, onPlanTrip }:
               {content.ctaPrimary}
               <ArrowRight className="ml-3" size={24} />
             </Button>
-            
-            {onExploreMap && (
-              <button 
-                onClick={onExploreMap}
-                className="inline-flex items-center gap-3 text-white/95 font-bold hover:text-white transition-colors duration-200 px-10 py-7 rounded-xl hover:bg-white/10 backdrop-blur-sm border border-white/20 hover:border-white/30 text-xl"
-              >
-                <Map size={24} />
-                <span>{isMapOpen ? content.hideMap : content.ctaSecondary}</span>
-                {isMapOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-              </button>
-            )}
           </div>
 
           {/* Quick stats */}
@@ -156,7 +141,7 @@ const EnhancedHero = ({ language, onExploreMap, isMapOpen = false, onPlanTrip }:
       </div>
       
       {/* Enhanced scroll indicator */}
-      <ScrollIndicator targetId="centennial" />
+      <ScrollIndicator targetId="map" />
     </>
   );
 };

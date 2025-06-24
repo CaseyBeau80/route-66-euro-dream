@@ -1,88 +1,62 @@
 
 import { useState } from 'react';
 import EnhancedHero from "../components/Hero/EnhancedHero";
-import MapSection from "../components/MapSection";
-import CentennialCardsSection from "../components/CentennialCardsSection";
-import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
-import TripPlannerSplitView from "../components/TripPlannerSplitView/TripPlannerSplitView";
-import SocialPhotoSplitView from "../components/SocialPhotoSplitView/SocialPhotoSplitView";
-import TollRoadsTravelTips from "../components/TollRoadsTravelTips/TollRoadsTravelTips";
-import TravelResources from "../components/TravelResources";
+import InteractiveMapSection from "../components/InteractiveMapSection/InteractiveMapSection";
+import TripPlannerFormSection from "../components/TripPlannerFormSection/TripPlannerFormSection";
+import SocialGallerySection from "../components/SocialGallerySection/SocialGallerySection";
+import ExploreDirectorySection from "../components/ExploreDirectorySection/ExploreDirectorySection";
+import TollRoadTipsSection from "../components/TollRoadTipsSection/TollRoadTipsSection";
+import CentennialCelebrationSection from "../components/CentennialCelebrationSection/CentennialCelebrationSection";
+import FinalCallToActionSection from "../components/FinalCallToActionSection/FinalCallToActionSection";
 import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
-import CentennialSection from "../components/CentennialSection";
 
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
-  const [isMapOpen, setIsMapOpen] = useState(false);
   
-  console.log("🏠 Index page: Rendering with enhanced one-page Route 66 experience");
-
-  // Scroll to trip planner function
-  const handlePlanTrip = () => {
-    const element = document.getElementById('trip-planner-split');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  // Scroll to map function
-  const handleExploreMap = () => {
-    setIsMapOpen(!isMapOpen);
-    const element = document.getElementById('trip-planner-split');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  console.log("🏠 Index page: Rendering with new vertical scrollable Route 66 experience");
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>
-      {/* Enhanced Hero Section */}
+      {/* Hero Section */}
       <section id="hero">
-        <EnhancedHero 
-          language={language}
-          onExploreMap={handleExploreMap}
-          onPlanTrip={handlePlanTrip}
-          isMapOpen={isMapOpen}
-        />
+        <EnhancedHero language={language} />
       </section>
 
+      {/* Interactive Map Section */}
+      <FadeInSection id="map" delay={100}>
+        <InteractiveMapSection />
+      </FadeInSection>
+
+      {/* Trip Planner Form Section */}
+      <FadeInSection id="trip-planner" delay={150}>
+        <TripPlannerFormSection />
+      </FadeInSection>
+
+      {/* Social Gallery Section */}
+      <FadeInSection id="social-gallery" delay={200}>
+        <SocialGallerySection />
+      </FadeInSection>
+
+      {/* Explore Directory Section */}
+      <FadeInSection id="explore-directory" delay={250}>
+        <ExploreDirectorySection />
+      </FadeInSection>
+
+      {/* Toll Road Tips Section */}
+      <FadeInSection id="toll-road-tips" delay={300}>
+        <TollRoadTipsSection language={language} />
+      </FadeInSection>
+
       {/* Centennial Celebration Section */}
-      <FadeInSection id="centennial" delay={200}>
-        <CentennialSection />
+      <FadeInSection id="centennial-celebration" delay={350}>
+        <CentennialCelebrationSection />
       </FadeInSection>
 
-      {/* Interactive Map + Trip Planner Split View */}
-      <FadeInSection id="trip-planner" delay={300}>
-        <TripPlannerSplitView />
-      </FadeInSection>
-
-      {/* Social Media + Photo Challenge Split View */}
-      <FadeInSection id="social-photo" delay={350}>
-        <SocialPhotoSplitView />
-      </FadeInSection>
-
-      {/* Route 66 Directory Section */}
-      <FadeInSection id="explore-route66" delay={400}>
-        <UnifiedRoute66Carousel />
-      </FadeInSection>
-
-      {/* Toll Roads & Travel Tips Compact Layout */}
-      <FadeInSection id="toll-roads-tips" delay={450}>
-        <TollRoadsTravelTips language={language} />
-      </FadeInSection>
-
-      {/* Legacy Map Section - Hidden by default, can be toggled */}
-      {isMapOpen && (
-        <FadeInSection id="map" delay={500}>
-          <MapSection isMapOpen={isMapOpen} setIsMapOpen={setIsMapOpen} />
-        </FadeInSection>
-      )}
-
-      {/* Travel Resources Section */}
-      <FadeInSection id="resources" delay={550}>
-        <TravelResources language={language} />
+      {/* Final Call to Action Section */}
+      <FadeInSection id="final-cta" delay={400}>
+        <FinalCallToActionSection />
       </FadeInSection>
 
       {/* Back to Top Button */}
