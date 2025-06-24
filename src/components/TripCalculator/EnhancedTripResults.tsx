@@ -17,6 +17,7 @@ interface EnhancedTripResultsProps {
   tripStartDate?: Date;
   completionAnalysis?: TripCompletionAnalysis;
   originalRequestedDays?: number;
+  onDateRequired?: () => void; // Added missing prop
   debugInfo?: any;
   validationResults?: any;
   warnings?: string[];
@@ -28,6 +29,7 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   tripStartDate,
   completionAnalysis,
   originalRequestedDays,
+  onDateRequired, // Added prop
   debugInfo,
   validationResults,
   warnings = []
