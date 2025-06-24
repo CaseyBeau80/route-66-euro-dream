@@ -1,61 +1,50 @@
 
 import { useState } from 'react';
-import Hero from "../components/Hero";
-import MapSection from "../components/MapSection";
-import CentennialCardsSection from "../components/CentennialCardsSection";
-import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
-import TripPlannerSection from "../components/TripPlannerSection";
-import TravelResources from "../components/TravelResources";
 import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
-import SimpleInstagramCarousel from "../components/InstagramCarousel/components/SimpleInstagramCarousel";
+import HeroSection from "../components/Hero/HeroSection";
+import InteractiveMapSection from "../components/InteractiveMap/InteractiveMapSection";
+import TripPlannerSection from "../components/TripPlannerSection";
+import SocialSection from "../components/SocialSection/SocialSection";
+import TollRoads from "../components/TollRoads";
+import FunSection from "../components/FunSection/FunSection";
 
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
-  const [isMapOpen, setIsMapOpen] = useState(true);
   
-  console.log("🏠 Index page: Rendering with unified centennial design");
+  console.log("🏠 Index page: Rendering redesigned landing page with new structure");
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>
-      {/* Hero Section - no top padding needed as nav is absolute */}
+      {/* Hero Section - Full viewport height with two-column layout */}
       <section id="hero">
-        <Hero 
-          language={language}
-          onExploreMap={() => setIsMapOpen(!isMapOpen)}
-          isMapOpen={isMapOpen}
-        />
+        <HeroSection language={language} />
       </section>
 
-      {/* Unified Centennial Cards Section with fade-in */}
-      <FadeInSection id="centennial" delay={200}>
-        <CentennialCardsSection />
-      </FadeInSection>
-
-      {/* Instagram Carousel Section with fade-in */}
-      <FadeInSection id="instagram" delay={300}>
-        <SimpleInstagramCarousel />
-      </FadeInSection>
-
       {/* Interactive Map Section with fade-in */}
-      <FadeInSection id="map" delay={350}>
-        <MapSection isMapOpen={isMapOpen} setIsMapOpen={setIsMapOpen} />
+      <FadeInSection id="interactive-map" delay={200}>
+        <InteractiveMapSection language={language} />
       </FadeInSection>
 
       {/* Trip Planner Section with fade-in */}
-      <FadeInSection id="trip-planner" delay={400}>
+      <FadeInSection id="trip-planner" delay={300}>
         <TripPlannerSection />
       </FadeInSection>
 
-      {/* Unified Route 66 Carousel Section with fade-in */}
-      <FadeInSection id="explore-route66" delay={450}>
-        <UnifiedRoute66Carousel />
+      {/* Social Section with fade-in */}
+      <FadeInSection id="social" delay={400}>
+        <SocialSection language={language} />
       </FadeInSection>
 
-      {/* Travel Resources Section with fade-in - moved to bottom */}
-      <FadeInSection id="resources" delay={500}>
-        <TravelResources language={language} />
+      {/* Toll Roads Advisory Section with fade-in */}
+      <FadeInSection id="toll-roads" delay={450}>
+        <TollRoads language={language} />
+      </FadeInSection>
+
+      {/* Fun Section with fade-in */}
+      <FadeInSection id="fun" delay={500}>
+        <FunSection language={language} />
       </FadeInSection>
 
       {/* Back to Top Button */}
