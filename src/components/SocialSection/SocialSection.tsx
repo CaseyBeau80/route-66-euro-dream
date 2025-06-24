@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Instagram, Users, Heart, MessageCircle } from 'lucide-react';
 import SimpleInstagramCarousel from '../InstagramCarousel/components/SimpleInstagramCarousel';
@@ -14,7 +13,7 @@ const socialContent = {
     subtitle: "Connect with fellow travelers and share your journey",
     description: "Join thousands of Route 66 enthusiasts sharing their experiences, tips, and memorable moments from America's most famous highway.",
     hashtagTitle: "Use our hashtag",
-    hashtag: "#MyRoute66Journey",
+    hashtag: "#Ramble66",
     stats: [
       { icon: Users, number: "25K+", label: "Travelers" },
       { icon: Heart, number: "150K+", label: "Photos Shared" },
@@ -27,7 +26,7 @@ const socialContent = {
     subtitle: "Verbinde dich mit anderen Reisenden und teile deine Reise",
     description: "Schließe dich Tausenden von Route 66-Enthusiasten an, die ihre Erfahrungen, Tipps und unvergesslichen Momente von Amerikas berühmtester Straße teilen.",
     hashtagTitle: "Verwende unseren Hashtag",
-    hashtag: "#MeineRoute66Reise",
+    hashtag: "#Ramble66",
     stats: [
       { icon: Users, number: "25K+", label: "Reisende" },
       { icon: Heart, number: "150K+", label: "Geteilte Fotos" },
@@ -40,7 +39,7 @@ const socialContent = {
     subtitle: "Connectez-vous avec d'autres voyageurs et partagez votre voyage",
     description: "Rejoignez des milliers d'enthousiastes de la Route 66 qui partagent leurs expériences, conseils et moments mémorables de la route la plus célèbre d'Amérique.",
     hashtagTitle: "Utilisez notre hashtag",
-    hashtag: "#MonVoyageRoute66",
+    hashtag: "#Ramble66",
     stats: [
       { icon: Users, number: "25K+", label: "Voyageurs" },
       { icon: Heart, number: "150K+", label: "Photos Partagées" },
@@ -53,7 +52,7 @@ const socialContent = {
     subtitle: "Conecte-se com outros viajantes e compartilhe sua jornada",
     description: "Junte-se a milhares de entusiastas da Rota 66 compartilhando suas experiências, dicas e momentos memoráveis da rodovia mais famosa da América.",
     hashtagTitle: "Use nossa hashtag",
-    hashtag: "#MinhaJornadaRota66",
+    hashtag: "#Ramble66",
     stats: [
       { icon: Users, number: "25K+", label: "Viajantes" },
       { icon: Heart, number: "150K+", label: "Fotos Compartilhadas" },
