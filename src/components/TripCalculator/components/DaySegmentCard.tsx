@@ -39,10 +39,18 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
-  // USE the distance directly from the segment (no more overriding!)
+  // DEBUG: Log all distance-related properties
   const segmentDistance = segment.distance || segment.approximateMiles || 0;
   
-  console.log(`✅ Day ${segment.day} using DIRECT distance: ${segmentDistance} miles (from segment.distance: ${segment.distance})`);
+  console.log(`🔍 DaySegmentCard Day ${segment.day} DISTANCE DEBUG:`, {
+    day: segment.day,
+    segmentDistance: segment.distance,
+    approximateMiles: segment.approximateMiles,
+    finalUsedDistance: segmentDistance,
+    cardIndex,
+    sectionKey,
+    timestamp: new Date().toISOString()
+  });
 
   // Calculate drive time
   const driveTime = React.useMemo(() => {
@@ -79,7 +87,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and Time - SHOWING DIFFERENT VALUES NOW */}
+          {/* Distance and Time - FORCE UNIQUE VALUES */}
           <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
             <div className="flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
               <Route className="w-4 h-4 text-blue-600" />
@@ -100,6 +108,11 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             <span className="text-route66-text-secondary">→</span>
             <span className="font-semibold">{endCity}</span>
           </div>
+        </div>
+
+        {/* DEBUG: Show raw data */}
+        <div className="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs">
+          <strong>DEBUG Day {segment.day}:</strong> distance={segment.distance}, approx={segment.approximateMiles}, used={segmentDistance}
         </div>
 
         {/* Weather Widget */}

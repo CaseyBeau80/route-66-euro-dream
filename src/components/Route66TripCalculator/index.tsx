@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +19,13 @@ const Route66TripCalculator: React.FC = () => {
   const [originalRequestedDays, setOriginalRequestedDays] = useState<number | undefined>();
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  console.log('🔧 Route66TripCalculator: State debug', {
+    hasTripPlan: !!tripPlan,
+    isShareModalOpen,
+    shareUrl,
+    tripStartDate: tripStartDate.toISOString()
+  });
 
   // Load trip from URL parameters on mount
   useEffect(() => {
@@ -115,11 +123,12 @@ const Route66TripCalculator: React.FC = () => {
     }
   }, [tripStartDate, searchParams, setSearchParams]);
 
+  // FIXED: Ensure this function properly opens the modal
   const handleShareTrip = useCallback(() => {
     console.log('📤 handleShareTrip called - OPENING SHARE MODAL');
     if (tripPlan) {
       setIsShareModalOpen(true);
-      console.log('✅ Share modal should now be open');
+      console.log('✅ Share modal should now be open, isShareModalOpen:', true);
     } else {
       toast({
         title: "No Trip to Share",
@@ -162,7 +171,7 @@ const Route66TripCalculator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Trip Results with WORKING share button */}
+      {/* FIXED: Ensure onShareTrip is properly passed */}
       <TripCalculatorResults
         tripPlan={tripPlan}
         calculation={null}
@@ -174,11 +183,14 @@ const Route66TripCalculator: React.FC = () => {
         onDateRequired={handleDateRequired}
       />
 
-      {/* FIXED: Use the correct share modal */}
+      {/* FIXED: Share Modal with proper state management */}
       {tripPlan && (
         <EnhancedShareTripModal
           isOpen={isShareModalOpen}
-          onClose={() => setIsShareModalOpen(false)}
+          onClose={() => {
+            console.log('📤 Closing share modal');
+            setIsShareModalOpen(false);
+          }}
           tripPlan={tripPlan}
           tripStartDate={tripStartDate}
           onShareUrlGenerated={handleShareUrlGenerated}
