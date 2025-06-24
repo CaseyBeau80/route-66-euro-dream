@@ -9,7 +9,7 @@ interface HeroSectionProps {
 
 const heroContent = {
   en: {
-    title: "Plan Route 66 Without the Headache",
+    title: "Plan Your Route 66 Vacation Without the Headache",
     painPoints: [
       "Too much time spent spinning your Route 66 wheels?",
       "Are you bouncing between websites, still unsure where or how to start your Route 66 trip? Planning shouldn't feel like guesswork.",
@@ -20,7 +20,7 @@ const heroContent = {
     mascotAlt: "Big Bo Ramble - Route 66 Mascot"
   },
   de: {
-    title: "Route 66 ohne Kopfschmerzen planen",
+    title: "Planen Sie Ihren Route 66 Urlaub ohne Kopfschmerzen",
     painPoints: [
       "Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?",
       "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst? Planung sollte sich nicht wie Rätselraten anfühlen.",
@@ -31,7 +31,7 @@ const heroContent = {
     mascotAlt: "Big Bo Ramble - Route 66 Maskottchen"
   },
   fr: {
-    title: "Planifiez la Route 66 sans mal de tête",
+    title: "Planifiez Vos Vacances Route 66 sans mal de tête",
     painPoints: [
       "Trop de temps passé à faire tourner vos roues de Route 66?",
       "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66? La planification ne devrait pas ressembler à de la devinette.",
@@ -42,7 +42,7 @@ const heroContent = {
     mascotAlt: "Big Bo Ramble - Mascotte Route 66"
   },
   "pt-BR": {
-    title: "Planeje a Rota 66 sem dor de cabeça",
+    title: "Planeje Suas Férias na Rota 66 sem dor de cabeça",
     painPoints: [
       "Muito tempo gasto girando as rodas da Rota 66?",
       "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66? O planejamento não deveria parecer adivinhação.",
