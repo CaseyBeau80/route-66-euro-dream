@@ -12,12 +12,14 @@ interface SegmentNearbyAttractionsProps {
   segment: DailySegment;
   maxAttractions?: number;
   forceDisplay?: boolean;
+  isCompact?: boolean;
 }
 
 const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   segment,
   maxAttractions = 3,
-  forceDisplay = false
+  forceDisplay = false,
+  isCompact = false
 }) => {
   const [attractions, setAttractions] = useState<NearbyAttraction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +32,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     endCity: segment.endCity,
     forceDisplay,
     maxAttractions,
+    isCompact,
     existingData: {
       attractionsCount: segment.attractions?.length || 0,
       recommendedStopsCount: segment.recommendedStops?.length || 0,
@@ -157,11 +160,16 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
     );
   }
 
+  // Responsive spacing based on isCompact prop
+  const spacing = isCompact ? 'space-y-2' : 'space-y-3';
+  const titleSize = isCompact ? 'text-sm' : 'text-base';
+  const iconSize = isCompact ? 'h-3 w-3' : 'h-4 w-4';
+
   if (error) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
+        <h4 className={`font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2 ${titleSize}`}>
+          <MapPin className={iconSize} />
           Recommended Stops
         </h4>
         <p className="text-xs text-yellow-700">
@@ -179,15 +187,15 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <h4 className="font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
+      <div className={spacing}>
+        <h4 className={`font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2 ${titleSize}`}>
+          <MapPin className={iconSize} />
           Recommended Stops
           <span className="text-xs text-gray-500">(loading...)</span>
         </h4>
         <div className="animate-pulse space-y-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 bg-gray-200 rounded"></div>
+            <div key={i} className={`${isCompact ? 'h-12' : 'h-16'} bg-gray-200 rounded`}></div>
           ))}
         </div>
       </div>
@@ -197,11 +205,11 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   if (attractions.length === 0) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 className="font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
+        <h4 className={`font-travel font-bold text-route66-vintage-brown mb-2 flex items-center gap-2 ${titleSize}`}>
+          <MapPin className={iconSize} />
           Recommended Stops
         </h4>
-        <p className="text-sm text-gray-600">
+        <p className={`${isCompact ? 'text-xs' : 'text-sm'} text-gray-600`}>
           No attractions found for {segment.endCity}. Explore the area when you arrive!
         </p>
       </div>
@@ -209,13 +217,13 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
   }
 
   return (
-    <div className="space-y-3">
-      <h4 className="font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2">
-        <MapPin className="h-4 w-4" />
+    <div className={spacing}>
+      <h4 className={`font-travel font-bold text-route66-vintage-brown mb-3 flex items-center gap-2 ${titleSize}`}>
+        <MapPin className={iconSize} />
         Recommended Stops ({attractions.length})
       </h4>
       
-      <div className="space-y-3">
+      <div className={spacing}>
         {attractions.map((attraction, index) => (
           <ErrorBoundary key={`${attraction.id}-${index}`} context={`AttractionItem-${index}`}>
             <AttractionItem attraction={attraction} index={index} />
