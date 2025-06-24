@@ -1,19 +1,14 @@
-
 import React from 'react';
 import { Share2 } from 'lucide-react';
 import Route66TripCalculator from './Route66TripCalculator';
-
 const TripPlannerSection = () => {
-  return (
-    <section className="py-16 bg-route66-background">
+  return <section className="py-16 bg-route66-background">
       <div className="container mx-auto px-4">
         {/* Header - Made equally wide as the main heading */}
         <div className="max-w-6xl mx-auto mb-16">
           <div className="text-center bg-route66-background-section p-8 rounded-xl shadow-2xl border-4 border-route66-primary">
             <h2 className="text-4xl font-route66 text-route66-primary mb-4 font-bold">Plan Your Route 66 Adventure</h2>
-            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
-              Create your perfect Mother Road journey with our comprehensive trip planning tools
-            </p>
+            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">Create your perfect  journey with this comprehensive trip planning tool</p>
           </div>
         </div>
 
@@ -85,8 +80,6 @@ const TripPlannerSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default TripPlannerSection;
