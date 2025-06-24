@@ -10,55 +10,127 @@ interface InteractiveMapSectionProps {
 
 const mapContent = {
   en: {
-    badge: "Interactive Experience",
     title: "Explore the Mother Road",
-    subtitle: "Navigate America's most iconic highway",
-    description: "Discover historic towns, legendary attractions, and hidden gems along Route 66. Click on markers to learn about each destination's unique history and must-see stops.",
+    subtitle: "Navigate America's most iconic highway with our interactive mapping tools",
     exploreButton: "Start Exploring",
     features: [
-      { icon: MapPin, title: "Historic Towns", description: "Visit authentic Route 66 communities" },
-      { icon: Navigation, title: "Turn-by-Turn", description: "GPS navigation for the full route" },
-      { icon: Camera, title: "Photo Spots", description: "Instagram-worthy roadside attractions" },
-      { icon: Info, title: "Local Tips", description: "Insider knowledge from locals" }
+      { 
+        icon: MapPin, 
+        title: "Historic Towns", 
+        description: "Visit authentic Route 66 communities",
+        bgColor: "bg-blue-100"
+      },
+      { 
+        icon: Navigation, 
+        title: "Turn-by-Turn", 
+        description: "GPS navigation for the full route",
+        bgColor: "bg-green-100"
+      },
+      { 
+        icon: Camera, 
+        title: "Photo Spots", 
+        description: "Instagram-worthy roadside attractions",
+        bgColor: "bg-purple-100"
+      },
+      { 
+        icon: Info, 
+        title: "Local Tips", 
+        description: "Insider knowledge from locals",
+        bgColor: "bg-orange-100"
+      }
     ]
   },
   de: {
-    badge: "Interaktive Erfahrung",
     title: "Erkunde die Mother Road",
-    subtitle: "Navigiere Amerikas ikonischste Straße",
-    description: "Entdecke historische Städte, legendäre Attraktionen und versteckte Perlen entlang der Route 66. Klicke auf Markierungen, um die einzigartige Geschichte und Sehenswürdigkeiten jedes Ziels zu erfahren.",
+    subtitle: "Navigiere Amerikas ikonischste Straße mit unseren interaktiven Kartenwerkzeugen",
     exploreButton: "Erkunden Beginnen",
     features: [
-      { icon: MapPin, title: "Historische Städte", description: "Besuche authentische Route 66 Gemeinden" },
-      { icon: Navigation, title: "Abbiegehinweise", description: "GPS-Navigation für die gesamte Route" },
-      { icon: Camera, title: "Foto-Spots", description: "Instagram-würdige Straßenattraktionen" },
-      { icon: Info, title: "Lokale Tipps", description: "Insider-Wissen von Einheimischen" }
+      { 
+        icon: MapPin, 
+        title: "Historische Städte", 
+        description: "Besuche authentische Route 66 Gemeinden",
+        bgColor: "bg-blue-100"
+      },
+      { 
+        icon: Navigation, 
+        title: "Abbiegehinweise", 
+        description: "GPS-Navigation für die gesamte Route",
+        bgColor: "bg-green-100"
+      },
+      { 
+        icon: Camera, 
+        title: "Foto-Spots", 
+        description: "Instagram-würdige Straßenattraktionen",
+        bgColor: "bg-purple-100"
+      },
+      { 
+        icon: Info, 
+        title: "Lokale Tipps", 
+        description: "Insider-Wissen von Einheimischen",
+        bgColor: "bg-orange-100"
+      }
     ]
   },
   fr: {
-    badge: "Expérience Interactive",
     title: "Explorez la Mother Road",
-    subtitle: "Naviguez sur la route la plus emblématique d'Amérique",
-    description: "Découvrez des villes historiques, des attractions légendaires et des perles cachées le long de la Route 66. Cliquez sur les marqueurs pour découvrir l'histoire unique et les arrêts incontournables de chaque destination.",
+    subtitle: "Naviguez sur la route la plus emblématique d'Amérique avec nos outils de cartographie interactifs",
     exploreButton: "Commencer l'Exploration",
     features: [
-      { icon: MapPin, title: "Villes Historiques", description: "Visitez d'authentiques communautés de la Route 66" },
-      { icon: Navigation, title: "Navigation", description: "Navigation GPS pour tout l'itinéraire" },
-      { icon: Camera, title: "Spots Photo", description: "Attractions routières dignes d'Instagram" },
-      { icon: Info, title: "Conseils Locaux", description: "Connaissances d'initiés des locaux" }
+      { 
+        icon: MapPin, 
+        title: "Villes Historiques", 
+        description: "Visitez d'authentiques communautés de la Route 66",
+        bgColor: "bg-blue-100"
+      },
+      { 
+        icon: Navigation, 
+        title: "Navigation", 
+        description: "Navigation GPS pour tout l'itinéraire",
+        bgColor: "bg-green-100"
+      },
+      { 
+        icon: Camera, 
+        title: "Spots Photo", 
+        description: "Attractions routières dignes d'Instagram",
+        bgColor: "bg-purple-100"
+      },
+      { 
+        icon: Info, 
+        title: "Conseils Locaux", 
+        description: "Connaissances d'initiés des locaux",
+        bgColor: "bg-orange-100"
+      }
     ]
   },
   "pt-BR": {
-    badge: "Experiência Interativa",
     title: "Explore a Mother Road",
-    subtitle: "Navegue pela rodovia mais icônica da América",
-    description: "Descubra cidades históricas, atrações lendárias e joias escondidas ao longo da Rota 66. Clique nos marcadores para aprender sobre a história única e paradas obrigatórias de cada destino.",
+    subtitle: "Navegue pela rodovia mais icônica da América com nossas ferramentas de mapeamento interativo",
     exploreButton: "Começar a Explorar",
     features: [
-      { icon: MapPin, title: "Cidades Históricas", description: "Visite comunidades autênticas da Rota 66" },
-      { icon: Navigation, title: "Navegação", description: "Navegação GPS para toda a rota" },
-      { icon: Camera, title: "Pontos Fotográficos", description: "Atrações rodoviárias dignas do Instagram" },
-      { icon: Info, title: "Dicas Locais", description: "Conhecimento interno dos moradores locais" }
+      { 
+        icon: MapPin, 
+        title: "Cidades Históricas", 
+        description: "Visite comunidades autênticas da Rota 66",
+        bgColor: "bg-blue-100"
+      },
+      { 
+        icon: Navigation, 
+        title: "Navegação", 
+        description: "Navegação GPS para toda a rota",
+        bgColor: "bg-green-100"
+      },
+      { 
+        icon: Camera, 
+        title: "Pontos Fotográficos", 
+        description: "Atrações rodoviárias dignas do Instagram",
+        bgColor: "bg-purple-100"
+      },
+      { 
+        icon: Info, 
+        title: "Dicas Locais", 
+        description: "Conhecimento interno dos moradores locais",
+        bgColor: "bg-orange-100"
+      }
     ]
   }
 };
@@ -67,40 +139,42 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
   const [isMapExpanded, setIsMapExpanded] = useState(false);
   const content = mapContent[language as keyof typeof mapContent] || mapContent.en;
 
+  const scrollToInteractiveMap = () => {
+    const mapSection = document.getElementById('interactive-map');
+    if (mapSection) {
+      mapSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="py-20 bg-route66-background-section">
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-route66-primary/10 text-route66-primary px-4 py-2 rounded-full text-sm font-semibold mb-6">
-            <MapPin className="w-4 h-4" />
-            {content.badge}
+        {/* Header Section - Matching Trip Planner Format */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="bg-white rounded-2xl border-4 border-route66-primary p-8 text-center">
+            <h2 className="text-4xl md:text-5xl font-route66 font-bold uppercase text-route66-primary mb-6">
+              {content.title}
+            </h2>
+            <p className="text-lg text-route66-text-secondary max-w-4xl mx-auto leading-relaxed">
+              {content.subtitle}
+            </p>
           </div>
-          <h2 className="text-4xl md:text-5xl font-route66 font-bold text-route66-text-primary mb-6">
-            {content.title}
-          </h2>
-          <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto mb-8">
-            {content.subtitle}
-          </p>
-          <p className="text-lg text-route66-text-muted max-w-4xl mx-auto leading-relaxed">
-            {content.description}
-          </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {/* Feature Cards Grid - Matching Trip Planner Format */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {content.features.map((feature, index) => (
             <div 
               key={index}
-              className="bg-white p-6 rounded-xl shadow-lg border border-route66-border hover:shadow-xl transition-all duration-300 hover:scale-105"
+              className={`${feature.bgColor} rounded-xl border-2 border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}
             >
               <div className="text-route66-primary mb-4 flex justify-center">
-                <feature.icon className="w-8 h-8" />
+                <feature.icon className="w-12 h-12" />
               </div>
-              <h3 className="text-lg font-bold text-route66-text-primary mb-2 text-center">
+              <h3 className="text-xl font-highway font-bold text-route66-text-primary mb-3 text-center">
                 {feature.title}
               </h3>
-              <p className="text-route66-text-secondary text-center text-sm">
+              <p className="text-route66-text-secondary text-center leading-relaxed">
                 {feature.description}
               </p>
             </div>
