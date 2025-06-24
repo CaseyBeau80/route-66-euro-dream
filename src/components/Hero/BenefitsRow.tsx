@@ -69,26 +69,28 @@ const BenefitsRow: React.FC<BenefitsRowProps> = ({ language }) => {
   const benefits = benefitsContent[language as keyof typeof benefitsContent] || benefitsContent.en;
 
   return (
-    <div className="w-full bg-white/95 backdrop-blur-sm rounded-xl border border-route66-border/30 p-6 shadow-lg">
-      <div className="space-y-6">
+    <div className="w-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {benefits.map((benefit, index) => (
           <div 
             key={index}
-            className="flex items-start gap-4 group"
+            className="bg-white/95 backdrop-blur-sm rounded-xl border border-route66-primary/20 p-6 shadow-lg hover:shadow-xl transition-all duration-300 group"
           >
-            {/* Green Checkmark Icon */}
-            <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md group-hover:bg-green-600 transition-colors duration-300">
-              <Check className="w-4 h-4 text-white" strokeWidth={3} />
-            </div>
-            
-            {/* Content */}
-            <div className="flex-1">
-              <h3 className="font-highway font-bold text-base text-route66-text-primary mb-1">
-                {benefit.title}
-              </h3>
-              <p className="text-sm text-route66-text-secondary leading-relaxed">
-                {benefit.subtitle}
-              </p>
+            <div className="flex items-start gap-4">
+              {/* Blue Checkmark Icon matching theme */}
+              <div className="flex-shrink-0 w-8 h-8 bg-route66-primary rounded-full flex items-center justify-center shadow-md group-hover:bg-route66-primary-dark transition-colors duration-300">
+                <Check className="w-5 h-5 text-white" strokeWidth={3} />
+              </div>
+              
+              {/* Content */}
+              <div className="flex-1">
+                <h3 className="font-highway font-bold text-lg text-route66-primary mb-2">
+                  {benefit.title}
+                </h3>
+                <p className="text-sm text-route66-text-secondary leading-relaxed">
+                  {benefit.subtitle}
+                </p>
+              </div>
             </div>
           </div>
         ))}

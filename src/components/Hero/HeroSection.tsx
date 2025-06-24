@@ -127,7 +127,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
               </div>
             </div>
 
-            {/* Right Column - Big Bo Ramble Image + Benefits Row */}
+            {/* Right Column - Big Bo Ramble Image */}
             <div className="relative flex flex-col justify-center lg:justify-end space-y-8">
               {/* Image Container */}
               <div className="relative w-full h-full flex items-center justify-center">
@@ -143,13 +143,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
                   />
                 </div>
               </div>
-
-              {/* Benefits Row - Now positioned directly below the image */}
-              <div className="w-full">
-                <BenefitsRow language={language} />
-              </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Benefits Row - Full width section */}
+      <section className="w-full bg-route66-background py-8">
+        <div className="container mx-auto px-4">
+          <BenefitsRow language={language} />
         </div>
       </section>
 
