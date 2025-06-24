@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Clock, Route, Calendar } from 'lucide-react';
+import { MapPin, Clock, Route, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { format, addDays } from 'date-fns';
 import UnifiedWeatherWidget from './weather/UnifiedWeatherWidget';
@@ -39,17 +39,17 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
-  // DEBUG: Log all distance-related properties
+  // Get distance from segment
   const segmentDistance = segment.distance || segment.approximateMiles || 0;
   
-  console.log(`🔍 DaySegmentCard Day ${segment.day} DISTANCE DEBUG:`, {
+  console.log(`🔍 DaySegmentCard Day ${segment.day} DISTANCE:`, {
     day: segment.day,
-    segmentDistance: segment.distance,
+    distance: segment.distance,
     approximateMiles: segment.approximateMiles,
-    finalUsedDistance: segmentDistance,
+    finalDistance: segmentDistance,
+    isGoogleMapsData: segment.isGoogleMapsData,
     cardIndex,
-    sectionKey,
-    timestamp: new Date().toISOString()
+    sectionKey
   });
 
   // Calculate drive time
@@ -87,15 +87,36 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and Time - FORCE UNIQUE VALUES */}
-          <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
-            <div className="flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
-              <Route className="w-4 h-4 text-blue-600" />
-              <span className="font-semibold text-blue-800">{segmentDistance} miles</span>
+          {/* Distance and Time with Data Source Indicator */}
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
+              <div className="flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
+                <Route className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-blue-800">{segmentDistance} miles</span>
+              </div>
+              <div className="flex items-center gap-1 bg-green-50 px-3 py-1 rounded-full">
+                <Clock className="w-4 h-4 text-green-600" />
+                <span className="font-semibold text-green-800">{driveTime}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1 bg-green-50 px-3 py-1 rounded-full">
-              <Clock className="w-4 h-4 text-green-600" />
-              <span className="font-semibold text-green-800">{driveTime}</span>
+            
+            {/* Data Source Badge */}
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+              segment.isGoogleMapsData 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-amber-100 text-amber-800'
+            }`}>
+              {segment.isGoogleMapsData ? (
+                <>
+                  <CheckCircle className="w-3 h-3" />
+                  <span>Google Maps</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>Estimated</span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -108,11 +129,6 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             <span className="text-route66-text-secondary">→</span>
             <span className="font-semibold">{endCity}</span>
           </div>
-        </div>
-
-        {/* DEBUG: Show raw data */}
-        <div className="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs">
-          <strong>DEBUG Day {segment.day}:</strong> distance={segment.distance}, approx={segment.approximateMiles}, used={segmentDistance}
         </div>
 
         {/* Weather Widget */}

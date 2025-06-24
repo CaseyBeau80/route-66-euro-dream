@@ -1,9 +1,9 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Route66TripForm from './components/Route66TripForm';
 import TripCalculatorResults from '../TripCalculator/TripCalculatorResults';
+import GoogleMapsApiSection from './components/GoogleMapsApiSection';
 import { Route66TripPlannerService, TripPlan } from '../TripCalculator/services/Route66TripPlannerService';
 import { TripCompletionService, TripCompletionAnalysis } from '../TripCalculator/services/planning/TripCompletionService';
 import { toast } from '@/hooks/use-toast';
@@ -19,12 +19,14 @@ const Route66TripCalculator: React.FC = () => {
   const [originalRequestedDays, setOriginalRequestedDays] = useState<number | undefined>();
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [hasGoogleMapsApi, setHasGoogleMapsApi] = useState(false);
 
   console.log('🔧 Route66TripCalculator: State debug', {
     hasTripPlan: !!tripPlan,
     isShareModalOpen,
     shareUrl,
-    tripStartDate: tripStartDate.toISOString()
+    tripStartDate: tripStartDate.toISOString(),
+    hasGoogleMapsApi
   });
 
   // Load trip from URL parameters on mount
@@ -65,7 +67,8 @@ const Route66TripCalculator: React.FC = () => {
         endLocation,
         travelDays,
         tripStyle,
-        tripStartDate: tripStartDate.toISOString()
+        tripStartDate: tripStartDate.toISOString(),
+        usingGoogleMaps: hasGoogleMapsApi
       });
 
       const result = await Route66TripPlannerService.planTrip(
@@ -81,11 +84,12 @@ const Route66TripCalculator: React.FC = () => {
         totalDistance: result.totalDistance,
         segmentDistances: result.segments.map(s => ({ 
           day: s.day, 
+          route: `${s.startCity} → ${s.endCity}`,
           distance: s.distance, 
           approximateMiles: s.approximateMiles,
-          startCity: s.startCity,
-          endCity: s.endCity
-        }))
+          isGoogleData: s.isGoogleMapsData
+        })),
+        dataSource: Route66TripPlannerService.getDataSourceStatus()
       });
 
       // Analyze trip completion
@@ -102,9 +106,10 @@ const Route66TripCalculator: React.FC = () => {
       newParams.set('tripStartDate', tripStartDate.toISOString());
       setSearchParams(newParams, { replace: true });
 
+      const dataSourceMsg = hasGoogleMapsApi ? 'using real Google Maps distances' : 'using estimated distances';
       toast({
         title: "Trip Planned Successfully! 🎉",
-        description: `Your ${travelDays}-day Route 66 adventure from ${startLocation} to ${endLocation} is ready!`,
+        description: `Your ${travelDays}-day Route 66 adventure from ${startLocation} to ${endLocation} is ready ${dataSourceMsg}!`,
         variant: "default"
       });
 
@@ -121,7 +126,7 @@ const Route66TripCalculator: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [tripStartDate, searchParams, setSearchParams]);
+  }, [tripStartDate, searchParams, setSearchParams, hasGoogleMapsApi]);
 
   // FIXED: Ensure this function properly opens the modal
   const handleShareTrip = useCallback(() => {
@@ -152,12 +157,21 @@ const Route66TripCalculator: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Google Maps API Section */}
+      <GoogleMapsApiSection onApiKeyChange={setHasGoogleMapsApi} />
+
       {/* Trip Planning Form */}
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center text-route66-primary">
             🛣️ Plan Your Route 66 Adventure
           </CardTitle>
+          <p className="text-center text-route66-text-secondary">
+            {hasGoogleMapsApi ? 
+              '🗺️ Using Google Maps for accurate driving distances' : 
+              '📊 Using estimated distances - add Google Maps API for accuracy'
+            }
+          </p>
         </CardHeader>
         <CardContent>
           <Route66TripForm
