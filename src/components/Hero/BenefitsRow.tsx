@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Check } from 'lucide-react';
 
@@ -68,8 +69,8 @@ const BenefitsRow: React.FC<BenefitsRowProps> = ({ language }) => {
   const benefits = benefitsContent[language as keyof typeof benefitsContent] || benefitsContent.en;
 
   return (
-    <div className="w-full bg-white/90 backdrop-blur-sm border-t border-route66-border/20">
-      <div className="container mx-auto px-6 py-6">
+    <div className="w-full bg-white/90 backdrop-blur-sm border-t border-route66-border/20 -mt-2">
+      <div className="container mx-auto px-6 py-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {benefits.map((benefit, index) => (
             <div 
