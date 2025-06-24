@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
@@ -78,7 +77,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
           ></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-24 pb-16">
+        <div className="relative z-10 container mx-auto px-4 pt-24 pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-8">
@@ -147,7 +146,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
         </div>
       </section>
 
-      {/* Benefits Row - Positioned between Hero and Scroll Indicator */}
+      {/* Benefits Row - Positioned directly below Hero with reduced spacing */}
       <BenefitsRow language={language} />
 
       {/* Scroll Indicator */}

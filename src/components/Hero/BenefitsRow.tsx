@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Check } from 'lucide-react';
 
@@ -70,24 +69,24 @@ const BenefitsRow: React.FC<BenefitsRowProps> = ({ language }) => {
 
   return (
     <div className="w-full bg-white/90 backdrop-blur-sm border-t border-route66-border/20">
-      <div className="container mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+      <div className="container mx-auto px-6 py-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
           {benefits.map((benefit, index) => (
             <div 
               key={index}
-              className="flex items-start gap-2 text-center md:text-left group"
+              className="flex items-start gap-4 text-center md:text-left group"
             >
-              {/* Green Checkmark Icon */}
-              <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md group-hover:bg-green-600 transition-colors duration-300">
-                <Check className="w-4 h-4 text-white" strokeWidth={3} />
+              {/* Larger Green Checkmark Icon */}
+              <div className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg group-hover:bg-green-600 transition-colors duration-300">
+                <Check className="w-5 h-5 text-white" strokeWidth={3} />
               </div>
               
               {/* Content */}
               <div className="flex-1">
-                <h3 className="font-highway font-bold text-base text-route66-text-primary mb-1">
+                <h3 className="font-highway font-bold text-lg text-route66-text-primary mb-2">
                   {benefit.title}
                 </h3>
-                <p className="text-xs text-route66-text-secondary leading-relaxed">
+                <p className="text-sm text-route66-text-secondary leading-relaxed">
                   {benefit.subtitle}
                 </p>
               </div>
