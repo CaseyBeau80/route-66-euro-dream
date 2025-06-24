@@ -13,15 +13,7 @@ const PreviewDailyItinerary: React.FC<PreviewDailyItineraryProps> = ({
   segments,
   tripStartDate
 }) => {
-  console.log('📅 PreviewDailyItinerary: Rendering segments with distance debugging:', {
-    segmentCount: segments.length,
-    segmentDistances: segments.map((s, i) => ({
-      day: s.day,
-      distance: s.distance,
-      approximateMiles: s.approximateMiles,
-      index: i
-    }))
-  });
+  console.log('📅 PreviewDailyItinerary: Rendering', segments.length, 'segments with new blue theme');
 
   if (!segments || segments.length === 0) {
     return (
@@ -47,26 +39,16 @@ const PreviewDailyItinerary: React.FC<PreviewDailyItineraryProps> = ({
         </p>
       </div>
       
-      {segments.map((segment, index) => {
-        // Debug logging for each segment's distance
-        console.log(`📏 Segment ${index + 1} distance debug:`, {
-          day: segment.day,
-          distance: segment.distance,
-          approximateMiles: segment.approximateMiles,
-          effectiveDistance: segment.distance || segment.approximateMiles || 0
-        });
-
-        return (
-          <ErrorBoundary key={`preview-segment-${segment.day}-${index}`} context={`PreviewItinerary-${index}`}>
-            <DaySegmentCard
-              segment={segment}
-              tripStartDate={tripStartDate}
-              cardIndex={index}
-              sectionKey="preview-itinerary"
-            />
-          </ErrorBoundary>
-        );
-      })}
+      {segments.map((segment, index) => (
+        <ErrorBoundary key={`preview-segment-${segment.day}-${index}`} context={`PreviewItinerary-${index}`}>
+          <DaySegmentCard
+            segment={segment}
+            tripStartDate={tripStartDate}
+            cardIndex={index}
+            sectionKey="preview-itinerary"
+          />
+        </ErrorBoundary>
+      ))}
     </div>
   );
 };

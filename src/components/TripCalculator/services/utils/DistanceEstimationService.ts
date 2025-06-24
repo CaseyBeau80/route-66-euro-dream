@@ -15,12 +15,6 @@ export class DistanceEstimationService {
     return route66Towns.find(town => {
       const townName = town.name.toLowerCase();
       
-      // Handle "City, State" format
-      if (cityName.includes(',')) {
-        const fullTownName = `${town.name}, ${town.state}`.toLowerCase();
-        if (fullTownName === normalizedName) return true;
-      }
-      
       // Exact match
       if (townName === normalizedName) return true;
       
@@ -45,12 +39,12 @@ export class DistanceEstimationService {
       return null;
     }
 
-    // Calculate distance using coordinates
+    // Calculate distance using the existing service
     const distance = DistanceCalculationService.calculateDistance(
-      startTown.coordinates.lat,
-      startTown.coordinates.lng,
-      endTown.coordinates.lat,
-      endTown.coordinates.lng
+      startTown.latLng[0], // latitude
+      startTown.latLng[1], // longitude
+      endTown.latLng[0],
+      endTown.latLng[1]
     );
 
     console.log('📏 Distance estimation:', {

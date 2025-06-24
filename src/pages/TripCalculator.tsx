@@ -2,14 +2,13 @@
 import { useState, useEffect } from "react";
 import NavigationBar from "@/components/NavigationBar";
 import Route66TripCalculator from "@/components/Route66TripCalculator";
-import Route66Map from "@/components/Route66Map";
-import { Share2, Calendar, Mail } from "lucide-react";
+import YouTubeEmbed from "@/components/YouTubeEmbed";
 
 const TripCalculator = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   
   useEffect(() => {
-    console.log('🚗 TripCalculator page mounted with split-screen layout');
+    console.log('🚗 TripCalculator page mounted');
 
     // Check for any critical errors on mount
     const handleError = (event: ErrorEvent) => {
@@ -31,87 +30,67 @@ const TripCalculator = () => {
       {/* Navigation Bar */}
       <NavigationBar language={language} setLanguage={setLanguage} />
       
-      {/* Split-Screen Layout */}
-      <div className="pt-16 h-screen overflow-hidden">
-        <div className="flex h-full">
-          {/* Left Side - Interactive Map */}
-          <div className="w-1/2 h-full border-r border-route66-border bg-white">
-            <div className="h-full relative">
-              {/* Map Header */}
-              <div className="absolute top-0 left-0 right-0 z-10 bg-white/95 backdrop-blur-sm border-b border-route66-border p-4">
-                <h2 className="text-xl font-bold text-route66-primary mb-1">
-                  Interactive Route 66 Map
-                </h2>
-                <p className="text-sm text-route66-text-secondary">
-                  Explore destinations, attractions, and plan your route
-                </p>
+      {/* Main Content */}
+      <div className="pt-16 pb-6">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            {/* Modern Header with Blue Theme */}
+            <div className="text-center mb-6">
+              <div className="flex justify-center items-center gap-4 mb-4">
+                {/* Removed Route 66 shield icon and Unit Toggle */}
               </div>
               
-              {/* Map Content */}
-              <div className="pt-20 h-full">
-                <Route66Map />
-              </div>
-            </div>
-          </div>
-          
-          {/* Right Side - Trip Planner Form */}
-          <div className="w-1/2 h-full bg-white overflow-y-auto">
-            <div className="p-6">
-              {/* Header Section */}
-              <div className="mb-6">
-                <h1 className="text-2xl md:text-3xl font-bold text-route66-primary mb-2">
-                  Plan Your Route 66 Adventure
-                </h1>
-                <p className="text-route66-text-secondary mb-4">
-                  Create your perfect heritage cities journey
-                </p>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-route66-primary mb-3">
+                Plan Your Route 66 Adventure
+              </h1>
+              <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed mb-4">Try the free trip planner tool below 👇</p>
 
-                {/* Share & Export Features Banner */}
-                <div className="bg-gradient-to-r from-indigo-50 to-cyan-50 border-2 border-indigo-200 rounded-xl p-4 mb-4 shadow-sm">
-                  <h3 className="text-sm font-bold text-indigo-800 mb-2">📤 Share Your Adventure</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="flex items-center gap-1 bg-white px-2 py-1 rounded text-xs border border-indigo-100">
-                      <Share2 className="h-3 w-3 text-indigo-600" />
-                      <span className="text-indigo-700">Share</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-white px-2 py-1 rounded text-xs border border-indigo-100">
-                      <Calendar className="h-3 w-3 text-red-600" />
-                      <span className="text-red-700">Google Cal</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-white px-2 py-1 rounded text-xs border border-indigo-100">
-                      <Calendar className="h-3 w-3 text-blue-600" />
-                      <span className="text-blue-700">iPhone Cal</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-white px-2 py-1 rounded text-xs border border-indigo-100">
-                      <Mail className="h-3 w-3 text-green-600" />
-                      <span className="text-green-700">Email</span>
-                    </div>
-                  </div>
+              {/* YouTube Video Section */}
+              <div className="mb-6">
+                <YouTubeEmbed videoId="3904gZljFmY" title="Route 66 Travel Guide & Planning Tips" className="max-w-2xl mx-auto" />
+              </div>
+
+              {/* Feature Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                {/* Highlighted Time Estimates Card */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-blue-600 text-2xl mb-2">⏱️</div>
+                  <h3 className="font-bold text-blue-800 mb-2">Time Estimates</h3>
+                  <p className="text-sm text-blue-700">Get accurate travel times and duration estimates for your entire trip</p>
+                </div>
+                
+                {/* Highlighted Must-See Stops Card */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border-2 border-green-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-green-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-green-600 text-2xl mb-2">📍</div>
+                  <h3 className="font-bold text-green-800 mb-2">Destination Stops</h3>
+                  <p className="text-sm text-green-700">Discover iconic landmarks, hidden gems, and authentic Route 66 experiences</p>
+                </div>
+                
+                {/* Highlighted Weather Card */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border-2 border-purple-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-purple-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-purple-600 text-2xl mb-2">🌤️</div>
+                  <h3 className="font-bold text-purple-800 mb-2">Weather</h3>
+                  <p className="text-sm text-purple-700">Get accurate weather forecasts for each day and destination of your journey</p>
+                </div>
+                
+                {/* Highlighted Budget Estimates Card with Dollar Sign */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-orange-200 to-transparent rounded-bl-full"></div>
+                  <div className="text-orange-600 text-2xl mb-2">💲</div>
+                  <h3 className="font-bold text-orange-800 mb-2">Budget Estimates</h3>
+                  <p className="text-sm text-orange-700">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
                 </div>
               </div>
-              
-              {/* Trip Calculator Component */}
+            </div>
+            
+            {/* Trip Planner Container */}
+            <div className="bg-white rounded-xl shadow-lg border border-route66-border p-4">
               <Route66TripCalculator />
             </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Mobile Warning Overlay */}
-      <div className="md:hidden fixed inset-0 bg-route66-primary/95 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg p-6 text-center max-w-sm mx-auto">
-          <h3 className="text-lg font-bold text-route66-primary mb-2">
-            Desktop Experience Required
-          </h3>
-          <p className="text-route66-text-secondary text-sm mb-4">
-            The split-screen trip planner is optimized for desktop and tablet devices. Please use a larger screen for the best experience.
-          </p>
-          <a 
-            href="/" 
-            className="inline-block bg-route66-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-route66-primary/90 transition-colors"
-          >
-            Return to Homepage
-          </a>
         </div>
       </div>
     </div>

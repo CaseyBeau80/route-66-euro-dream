@@ -5,8 +5,6 @@ export interface TripCalculation {
   dailyDistances: number[];
   numberOfDays: number;
   averageDailyDistance: number;
-  estimatedDays: number; // Added missing property
-  estimatedCost: number; // Added missing property
 }
 
 export interface TripFormData {

@@ -33,7 +33,7 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
           <option value="">Choose starting point</option>
           {route66Towns.map((town) => (
             <option key={town.name} value={town.name}>
-              {town.name}, {town.state}
+              {town.name}
             </option>
           ))}
         </select>
@@ -53,7 +53,7 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
           <option value="">Choose destination</option>
           {availableEndLocations.map((town) => (
             <option key={town.name} value={town.name}>
-              {town.name}, {town.state}
+              {town.name}
             </option>
           ))}
         </select>

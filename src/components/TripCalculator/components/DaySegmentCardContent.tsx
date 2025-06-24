@@ -19,7 +19,6 @@ interface DaySegmentCardContentProps {
   tripId?: string;
   sectionKey?: string;
   forceShowAttractions?: boolean;
-  isCompact?: boolean;
 }
 
 const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
@@ -29,15 +28,11 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   cardIndex = 0,
   tripId,
   sectionKey = 'itinerary',
-  forceShowAttractions = false,
-  isCompact = false
+  forceShowAttractions = false
 }) => {
   // CRITICAL: Use centralized service for consistent limiting
   const maxAttractions = AttractionLimitingService.getMaxAttractions();
   const context = `DaySegmentCardContent-Day${segment.day}-${sectionKey}`;
-  
-  const spacing = isCompact ? 'space-y-3' : 'space-y-4';
-  const padding = isCompact ? 'p-3' : 'p-4';
   
   console.log('🔍 DaySegmentCardContent - FIXED attractions display:', {
     segmentDay: segment.day,
@@ -46,7 +41,6 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
     context,
     sectionKey,
     forceShowAttractions,
-    isCompact,
     availableAttractions: {
       attractionsCount: segment.attractions?.length || 0,
       recommendedStopsCount: segment.recommendedStops?.length || 0,
@@ -56,7 +50,7 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
   });
 
   return (
-    <div className={`${padding} ${spacing}`}>
+    <div className="space-y-4">
       {/* Drive Time Message - Compact */}
       {segment.driveTimeCategory && segment.driveTimeHours > 6 && (
         <div className={`p-3 rounded-lg border text-sm ${driveTimeStyle.bg} ${driveTimeStyle.border}`}>
@@ -75,14 +69,13 @@ const DaySegmentCardContent: React.FC<DaySegmentCardContentProps> = ({
       )}
 
       {/* Route & Stops Content - ALWAYS SHOW ATTRACTIONS */}
-      <div className={spacing}>
+      <div className="space-y-4">
         {/* Nearby Attractions - CENTRALIZED ENFORCED LIMIT with force display */}
         <ErrorBoundary context={`SegmentNearbyAttractions-Day${segment.day}`}>
           <SegmentNearbyAttractions 
             segment={segment} 
             maxAttractions={maxAttractions}
             forceDisplay={forceShowAttractions}
-            isCompact={isCompact}
           />
         </ErrorBoundary>
       </div>
