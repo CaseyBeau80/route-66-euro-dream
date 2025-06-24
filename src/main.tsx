@@ -4,8 +4,8 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Start the application when DOM is fully loaded
-const initApp = () => {
+// Ensure DOM is ready before initializing
+const initializeApp = () => {
   const rootElement = document.getElementById("root");
   
   if (!rootElement) {
@@ -15,15 +15,12 @@ const initApp = () => {
   
   try {
     const root = createRoot(rootElement);
-    root.render(
-      <StrictMode>
-        <App />
-      </StrictMode>
-    );
+    root.render(<App />);
     console.log("✅ React app initialized successfully");
   } catch (error) {
     console.error("❌ Failed to initialize React app:", error);
-    // Fallback rendering without StrictMode
+    
+    // Fallback: try without StrictMode wrapper
     try {
       const root = createRoot(rootElement);
       root.render(<App />);
@@ -34,12 +31,11 @@ const initApp = () => {
   }
 };
 
-// Make sure the DOM is loaded before trying to access the root element
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
   console.log("DOM is still loading, waiting for DOMContentLoaded event");
-  document.addEventListener('DOMContentLoaded', initApp);
+  document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
-  // DOM already loaded, initialize immediately
   console.log("DOM is already loaded, initializing immediately");
-  initApp();
+  initializeApp();
 }
