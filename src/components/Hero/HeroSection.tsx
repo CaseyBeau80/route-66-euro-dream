@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
@@ -14,7 +13,7 @@ const heroContent = {
       "Too much time spent spinning your Route 66 wheels?",
       "Are you bouncing between websites, still unsure where or how to start your Route 66 trip? Planning shouldn't feel like guesswork.",
       "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?",
-      "Here. You come right here."
+      "Here. You come right here — and it's all free."
     ],
     ctaButton: "Start Exploring",
     mascotAlt: "Big Bo Ramble - Route 66 Mascot"
@@ -25,7 +24,7 @@ const heroContent = {
       "Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?",
       "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst? Planung sollte sich nicht wie Rätselraten anfühlen.",
       "Fragst du dich, wo andere hingehen, um ihre Route 66-Reise zu planen — Stadtveranstaltungen, Attraktionen, versteckte Perlen, Drive-Ins, Diners, Wetter, Fahrzeiten und Zielstopps?",
-      "Hier. Du kommst genau hierher."
+      "Hier. Du kommst genau hierher — und es ist alles kostenlos."
     ],
     ctaButton: "Erkunden Beginnen",
     mascotAlt: "Big Bo Ramble - Route 66 Maskottchen"
@@ -36,7 +35,7 @@ const heroContent = {
       "Trop de temps passé à faire tourner vos roues de Route 66?",
       "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66? La planification ne devrait pas ressembler à de la devinette.",
       "Vous vous demandez où les autres vont pour planifier leur voyage Route 66 — événements de ville, attractions, joyaux cachés, drive-ins, restaurants, météo, temps de conduite et arrêts de destination?",
-      "Ici. Vous venez exactement ici."
+      "Ici. Vous venez exactement ici — et c'est tout gratuit."
     ],
     ctaButton: "Commencer l'Exploration",
     mascotAlt: "Big Bo Ramble - Mascotte Route 66"
@@ -47,7 +46,7 @@ const heroContent = {
       "Muito tempo gasto girando as rodas da Rota 66?",
       "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66? O planejamento não deveria parecer adivinhação.",
       "Imaginando onde outros vão para planejar sua viagem na Rota 66 — eventos da cidade, atrações, joias escondidas, drive-ins, restaurantes, clima, tempos de direção e paradas de destino?",
-      "Aqui. Você vem exatamente aqui."
+      "Aqui. Você vem exatamente aqui — e é tudo gratuito."
     ],
     ctaButton: "Começar a Explorar",
     mascotAlt: "Big Bo Ramble - Mascote Rota 66"
