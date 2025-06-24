@@ -9,58 +9,58 @@ interface BenefitsRowProps {
 const benefitsContent = {
   en: [
     {
-      title: "Real Route 66 Experience",
-      subtitle: "Authentic stops along the Mother Road"
+      title: "Interactive Route 66 Google Map",
+      subtitle: "Explore attractions, destinations, and hidden gems with interactive filtering"
     },
     {
-      title: "Perfect Trip Planning",
-      subtitle: "Daily itineraries that actually work"
+      title: "Shareable Travel Planner",
+      subtitle: "Build custom Route 66 trips and share them with friends"
     },
     {
-      title: "Hidden Gems Revealed",
-      subtitle: "Discover what guidebooks miss"
+      title: "Social Media & More",
+      subtitle: "Instagram integration and community features for travelers"
     }
   ],
   de: [
     {
-      title: "Echte Route 66 Erfahrung",
-      subtitle: "Authentische Stopps entlang der Mother Road"
+      title: "Interaktive Route 66 Google Karte",
+      subtitle: "Entdecken Sie Attraktionen, Ziele und versteckte Perlen mit interaktiver Filterung"
     },
     {
-      title: "Perfekte Reiseplanung",
-      subtitle: "Tägliche Reisepläne die wirklich funktionieren"
+      title: "Teilbarer Reiseplaner",
+      subtitle: "Erstellen Sie individuelle Route 66-Reisen und teilen Sie sie mit Freunden"
     },
     {
-      title: "Versteckte Perlen Enthüllt",
-      subtitle: "Entdecken Sie was Reiseführer verpassen"
+      title: "Social Media & Mehr",
+      subtitle: "Instagram-Integration und Community-Funktionen für Reisende"
     }
   ],
   fr: [
     {
-      title: "Vraie Expérience Route 66",
-      subtitle: "Arrêts authentiques le long de la Mother Road"
+      title: "Carte Google Interactive Route 66",
+      subtitle: "Explorez les attractions, destinations et joyaux cachés avec filtrage interactif"
     },
     {
-      title: "Planification de Voyage Parfaite",
-      subtitle: "Itinéraires quotidiens qui fonctionnent vraiment"
+      title: "Planificateur de Voyage Partageable",
+      subtitle: "Créez des voyages Route 66 personnalisés et partagez-les avec des amis"
     },
     {
-      title: "Joyaux Cachés Révélés",
-      subtitle: "Découvrez ce que les guides manquent"
+      title: "Médias Sociaux & Plus",
+      subtitle: "Intégration Instagram et fonctionnalités communautaires pour voyageurs"
     }
   ],
   "pt-BR": [
     {
-      title: "Experiência Real da Rota 66",
-      subtitle: "Paradas autênticas ao longo da Mother Road"
+      title: "Mapa Interativo Google da Rota 66",
+      subtitle: "Explore atrações, destinos e joias escondidas com filtragem interativa"
     },
     {
-      title: "Planejamento Perfeito de Viagem",
-      subtitle: "Itinerários diários que realmente funcionam"
+      title: "Planejador de Viagem Compartilhável",
+      subtitle: "Crie viagens personalizadas da Rota 66 e compartilhe com amigos"
     },
     {
-      title: "Joias Escondidas Reveladas",
-      subtitle: "Descubra o que os guias perdem"
+      title: "Mídias Sociais & Mais",
+      subtitle: "Integração Instagram e recursos comunitários para viajantes"
     }
   ]
 };
