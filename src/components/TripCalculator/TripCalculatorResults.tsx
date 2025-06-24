@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TripCalculation } from './types/tripCalculator';
@@ -5,7 +6,7 @@ import { TripPlan } from './services/Route66TripPlannerService';
 import { TripCompletionAnalysis } from './services/planning/TripCompletionService';
 import { formatTime } from './utils/distanceCalculator';
 import EnhancedTripResults from './EnhancedTripResults';
-import ShareAndExportDropdown from './components/ShareAndExportDropdown';
+import ShareTripButton from './components/ShareTripButton';
 
 interface TripCalculatorResultsProps {
   calculation?: TripCalculation;
@@ -15,6 +16,7 @@ interface TripCalculatorResultsProps {
   completionAnalysis?: TripCompletionAnalysis;
   originalRequestedDays?: number;
   onDateRequired?: () => void;
+  onShareUrlGenerated?: (shareCode: string, shareUrl: string) => void;
 }
 
 const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calculation }) => {
@@ -52,234 +54,81 @@ const LegacyTripResults: React.FC<{ calculation: TripCalculation }> = ({ calcula
           
           <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
             <div className="font-route66 text-2xl text-route66-vintage-red">
-              {calculation.numberOfDays}
+              {calculation.estimatedDays}
             </div>
             <div className="font-travel text-sm text-route66-vintage-brown">
-              Recommended Days
+              Estimated Days
             </div>
           </div>
           
           <div className="text-center p-4 bg-route66-cream rounded-lg border border-route66-tan">
             <div className="font-route66 text-2xl text-route66-vintage-red">
-              {Math.round(calculation.averageDailyDistance)}
+              ${Math.round(calculation.estimatedCost)}
             </div>
             <div className="font-travel text-sm text-route66-vintage-brown">
-              Avg Miles/Day
+              Est. Total Cost
             </div>
           </div>
-        </div>
-
-        {/* Daily Breakdown */}
-        <div className="space-y-3">
-          <h3 className="font-travel font-bold text-route66-vintage-brown text-lg">
-            Daily Driving Schedule
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {calculation.dailyDistances.map((distance, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center p-3 bg-route66-vintage-beige rounded border border-route66-tan"
-              >
-                <span className="font-travel font-bold text-route66-vintage-brown">
-                  Day {index + 1}
-                </span>
-                <span className="font-travel text-route66-vintage-brown">
-                  {Math.round(distance)} miles
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-route66-vintage-yellow rounded-lg">
-          <p className="text-sm text-route66-navy font-travel text-center">
-            💡 <strong>Travel Tip:</strong> Allow extra time for exploring historic attractions, 
-            dining at classic diners, and taking photos at iconic landmarks along the way!
-          </p>
         </div>
       </CardContent>
     </Card>
   );
 };
 
-const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({ 
-  calculation, 
-  tripPlan, 
-  shareUrl, 
+const TripCalculatorResults: React.FC<TripCalculatorResultsProps> = ({
+  calculation,
+  tripPlan,
+  shareUrl,
   tripStartDate,
   completionAnalysis,
   originalRequestedDays,
-  onDateRequired
+  onDateRequired,
+  onShareUrlGenerated
 }) => {
-  // DEBUG: Enhanced logging to track tripStartDate prop
-  console.log('🔍 TripCalculatorResults: Prop debugging:', {
-    hasTripPlan: !!tripPlan,
+  console.log('📊 TripCalculatorResults render:', {
     hasCalculation: !!calculation,
-    tripStartDate: tripStartDate?.toISOString() || 'NULL',
-    tripStartDateType: typeof tripStartDate,
-    isValidDate: tripStartDate instanceof Date && !isNaN(tripStartDate.getTime()),
-    shareUrl,
-    hasCompletionAnalysis: !!completionAnalysis,
-    originalRequestedDays,
-    timestamp: new Date().toISOString()
+    hasTripPlan: !!tripPlan,
+    hasShareUrl: !!shareUrl,
+    hasTripStartDate: !!tripStartDate,
+    hasCompletionAnalysis: !!completionAnalysis
   });
 
-  // Enhanced date validation with detailed logging
-  const hasValidStartDate = tripStartDate instanceof Date && !isNaN(tripStartDate.getTime());
-  
-  console.log('🎯 TripCalculatorResults render with enhanced date handling:', {
-    hasTripPlan: !!tripPlan,
-    hasCalculation: !!calculation,
-    shareUrl,
-    hasValidStartDate,
-    tripStartDate: tripStartDate?.toISOString() || 'null',
-    hasCompletionAnalysis: !!completionAnalysis,
-    originalRequestedDays,
-    validationResult: hasValidStartDate ? 'VALID' : 'INVALID'
-  });
-  
-  // Prioritize enhanced trip plan over legacy calculation
+  // If we have a modern trip plan, show enhanced results
   if (tripPlan) {
-    console.log('✨ Rendering Enhanced Trip Results with date-aware sharing features');
-    const tripTitle = `${tripPlan.startCity} to ${tripPlan.endCity} Route 66 Trip`;
-    
     return (
       <div className="space-y-6">
-        {/* Date requirement notice if no valid start date - FIXED: Should not show when date is valid */}
-        {!hasValidStartDate && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-4 rounded-xl">
-            <div className="flex items-center gap-2 text-amber-800 mb-2">
-              <span className="text-lg">📅</span>
-              <h3 className="font-bold">Start Date Required for Full Features</h3>
-            </div>
-            <p className="text-sm text-amber-700 mb-3">
-              Set your trip start date to unlock calendar export, weather forecasts, and enhanced sharing.
-            </p>
-            {onDateRequired && (
-              <button
-                onClick={onDateRequired}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-sm font-medium"
-              >
-                Set Start Date
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* COMPREHENSIVE SHARE & EXPORT DROPDOWN */}
-        <div className="flex justify-center mb-6">
-          <ShareAndExportDropdown
-            shareUrl={shareUrl}
-            tripTitle={tripTitle}
-            tripPlan={tripPlan}
-            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
-            size="lg"
-            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl"
-          />
-        </div>
-
-        <EnhancedTripResults 
-          tripPlan={tripPlan} 
-          shareUrl={shareUrl} 
-          tripStartDate={hasValidStartDate ? tripStartDate : undefined}
+        <EnhancedTripResults
+          tripPlan={tripPlan}
+          shareUrl={shareUrl}
+          tripStartDate={tripStartDate}
           completionAnalysis={completionAnalysis}
           originalRequestedDays={originalRequestedDays}
+          onDateRequired={onDateRequired}
         />
-
-        {/* BOTTOM SHARE & EXPORT DROPDOWN */}
-        <div className="flex justify-center mt-6">
-          <ShareAndExportDropdown
-            shareUrl={shareUrl}
-            tripTitle={tripTitle}
+        
+        {/* Share Button Section */}
+        <div className="flex justify-center pt-4">
+          <ShareTripButton
             tripPlan={tripPlan}
-            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
-            variant="outline"
+            tripStartDate={tripStartDate}
+            shareUrl={shareUrl}
+            onShareUrlGenerated={onShareUrlGenerated}
+            variant="default"
             size="lg"
-            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl border-2"
-          />
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            Share Your Route 66 Adventure
+          </ShareTripButton>
         </div>
       </div>
     );
   }
-  
+
+  // Fallback to legacy results for older calculation format
   if (calculation) {
-    console.log('📊 Rendering Legacy Trip Results with date-aware sharing features');
-    const tripTitle = `Route 66 Legacy Trip - ${calculation.numberOfDays} Days`;
-    
-    // Create a properly structured mock trip plan for legacy results to enable sharing
-    const mockTripPlan: TripPlan = {
-      id: 'legacy-trip-' + Date.now(),
-      title: tripTitle,
-      startCity: 'Chicago',
-      endCity: 'Los Angeles',
-      startLocation: 'Chicago, IL',
-      endLocation: 'Los Angeles, CA',
-      startDate: hasValidStartDate ? tripStartDate! : new Date(),
-      totalDays: calculation.numberOfDays,
-      totalDistance: calculation.totalDistance,
-      totalMiles: Math.round(calculation.totalDistance),
-      totalDrivingTime: calculation.totalDriveTime,
-      segments: [],
-      dailySegments: [],
-      stops: [],
-      tripStyle: 'balanced',
-      lastUpdated: new Date()
-    };
-    
-    return (
-      <div className="space-y-6">
-        {/* Date requirement notice for legacy trips */}
-        {!hasValidStartDate && (
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 p-4 rounded-xl">
-            <div className="flex items-center gap-2 text-amber-800 mb-2">
-              <span className="text-lg">📅</span>
-              <h3 className="font-bold">Start Date Required for Calendar Export</h3>
-            </div>
-            <p className="text-sm text-amber-700 mb-3">
-              Set your trip start date to enable calendar export and enhanced sharing features.
-            </p>
-            {onDateRequired && (
-              <button
-                onClick={onDateRequired}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-sm font-medium"
-              >
-                Set Start Date
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* SHARE & EXPORT FOR LEGACY */}
-        <div className="flex justify-center mb-6">
-          <ShareAndExportDropdown
-            shareUrl={shareUrl}
-            tripTitle={tripTitle}
-            tripPlan={mockTripPlan}
-            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
-            size="lg"
-            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl"
-          />
-        </div>
-
-        <LegacyTripResults calculation={calculation} />
-
-        {/* BOTTOM SHARE & EXPORT FOR LEGACY */}
-        <div className="flex justify-center mt-6">
-          <ShareAndExportDropdown
-            shareUrl={shareUrl}
-            tripTitle={tripTitle}
-            tripPlan={mockTripPlan}
-            tripStartDate={hasValidStartDate ? tripStartDate : undefined}
-            variant="outline"
-            size="lg"
-            className="px-8 py-4 text-lg font-bold shadow-lg rounded-xl border-2"
-          />
-        </div>
-      </div>
-    );
+    return <LegacyTripResults calculation={calculation} />;
   }
-  
-  console.log('⚠️ No trip data to display');
+
   return null;
 };
 
