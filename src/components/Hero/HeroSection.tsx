@@ -78,7 +78,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
           ></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-24 pb-2">
+        <div className="relative z-10 container mx-auto px-4 pt-24 pb-0">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start min-h-[80vh]">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-8">
