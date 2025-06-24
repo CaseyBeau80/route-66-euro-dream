@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Route66TripForm from './components/Route66TripForm';
-import TripCalculatorResults from './components/TripCalculatorResults';
+import TripCalculatorResults from '../TripCalculator/components/TripCalculatorResults';
 import { Route66TripPlannerService, TripPlan } from '../TripCalculator/services/Route66TripPlannerService';
 import { TripCompletionService, TripCompletionAnalysis } from '../TripCalculator/services/planning/TripCompletionService';
 import { toast } from '@/hooks/use-toast';
