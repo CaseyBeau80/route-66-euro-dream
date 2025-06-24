@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MapPin, Calendar, Star, Eye, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ interface InteractiveMapSectionProps {
 
 const mapContent = {
   en: {
-    title: "Explore the Mother Road",
+    title: "Explore Route 66 Google Map",
     subtitle: "Navigate America's most iconic highway with our interactive mapping tools",
     exploreButton: "Start Exploring",
     features: [
@@ -47,7 +46,7 @@ const mapContent = {
     ]
   },
   de: {
-    title: "Erkunde die Mother Road",
+    title: "Erkunde Route 66 Google Map",
     subtitle: "Navigiere Amerikas ikonischste Straße mit unseren interaktiven Kartenwerkzeugen",
     exploreButton: "Erkunden Beginnen",
     features: [
@@ -84,7 +83,7 @@ const mapContent = {
     ]
   },
   fr: {
-    title: "Explorez la Mother Road",
+    title: "Explorez Route 66 Google Map",
     subtitle: "Naviguez sur la route la plus emblématique d'Amérique avec nos outils de cartographie interactifs",
     exploreButton: "Commencer l'Exploration",
     features: [
@@ -121,7 +120,7 @@ const mapContent = {
     ]
   },
   "pt-BR": {
-    title: "Explore a Mother Road",
+    title: "Explore Route 66 Google Map",
     subtitle: "Navegue pela rodovia mais icônica da América com nossas ferramentas de mapeamento interativo",
     exploreButton: "Começar a Explorar",
     features: [
