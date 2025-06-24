@@ -13,6 +13,12 @@ export interface EnhancedTripPlanResult {
 // Re-export the types from TripPlanTypes for backward compatibility
 export type { TripPlan, DailySegment } from './planning/TripPlanTypes';
 
+interface SegmentResult {
+  distance: number;
+  duration: number;
+  isGoogleData: boolean;
+}
+
 export class Route66TripPlannerService {
   static async planTrip(
     startLocation: string,
@@ -20,7 +26,7 @@ export class Route66TripPlannerService {
     travelDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlan> {
-    console.log('🚗 Route66TripPlannerService: Planning trip with improved segment calculation');
+    console.log('🚗 Route66TripPlannerService: Planning trip with REAL individual segment distances');
 
     // Find matching destination cities for accurate coordinates
     const startCity = ROUTE_66_DESTINATION_CITIES.find(city => 
@@ -43,63 +49,94 @@ export class Route66TripPlannerService {
 
     console.log('🛣️ Selected cities for route:', allCities.map(c => c?.name).join(' → '));
 
-    // FIXED: Calculate actual distances for each segment individually
+    // FIXED: Calculate REAL individual segment distances using Google Distance Matrix API
+    const segmentResults: SegmentResult[] = [];
+    
+    for (let i = 0; i < allCities.length - 1; i++) {
+      const fromCity = allCities[i];
+      const toCity = allCities[i + 1];
+      
+      if (!fromCity || !toCity) {
+        console.warn(`⚠️ Missing city data for segment ${i + 1}`);
+        continue;
+      }
+
+      let segmentResult: SegmentResult;
+
+      // Calculate REAL distance for this specific segment
+      if (GoogleDistanceMatrixService.isAvailable()) {
+        try {
+          console.log(`🗺️ Calculating REAL Google Maps distance for segment ${i + 1}: ${fromCity.name} → ${toCity.name}`);
+          const result = await GoogleDistanceMatrixService.calculateDistance(fromCity, toCity);
+          segmentResult = {
+            distance: result.distance,
+            duration: result.duration,
+            isGoogleData: true
+          };
+          console.log(`✅ Segment ${i + 1} Google Maps: ${segmentResult.distance} miles, ${(segmentResult.duration / 3600).toFixed(1)}h`);
+        } catch (error) {
+          console.warn(`❌ Google Distance Matrix failed for segment ${i + 1}:`, error);
+          // Fall back to estimated distance for this specific segment
+          const distance = this.estimateDistance(fromCity, toCity);
+          segmentResult = {
+            distance: distance,
+            duration: distance / 55 * 3600, // Convert to seconds
+            isGoogleData: false
+          };
+          console.log(`📊 Segment ${i + 1} Fallback: ${segmentResult.distance} miles, ${(segmentResult.duration / 3600).toFixed(1)}h`);
+        }
+      } else {
+        console.log(`📊 Segment ${i + 1} using estimated distances - no Google API`);
+        const distance = this.estimateDistance(fromCity, toCity);
+        segmentResult = {
+          distance: distance,
+          duration: distance / 55 * 3600, // Convert to seconds
+          isGoogleData: false
+        };
+        console.log(`📊 Segment ${i + 1} Estimated: ${segmentResult.distance} miles, ${(segmentResult.duration / 3600).toFixed(1)}h`);
+      }
+
+      segmentResults.push(segmentResult);
+    }
+
+    // FIXED: Create segments using ACTUAL individual distances (not averaged!)
     const segments: DailySegment[] = [];
     let totalDistance = 0;
     let totalDrivingTime = 0;
 
     for (let day = 1; day <= travelDays; day++) {
-      const fromCity = allCities[day - 1];
-      const toCity = allCities[day];
+      const segmentIndex = day - 1;
+      const fromCity = allCities[segmentIndex];
+      const toCity = allCities[segmentIndex + 1];
+      const segmentResult = segmentResults[segmentIndex];
       
-      if (!fromCity || !toCity) {
-        console.warn(`⚠️ Missing city data for day ${day}`);
+      if (!fromCity || !toCity || !segmentResult) {
+        console.warn(`⚠️ Missing data for day ${day}`);
         continue;
       }
 
-      let segmentDistance = 0;
-      let segmentDriveTimeHours = 0;
-      let isGoogleMapsData = false;
+      // FIXED: Use the ACTUAL segment distance, not averaged total
+      const actualSegmentDistance = segmentResult.distance;
+      const actualSegmentDurationHours = segmentResult.duration / 3600;
 
-      // FIXED: Calculate individual segment distance using Google Distance Matrix API
-      if (GoogleDistanceMatrixService.isAvailable()) {
-        try {
-          console.log(`🗺️ Calculating REAL distance for Day ${day}: ${fromCity.name} → ${toCity.name}`);
-          const result = await GoogleDistanceMatrixService.calculateDistance(fromCity, toCity);
-          segmentDistance = result.distance;
-          segmentDriveTimeHours = result.duration / 3600; // Convert seconds to hours
-          isGoogleMapsData = true;
-          console.log(`✅ Day ${day} Google Maps: ${segmentDistance} miles, ${segmentDriveTimeHours.toFixed(1)}h`);
-        } catch (error) {
-          console.warn(`❌ Google Distance Matrix failed for Day ${day}:`, error);
-          // Fall back to estimated distance for this specific segment
-          segmentDistance = this.estimateDistance(fromCity, toCity);
-          segmentDriveTimeHours = segmentDistance / 55;
-          console.log(`📊 Day ${day} Fallback: ${segmentDistance} miles, ${segmentDriveTimeHours.toFixed(1)}h`);
-        }
-      } else {
-        console.log(`📊 Day ${day} using estimated distances - no Google API`);
-        segmentDistance = this.estimateDistance(fromCity, toCity);
-        segmentDriveTimeHours = segmentDistance / 55;
-        console.log(`📊 Day ${day} Estimated: ${segmentDistance} miles, ${segmentDriveTimeHours.toFixed(1)}h`);
-      }
+      console.log(`📊 Day ${day} ACTUAL INDIVIDUAL DISTANCE: ${actualSegmentDistance} miles, ${actualSegmentDurationHours.toFixed(1)}h (Google: ${segmentResult.isGoogleData})`);
 
-      // Create the segment with the actual calculated distance
+      // Create the segment with the REAL calculated distance for this specific route
       const segment: DailySegment = {
         day,
         title: `Day ${day}: ${fromCity.name} to ${toCity.name}`,
         startCity: fromCity.name,
         endCity: toCity.name,
-        distance: Math.round(segmentDistance), // FIXED: Use actual segment distance
-        approximateMiles: Math.round(segmentDistance), // FIXED: Use actual segment distance
-        driveTimeHours: Math.round(segmentDriveTimeHours * 10) / 10,
-        drivingTime: Math.round(segmentDriveTimeHours * 10) / 10,
+        distance: Math.round(actualSegmentDistance), // FIXED: Use ACTUAL segment distance
+        approximateMiles: Math.round(actualSegmentDistance), // FIXED: Use ACTUAL segment distance
+        driveTimeHours: Math.round(actualSegmentDurationHours * 10) / 10,
+        drivingTime: Math.round(actualSegmentDurationHours * 10) / 10,
         destination: {
           city: toCity.name,
           state: toCity.state
         },
         recommendedStops: [],
-        isGoogleMapsData,
+        isGoogleMapsData: segmentResult.isGoogleData,
         attractions: [
           { 
             name: `Historic Site in ${toCity.name}`, 
@@ -127,12 +164,12 @@ export class Route66TripPlannerService {
       
       segments.push(segment);
       
-      // FIXED: Add individual segment values to totals
-      totalDistance += segmentDistance;
-      totalDrivingTime += segmentDriveTimeHours;
+      // Add to running totals
+      totalDistance += actualSegmentDistance;
+      totalDrivingTime += actualSegmentDurationHours;
     }
 
-    console.log('✅ Route66TripPlannerService: Trip planned with INDIVIDUAL segment distances:', {
+    console.log('✅ Route66TripPlannerService: Trip planned with REAL INDIVIDUAL segment distances:', {
       segments: segments.map(s => ({ 
         day: s.day, 
         route: `${s.startCity} → ${s.endCity}`,
@@ -155,8 +192,8 @@ export class Route66TripPlannerService {
       endLocation,
       startDate: new Date(),
       totalDays: travelDays,
-      totalDistance: Math.round(totalDistance), // FIXED: Use sum of actual segments
-      totalMiles: Math.round(totalDistance), // FIXED: Use sum of actual segments
+      totalDistance: Math.round(totalDistance),
+      totalMiles: Math.round(totalDistance),
       totalDrivingTime: Math.round(totalDrivingTime * 10) / 10,
       segments,
       dailySegments: segments,
