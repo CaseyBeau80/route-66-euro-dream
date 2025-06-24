@@ -58,83 +58,87 @@ const EnhancedHero = ({ language }: EnhancedHeroProps) => {
   
   return (
     <>
-      <div 
-        className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat overflow-hidden"
-        style={{
-          backgroundImage: "url('https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/website_header_Route66.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center center"
-        }}
-      >
-        {/* Enhanced gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/60"></div>
-        
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-4 h-4 bg-white/30 rounded-full animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-3 h-3 bg-route66-accent-red/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute bottom-60 left-1/4 w-2 h-2 bg-route66-primary/50 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-        </div>
-        
-        {/* Main content */}
-        <div className="relative z-20 flex flex-col items-center justify-center min-h-screen text-center px-4 max-w-7xl mx-auto">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-route66-primary/90 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-bold mb-6 shadow-2xl border border-white/20">
-            <Calendar className="w-4 h-4" />
-            CENTENNIAL CELEBRATION 2026
-          </div>
-
-          {/* Enhanced typography */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-tight mb-6 text-white drop-shadow-2xl max-w-6xl mx-auto font-route66">
-            {content.title}
-          </h1>
-          
-          <p className="text-xl md:text-2xl lg:text-3xl mb-4 text-white/95 leading-relaxed max-w-5xl mx-auto drop-shadow-lg font-semibold">
-            {content.subtitle}
-          </p>
-
-          <p className="text-lg md:text-xl mb-8 text-white/90 leading-relaxed max-w-4xl mx-auto drop-shadow-lg">
-            {content.description}
-          </p>
-
-          {/* Feature highlights */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 max-w-4xl mx-auto">
-            {content.features.map((feature, index) => (
-              <div 
-                key={index}
-                className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-white text-sm font-medium"
-              >
-                {feature}
+      <div className="relative w-full min-h-screen bg-white overflow-hidden">
+        <div className="container mx-auto px-4 max-w-7xl h-screen flex items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
+            {/* Left Content */}
+            <div className="space-y-8">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 bg-route66-primary text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                <Calendar className="w-4 h-4" />
+                CENTENNIAL CELEBRATION 2026
               </div>
-            ))}
-          </div>
-          
-          {/* Enhanced call to action button */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
-            <Button 
-              onClick={scrollToTripPlanner}
-              size="lg" 
-              className="bg-route66-primary hover:bg-route66-primary-dark text-white border-0 text-xl py-7 px-12 transform hover:scale-105 transition-all duration-300 shadow-2xl font-bold rounded-xl"
-            >
-              <MapPin className="mr-3" size={24} />
-              {content.ctaPrimary}
-              <ArrowRight className="ml-3" size={24} />
-            </Button>
-          </div>
 
-          {/* Quick stats */}
-          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto text-white">
-            <div className="text-center">
-              <div className="text-3xl font-black text-route66-accent-gold mb-1">2,448</div>
-              <div className="text-sm opacity-90">Miles of Adventure</div>
+              {/* Main Content */}
+              <div className="space-y-6">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight text-route66-primary font-route66">
+                  {content.title}
+                </h1>
+                
+                <p className="text-xl md:text-2xl text-route66-text-secondary leading-relaxed font-semibold">
+                  {content.subtitle}
+                </p>
+
+                <p className="text-lg text-route66-text-secondary leading-relaxed">
+                  {content.description}
+                </p>
+              </div>
+
+              {/* Feature highlights */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {content.features.map((feature, index) => (
+                  <div 
+                    key={index}
+                    className="bg-route66-background-section border border-route66-border rounded-lg p-3 text-route66-text-secondary text-sm font-medium"
+                  >
+                    {feature}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Call to action button */}
+              <div className="flex flex-col sm:flex-row gap-6 items-start">
+                <Button 
+                  onClick={scrollToTripPlanner}
+                  size="lg" 
+                  className="bg-route66-primary hover:bg-route66-primary-dark text-white border-0 text-xl py-7 px-12 transform hover:scale-105 transition-all duration-300 shadow-lg font-bold rounded-xl"
+                >
+                  <MapPin className="mr-3" size={24} />
+                  {content.ctaPrimary}
+                  <ArrowRight className="ml-3" size={24} />
+                </Button>
+              </div>
+
+              {/* Quick stats */}
+              <div className="grid grid-cols-3 gap-8 pt-6">
+                <div className="text-center">
+                  <div className="text-3xl font-black text-route66-primary mb-1">2,448</div>
+                  <div className="text-sm text-route66-text-secondary">Miles of Adventure</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-black text-route66-primary mb-1">100</div>
+                  <div className="text-sm text-route66-text-secondary">Years of History</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-black text-route66-primary mb-1">8</div>
+                  <div className="text-sm text-route66-text-secondary">States to Explore</div>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-black text-route66-accent-gold mb-1">100</div>
-              <div className="text-sm opacity-90">Years of History</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-black text-route66-accent-gold mb-1">8</div>
-              <div className="text-sm opacity-90">States to Explore</div>
+
+            {/* Right Image */}
+            <div className="relative lg:block">
+              <div className="relative">
+                <img 
+                  src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/website_header_Route66.png"
+                  alt="Route 66 Heritage"
+                  className="w-full h-auto rounded-2xl shadow-2xl"
+                />
+                {/* Decorative elements */}
+                <div className="absolute -top-4 -right-4 w-8 h-8 bg-route66-accent-red rounded-full opacity-60"></div>
+                <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-route66-primary rounded-full opacity-40"></div>
+                <div className="absolute top-1/2 -left-8 w-6 h-6 bg-route66-accent-gold rounded-full opacity-50"></div>
+              </div>
             </div>
           </div>
         </div>
