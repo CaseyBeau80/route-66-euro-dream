@@ -1,46 +1,7 @@
 
 import { DestinationCity, ROUTE_66_DESTINATION_CITIES } from '../../Route66Planner/data/destinationCities';
 import { GoogleDistanceMatrixService } from '../../Route66Planner/services/GoogleDistanceMatrixService';
-import { TripStop } from '../types/TripStop';
-
-export interface DailySegment {
-  day: number;
-  title: string;
-  startCity: string;
-  endCity: string;
-  distance: number;
-  approximateMiles: number;
-  driveTimeHours: number;
-  drivingTime: number;
-  destination: {
-    name: string;
-    coordinates: {
-      lat: number;
-      lng: number;
-    };
-  };
-  attractions: any[];
-  isGoogleMapsData: boolean;
-}
-
-export interface TripPlan {
-  id: string;
-  title: string;
-  startLocation: string;
-  endLocation: string;
-  startCity: string;
-  endCity: string;
-  totalDistance: number;
-  totalMiles: number;
-  totalDrivingTime: number;
-  segments: DailySegment[];
-  route: Array<{ lat: number; lng: number }>;
-  summary: {
-    totalDays: number;
-    averageDailyDistance: number;
-    totalDrivingHours: number;
-  };
-}
+import { TripPlan, DailySegment } from './planning/TripPlanTypes';
 
 export class Route66TripPlannerService {
   
@@ -81,7 +42,7 @@ export class Route66TripPlannerService {
 
     console.log(`🗺️ Route includes ${routeCities.length} cities:`, routeCities.map(c => c.name));
 
-    // COMPLETELY REWRITTEN: Calculate distances for consecutive city pairs and map to days
+    // Calculate distances for consecutive city pairs and map to days
     const cityPairDistances: Array<{
       fromCity: DestinationCity;
       toCity: DestinationCity;
@@ -127,7 +88,7 @@ export class Route66TripPlannerService {
       });
     }
 
-    // FIXED: Distribute city pairs across travel days ensuring each day gets correct distances
+    // Distribute city pairs across travel days ensuring each day gets correct distances
     const segments: DailySegment[] = [];
     const totalRouteDistance = cityPairDistances.reduce((sum, pair) => sum + pair.distance, 0);
     const totalRouteDuration = cityPairDistances.reduce((sum, pair) => sum + pair.duration, 0);
@@ -137,8 +98,6 @@ export class Route66TripPlannerService {
     // Distribute city pairs across days
     const targetDistancePerDay = totalRouteDistance / travelDays;
     let currentDay = 1;
-    let currentDayDistance = 0;
-    let currentDayDuration = 0;
     let currentDayStartCityIndex = 0;
     let pairIndex = 0;
 
@@ -187,13 +146,17 @@ export class Route66TripPlannerService {
         driveTimeHours: Math.round((dayDuration / 3600) * 10) / 10,
         drivingTime: Math.round((dayDuration / 3600) * 10) / 10,
         destination: {
-          name: endCityForDay.name,
-          coordinates: {
-            lat: endCityForDay.latitude,
-            lng: endCityForDay.longitude
-          }
+          city: endCityForDay.name,
+          state: endCityForDay.state
         },
-        attractions: endCityForDay.attractions.map(name => ({ name, type: 'attraction' })),
+        attractions: endCityForDay.attractions.map(name => ({ 
+          name, 
+          title: name,
+          description: `Historic attraction in ${endCityForDay.name}`,
+          city: endCityForDay.name,
+          category: 'attraction' 
+        })),
+        recommendedStops: [],
         isGoogleMapsData: isGoogleDataForDay
       };
 
@@ -205,12 +168,6 @@ export class Route66TripPlannerService {
       currentDayStartCityIndex = pairIndex > 0 ? pairIndex - 1 : 0;
     }
 
-    // Create route coordinates
-    const route = routeCities.map(city => ({
-      lat: city.latitude,
-      lng: city.longitude
-    }));
-
     const tripPlan: TripPlan = {
       id: `trip-${Date.now()}`,
       title: `${startLocation} to ${endLocation} Route 66 Adventure`,
@@ -218,15 +175,23 @@ export class Route66TripPlannerService {
       endLocation,
       startCity: startCity.name,
       endCity: endCity.name,
+      startDate: new Date(),
+      totalDays: travelDays,
       totalDistance: Math.round(totalRouteDistance),
       totalMiles: Math.round(totalRouteDistance),
       totalDrivingTime: Math.round(totalRouteDuration / 3600),
       segments,
-      route,
+      dailySegments: segments,
+      stops: [],
+      tripStyle,
+      lastUpdated: new Date(),
       summary: {
+        startLocation,
+        endLocation,
+        totalDriveTime: Math.round(totalRouteDuration / 3600),
         totalDays: travelDays,
-        averageDailyDistance: Math.round(totalRouteDistance / travelDays),
-        totalDrivingHours: Math.round(totalRouteDuration / 3600)
+        totalDistance: Math.round(totalRouteDistance),
+        tripStyle
       }
     };
 
@@ -254,3 +219,6 @@ export class Route66TripPlannerService {
     return R * c;
   }
 }
+
+// Export the TripPlan type from the unified types file
+export type { TripPlan, DailySegment } from './planning/TripPlanTypes';

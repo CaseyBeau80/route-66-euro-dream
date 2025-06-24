@@ -1,3 +1,4 @@
+
 import { PlanningAdjustment } from './PlanningPolicy';
 import { TripAdjustmentNotice } from './TripAdjustmentService';
 
@@ -21,6 +22,9 @@ export interface TripPlan {
   lastUpdated: Date;
   stopsLimited?: boolean;
   limitMessage?: string;
+  
+  // Route coordinates - ADDED to fix type compatibility
+  route?: Array<{ lat: number; lng: number }>;
   
   // New constraint-related fields
   planningAdjustments?: PlanningAdjustment[];
