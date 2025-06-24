@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Route66TripForm from './components/Route66TripForm';
-import TripCalculatorResults from '../TripCalculator/components/TripCalculatorResults';
+import TripCalculatorResults from '../TripCalculator/TripCalculatorResults';
 import { Route66TripPlannerService, TripPlan } from '../TripCalculator/services/Route66TripPlannerService';
 import { TripCompletionService, TripCompletionAnalysis } from '../TripCalculator/services/planning/TripCompletionService';
 import { toast } from '@/hooks/use-toast';
@@ -71,7 +71,8 @@ const Route66TripCalculator: React.FC = () => {
       console.log('✅ Route66TripCalculator: Trip planned successfully:', {
         title: result.title,
         segments: result.segments.length,
-        totalDistance: result.totalDistance
+        totalDistance: result.totalDistance,
+        segmentDistances: result.segments.map(s => ({ day: s.day, distance: s.distance, approximateMiles: s.approximateMiles }))
       });
 
       // Analyze trip completion
@@ -155,7 +156,7 @@ const Route66TripCalculator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* FIXED: Use the correct TripCalculatorResults component */}
+      {/* FIXED: Use the correct TripCalculatorResults component with share functionality */}
       <TripCalculatorResults
         tripPlan={tripPlan}
         calculation={null}

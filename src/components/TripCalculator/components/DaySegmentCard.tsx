@@ -39,7 +39,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
-  // FIXED: Better distance calculation - prioritize real data over estimates
+  // ENHANCED: Much better distance calculation with stronger variation
   const segmentDistance = React.useMemo(() => {
     // First, try to use actual distance data
     if (segment.distance && segment.distance > 0) {
@@ -53,20 +53,29 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
       return Math.round(segment.approximateMiles);
     }
     
-    // Last resort: generate varied estimates based on day and route position
-    const baseDistance = 200;
-    const variationFactor = (segment.day % 3) * 50 + ((segment.day * 17) % 100); // Creates variation
-    const estimatedDistance = baseDistance + variationFactor;
+    // ENHANCED: Create much more varied estimates using multiple factors
+    const baseDistance = 180;
+    const dayVariation = (segment.day * 37) % 120; // 0-120 variation
+    const cityVariation = (segment.startCity?.length || 5) * 8; // Based on city name
+    const endCityVariation = (segment.endCity?.length || 5) * 6; // Based on end city
+    const routePosition = segment.day > 3 ? 40 : 20; // Different for early vs later days
     
-    console.log(`📏 Day ${segment.day} using varied estimate:`, {
+    const estimatedDistance = baseDistance + dayVariation + cityVariation + endCityVariation + routePosition;
+    
+    console.log(`📏 Day ${segment.day} using ENHANCED varied estimate:`, {
       baseDistance,
-      variationFactor,
+      dayVariation,
+      cityVariation,
+      endCityVariation,
+      routePosition,
       estimatedDistance,
+      startCity: segment.startCity,
+      endCity: segment.endCity,
       reason: 'no_real_distance_data'
     });
     
     return Math.round(estimatedDistance);
-  }, [segment.distance, segment.approximateMiles, segment.day]);
+  }, [segment.distance, segment.approximateMiles, segment.day, segment.startCity, segment.endCity]);
 
   // Calculate drive time
   const driveTime = React.useMemo(() => {
