@@ -1,52 +1,32 @@
 
-export interface Route66Town {
-  latLng: [number, number]; // Explicitly defining as a tuple with 2 numbers
-  name: string;
-}
-
-export const route66Towns: Route66Town[] = [
-  { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
-  { latLng: [41.5250, -88.0817], name: "Joliet, IL" },
-  { latLng: [39.8317, -89.6501], name: "Springfield, IL" },
-  { latLng: [38.6272, -90.1978], name: "St. Louis, MO" },
-  { latLng: [37.2090, -93.2923], name: "Springfield, MO" },
-  { latLng: [37.0947, -94.5133], name: "Joplin, MO" },
-  { latLng: [36.1540, -95.9928], name: "Tulsa, OK" },
-  { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
-  { latLng: [35.2220, -101.8313], name: "Amarillo, TX" },
-  { latLng: [35.1677, -103.7044], name: "Tucumcari, NM" },
-  { latLng: [35.6869, -105.9378], name: "Santa Fe, NM" },
-  { latLng: [35.0844, -106.6504], name: "Albuquerque, NM" },
-  { latLng: [35.5280, -108.7426], name: "Gallup, NM" },
-  { latLng: [35.0606, -110.6322], name: "Winslow, AZ" },
-  { latLng: [34.8397, -110.1543], name: "Holbrook, AZ" },
-  { latLng: [35.1983, -111.6513], name: "Flagstaff, AZ" },
-  { latLng: [35.2677, -113.7558], name: "Seligman, AZ" },
-  { latLng: [35.1894, -114.0530], name: "Kingman, AZ" },
-  { latLng: [34.7361, -116.9954], name: "Needles, CA" },
-  { latLng: [34.9983, -117.1858], name: "Barstow, CA" },
-  { latLng: [34.0529, -117.1822], name: "San Bernardino, CA" },
-  { latLng: [34.1341, -118.3215], name: "Los Angeles, CA" },
-  { latLng: [34.0099, -118.4960], name: "Santa Monica, CA" }
+// Route 66 heritage cities and destinations - FIXED: Match database city names
+export const route66Towns = [
+  { name: 'Chicago', state: 'Illinois', coordinates: { lat: 41.8781, lng: -87.6298 } },
+  { name: 'Joliet', state: 'Illinois', coordinates: { lat: 41.5250, lng: -88.0817 } },
+  { name: 'Pontiac', state: 'Illinois', coordinates: { lat: 40.8809, lng: -88.6298 } },
+  { name: 'Springfield', state: 'Illinois', coordinates: { lat: 39.7817, lng: -89.6501 } },
+  { name: 'St. Louis', state: 'Missouri', coordinates: { lat: 38.6270, lng: -90.1994 } },
+  { name: 'Springfield', state: 'Missouri', coordinates: { lat: 37.2431, lng: -93.2983 } },
+  { name: 'Joplin', state: 'Missouri', coordinates: { lat: 37.0842, lng: -94.5133 } },
+  { name: 'Oklahoma City', state: 'Oklahoma', coordinates: { lat: 35.4676, lng: -97.5164 } },
+  { name: 'Elk City', state: 'Oklahoma', coordinates: { lat: 35.4120, lng: -99.4043 } },
+  { name: 'Shamrock', state: 'Texas', coordinates: { lat: 35.2034, lng: -100.2468 } },
+  { name: 'Amarillo', state: 'Texas', coordinates: { lat: 35.2220, lng: -101.8313 } },
+  { name: 'Tucumcari', state: 'New Mexico', coordinates: { lat: 35.1717, lng: -103.7255 } },
+  { name: 'Santa Rosa', state: 'New Mexico', coordinates: { lat: 34.9381, lng: -104.6828 } },
+  { name: 'Albuquerque', state: 'New Mexico', coordinates: { lat: 35.0844, lng: -106.6504 } },
+  { name: 'Santa Fe', state: 'New Mexico', coordinates: { lat: 35.6870, lng: -105.9378 } },
+  { name: 'Gallup', state: 'New Mexico', coordinates: { lat: 35.5281, lng: -108.7426 } },
+  { name: 'Holbrook', state: 'Arizona', coordinates: { lat: 34.9025, lng: -110.1665 } },
+  { name: 'Winslow', state: 'Arizona', coordinates: { lat: 35.0242, lng: -110.6974 } },
+  { name: 'Flagstaff', state: 'Arizona', coordinates: { lat: 35.1983, lng: -111.6513 } },
+  { name: 'Williams', state: 'Arizona', coordinates: { lat: 35.2494, lng: -112.1901 } },
+  { name: 'Seligman', state: 'Arizona', coordinates: { lat: 35.3261, lng: -112.8755 } },
+  { name: 'Kingman', state: 'Arizona', coordinates: { lat: 35.1894, lng: -114.0530 } },
+  { name: 'Needles', state: 'California', coordinates: { lat: 34.8481, lng: -114.6144 } },
+  { name: 'Barstow', state: 'California', coordinates: { lat: 34.8958, lng: -117.0228 } },
+  { name: 'Santa Monica', state: 'California', coordinates: { lat: 34.0195, lng: -118.4912 } }
 ];
 
-// Legacy export for backward compatibility
-export { route66Towns as locations };
-
-export interface Route66Waypoint {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  state: string;
-  sequence_order: number;
-  is_major_stop: boolean | null;
-  highway_designation: string | null;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface SupabaseRoute66Props {
-  map: google.maps.Map;
-}
+// Export for backward compatibility
+export { route66Towns as route66Cities };
