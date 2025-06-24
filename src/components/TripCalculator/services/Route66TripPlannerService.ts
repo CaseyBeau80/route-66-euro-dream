@@ -99,7 +99,7 @@ export class Route66TripPlannerService {
       segmentResults.push(segmentResult);
     }
 
-    // FIXED: Create segments using ACTUAL individual distances (not averaged!)
+    // CRITICAL FIX: Create segments using ACTUAL individual distances from segmentResults
     const segments: DailySegment[] = [];
     let totalDistance = 0;
     let totalDrivingTime = 0;
@@ -115,11 +115,19 @@ export class Route66TripPlannerService {
         continue;
       }
 
-      // FIXED: Use the ACTUAL segment distance, not averaged total
+      // CRITICAL FIX: Use the ACTUAL segment distance from Google API, not averaged total
       const actualSegmentDistance = segmentResult.distance;
       const actualSegmentDurationHours = segmentResult.duration / 3600;
 
-      console.log(`📊 Day ${day} ACTUAL INDIVIDUAL DISTANCE: ${actualSegmentDistance} miles, ${actualSegmentDurationHours.toFixed(1)}h (Google: ${segmentResult.isGoogleData})`);
+      console.log(`🔍 CRITICAL FIX - Day ${day} using ACTUAL segment distance:`, {
+        day,
+        fromCity: fromCity.name,
+        toCity: toCity.name,
+        actualDistance: actualSegmentDistance,
+        actualDurationHours: actualSegmentDurationHours,
+        isGoogleData: segmentResult.isGoogleData,
+        segmentIndex
+      });
 
       // Create the segment with the REAL calculated distance for this specific route
       const segment: DailySegment = {
@@ -127,8 +135,8 @@ export class Route66TripPlannerService {
         title: `Day ${day}: ${fromCity.name} to ${toCity.name}`,
         startCity: fromCity.name,
         endCity: toCity.name,
-        distance: Math.round(actualSegmentDistance), // FIXED: Use ACTUAL segment distance
-        approximateMiles: Math.round(actualSegmentDistance), // FIXED: Use ACTUAL segment distance
+        distance: Math.round(actualSegmentDistance), // CRITICAL FIX: Use ACTUAL segment distance
+        approximateMiles: Math.round(actualSegmentDistance), // CRITICAL FIX: Use ACTUAL segment distance
         driveTimeHours: Math.round(actualSegmentDurationHours * 10) / 10,
         drivingTime: Math.round(actualSegmentDurationHours * 10) / 10,
         destination: {
@@ -169,7 +177,7 @@ export class Route66TripPlannerService {
       totalDrivingTime += actualSegmentDurationHours;
     }
 
-    console.log('✅ Route66TripPlannerService: Trip planned with REAL INDIVIDUAL segment distances:', {
+    console.log('✅ CRITICAL FIX APPLIED - Route66TripPlannerService: Trip planned with REAL INDIVIDUAL segment distances:', {
       segments: segments.map(s => ({ 
         day: s.day, 
         route: `${s.startCity} → ${s.endCity}`,
