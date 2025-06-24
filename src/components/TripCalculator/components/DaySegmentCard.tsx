@@ -39,18 +39,25 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
-  // Get distance from segment
-  const segmentDistance = segment.distance || segment.approximateMiles || 0;
-  
-  console.log(`🔍 DaySegmentCard Day ${segment.day} DISTANCE:`, {
-    day: segment.day,
-    distance: segment.distance,
-    approximateMiles: segment.approximateMiles,
-    finalDistance: segmentDistance,
-    isGoogleMapsData: segment.isGoogleMapsData,
-    cardIndex,
-    sectionKey
-  });
+  // FIXED: Get distance directly from segment properties with better debugging
+  const segmentDistance = React.useMemo(() => {
+    const distance = segment.distance || segment.approximateMiles || 0;
+    
+    console.log(`🔍 DaySegmentCard Day ${segment.day} DISTANCE DEBUG:`, {
+      day: segment.day,
+      segmentDistance: segment.distance,
+      approximateMiles: segment.approximateMiles,
+      finalDistance: distance,
+      isGoogleMapsData: segment.isGoogleMapsData,
+      startCity: segment.startCity,
+      endCity: segment.endCity,
+      cardIndex,
+      sectionKey,
+      segmentObject: segment
+    });
+
+    return distance;
+  }, [segment, cardIndex, sectionKey]);
 
   // Calculate drive time
   const driveTime = React.useMemo(() => {
@@ -92,7 +99,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
               <div className="flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
                 <Route className="w-4 h-4 text-blue-600" />
-                <span className="font-semibold text-blue-800">{segmentDistance} miles</span>
+                <span className="font-semibold text-blue-800">{Math.round(segmentDistance)} miles</span>
               </div>
               <div className="flex items-center gap-1 bg-green-50 px-3 py-1 rounded-full">
                 <Clock className="w-4 h-4 text-green-600" />

@@ -1,4 +1,3 @@
-
 import { TripPlan, DailySegment } from './planning/TripPlanTypes';
 import { GoogleDistanceMatrixService } from '../../Route66Planner/services/GoogleDistanceMatrixService';
 import { ROUTE_66_DESTINATION_CITIES } from '../../Route66Planner/data/destinationCities';
@@ -21,7 +20,7 @@ export class Route66TripPlannerService {
     travelDays: number,
     tripStyle: 'balanced' | 'destination-focused' = 'balanced'
   ): Promise<TripPlan> {
-    console.log('🚗 Route66TripPlannerService: Planning trip with Google Distance Matrix API');
+    console.log('🚗 Route66TripPlannerService: Planning trip with improved segment calculation');
 
     // Find matching destination cities for accurate coordinates
     const startCity = ROUTE_66_DESTINATION_CITIES.find(city => 
@@ -34,15 +33,21 @@ export class Route66TripPlannerService {
       endLocation.toLowerCase().includes(city.name.toLowerCase())
     );
 
+    if (!startCity || !endCity) {
+      throw new Error(`Could not find cities for ${startLocation} or ${endLocation}`);
+    }
+
     // Get intermediate cities for the route
     const intermediateCities = this.selectIntermediateCities(startCity, endCity, travelDays - 1);
     const allCities = [startCity, ...intermediateCities, endCity].filter(Boolean);
 
     console.log('🛣️ Selected cities for route:', allCities.map(c => c?.name).join(' → '));
 
-    // Calculate distances using Google Distance Matrix API if available
+    // FIXED: Calculate actual distances for each segment individually
     const segments: DailySegment[] = [];
-    
+    let totalDistance = 0;
+    let totalDrivingTime = 0;
+
     for (let day = 1; day <= travelDays; day++) {
       const fromCity = allCities[day - 1];
       const toCity = allCities[day];
@@ -52,40 +57,43 @@ export class Route66TripPlannerService {
         continue;
       }
 
-      let distance = 0;
-      let driveTimeHours = 0;
+      let segmentDistance = 0;
+      let segmentDriveTimeHours = 0;
       let isGoogleMapsData = false;
 
-      // Try to get real distance from Google Distance Matrix API
+      // FIXED: Calculate individual segment distance using Google Distance Matrix API
       if (GoogleDistanceMatrixService.isAvailable()) {
         try {
-          console.log(`🗺️ Calculating real distance: ${fromCity.name} → ${toCity.name}`);
+          console.log(`🗺️ Calculating REAL distance for Day ${day}: ${fromCity.name} → ${toCity.name}`);
           const result = await GoogleDistanceMatrixService.calculateDistance(fromCity, toCity);
-          distance = result.distance;
-          driveTimeHours = result.duration / 3600; // Convert seconds to hours
+          segmentDistance = result.distance;
+          segmentDriveTimeHours = result.duration / 3600; // Convert seconds to hours
           isGoogleMapsData = true;
-          console.log(`✅ Google Maps: ${fromCity.name} → ${toCity.name} = ${distance} miles, ${driveTimeHours.toFixed(1)}h`);
+          console.log(`✅ Day ${day} Google Maps: ${segmentDistance} miles, ${segmentDriveTimeHours.toFixed(1)}h`);
         } catch (error) {
-          console.warn(`❌ Google Distance Matrix failed for ${fromCity.name} → ${toCity.name}:`, error);
-          // Fall back to estimated distance
-          distance = this.estimateDistance(fromCity, toCity);
-          driveTimeHours = distance / 55;
+          console.warn(`❌ Google Distance Matrix failed for Day ${day}:`, error);
+          // Fall back to estimated distance for this specific segment
+          segmentDistance = this.estimateDistance(fromCity, toCity);
+          segmentDriveTimeHours = segmentDistance / 55;
+          console.log(`📊 Day ${day} Fallback: ${segmentDistance} miles, ${segmentDriveTimeHours.toFixed(1)}h`);
         }
       } else {
-        console.log('📊 Google Distance Matrix not available, using estimated distances');
-        distance = this.estimateDistance(fromCity, toCity);
-        driveTimeHours = distance / 55;
+        console.log(`📊 Day ${day} using estimated distances - no Google API`);
+        segmentDistance = this.estimateDistance(fromCity, toCity);
+        segmentDriveTimeHours = segmentDistance / 55;
+        console.log(`📊 Day ${day} Estimated: ${segmentDistance} miles, ${segmentDriveTimeHours.toFixed(1)}h`);
       }
 
+      // Create the segment with the actual calculated distance
       const segment: DailySegment = {
         day,
         title: `Day ${day}: ${fromCity.name} to ${toCity.name}`,
         startCity: fromCity.name,
         endCity: toCity.name,
-        distance: Math.round(distance),
-        approximateMiles: Math.round(distance),
-        driveTimeHours: Math.round(driveTimeHours * 10) / 10,
-        drivingTime: Math.round(driveTimeHours * 10) / 10,
+        distance: Math.round(segmentDistance), // FIXED: Use actual segment distance
+        approximateMiles: Math.round(segmentDistance), // FIXED: Use actual segment distance
+        driveTimeHours: Math.round(segmentDriveTimeHours * 10) / 10,
+        drivingTime: Math.round(segmentDriveTimeHours * 10) / 10,
         destination: {
           city: toCity.name,
           state: toCity.state
@@ -118,12 +126,13 @@ export class Route66TripPlannerService {
       };
       
       segments.push(segment);
+      
+      // FIXED: Add individual segment values to totals
+      totalDistance += segmentDistance;
+      totalDrivingTime += segmentDriveTimeHours;
     }
 
-    const totalDistance = segments.reduce((sum, seg) => sum + seg.distance, 0);
-    const totalDrivingTime = segments.reduce((sum, seg) => sum + seg.driveTimeHours, 0);
-
-    console.log('✅ Route66TripPlannerService: Trip planned with real distances:', {
+    console.log('✅ Route66TripPlannerService: Trip planned with INDIVIDUAL segment distances:', {
       segments: segments.map(s => ({ 
         day: s.day, 
         route: `${s.startCity} → ${s.endCity}`,
@@ -131,7 +140,7 @@ export class Route66TripPlannerService {
         driveTime: s.driveTimeHours,
         isGoogleData: s.isGoogleMapsData
       })),
-      totalDistance,
+      totalDistance: Math.round(totalDistance),
       totalDrivingTime: totalDrivingTime.toFixed(1),
       usingGoogleMaps: GoogleDistanceMatrixService.isAvailable()
     });
@@ -146,9 +155,9 @@ export class Route66TripPlannerService {
       endLocation,
       startDate: new Date(),
       totalDays: travelDays,
-      totalDistance,
-      totalMiles: totalDistance,
-      totalDrivingTime,
+      totalDistance: Math.round(totalDistance), // FIXED: Use sum of actual segments
+      totalMiles: Math.round(totalDistance), // FIXED: Use sum of actual segments
+      totalDrivingTime: Math.round(totalDrivingTime * 10) / 10,
       segments,
       dailySegments: segments,
       stops: [],
@@ -159,7 +168,7 @@ export class Route66TripPlannerService {
         endLocation,
         totalDriveTime: totalDrivingTime,
         totalDays: travelDays,
-        totalDistance: totalDistance,
+        totalDistance: Math.round(totalDistance),
         tripStyle: tripStyle
       }
     };
@@ -170,20 +179,42 @@ export class Route66TripPlannerService {
   private static selectIntermediateCities(startCity: any, endCity: any, intermediateCount: number): any[] {
     if (intermediateCount <= 0) return [];
     
-    // Get all cities between start and end (simplified logic for demonstration)
-    const availableCities = ROUTE_66_DESTINATION_CITIES.filter(city => 
-      city !== startCity && city !== endCity
-    );
+    // FIXED: Better city selection logic based on Route 66 path
+    const startIndex = ROUTE_66_DESTINATION_CITIES.findIndex(city => city.id === startCity.id);
+    const endIndex = ROUTE_66_DESTINATION_CITIES.findIndex(city => city.id === endCity.id);
     
-    // Select evenly spaced cities for the route
-    const selectedCities = [];
-    const step = Math.max(1, Math.floor(availableCities.length / (intermediateCount + 1)));
-    
-    for (let i = 0; i < intermediateCount && i * step < availableCities.length; i++) {
-      selectedCities.push(availableCities[i * step]);
+    if (startIndex === -1 || endIndex === -1) {
+      console.warn('Could not find city indices, using fallback selection');
+      return ROUTE_66_DESTINATION_CITIES.slice(1, intermediateCount + 1);
     }
     
-    return selectedCities.slice(0, intermediateCount);
+    const minIndex = Math.min(startIndex, endIndex);
+    const maxIndex = Math.max(startIndex, endIndex);
+    
+    // Get cities between start and end
+    const routeCities = ROUTE_66_DESTINATION_CITIES.slice(minIndex + 1, maxIndex);
+    
+    // If going backwards, reverse the order
+    if (startIndex > endIndex) {
+      routeCities.reverse();
+    }
+    
+    // Select evenly spaced cities if we have more than needed
+    if (routeCities.length <= intermediateCount) {
+      return routeCities;
+    }
+    
+    const selectedCities = [];
+    const step = routeCities.length / (intermediateCount + 1);
+    
+    for (let i = 1; i <= intermediateCount; i++) {
+      const index = Math.round(i * step) - 1;
+      if (index >= 0 && index < routeCities.length) {
+        selectedCities.push(routeCities[index]);
+      }
+    }
+    
+    return selectedCities;
   }
 
   private static estimateDistance(fromCity: any, toCity: any): number {
