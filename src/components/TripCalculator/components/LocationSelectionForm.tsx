@@ -34,7 +34,7 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
           <SelectContent>
             {route66Towns.map((town) => (
               <SelectItem key={town.name} value={town.name}>
-                {town.name}
+                {town.name}, {town.state}
               </SelectItem>
             ))}
           </SelectContent>
@@ -57,7 +57,7 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
           <SelectContent>
             {availableEndLocations.map((town) => (
               <SelectItem key={town.name} value={town.name}>
-                {town.name}
+                {town.name}, {town.state}
               </SelectItem>
             ))}
           </SelectContent>

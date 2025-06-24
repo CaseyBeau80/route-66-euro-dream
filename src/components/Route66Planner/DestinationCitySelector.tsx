@@ -45,8 +45,7 @@ const DestinationCitySelector: React.FC<DestinationCitySelectorProps> = ({
           {availableCities.map((city) => (
             <SelectItem key={city.id} value={city.name}>
               <div className="flex flex-col">
-                <span className="font-medium">{city.name}</span>
-                <span className="text-sm text-[#64748b]">{city.state}</span>
+                <span className="font-medium">{city.name}, {city.state}</span>
               </div>
             </SelectItem>
           ))}
