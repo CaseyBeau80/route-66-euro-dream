@@ -15,6 +15,12 @@ export class DistanceEstimationService {
     return route66Towns.find(town => {
       const townName = town.name.toLowerCase();
       
+      // Handle "City, State" format
+      if (cityName.includes(',')) {
+        const fullTownName = `${town.name}, ${town.state}`.toLowerCase();
+        if (fullTownName === normalizedName) return true;
+      }
+      
       // Exact match
       if (townName === normalizedName) return true;
       

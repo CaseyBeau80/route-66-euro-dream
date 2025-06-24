@@ -67,17 +67,36 @@ export class TripBoundaryService {
     
     console.log(`🔍 Searching for location: "${locationName}" (normalized: "${normalizedLocation}")`);
     
-    // Method 1: Exact match
+    // Method 1: Handle "City, State" format first
+    if (locationName.includes(',')) {
+      const [cityPart, statePart] = locationName.split(',').map(s => s.trim());
+      
+      const found = stops.find(stop => {
+        const stopName = stop.name.toLowerCase();
+        const stopCity = this.extractCityName(stop.name).toLowerCase();
+        const stopState = stop.state?.toLowerCase() || '';
+        
+        return (stopName === normalizedLocation) ||
+               (stopCity === cityPart.toLowerCase() && stopState === statePart.toLowerCase());
+      });
+      
+      if (found) {
+        console.log(`✅ Method 1 - City,State match: Found "${found.name}" for "${locationName}"`);
+        return found;
+      }
+    }
+    
+    // Method 2: Exact match
     let found = stops.find(stop => 
       stop.name.toLowerCase() === normalizedLocation
     );
     
     if (found) {
-      console.log(`✅ Method 1 - Exact match: Found "${found.name}" for "${locationName}"`);
+      console.log(`✅ Method 2 - Exact match: Found "${found.name}" for "${locationName}"`);
       return found;
     }
     
-    // Method 2: Extract city name (remove state abbreviation)
+    // Method 3: Extract city name (remove state abbreviation)
     const cityOnly = this.extractCityName(locationName);
     if (cityOnly !== locationName) {
       found = stops.find(stop => 
@@ -86,12 +105,12 @@ export class TripBoundaryService {
       );
       
       if (found) {
-        console.log(`✅ Method 2 - City name match: Found "${found.name}" for city "${cityOnly}"`);
+        console.log(`✅ Method 3 - City name match: Found "${found.name}" for city "${cityOnly}"`);
         return found;
       }
     }
     
-    // Method 3: Partial match (city contains search term or vice versa)
+    // Method 4: Partial match (city contains search term or vice versa)
     found = stops.find(stop => {
       const stopNameLower = stop.name.toLowerCase();
       const stopCityOnly = this.extractCityName(stop.name).toLowerCase();
@@ -103,11 +122,11 @@ export class TripBoundaryService {
     });
     
     if (found) {
-      console.log(`✅ Method 3 - Partial match: Found "${found.name}" for "${locationName}"`);
+      console.log(`✅ Method 4 - Partial match: Found "${found.name}" for "${locationName}"`);
       return found;
     }
     
-    // Method 4: Fuzzy match for common variations
+    // Method 5: Fuzzy match for common variations
     const variations = this.generateLocationVariations(locationName);
     for (const variation of variations) {
       found = stops.find(stop => 
@@ -116,7 +135,7 @@ export class TripBoundaryService {
       );
       
       if (found) {
-        console.log(`✅ Method 4 - Variation match: Found "${found.name}" for variation "${variation}"`);
+        console.log(`✅ Method 5 - Variation match: Found "${found.name}" for variation "${variation}"`);
         return found;
       }
     }
