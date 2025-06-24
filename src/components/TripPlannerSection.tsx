@@ -66,19 +66,7 @@ const TripPlannerSection = () => {
         </div>
 
         {/* Decorative Route 66 Badge */}
-        <div className="flex justify-center mt-12">
-          <div className="relative">
-            <div className="w-20 h-26 bg-route66-background rounded-lg border-2 border-route66-primary shadow-xl flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
-              <div className="absolute inset-1 border border-route66-border rounded-md"></div>
-              <div className="relative z-10 flex flex-col items-center justify-center h-full">
-                <div className="text-route66-text-muted text-xs font-semibold tracking-wider">ROUTE</div>
-                <div className="text-route66-primary text-2xl font-black leading-none">66</div>
-                <div className="text-route66-text-muted text-[8px] font-medium">TRIP PLANNER</div>
-              </div>
-            </div>
-            <div className="absolute inset-0 rounded-lg bg-route66-primary/20 opacity-20 blur-lg animate-pulse"></div>
-          </div>
-        </div>
+        
       </div>
     </section>;
 };
