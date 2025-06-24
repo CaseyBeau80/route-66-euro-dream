@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import BenefitsRow from "./BenefitsRow";
 
 interface HeroSectionProps {
   language: string;
@@ -64,95 +66,102 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
   };
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div 
-          className="absolute inset-0 repeat"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        ></div>
-      </div>
+    <>
+      <section className="relative min-h-screen bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div 
+            className="absolute inset-0 repeat"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+            }}
+          ></div>
+        </div>
 
-      <div className="relative z-10 container mx-auto px-4 pt-24 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
-          {/* Left Column - Pain Points Content */}
-          <div className="space-y-8">
-            {/* Title - Bold, uppercase, bright blue */}
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
-              {content.title}
-            </h1>
+        <div className="relative z-10 container mx-auto px-4 pt-24 pb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[80vh]">
+            {/* Left Column - Pain Points Content */}
+            <div className="space-y-8">
+              {/* Title - Bold, uppercase, bright blue */}
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
+                {content.title}
+              </h1>
 
-            {/* Pain Points - Tightly stacked with blue text */}
-            <div className="space-y-6">
-              {content.painPoints.map((point, index) => (
-                <div key={index}>
-                  {index < 3 ? (
-                    <p className="text-lg lg:text-xl leading-relaxed text-route66-primary-light">
-                      {point}
-                    </p>
-                  ) : (
-                    <p className="text-2xl lg:text-3xl font-highway font-bold text-route66-accent-red">
-                      {point}
-                    </p>
-                  )}
+              {/* Pain Points - Tightly stacked with blue text */}
+              <div className="space-y-6">
+                {content.painPoints.map((point, index) => (
+                  <div key={index}>
+                    {index < 3 ? (
+                      <p className="text-lg lg:text-xl leading-relaxed text-route66-primary-light">
+                        {point}
+                      </p>
+                    ) : (
+                      <p className="text-2xl lg:text-3xl font-highway font-bold text-route66-accent-red">
+                        {point}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA Button - Rounded, blue background (#004FCC), white text */}
+              <div className="pt-6">
+                <Button 
+                  onClick={scrollToInteractiveMap}
+                  size="lg" 
+                  className="font-bold py-4 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                  style={{ 
+                    backgroundColor: '#004FCC',
+                    color: 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#003A99';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#004FCC';
+                  }}
+                >
+                  {content.ctaButton}
+                  <ArrowDown className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Column - Big Bo Ramble Image */}
+            <div className="relative flex justify-center lg:justify-end">
+              <div className="relative w-full h-full flex items-center justify-center">
+                {/* Decorative Elements */}
+                <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
+                
+                {/* Image Container - Now much larger */}
+                <div className="relative bg-white rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
+                  <img 
+                    src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png"
+                    alt={content.mascotAlt}
+                    className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]"
+                  />
                 </div>
-              ))}
-            </div>
-
-            {/* CTA Button - Rounded, blue background (#004FCC), white text */}
-            <div className="pt-6">
-              <Button 
-                onClick={scrollToInteractiveMap}
-                size="lg" 
-                className="font-bold py-4 px-8 text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                style={{ 
-                  backgroundColor: '#004FCC',
-                  color: 'white'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#003A99';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#004FCC';
-                }}
-              >
-                {content.ctaButton}
-                <ArrowDown className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Right Column - Big Bo Ramble Image */}
-          <div className="relative flex justify-center lg:justify-end">
-            <div className="relative w-full h-full flex items-center justify-center">
-              {/* Decorative Elements */}
-              <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
-              
-              {/* Image Container - Now much larger */}
-              <div className="relative bg-white rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
-                <img 
-                  src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png"
-                  alt={content.mascotAlt}
-                  className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]"
-                />
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Benefits Row - Positioned between Hero and Scroll Indicator */}
+      <BenefitsRow language={language} />
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="flex flex-col items-center text-route66-text-muted">
-          <div className="text-sm font-medium mb-2">Scroll to explore</div>
-          <div className="w-6 h-10 border-2 border-route66-text-muted rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-route66-text-muted rounded-full mt-2 animate-pulse"></div>
+      <div className="relative bg-route66-background py-8">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-bounce">
+          <div className="flex flex-col items-center text-route66-text-muted">
+            <div className="text-sm font-medium mb-2">Scroll to explore</div>
+            <div className="w-6 h-10 border-2 border-route66-text-muted rounded-full flex justify-center">
+              <div className="w-1 h-3 bg-route66-text-muted rounded-full mt-2 animate-pulse"></div>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </>
   );
 };
 
