@@ -53,14 +53,14 @@ const TripPlannerSection = () => {
               <p className="text-sm text-orange-700">Budget your adventure with fuel costs, accommodations, and attraction fees</p>
             </div>
 
-            {/* Shareable Card - New addition */}
-            <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg border-2 border-pink-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-pink-200 to-transparent rounded-bl-full"></div>
-              <div className="text-pink-600 mb-2 flex justify-center">
+            {/* Shareable Card - Changed to yellow/orange theme */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg border-2 border-orange-300 p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-orange-200 to-transparent rounded-bl-full"></div>
+              <div className="text-orange-600 mb-2 flex justify-center">
                 <Share2 className="w-6 h-6" />
               </div>
-              <h3 className="font-bold text-pink-800 mb-2">Shareable</h3>
-              <p className="text-sm text-pink-700">Share the link, email direct, and/or add to your Google or Apple calendar</p>
+              <h3 className="font-bold text-orange-800 mb-2">Shareable</h3>
+              <p className="text-sm text-orange-700">Share the link, email direct, and/or add to your Google or Apple calendar</p>
             </div>
           </div>
           
