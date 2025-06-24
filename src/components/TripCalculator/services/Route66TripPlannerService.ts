@@ -1,36 +1,14 @@
 
-export interface TripPlan {
-  title: string;
-  startCity: string;
-  endCity: string;
-  totalDays: number;
-  totalDistance: number;
-  totalMiles: number;
-  totalDrivingTime: number;
-  segments: DailySegment[];
-  tripStyle?: 'balanced' | 'destination-focused';
-  startLocation?: string;
-  endLocation?: string;
-  summary?: {
-    startLocation: string;
-    endLocation: string;
-    totalDriveTime: number;
-  };
+import { TripPlan, DailySegment } from './planning/TripPlanTypes';
+
+export interface EnhancedTripPlanResult {
+  tripPlan: TripPlan;
+  completionAnalysis: any;
+  originalRequestedDays: number;
 }
 
-export interface DailySegment {
-  day: number;
-  startCity: string;
-  endCity: string;
-  distance: number; // FORCE different distances here
-  approximateMiles?: number;
-  driveTimeHours: number;
-  attractions?: any[];
-  coordinates?: {
-    start: { lat: number; lng: number };
-    end: { lat: number; lng: number };
-  };
-}
+// Re-export the types from TripPlanTypes for backward compatibility
+export { TripPlan, DailySegment } from './planning/TripPlanTypes';
 
 export class Route66TripPlannerService {
   static async planTrip(
@@ -61,17 +39,45 @@ export class Route66TripPlannerService {
       
       console.log(`🔥 FORCING Day ${day} distance to: ${forcedDistance} miles (base: ${baseDistance}, variation: ${dayVariation})`);
       
+      const driveTimeHours = forcedDistance / 55; // Calculate drive time - REQUIRED property
+      
       const segment: DailySegment = {
         day,
+        title: `Day ${day}: ${day === 1 ? startLocation : `Stop ${day - 1}`} to ${day === travelDays ? endLocation : `Stop ${day}`}`,
         startCity: day === 1 ? startLocation : `Stop ${day - 1}`,
         endCity: day === travelDays ? endLocation : `Stop ${day}`,
         distance: forcedDistance, // FORCE different distance here
         approximateMiles: forcedDistance, // Make sure both are set
-        driveTimeHours: forcedDistance / 55, // Calculate drive time
+        driveTimeHours: driveTimeHours, // REQUIRED - set explicitly
+        drivingTime: driveTimeHours, // Legacy property for backward compatibility
+        destination: {
+          city: day === travelDays ? endLocation : `Stop ${day}`,
+          state: 'Route 66'
+        },
+        recommendedStops: [],
+        isGoogleMapsData: false,
         attractions: [
-          { name: `Attraction ${day}A`, type: 'Historic Site' },
-          { name: `Attraction ${day}B`, type: 'Restaurant' },
-          { name: `Attraction ${day}C`, type: 'Photo Stop' }
+          { 
+            name: `Attraction ${day}A`, 
+            title: `Attraction ${day}A`,
+            description: `Historic site on day ${day}`,
+            city: day === travelDays ? endLocation : `Stop ${day}`,
+            category: 'Historic Site' 
+          },
+          { 
+            name: `Attraction ${day}B`, 
+            title: `Attraction ${day}B`,
+            description: `Restaurant on day ${day}`,
+            city: day === travelDays ? endLocation : `Stop ${day}`,
+            category: 'Restaurant' 
+          },
+          { 
+            name: `Attraction ${day}C`, 
+            title: `Attraction ${day}C`,
+            description: `Photo stop on day ${day}`,
+            city: day === travelDays ? endLocation : `Stop ${day}`,
+            category: 'Photo Stop' 
+          }
         ]
       };
       
@@ -86,23 +92,71 @@ export class Route66TripPlannerService {
       totalDistance
     });
 
-    return {
+    const tripPlan: TripPlan = {
+      id: `trip-${Date.now()}`,
       title: `${startLocation} to ${endLocation} Route 66 Adventure`,
+      description: `Route 66 journey from ${startLocation} to ${endLocation}`,
       startCity: startLocation,
       endCity: endLocation,
+      startLocation,
+      endLocation,
+      startDate: new Date(), // Add required startDate
       totalDays: travelDays,
       totalDistance,
       totalMiles: totalDistance,
       totalDrivingTime,
       segments,
+      dailySegments: segments, // Add required dailySegments
+      stops: [], // Add required stops array
       tripStyle,
-      startLocation,
-      endLocation,
+      lastUpdated: new Date(), // Add required lastUpdated
       summary: {
         startLocation,
         endLocation,
-        totalDriveTime: totalDrivingTime
+        totalDriveTime: totalDrivingTime,
+        totalDays: travelDays,
+        totalDistance: totalDistance,
+        tripStyle: tripStyle
       }
     };
+
+    return tripPlan;
+  }
+
+  static async planTripWithAnalysis(
+    startLocation: string,
+    endLocation: string,
+    travelDays: number,
+    tripStyle: 'balanced' | 'destination-focused' = 'balanced'
+  ): Promise<EnhancedTripPlanResult> {
+    console.log('🚗 Route66TripPlannerService: Planning trip with analysis...');
+    
+    const tripPlan = await this.planTrip(startLocation, endLocation, travelDays, tripStyle);
+    
+    // Create mock completion analysis
+    const completionAnalysis = {
+      isComplete: true,
+      completionPercentage: 100,
+      missingDays: 0,
+      adjustmentsMade: []
+    };
+
+    return {
+      tripPlan,
+      completionAnalysis,
+      originalRequestedDays: travelDays
+    };
+  }
+
+  static getDataSourceStatus(): string {
+    return 'Route66 Static Data';
+  }
+
+  static isUsingFallbackData(): boolean {
+    return false;
+  }
+
+  static getDestinationCitiesCount(): number {
+    return 8; // Mock count of destination cities
   }
 }

@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { TripFormData } from '../types/tripCalculator';
-import { TripPlan } from '../services/planning/TripPlanBuilder';
+import { TripPlan } from '../services/planning/TripPlanTypes';
 
 export const useTripCalculation = () => {
   const [tripPlan, setTripPlan] = useState<TripPlan | null>(null);
