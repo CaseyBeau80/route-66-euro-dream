@@ -9,58 +9,58 @@ interface BenefitsRowProps {
 const benefitsContent = {
   en: [
     {
-      title: "100% Free Planning",
-      subtitle: "No hidden costs or subscriptions"
+      title: "Real Route 66 Experience",
+      subtitle: "Authentic stops along the Mother Road"
     },
     {
-      title: "Comprehensive Resources",
-      subtitle: "Everything you need in one place"
+      title: "Perfect Trip Planning",
+      subtitle: "Daily itineraries that actually work"
     },
     {
-      title: "Expert Route Guidance",
-      subtitle: "Curated by Route 66 specialists"
+      title: "Hidden Gems Revealed",
+      subtitle: "Discover what guidebooks miss"
     }
   ],
   de: [
     {
-      title: "100% Kostenlose Planung",
-      subtitle: "Keine versteckten Kosten oder Abonnements"
+      title: "Echte Route 66 Erfahrung",
+      subtitle: "Authentische Stopps entlang der Mother Road"
     },
     {
-      title: "Umfassende Ressourcen",
-      subtitle: "Alles was Sie brauchen an einem Ort"
+      title: "Perfekte Reiseplanung",
+      subtitle: "Tägliche Reisepläne die wirklich funktionieren"
     },
     {
-      title: "Experten Route Führung",
-      subtitle: "Kuratiert von Route 66 Spezialisten"
+      title: "Versteckte Perlen Enthüllt",
+      subtitle: "Entdecken Sie was Reiseführer verpassen"
     }
   ],
   fr: [
     {
-      title: "Planification 100% Gratuite",
-      subtitle: "Aucun coût caché ou abonnement"
+      title: "Vraie Expérience Route 66",
+      subtitle: "Arrêts authentiques le long de la Mother Road"
     },
     {
-      title: "Ressources Complètes",
-      subtitle: "Tout ce dont vous avez besoin en un seul endroit"
+      title: "Planification de Voyage Parfaite",
+      subtitle: "Itinéraires quotidiens qui fonctionnent vraiment"
     },
     {
-      title: "Guidage d'Itinéraire Expert",
-      subtitle: "Organisé par des spécialistes de la Route 66"
+      title: "Joyaux Cachés Révélés",
+      subtitle: "Découvrez ce que les guides manquent"
     }
   ],
   "pt-BR": [
     {
-      title: "Planejamento 100% Gratuito",
-      subtitle: "Sem custos ocultos ou assinaturas"
+      title: "Experiência Real da Rota 66",
+      subtitle: "Paradas autênticas ao longo da Mother Road"
     },
     {
-      title: "Recursos Abrangentes",
-      subtitle: "Tudo que você precisa em um lugar"
+      title: "Planejamento Perfeito de Viagem",
+      subtitle: "Itinerários diários que realmente funcionam"
     },
     {
-      title: "Orientação de Rota Especializada",
-      subtitle: "Organizado por especialistas da Rota 66"
+      title: "Joias Escondidas Reveladas",
+      subtitle: "Descubra o que os guias perdem"
     }
   ]
 };
@@ -70,24 +70,24 @@ const BenefitsRow: React.FC<BenefitsRowProps> = ({ language }) => {
 
   return (
     <div className="w-full bg-white/90 backdrop-blur-sm border-t border-route66-border/20">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div className="container mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {benefits.map((benefit, index) => (
             <div 
               key={index}
-              className="flex items-start gap-3 text-center md:text-left group"
+              className="flex items-start gap-2 text-center md:text-left group"
             >
               {/* Green Checkmark Icon */}
-              <div className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-md group-hover:bg-green-600 transition-colors duration-300">
-                <Check className="w-5 h-5 text-white" strokeWidth={3} />
+              <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-md group-hover:bg-green-600 transition-colors duration-300">
+                <Check className="w-4 h-4 text-white" strokeWidth={3} />
               </div>
               
               {/* Content */}
               <div className="flex-1">
-                <h3 className="font-highway font-bold text-lg text-route66-text-primary mb-1">
+                <h3 className="font-highway font-bold text-base text-route66-text-primary mb-1">
                   {benefit.title}
                 </h3>
-                <p className="text-sm text-route66-text-secondary leading-relaxed">
+                <p className="text-xs text-route66-text-secondary leading-relaxed">
                   {benefit.subtitle}
                 </p>
               </div>
