@@ -148,8 +148,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ language }) => {
         </div>
       </section>
 
-      {/* Benefits Row - Full width section */}
-      <section className="w-full bg-route66-background py-8">
+      {/* Benefits Row - Full width section with reduced spacing */}
+      <section className="w-full bg-route66-background py-4">
         <div className="container mx-auto px-4">
           <BenefitsRow language={language} />
         </div>
