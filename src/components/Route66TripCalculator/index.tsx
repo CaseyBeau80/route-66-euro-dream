@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import TripCalculatorResults from '../TripCalculator/TripCalculatorResults';
 import { Route66TripPlannerService, TripPlan } from '../TripCalculator/services/Route66TripPlannerService';
 import { TripCompletionService, TripCompletionAnalysis } from '../TripCalculator/services/planning/TripCompletionService';
 import { toast } from '@/hooks/use-toast';
-import ShareTripModal from '../TripCalculator/components/ShareTripModal';
+import EnhancedShareTripModal from '../TripCalculator/components/share/EnhancedShareTripModal';
 
 const Route66TripCalculator: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -117,9 +116,10 @@ const Route66TripCalculator: React.FC = () => {
   }, [tripStartDate, searchParams, setSearchParams]);
 
   const handleShareTrip = useCallback(() => {
-    console.log('📤 handleShareTrip called with tripPlan:', !!tripPlan);
+    console.log('📤 handleShareTrip called - OPENING SHARE MODAL');
     if (tripPlan) {
       setIsShareModalOpen(true);
+      console.log('✅ Share modal should now be open');
     } else {
       toast({
         title: "No Trip to Share",
@@ -138,7 +138,6 @@ const Route66TripCalculator: React.FC = () => {
   }, []);
 
   const handleDateRequired = useCallback(() => {
-    // Handle date selection requirement
     console.log('📅 Date selection required');
   }, []);
 
@@ -163,7 +162,7 @@ const Route66TripCalculator: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* ENSURE: Use the correct TripCalculatorResults component with ALL props */}
+      {/* Trip Results with WORKING share button */}
       <TripCalculatorResults
         tripPlan={tripPlan}
         calculation={null}
@@ -175,14 +174,13 @@ const Route66TripCalculator: React.FC = () => {
         onDateRequired={handleDateRequired}
       />
 
-      {/* Share Modal */}
+      {/* FIXED: Use the correct share modal */}
       {tripPlan && (
-        <ShareTripModal
+        <EnhancedShareTripModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
           tripPlan={tripPlan}
           tripStartDate={tripStartDate}
-          shareUrl={shareUrl}
           onShareUrlGenerated={handleShareUrlGenerated}
         />
       )}

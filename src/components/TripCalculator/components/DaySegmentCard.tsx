@@ -39,46 +39,10 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
     }
   }, [tripStartDate, segment.day]);
 
-  // FORCE DIFFERENT DISTANCES: Always use variation calculation
-  const segmentDistance = React.useMemo(() => {
-    console.log(`🔍 Day ${segment.day} FORCED distance variation:`, {
-      hasDistance: !!segment.distance,
-      distance: segment.distance,
-      hasApproximateMiles: !!segment.approximateMiles,
-      approximateMiles: segment.approximateMiles,
-      startCity: segment.startCity,
-      endCity: segment.endCity,
-      forceVariation: true
-    });
-
-    // FORCE VARIATION: Always create different distances for each day
-    const dayMultiplier = segment.day * 47; // Large multiplier for big differences
-    const cityHash = (segment.startCity?.charCodeAt(0) || 65) + (segment.endCity?.charCodeAt(0) || 90);
-    const routeVariation = Math.sin(segment.day * 1.2) * 180; // -180 to +180 variation
-    const progressVariation = segment.day < 3 ? 60 : segment.day > 5 ? 120 : 85;
-    
-    // Different base distances for each day
-    const baseDistances = [165, 230, 148, 275, 195, 310, 140, 250, 180, 290, 155, 240];
-    const baseDistance = baseDistances[segment.day % baseDistances.length];
-    
-    const estimatedDistance = Math.max(
-      130, // Minimum 130 miles
-      Math.round(baseDistance + (dayMultiplier % 160) + (cityHash % 90) + routeVariation + progressVariation)
-    );
-    
-    console.log(`📏 Day ${segment.day} FORCED VARIATION result:`, {
-      baseDistance,
-      dayMultiplier: dayMultiplier % 160,
-      cityHash: cityHash % 90,
-      routeVariation: Math.round(routeVariation),
-      progressVariation,
-      finalDistance: estimatedDistance,
-      startCity: segment.startCity,
-      endCity: segment.endCity
-    });
-    
-    return estimatedDistance;
-  }, [segment.day, segment.startCity, segment.endCity]);
+  // USE the distance directly from the segment (no more overriding!)
+  const segmentDistance = segment.distance || segment.approximateMiles || 0;
+  
+  console.log(`✅ Day ${segment.day} using DIRECT distance: ${segmentDistance} miles (from segment.distance: ${segment.distance})`);
 
   // Calculate drive time
   const driveTime = React.useMemo(() => {
@@ -115,7 +79,7 @@ const DaySegmentCard: React.FC<DaySegmentCardProps> = ({
             </div>
           </div>
           
-          {/* Distance and Time */}
+          {/* Distance and Time - SHOWING DIFFERENT VALUES NOW */}
           <div className="flex items-center gap-4 text-sm text-route66-text-secondary">
             <div className="flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
               <Route className="w-4 h-4 text-blue-600" />
