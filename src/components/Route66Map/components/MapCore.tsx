@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import MapInitializerCore from './MapInitializerCore';
-import NuclearSingleRoute from './NuclearSingleRoute';
+import CleanSingleRoute from './CleanSingleRoute';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
@@ -35,7 +35,7 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [showScrollHint, setShowScrollHint] = useState(false);
 
   const handleMapLoad = async (map: google.maps.Map) => {
-    console.log('☢️ MapCore: NUCLEAR SINGLE ROUTE SYSTEM ACTIVATED');
+    console.log('🗺️ MapCore: Map loaded, setting up controls');
     
     // Enable mouse wheel zoom
     map.setOptions({
@@ -46,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('☢️ MapCore render - NUCLEAR SINGLE ROUTE SYSTEM:', {
+  console.log('🗺️ MapCore render - Clean Single Route System:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -71,10 +71,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* ☢️ THE NUCLEAR SINGLE ROUTE - ONLY THIS ONE! */}
+      {/* Clean Single Route - Simple and Reliable */}
       {mapRef.current && isMapReady && visibleWaypoints.length > 0 && (
-        <NuclearSingleRoute
-          key={`nuclear-route-${isMapReady}-${visibleWaypoints.length}`}
+        <CleanSingleRoute
+          key={`clean-route-${isMapReady}-${visibleWaypoints.length}`}
           map={mapRef.current}
           waypoints={visibleWaypoints}
         />
