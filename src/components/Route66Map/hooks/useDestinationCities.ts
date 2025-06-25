@@ -55,7 +55,7 @@ export const useDestinationCities = () => {
         const metadata = SequenceOrderService.createSequenceMetadata(orderedCities);
         console.log('📊 ENHANCED: Destination cities metadata:', metadata);
         
-        if (metadata.springfieldSequence.includes('incorrect')) {
+        if (metadata.springfieldSequence === 'incorrect') {
           console.error('🚨 PING-PONG ALERT in destination cities sequence!');
         } else {
           console.log('✅ ENHANCED: Springfield sequence verified - no ping-ponging will occur');

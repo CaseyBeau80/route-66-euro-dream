@@ -53,6 +53,7 @@ export class SequenceOrderService {
     hasChicago: boolean;
     hasSantaMonica: boolean;
     longitudeProgression: 'correct' | 'incorrect' | 'mixed';
+    springfieldSequence: 'correct' | 'incorrect' | 'mixed';
   } {
     const chicago = cities.find(city => city.name.toLowerCase().includes('chicago'));
     const santaMonica = cities.find(city => city.name.toLowerCase().includes('santa monica'));
@@ -71,11 +72,31 @@ export class SequenceOrderService {
     const longitudeProgression = progressionPercentage > 0.7 ? 'correct' : 
                                 progressionPercentage < 0.3 ? 'incorrect' : 'mixed';
 
+    // Simple Springfield sequence check
+    const springfieldIL = cities.find(city => 
+      city.name.toLowerCase().includes('springfield') && city.state === 'IL'
+    );
+    const springfieldMO = cities.find(city => 
+      city.name.toLowerCase().includes('springfield') && city.state === 'MO'
+    );
+    
+    let springfieldSequence: 'correct' | 'incorrect' | 'mixed' = 'correct';
+    
+    if (springfieldIL && springfieldMO) {
+      const ilIndex = cities.findIndex(c => c.id === springfieldIL.id);
+      const moIndex = cities.findIndex(c => c.id === springfieldMO.id);
+      
+      if (ilIndex > moIndex) {
+        springfieldSequence = 'incorrect';
+      }
+    }
+
     return {
       totalCities: cities.length,
       hasChicago: !!chicago,
       hasSantaMonica: !!santaMonica,
-      longitudeProgression
+      longitudeProgression,
+      springfieldSequence
     };
   }
 }
