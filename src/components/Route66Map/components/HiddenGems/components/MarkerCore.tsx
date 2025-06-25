@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { HiddenGem } from '../types';
 import { getMarkerIcon, getMarkerTitle, getMarkerZIndex } from './MarkerIcon';
 import { createMarkerEventHandlers } from './MarkerEventHandlers';
+import { MarkerAnimationUtils } from '../../../utils/markerAnimationUtils';
 
 interface MarkerCoreProps {
   gem: HiddenGem;
@@ -27,25 +28,34 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
   useEffect(() => {
     if (!map || markerRef.current) return;
 
-    // Remove drive-in detection - all hidden gems are regular gems now
-    console.log(`💎 Creating hidden gem marker for: ${gem.title}`);
+    console.log(`💎 Creating hidden gem marker with new 💎 icon for: ${gem.title}`);
+
+    const currentZoom = map.getZoom() || 6;
+    const isCloseZoom = currentZoom >= 12;
 
     const marker = new google.maps.Marker({
       position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
       map: map,
-      icon: getMarkerIcon(gem.title),
+      icon: getMarkerIcon(gem.title, isCloseZoom),
       title: getMarkerTitle(gem.title),
       zIndex: getMarkerZIndex(gem.title)
     });
 
     markerRef.current = marker;
 
+    // Enhanced mouse enter with optimized animation
+    const enhancedMouseEnter = (gemTitle: string) => {
+      console.log(`💎 Enhanced mouse enter for ${gemTitle} - triggering optimized jiggle`);
+      MarkerAnimationUtils.triggerOptimizedJiggle(marker, gemTitle);
+      handleMouseEnter(gemTitle);
+    };
+
     const eventHandlers = createMarkerEventHandlers({
       gem,
       map,
       marker,
       updatePosition,
-      handleMouseEnter,
+      handleMouseEnter: enhancedMouseEnter,
       handleMouseLeave
     });
 
@@ -57,7 +67,13 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
 
     // Update position when map changes
     const boundsListener = map.addListener('bounds_changed', eventHandlers.updateMarkerPosition);
-    const zoomListener = map.addListener('zoom_changed', eventHandlers.updateMarkerPosition);
+    const zoomListener = map.addListener('zoom_changed', () => {
+      // Update icon size based on zoom
+      const newZoom = map.getZoom() || 6;
+      const newIsCloseZoom = newZoom >= 12;
+      marker.setIcon(getMarkerIcon(gem.title, newIsCloseZoom));
+      eventHandlers.updateMarkerPosition();
+    });
 
     listenersRef.current.push(boundsListener, zoomListener);
 

@@ -4,6 +4,7 @@ import { useAttractionHover } from './hooks/useAttractionHover';
 import AttractionHoverPortal from './AttractionHoverPortal';
 import AttractionClickableCard from './AttractionClickableCard';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
+import { IconCreator } from '../RouteMarkers/IconCreator';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface AttractionCustomMarkerProps {
@@ -44,11 +45,11 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     handleMouseLeave(attraction.name);
   }, [handleMouseLeave, attraction.name]);
 
-  // Create marker element - NO INFO WINDOWS
+  // Create marker element with new attraction icon
   useEffect(() => {
     if (!map || markerRef.current) return;
 
-    console.log('🎯 Creating attraction marker for:', attraction.name);
+    console.log('🎯 Creating attraction marker with new 📍 icon for:', attraction.name);
 
     try {
       const marker = new google.maps.Marker({
@@ -57,21 +58,15 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
           lat: Number(attraction.latitude),
           lng: Number(attraction.longitude)
         },
-        title: attraction.name,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#dc2626',
-          fillOpacity: 1,
-          strokeColor: 'white',
-          strokeWeight: 2
-        }
+        title: IconCreator.createAttractionTitle(attraction.name),
+        icon: IconCreator.createAttractionIcon(map.getZoom() >= 12),
+        zIndex: IconCreator.getAttractionZIndex()
       });
 
       markerRef.current = marker;
       setIsMarkerReady(true);
 
-      console.log('✅ Attraction marker created successfully for:', attraction.name);
+      console.log('✅ Attraction marker with 📍 icon created successfully for:', attraction.name);
 
     } catch (error) {
       console.error('❌ Error creating attraction marker:', error);
@@ -80,7 +75,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     return () => {
       cleanup();
       if (markerRef.current) {
-        // Clear all event listeners and info windows
+        // Clear all event listeners
         google.maps.event.clearInstanceListeners(markerRef.current);
         markerRef.current.setMap(null);
         markerRef.current = null;
@@ -89,18 +84,18 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     };
   }, [map, attraction, cleanup]);
 
-  // Add event listeners - NO INFO WINDOWS, ONLY HOVER AND CLICK CARDS
+  // Add event listeners with optimized animations
   useEffect(() => {
     if (!isMarkerReady || !markerRef.current) return;
 
     const marker = markerRef.current;
 
     const handleMouseOverEvent = (e: google.maps.MapMouseEvent) => {
-      if (!isClicked) { // Only show hover if not clicked
-        console.log('🖱️ Mouse over attraction:', attraction.name, '- triggering enhanced jiggle');
+      if (!isClicked) {
+        console.log('🖱️ Mouse over attraction:', attraction.name, '- triggering optimized jiggle');
         
-        // Use enhanced jiggle animation
-        MarkerAnimationUtils.triggerEnhancedJiggle(marker, attraction.name);
+        // Use optimized jiggle animation
+        MarkerAnimationUtils.triggerOptimizedJiggle(marker, attraction.name);
 
         if (e.domEvent && e.domEvent.target) {
           const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
@@ -111,7 +106,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     };
 
     const handleMouseOutEvent = () => {
-      if (!isClicked) { // Only hide hover if not clicked
+      if (!isClicked) {
         console.log('🖱️ Mouse out attraction:', attraction.name);
         handleMouseLeave(attraction.name);
       }
@@ -134,7 +129,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
       onAttractionClick(attraction);
     };
 
-    // Add event listeners - NO INFO WINDOW CREATION
+    // Add event listeners
     marker.addListener('mouseover', handleMouseOverEvent);
     marker.addListener('mouseout', handleMouseOutEvent);
     marker.addListener('click', handleClickEvent);
