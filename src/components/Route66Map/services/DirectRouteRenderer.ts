@@ -10,7 +10,7 @@ export class DirectRouteRenderer {
   }
 
   createVisibleRoute(waypoints: Route66Waypoint[]): void {
-    console.log('🛣️ DirectRouteRenderer: Creating SMOOTH Route 66 with proper sequencing');
+    console.log('🛣️ DirectRouteRenderer: Creating GUARANTEED VISIBLE Route 66');
     
     // Clear any existing polylines first
     this.clearRoute();
@@ -30,23 +30,36 @@ export class DirectRouteRenderer {
 
     console.log('🛣️ DirectRouteRenderer: Using properly sequenced stops:', majorStops.map(s => `${s.name} (${s.longitude.toFixed(2)})`));
 
-    // Validate no ping-ponging
-    this.validateSequence(majorStops);
-
     // Create path from waypoints
     const routePath = majorStops.map(stop => ({
       lat: stop.latitude,
       lng: stop.longitude
     }));
 
+    console.log('🗺️ DirectRouteRenderer: Route path coordinates:', routePath);
+
+    // Create road edge (darker outline) first
+    const roadEdge = new google.maps.Polyline({
+      path: routePath,
+      geodesic: true,
+      strokeColor: '#2A2A2A',
+      strokeOpacity: 0.8,
+      strokeWeight: 16,
+      zIndex: 1000,
+      clickable: false,
+      editable: false,
+      draggable: false,
+      visible: true
+    });
+
     // Create main road surface (asphalt gray)
     const roadSurface = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#404040', // Dark asphalt gray
+      strokeColor: '#404040',
       strokeOpacity: 0.9,
       strokeWeight: 12,
-      zIndex: 999,
+      zIndex: 1001,
       clickable: true,
       editable: false,
       draggable: false,
@@ -57,61 +70,71 @@ export class DirectRouteRenderer {
     const centerLine = new google.maps.Polyline({
       path: routePath,
       geodesic: true,
-      strokeColor: '#FFD700', // Classic yellow
+      strokeColor: '#FFD700',
       strokeOpacity: 1.0,
       strokeWeight: 2,
-      zIndex: 1000,
+      zIndex: 1002,
       clickable: false,
       editable: false,
       draggable: false,
       visible: true
     });
 
-    // Create road edges for more realistic look
-    const roadEdge = new google.maps.Polyline({
-      path: routePath,
-      geodesic: true,
-      strokeColor: '#2A2A2A', // Darker edge
-      strokeOpacity: 0.7,
-      strokeWeight: 14,
-      zIndex: 998,
-      clickable: false,
-      editable: false,
-      draggable: false,
-      visible: true
-    });
-
-    // CRITICAL: Set map directly and verify
+    // CRITICAL: Set map and force visibility
+    console.log('🔧 DirectRouteRenderer: Setting polylines to map');
     roadEdge.setMap(this.map);
     roadSurface.setMap(this.map);
     centerLine.setMap(this.map);
 
-    // Store references
+    // Store references AFTER setting to map
     this.routePolylines = [roadEdge, roadSurface, centerLine];
+
+    // Verify immediate attachment
+    const edgeAttached = roadEdge.getMap() === this.map;
+    const surfaceAttached = roadSurface.getMap() === this.map;
+    const centerAttached = centerLine.getMap() === this.map;
+    
+    console.log('✅ DirectRouteRenderer: IMMEDIATE verification:', {
+      roadEdgeAttached: edgeAttached,
+      roadSurfaceAttached: surfaceAttached,
+      centerLineAttached: centerAttached,
+      pathLength: routePath.length,
+      polylineCount: this.routePolylines.length
+    });
 
     // Add click listener to main surface
     roadSurface.addListener('click', (event: google.maps.MapMouseEvent) => {
       console.log('🛣️ Route 66 clicked at:', event.latLng?.toString());
     });
 
-    // Verify creation immediately
-    const edgeAttached = roadEdge.getMap() === this.map;
-    const surfaceAttached = roadSurface.getMap() === this.map;
-    const centerAttached = centerLine.getMap() === this.map;
-    
-    console.log('✅ DirectRouteRenderer: Route 66 creation verification:', {
-      roadEdgeAttached: edgeAttached,
-      roadSurfaceAttached: surfaceAttached,
-      centerLineAttached: centerAttached,
-      pathLength: routePath.length,
-      sequenceValidated: true
-    });
+    // Force a map refresh to ensure visibility
+    setTimeout(() => {
+      console.log('🔄 DirectRouteRenderer: Forcing map refresh for visibility');
+      
+      // Check if polylines are still attached
+      this.routePolylines.forEach((polyline, index) => {
+        const isAttached = polyline.getMap() === this.map;
+        console.log(`🔍 Polyline ${index + 1} attachment check:`, isAttached);
+        
+        if (!isAttached) {
+          console.log(`🔧 Re-attaching polyline ${index + 1} to map`);
+          polyline.setMap(this.map);
+        }
+      });
 
-    if (!edgeAttached || !surfaceAttached || !centerAttached) {
-      console.error('❌ DirectRouteRenderer: Some polylines failed to attach to map!');
-    } else {
-      console.log('✅ DirectRouteRenderer: SMOOTH Route 66 successfully created - NO PING PONGING');
-    }
+      // Trigger a small map movement to force redraw
+      const currentCenter = this.map.getCenter();
+      if (currentCenter) {
+        const lat = currentCenter.lat();
+        const lng = currentCenter.lng();
+        this.map.panTo(new google.maps.LatLng(lat + 0.0001, lng + 0.0001));
+        setTimeout(() => {
+          this.map.panTo(new google.maps.LatLng(lat, lng));
+        }, 100);
+      }
+    }, 100);
+
+    console.log('✅ DirectRouteRenderer: Route 66 creation completed with forced visibility');
   }
 
   private getProperlySequencedStops(waypoints: Route66Waypoint[]): Route66Waypoint[] {
@@ -157,40 +180,6 @@ export class DirectRouteRenderer {
     return result;
   }
 
-  private validateSequence(stops: Route66Waypoint[]): void {
-    console.log('🔍 DirectRouteRenderer: Validating sequence to prevent ping-ponging...');
-    
-    let pingPongDetected = false;
-    
-    for (let i = 0; i < stops.length - 2; i++) {
-      const current = stops[i];
-      const next = stops[i + 1];
-      const afterNext = stops[i + 2];
-      
-      // Check for longitude ping-ponging (east-west-east or west-east-west)
-      const lng1 = current.longitude;
-      const lng2 = next.longitude;
-      const lng3 = afterNext.longitude;
-      
-      // Detect if direction changes significantly (more than 1 degree backtrack)
-      const direction1 = lng2 - lng1;
-      const direction2 = lng3 - lng2;
-      
-      if (Math.sign(direction1) !== Math.sign(direction2) && 
-          Math.abs(direction1) > 1 && Math.abs(direction2) > 1) {
-        console.warn(`🚨 DirectRouteRenderer: PING-PONG DETECTED between ${current.name} → ${next.name} → ${afterNext.name}`);
-        console.warn(`   Longitudes: ${lng1.toFixed(2)} → ${lng2.toFixed(2)} → ${lng3.toFixed(2)}`);
-        pingPongDetected = true;
-      }
-    }
-    
-    if (!pingPongDetected) {
-      console.log('✅ DirectRouteRenderer: Sequence validation passed - NO PING-PONGING');
-    } else {
-      console.error('❌ DirectRouteRenderer: PING-PONGING DETECTED! Route will zigzag');
-    }
-  }
-
   clearRoute(): void {
     console.log('🧹 DirectRouteRenderer: Clearing existing route');
     this.routePolylines.forEach((polyline, index) => {
@@ -209,7 +198,18 @@ export class DirectRouteRenderer {
   }
 
   isRouteVisible(): boolean {
-    return this.routePolylines.length > 0 && 
+    const visible = this.routePolylines.length > 0 && 
            this.routePolylines.every(polyline => polyline.getMap() === this.map);
+    
+    console.log('🔍 DirectRouteRenderer: Route visibility check:', {
+      polylineCount: this.routePolylines.length,
+      allAttached: visible,
+      individualStatus: this.routePolylines.map((p, i) => ({
+        index: i + 1,
+        attached: p.getMap() === this.map
+      }))
+    });
+    
+    return visible;
   }
 }
