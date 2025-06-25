@@ -1,4 +1,3 @@
-
 import { RouteGlobalState } from './RouteGlobalState';
 import { PolylineStylesConfig } from './PolylineStylesConfig';
 import type { Route66Waypoint } from '../types/supabaseTypes';
@@ -31,7 +30,7 @@ export class IdealizedRoute66Renderer {
     });
     
     mainPolyline.setMap(this.map);
-    RouteGlobalState.addPolylineSegment(mainPolyline);
+    RouteGlobalState.addPolylines([mainPolyline]);
 
     // Create the yellow center line
     const centerLine = new google.maps.Polyline({
@@ -40,7 +39,7 @@ export class IdealizedRoute66Renderer {
     });
     
     centerLine.setMap(this.map);
-    RouteGlobalState.addPolylineSegment(centerLine);
+    RouteGlobalState.addPolylines([centerLine]);
 
     console.log(`✅ Idealized Route 66 created with ${completePath.length} path points`);
     RouteGlobalState.setRouteCreated(true);

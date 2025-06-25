@@ -50,7 +50,7 @@ export class FallbackRouteCreator {
     console.log('✅ ASPHALT Fallback route with BRIGHT YELLOW stripes created');
     
     // Store in global state for cleanup
-    RouteGlobalState.addPolylineSegment(fallbackPolyline);
-    RouteGlobalState.addPolylineSegment(fallbackCenterLine);
+    RouteGlobalState.addPolylines([fallbackPolyline]);
+    RouteGlobalState.addPolylines([fallbackCenterLine]);
   }
 }
