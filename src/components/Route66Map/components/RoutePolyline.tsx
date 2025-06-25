@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from 'react';
-import { AuthoritativeRoute66Renderer } from '../services/AuthoritativeRoute66Renderer';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface RoutePolylineProps {
@@ -9,59 +8,75 @@ interface RoutePolylineProps {
 }
 
 const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
-  const [renderer, setRenderer] = useState<AuthoritativeRoute66Renderer | null>(null);
+  const [polyline, setPolyline] = useState<google.maps.Polyline | null>(null);
 
-  console.log('🚀 RoutePolyline: THE SINGLE AUTHORITATIVE ROUTE SYSTEM', {
+  console.log('🛣️ RoutePolyline: Simple waypoint-based route creation', {
     waypointsCount: waypoints.length,
-    hasMap: !!map,
-    hasRenderer: !!renderer
+    hasMap: !!map
   });
 
-  // Clear all existing instances when component mounts - NUCLEAR APPROACH
   useEffect(() => {
-    console.log('🧨 RoutePolyline: NUCLEAR CLEANUP - Clearing ALL route instances');
-    AuthoritativeRoute66Renderer.clearAllInstances();
-    
-    // Wait a moment for cleanup, then create the ONE authoritative renderer
-    setTimeout(() => {
-      console.log('🏗️ RoutePolyline: Creating THE SINGLE authoritative renderer');
-      const newRenderer = new AuthoritativeRoute66Renderer(map);
-      setRenderer(newRenderer);
-    }, 100);
+    // Clear any existing polyline first
+    if (polyline) {
+      polyline.setMap(null);
+      setPolyline(null);
+    }
 
-    return () => {
-      console.log('🧨 RoutePolyline: Component cleanup - NUCLEAR');
-      AuthoritativeRoute66Renderer.clearAllInstances();
-    };
-  }, [map]);
-
-  // Create route when we have renderer and waypoints
-  useEffect(() => {
-    if (!renderer || !waypoints.length) {
+    if (!map || !waypoints.length) {
       return;
     }
 
-    console.log('🛣️ RoutePolyline: Creating THE SINGLE Route 66 with authoritative renderer');
-    
-    try {
-      renderer.createRoute66(waypoints);
-      
-      // Verify creation
-      setTimeout(() => {
-        const isVisible = renderer.isVisible();
-        console.log('🔍 THE SINGLE Route visibility after creation:', isVisible);
-        
-        if (!isVisible) {
-          console.error('❌ RoutePolyline: THE SINGLE Route not visible - CRITICAL ERROR');
-        } else {
-          console.log('✅ RoutePolyline: THE SINGLE Route successfully created and visible');
-        }
-      }, 200);
-      
-    } catch (error) {
-      console.error('❌ RoutePolyline: Error creating THE SINGLE route:', error);
+    console.log('🗺️ Creating simple Route 66 polyline from waypoints');
+
+    // Get major stops only and sort by sequence_order
+    const majorStops = waypoints
+      .filter(wp => wp.is_major_stop === true)
+      .sort((a, b) => a.sequence_order - b.sequence_order);
+
+    console.log('📍 Major stops:', majorStops.map(s => `${s.sequence_order}. ${s.name}, ${s.state}`));
+
+    if (majorStops.length < 2) {
+      console.warn('⚠️ Need at least 2 major stops for route');
+      return;
     }
-  }, [renderer, waypoints]);
+
+    // Create simple path from coordinates
+    const routePath: google.maps.LatLngLiteral[] = majorStops.map(stop => ({
+      lat: stop.latitude,
+      lng: stop.longitude
+    }));
+
+    // Create the polyline
+    const newPolyline = new google.maps.Polyline({
+      path: routePath,
+      geodesic: true,
+      strokeColor: '#FF0000',
+      strokeOpacity: 1.0,
+      strokeWeight: 6,
+      zIndex: 1000,
+      map: map
+    });
+
+    setPolyline(newPolyline);
+
+    console.log('✅ Simple Route 66 polyline created with', routePath.length, 'points');
+
+    // Cleanup function
+    return () => {
+      if (newPolyline) {
+        newPolyline.setMap(null);
+      }
+    };
+  }, [map, waypoints, polyline]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (polyline) {
+        polyline.setMap(null);
+      }
+    };
+  }, [polyline]);
 
   return null;
 };
