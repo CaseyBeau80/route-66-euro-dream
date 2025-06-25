@@ -95,24 +95,25 @@ const createRoadPolylines = (map: google.maps.Map, path: google.maps.LatLngLiter
     zIndex: 1001
   });
   
-  // Center yellow divider line
+  // Yellow striped center line with dashed pattern
   const centerLine = new google.maps.Polyline({
     path: path,
     geodesic: true,
     strokeColor: '#FFD700', // Golden yellow
-    strokeOpacity: 1.0,
-    strokeWeight: 2,
+    strokeOpacity: 0, // Make main stroke invisible
+    strokeWeight: 0, // No base stroke
     clickable: false,
     zIndex: 1002,
     icons: [{
       icon: {
-        path: 'M 0,-1 0,1',
-        strokeOpacity: 1,
-        strokeColor: '#FFD700',
-        strokeWeight: 2
+        path: 'M 0,-2 0,2', // Vertical dash line
+        strokeOpacity: 1.0,
+        strokeColor: '#FFD700', // Bright yellow
+        strokeWeight: 4, // Thick dashes for visibility
+        scale: 1
       },
       offset: '0',
-      repeat: '20px'
+      repeat: '40px' // Spacing between dashes for striped effect
     }]
   });
   
@@ -123,51 +124,13 @@ const createRoadPolylines = (map: google.maps.Map, path: google.maps.LatLngLiter
   
   polylines.push(baseRoad, roadSurface, centerLine);
   
-  console.log('🛣️ Created realistic road appearance with multiple layers');
+  console.log('🛣️ Created realistic road appearance with yellow striping');
   return polylines;
-};
-
-// Function to create numbered markers for debugging
-const createDebugMarkers = (map: google.maps.Map, waypoints: Route66Waypoint[]): google.maps.Marker[] => {
-  const markers: google.maps.Marker[] = [];
-  
-  const sortedWaypoints = waypoints
-    .filter(wp => wp.latitude && wp.longitude && wp.sequence_order !== null)
-    .sort((a, b) => a.sequence_order - b.sequence_order);
-  
-  sortedWaypoints.forEach((waypoint, index) => {
-    const marker = new google.maps.Marker({
-      position: { lat: waypoint.latitude, lng: waypoint.longitude },
-      map: map,
-      label: {
-        text: (index + 1).toString(),
-        color: 'white',
-        fontWeight: 'bold',
-        fontSize: '12px'
-      },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 15,
-        fillColor: '#FF0000',
-        fillOpacity: 0.8,
-        strokeColor: 'white',
-        strokeWeight: 2
-      },
-      title: `${index + 1}. ${waypoint.name} (Seq: ${waypoint.sequence_order})`,
-      zIndex: 2000
-    });
-    
-    markers.push(marker);
-  });
-  
-  console.log(`🏷️ Created ${markers.length} debug markers for sequence validation`);
-  return markers;
 };
 
 const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapReady }) => {
   const { waypoints, isLoading, error } = useSupabaseRoute66();
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
-  const debugMarkersRef = useRef<google.maps.Marker[]>([]);
   const [hasCreatedRoute, setHasCreatedRoute] = useState(false);
   const initializationRef = useRef(false);
 
@@ -210,14 +173,11 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
       return;
     }
 
-    console.log('☢️ NuclearRouteManager: Creating enhanced curved Route 66 road');
+    console.log('☢️ NuclearRouteManager: Creating enhanced curved Route 66 road with yellow striping');
 
-    // Clean up any existing polylines and debug markers first
+    // Clean up any existing polylines first
     polylinesRef.current.forEach(polyline => polyline.setMap(null));
     polylinesRef.current = [];
-    
-    debugMarkersRef.current.forEach(marker => marker.setMap(null));
-    debugMarkersRef.current = [];
 
     // Create smooth curved path
     const smoothPath = createSmoothCurvedPath(waypoints);
@@ -229,13 +189,10 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
 
     console.log('☢️ NuclearRouteManager: Creating realistic road with', smoothPath.length, 'curved points');
 
-    // Create road-like polylines
+    // Create road-like polylines with yellow striping
     const roadPolylines = createRoadPolylines(map, smoothPath);
     polylinesRef.current = roadPolylines;
     setHasCreatedRoute(true);
-    
-    // Create debug markers for sequence validation
-    debugMarkersRef.current = createDebugMarkers(map, waypoints);
     
     // Track in global state
     RouteGlobalState.addPolylines(roadPolylines);
@@ -252,14 +209,12 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
       map.setZoom(Math.max(4, currentZoom - 1));
     }, 1000);
 
-    console.log('☢️ NuclearRouteManager: Enhanced curved Route 66 road created successfully');
+    console.log('☢️ NuclearRouteManager: Enhanced curved Route 66 road with yellow striping created successfully');
 
     // Add cleanup callback
     RouteGlobalState.addCleanupCallback(() => {
       polylinesRef.current.forEach(polyline => polyline.setMap(null));
       polylinesRef.current = [];
-      debugMarkersRef.current.forEach(marker => marker.setMap(null));
-      debugMarkersRef.current = [];
       setHasCreatedRoute(false);
     });
 
@@ -271,8 +226,6 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
       console.log('☢️ NuclearRouteManager: Component unmounting - cleaning up');
       polylinesRef.current.forEach(polyline => polyline.setMap(null));
       polylinesRef.current = [];
-      debugMarkersRef.current.forEach(marker => marker.setMap(null));
-      debugMarkersRef.current = [];
       setHasCreatedRoute(false);
       RouteGlobalState.setRouteCreated(false);
     };
