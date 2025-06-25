@@ -326,9 +326,11 @@ export type Database = {
           completion_time: string | null
           created_at: string | null
           id: string
+          is_trailblazer: boolean | null
           moderation_result: Json | null
           photo_url: string
           stop_id: string
+          trailblazer_awarded_at: string | null
           trip_id: string | null
           updated_at: string | null
           user_session_id: string | null
@@ -337,9 +339,11 @@ export type Database = {
           completion_time?: string | null
           created_at?: string | null
           id?: string
+          is_trailblazer?: boolean | null
           moderation_result?: Json | null
           photo_url: string
           stop_id: string
+          trailblazer_awarded_at?: string | null
           trip_id?: string | null
           updated_at?: string | null
           user_session_id?: string | null
@@ -348,9 +352,11 @@ export type Database = {
           completion_time?: string | null
           created_at?: string | null
           id?: string
+          is_trailblazer?: boolean | null
           moderation_result?: Json | null
           photo_url?: string
           stop_id?: string
+          trailblazer_awarded_at?: string | null
           trip_id?: string | null
           updated_at?: string | null
           user_session_id?: string | null
@@ -413,6 +419,41 @@ export type Database = {
         }
         Relationships: []
       }
+      trailblazer_achievements: {
+        Row: {
+          achieved_at: string
+          created_at: string
+          id: string
+          photo_challenge_id: string
+          stop_id: string
+          user_session_id: string | null
+        }
+        Insert: {
+          achieved_at?: string
+          created_at?: string
+          id?: string
+          photo_challenge_id: string
+          stop_id: string
+          user_session_id?: string | null
+        }
+        Update: {
+          achieved_at?: string
+          created_at?: string
+          id?: string
+          photo_challenge_id?: string
+          stop_id?: string
+          user_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trailblazer_achievements_photo_challenge_id_fkey"
+            columns: ["photo_challenge_id"]
+            isOneToOne: false
+            referencedRelation: "photo_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           created_at: string
@@ -454,6 +495,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_location_trailblazer: {
+        Args: { location_stop_id: string }
+        Returns: {
+          has_trailblazer: boolean
+          user_session_id: string
+          achieved_at: string
+          photo_url: string
+        }[]
+      }
+      get_trailblazer_leaderboard: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_session_id: string
+          trailblazer_count: number
+          latest_achievement: string
+          locations: string[]
+        }[]
+      }
       validate_route66_sequence: {
         Args: Record<PropertyKey, never>
         Returns: {
