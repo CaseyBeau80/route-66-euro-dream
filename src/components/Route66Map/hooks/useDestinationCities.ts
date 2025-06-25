@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { SequenceOrderService } from '../services/SequenceOrderService';
 
 export interface DestinationCity {
   id: string;
@@ -21,12 +22,11 @@ export const useDestinationCities = () => {
   useEffect(() => {
     const fetchDestinationCities = async () => {
       try {
-        console.log('🏛️ Fetching destination cities with PROPER ORDERING...');
+        console.log('🏛️ ENHANCED: Fetching destination cities with SEQUENCE VALIDATION...');
         
         const { data, error } = await supabase
           .from('destination_cities')
-          .select('id, name, state, latitude, longitude, description, image_url, featured')
-          .order('longitude', { ascending: false }); // East to West ordering by longitude
+          .select('id, name, state, latitude, longitude, description, image_url, featured');
 
         if (error) {
           console.error('❌ Error fetching destination cities:', error);
@@ -40,50 +40,28 @@ export const useDestinationCities = () => {
           return;
         }
 
-        // Additional manual sorting to ensure perfect Route 66 sequence
-        const sortedCities = [...data].sort((a, b) => {
-          // Manual ordering for key Route 66 cities to prevent ping-ponging
-          const cityOrder = {
-            'chicago': 1,
-            'springfield': a.state === 'IL' ? 2 : 5, // Springfield, IL before Springfield, MO
-            'st. louis': 3,
-            'saint louis': 3,
-            'joplin': 6,
-            'tulsa': 7,
-            'oklahoma city': 8,
-            'amarillo': 9,
-            'albuquerque': 10,
-            'flagstaff': 11,
-            'los angeles': 12,
-            'santa monica': 13
-          };
+        console.log(`🏛️ ENHANCED: Fetched ${data.length} destination cities - applying sequence validation...`);
 
-          const aOrder = cityOrder[a.name.toLowerCase()] || 99;
-          const bOrder = cityOrder[b.name.toLowerCase()] || 99;
-
-          if (aOrder !== 99 || bOrder !== 99) {
-            return aOrder - bOrder;
-          }
-
-          // Fall back to longitude ordering for cities not in manual list
-          return b.longitude - a.longitude;
+        // ENHANCED: Apply sequence validation and ordering
+        const orderedCities = SequenceOrderService.getOrderedDestinationCities(data);
+        
+        // Log the final sequence for verification
+        console.log('🎯 ENHANCED: Final destination cities sequence (PING-PONG PROOF):');
+        orderedCities.forEach((city, index) => {
+          console.log(`  ${index + 1}. ${city.name}, ${city.state} (${city.longitude.toFixed(2)}°)`);
         });
 
-        console.log('🏛️ Destination cities loaded and sorted:', 
-          sortedCities.map(city => `${city.name}, ${city.state} (${city.longitude.toFixed(2)})`));
-
-        // Validate the sequence
-        const hasChicago = sortedCities.some(city => city.name.toLowerCase().includes('chicago'));
-        const hasSantaMonica = sortedCities.some(city => city.name.toLowerCase().includes('santa monica'));
+        // Validate critical sequence points
+        const metadata = SequenceOrderService.createSequenceMetadata(orderedCities);
+        console.log('📊 ENHANCED: Destination cities metadata:', metadata);
         
-        if (!hasChicago) {
-          console.warn('⚠️ Chicago not found in destination cities');
-        }
-        if (!hasSantaMonica) {
-          console.warn('⚠️ Santa Monica not found in destination cities');
+        if (metadata.springfieldSequence.includes('incorrect')) {
+          console.error('🚨 PING-PONG ALERT in destination cities sequence!');
+        } else {
+          console.log('✅ ENHANCED: Springfield sequence verified - no ping-ponging will occur');
         }
 
-        setDestinationCities(sortedCities);
+        setDestinationCities(orderedCities);
         
       } catch (err) {
         console.error('❌ Error in fetchDestinationCities:', err);
@@ -101,6 +79,8 @@ export const useDestinationCities = () => {
     isLoading, 
     error,
     // Helper to get cities in reverse order if needed
-    getReversedCities: () => [...destinationCities].reverse()
+    getReversedCities: () => [...destinationCities].reverse(),
+    // ENHANCED: Helper to get sequence metadata
+    getSequenceMetadata: () => SequenceOrderService.createSequenceMetadata(destinationCities)
   };
 };
