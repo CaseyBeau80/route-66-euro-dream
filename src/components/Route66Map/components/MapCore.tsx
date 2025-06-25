@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import MapInitializerCore from './MapInitializerCore';
-import AccurateRoute66Polyline from './AccurateRoute66Polyline';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
@@ -9,6 +8,7 @@ import DriveInsContainer from './DriveIns/DriveInsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
 import MapDebugPanel from './MapDebugPanel';
+import SingleRouteManager from './SingleRouteManager';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
@@ -46,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - Using AccurateRoute66Polyline:', {
+  console.log('🗺️ MapCore render - Using SINGLE RouteManager ONLY:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -71,9 +71,9 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* UPDATED: Use AccurateRoute66Polyline for complete waypoints-based rendering */}
+      {/* SINGLE ROUTE MANAGER - THE ONLY ROUTE COMPONENT */}
       {mapRef.current && isMapReady && (
-        <AccurateRoute66Polyline
+        <SingleRouteManager
           map={mapRef.current}
           isMapReady={isMapReady}
         />
