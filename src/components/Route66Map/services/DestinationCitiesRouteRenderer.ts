@@ -10,7 +10,7 @@ export class DestinationCitiesRouteRenderer {
 
   constructor(private map: google.maps.Map) {
     this.routeCreationService = new RouteCreationService(map);
-    this.cleanupService = new NuclearCleanupService();
+    this.cleanupService = new NuclearCleanupService(map);
   }
 
   async createRoute66FromDestinations(destinationCities: DestinationCity[]): Promise<void> {

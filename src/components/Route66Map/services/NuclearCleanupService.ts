@@ -4,6 +4,27 @@ import { RouteGlobalState } from './RouteGlobalState';
 import { GlobalPolylineCleaner } from './GlobalPolylineCleaner';
 
 export class NuclearCleanupService {
+  constructor(private map?: google.maps.Map) {}
+
+  performNuclearCleanup(): void {
+    try {
+      console.log('🧹 NUCLEAR cleanup starting');
+      
+      // Perform aggressive cleanup with the map if available
+      if (this.map) {
+        RouteCleanupService.performAggressiveCleanup(this.map);
+      }
+      
+      // Reset global state
+      RouteGlobalState.setRouteCreated(false);
+      
+      console.log('✅ NUCLEAR cleanup completed');
+      
+    } catch (error) {
+      console.error('❌ Error during nuclear cleanup:', error);
+    }
+  }
+
   static async performNuclearCleanupWithCacheClearing(map: google.maps.Map): Promise<void> {
     try {
       console.log('🧹 NUCLEAR cleanup with cache clearing starting');
