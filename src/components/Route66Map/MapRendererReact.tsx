@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useCallback } from "react";
-import Route66Badge from "./MapElements/Route66Badge";
 import ClearSelectionButton from "./MapElements/ClearSelectionButton";
 import MapBackground from "./MapElements/MapBackground";
 import MapSvgContainer from "./MapElements/MapSvgContainer";
@@ -75,14 +74,11 @@ const MapRendererReact = ({
     setIsDragging(true);
   };
 
-  console.log('🗺️ MapRendererReact: Rendering SVG-based map WITHOUT zoom controls (Google Maps handles zoom)');
+  console.log('🗺️ MapRendererReact: Rendering SVG-based map WITHOUT Route66Badge to prevent floating shield');
 
   return (
     <div className="relative w-full h-full">
-      {/* Route 66 Shield Badge */}
-      <div className="absolute top-4 left-4 z-10">
-        <Route66Badge />
-      </div>
+      {/* REMOVED: Route 66 Shield Badge - this was causing the floating shield near Nevada */}
       
       {selectedState && (
         <ClearSelectionButton 

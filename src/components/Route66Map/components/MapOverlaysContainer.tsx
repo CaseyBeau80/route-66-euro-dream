@@ -1,6 +1,5 @@
 
 import React from 'react';
-import Route66Badge from '../MapElements/Route66Badge';
 import ClearSelectionButton from '../MapElements/ClearSelectionButton';
 import ZoomControls from '../MapElements/ZoomControls';
 import RouteStatsOverlay from './overlays/RouteStatsOverlay';
@@ -24,15 +23,12 @@ const MapOverlaysContainer: React.FC<MapOverlaysContainerProps> = ({
   onToggleRouteStats,
   mapRef
 }) => {
-  console.log('🎮 MapOverlaysContainer: Rendering with Google Maps zoom controls');
+  console.log('🎮 MapOverlaysContainer: Rendering WITHOUT Route66Badge to prevent floating shield');
 
   return (
     <>
-      {/* Route 66 Badge */}
-      <div className="absolute top-4 left-4 z-10">
-        <Route66Badge />
-      </div>
-
+      {/* REMOVED: Route 66 Badge - this was causing the floating shield near Nevada */}
+      
       {/* Clear Selection Button */}
       {selectedState && (
         <ClearSelectionButton 
