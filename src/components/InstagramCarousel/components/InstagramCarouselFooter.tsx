@@ -28,7 +28,7 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
     <div className="space-y-6">
       {/* Page Info */}
       <div className="text-center">
-        <p className="text-route66-text-muted font-medium">
+        <p className="text-gray-600 font-medium">
           Page {currentPage} of {totalPages} • Showing {visiblePostsCount} of {totalPostsCount} posts
         </p>
       </div>
@@ -42,7 +42,7 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
           size="lg"
           className="
             flex items-center gap-3 px-8 py-4 rounded-full 
-            bg-white border-2 border-route66-primary text-route66-primary
+            bg-white border-2 border-blue-500 text-blue-500
             hover:bg-blue-50 hover:border-blue-600 hover:text-blue-600
             disabled:opacity-40 disabled:cursor-not-allowed
             shadow-md hover:shadow-lg transition-all duration-300
@@ -60,7 +60,7 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
           size="lg"
           className="
             flex items-center gap-3 px-8 py-4 rounded-full 
-            bg-route66-primary border-2 border-route66-primary text-white
+            bg-blue-500 border-2 border-blue-500 text-white
             hover:bg-blue-700 hover:border-blue-700
             disabled:opacity-40 disabled:cursor-not-allowed
             shadow-md hover:shadow-lg transition-all duration-300

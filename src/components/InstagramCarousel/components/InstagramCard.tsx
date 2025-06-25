@@ -28,29 +28,29 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
 
   return (
     <div 
-      className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:scale-110"
+      className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:scale-105"
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Enhanced Media Container with Larger Hover Effect */}
       <div className="relative aspect-square overflow-hidden">
-        <div className="transition-transform duration-500 group-hover:scale-125">
+        <div className="transition-transform duration-500 group-hover:scale-110">
           <MediaDisplay post={post} />
         </div>
         
         {/* Hover Overlay with Blue Theme */}
         <div className={`
-          absolute inset-0 bg-route66-primary bg-opacity-60 transition-opacity duration-300 flex items-center justify-center
+          absolute inset-0 bg-blue-600 bg-opacity-60 transition-opacity duration-300 flex items-center justify-center
           ${isHovered ? 'opacity-100' : 'opacity-0'}
         `}>
           <div className="bg-white bg-opacity-95 rounded-full p-4 transform transition-transform duration-300 group-hover:scale-110">
-            <ExternalLink className="w-8 h-8 text-route66-primary" />
+            <ExternalLink className="w-8 h-8 text-blue-600" />
           </div>
           
           {/* View Post Text with Blue Theme */}
           <div className="absolute bottom-4 left-0 right-0 text-center">
-            <span className="text-white font-semibold text-lg bg-route66-primary bg-opacity-80 px-4 py-2 rounded-full">
+            <span className="text-white font-semibold text-lg bg-blue-600 bg-opacity-80 px-4 py-2 rounded-full">
               View Post
             </span>
           </div>

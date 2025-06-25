@@ -10,7 +10,7 @@ export const useCarouselLogic = () => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
-        setPostsPerView(4); // Large screens - 4 posts (reduced from 6)
+        setPostsPerView(4); // Large screens - 4 posts
       } else if (window.innerWidth >= 768) {
         setPostsPerView(2); // Tablets - 2 posts
       } else {
