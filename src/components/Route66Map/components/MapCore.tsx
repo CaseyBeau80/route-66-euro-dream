@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import MapInitializerCore from './MapInitializerCore';
-import DirectRoute66Polyline from './DirectRoute66Polyline';
+import NuclearSingleRoute from './NuclearSingleRoute';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
@@ -35,7 +35,7 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [showScrollHint, setShowScrollHint] = useState(false);
 
   const handleMapLoad = async (map: google.maps.Map) => {
-    console.log('🗺️ MapCore: Using DirectRoute66Polyline for single route');
+    console.log('☢️ MapCore: NUCLEAR SINGLE ROUTE SYSTEM ACTIVATED');
     
     // Enable mouse wheel zoom
     map.setOptions({
@@ -46,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - DirectRoute66Polyline system:', {
+  console.log('☢️ MapCore render - NUCLEAR SINGLE ROUTE SYSTEM:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -71,10 +71,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* SINGLE ROUTE: DirectRoute66Polyline only */}
+      {/* ☢️ THE NUCLEAR SINGLE ROUTE - ONLY THIS ONE! */}
       {mapRef.current && isMapReady && visibleWaypoints.length > 0 && (
-        <DirectRoute66Polyline
-          key={`direct-route-${isMapReady}-${visibleWaypoints.length}`}
+        <NuclearSingleRoute
+          key={`nuclear-route-${isMapReady}-${visibleWaypoints.length}`}
           map={mapRef.current}
           waypoints={visibleWaypoints}
         />
