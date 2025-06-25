@@ -1,7 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
-import { RouteGlobalState } from '../services/RouteGlobalState';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface SingleRouteManagerProps {
@@ -12,10 +11,9 @@ interface SingleRouteManagerProps {
 const SingleRouteManager: React.FC<SingleRouteManagerProps> = ({ map, isMapReady }) => {
   const { waypoints, isLoading, error } = useSupabaseRoute66();
   const polylineRef = useRef<google.maps.Polyline | null>(null);
-  const centerLineRef = useRef<google.maps.Polyline | null>(null);
   const hasCreatedRoute = useRef(false);
 
-  console.log('🛡️ SingleRouteManager: AUTHORITATIVE route controller starting', {
+  console.log('🛣️ SingleRouteManager: Route controller', {
     isMapReady,
     isLoading,
     error,
@@ -24,20 +22,7 @@ const SingleRouteManager: React.FC<SingleRouteManagerProps> = ({ map, isMapReady
   });
 
   useEffect(() => {
-    // NUCLEAR CLEANUP: Clear everything first
-    console.log('🧹 SingleRouteManager: NUCLEAR CLEANUP - Clearing all existing polylines');
-    RouteGlobalState.clearAllPolylines();
-    
-    if (polylineRef.current) {
-      polylineRef.current.setMap(null);
-      polylineRef.current = null;
-    }
-    if (centerLineRef.current) {
-      centerLineRef.current.setMap(null);
-      centerLineRef.current = null;
-    }
-
-    // Prevent multiple route creation
+    // Don't create multiple routes
     if (hasCreatedRoute.current || !map || !isMapReady || isLoading || error || waypoints.length === 0) {
       console.log('⚠️ SingleRouteManager: Skipping route creation', {
         hasCreatedRoute: hasCreatedRoute.current,
@@ -50,13 +35,9 @@ const SingleRouteManager: React.FC<SingleRouteManagerProps> = ({ map, isMapReady
       return;
     }
 
-    console.log('🛣️ SingleRouteManager: Creating SINGLE authoritative Route 66 polyline');
+    console.log('🛣️ SingleRouteManager: Creating Route 66 polyline');
 
-    // Set global state to prevent other components from creating routes
-    RouteGlobalState.setActiveMap(map);
-    RouteGlobalState.setRouteCreated(true);
-
-    // Sort waypoints by sequence order
+    // Sort ALL waypoints by sequence order (not just major stops)
     const sortedWaypoints = waypoints
       .filter(wp => wp.latitude && wp.longitude && wp.sequence_order !== null)
       .sort((a, b) => a.sequence_order - b.sequence_order);
@@ -72,7 +53,7 @@ const SingleRouteManager: React.FC<SingleRouteManagerProps> = ({ map, isMapReady
       return;
     }
 
-    // Create simple, direct path from waypoints
+    // Create path from ALL waypoints
     const path: google.maps.LatLngLiteral[] = sortedWaypoints.map(wp => ({
       lat: wp.latitude,
       lng: wp.longitude
@@ -82,62 +63,40 @@ const SingleRouteManager: React.FC<SingleRouteManagerProps> = ({ map, isMapReady
     console.log('🎯 Start:', `${path[0].lat.toFixed(4)}, ${path[0].lng.toFixed(4)}`);
     console.log('🎯 End:', `${path[path.length - 1].lat.toFixed(4)}, ${path[path.length - 1].lng.toFixed(4)}`);
 
-    // Create main asphalt road polyline
-    const mainPolyline = new google.maps.Polyline({
+    // Create a BOLD, VISIBLE polyline
+    const polyline = new google.maps.Polyline({
       path: path,
       geodesic: true,
-      strokeColor: '#2C1810', // Dark asphalt
-      strokeOpacity: 0.95,
-      strokeWeight: 8,
+      strokeColor: '#FF0000', // Bright red for visibility
+      strokeOpacity: 1.0,
+      strokeWeight: 12, // Very thick line
       clickable: false,
-      zIndex: 50
-    });
-
-    // Create yellow center line
-    const centerLine = new google.maps.Polyline({
-      path: path,
-      geodesic: true,
-      strokeColor: '#FFD700',
-      strokeOpacity: 0,
-      strokeWeight: 0,
-      clickable: false,
-      zIndex: 100,
-      icons: [{
-        icon: {
-          path: 'M 0,-3 0,3',
-          strokeOpacity: 1.0,
-          strokeColor: '#FFD700',
-          strokeWeight: 3,
-          scale: 1
-        },
-        offset: '0',
-        repeat: '40px'
-      }]
+      zIndex: 100
     });
 
     // Add to map
-    mainPolyline.setMap(map);
-    centerLine.setMap(map);
-    
-    polylineRef.current = mainPolyline;
-    centerLineRef.current = centerLine;
+    polyline.setMap(map);
+    polylineRef.current = polyline;
     hasCreatedRoute.current = true;
 
-    // Register with global state
-    RouteGlobalState.addPolylines([mainPolyline, centerLine]);
-
-    // Fit map bounds to route
+    // Force the map to show the route
     const bounds = new google.maps.LatLngBounds();
     path.forEach(point => bounds.extend(point));
     map.fitBounds(bounds);
 
-    // Zoom out slightly for better view
+    // Zoom out slightly after bounds are set
     setTimeout(() => {
       const currentZoom = map.getZoom() || 5;
       map.setZoom(Math.max(4, currentZoom - 1));
     }, 1000);
 
-    console.log('✅ SingleRouteManager: SINGLE Route 66 polyline created successfully');
+    console.log('✅ SingleRouteManager: Route 66 polyline created successfully');
+    console.log('🔍 Polyline details:', {
+      pathLength: polyline.getPath().getLength(),
+      strokeColor: polyline.get('strokeColor'),
+      strokeWeight: polyline.get('strokeWeight'),
+      visible: polyline.getVisible()
+    });
 
   }, [map, isMapReady, waypoints, isLoading, error]);
 
@@ -147,11 +106,8 @@ const SingleRouteManager: React.FC<SingleRouteManagerProps> = ({ map, isMapReady
       console.log('🧹 SingleRouteManager: Component unmounting - cleaning up');
       if (polylineRef.current) {
         polylineRef.current.setMap(null);
+        polylineRef.current = null;
       }
-      if (centerLineRef.current) {
-        centerLineRef.current.setMap(null);
-      }
-      RouteGlobalState.reset();
       hasCreatedRoute.current = false;
     };
   }, []);
