@@ -10,7 +10,7 @@ export class DirectRouteRenderer {
   }
 
   createVisibleRoute(waypoints: Route66Waypoint[]): void {
-    console.log('🛣️ DirectRouteRenderer: Creating GUARANTEED VISIBLE Route 66');
+    console.log('🛣️ DirectRouteRenderer: Creating ANTI-PING-PONG Route 66');
     
     // Clear any existing polylines first
     this.clearRoute();
@@ -20,23 +20,23 @@ export class DirectRouteRenderer {
       return;
     }
 
-    // Get major stops and ensure proper west-to-east sequence
-    const majorStops = this.getProperlySequencedStops(waypoints);
+    // Get major stops with STRICT anti-ping-pong filtering
+    const smoothedStops = this.createSmoothWestToEastRoute(waypoints);
 
-    if (majorStops.length < 2) {
-      console.warn('⚠️ DirectRouteRenderer: Need at least 2 properly sequenced major stops');
+    if (smoothedStops.length < 2) {
+      console.warn('⚠️ DirectRouteRenderer: Need at least 2 smoothed stops');
       return;
     }
 
-    console.log('🛣️ DirectRouteRenderer: Using properly sequenced stops:', majorStops.map(s => `${s.name} (${s.longitude.toFixed(2)})`));
+    console.log('🛣️ DirectRouteRenderer: Using ANTI-PING-PONG stops:', smoothedStops.map(s => `${s.name} (${s.longitude.toFixed(2)})`));
 
-    // Create path from waypoints
-    const routePath = majorStops.map(stop => ({
+    // Create path from smoothed waypoints
+    const routePath = smoothedStops.map(stop => ({
       lat: stop.latitude,
       lng: stop.longitude
     }));
 
-    console.log('🗺️ DirectRouteRenderer: Route path coordinates:', routePath);
+    console.log('🗺️ DirectRouteRenderer: Anti-ping-pong route path:', routePath);
 
     // Create road edge (darker outline) first
     const roadEdge = new google.maps.Polyline({
@@ -94,7 +94,7 @@ export class DirectRouteRenderer {
     const surfaceAttached = roadSurface.getMap() === this.map;
     const centerAttached = centerLine.getMap() === this.map;
     
-    console.log('✅ DirectRouteRenderer: IMMEDIATE verification:', {
+    console.log('✅ DirectRouteRenderer: ANTI-PING-PONG verification:', {
       roadEdgeAttached: edgeAttached,
       roadSurfaceAttached: surfaceAttached,
       centerLineAttached: centerAttached,
@@ -134,48 +134,80 @@ export class DirectRouteRenderer {
       }
     }, 100);
 
-    console.log('✅ DirectRouteRenderer: Route 66 creation completed with forced visibility');
+    console.log('✅ DirectRouteRenderer: ANTI-PING-PONG Route 66 creation completed');
   }
 
-  private getProperlySequencedStops(waypoints: Route66Waypoint[]): Route66Waypoint[] {
-    // Filter to major stops only
+  /**
+   * Creates a perfectly smooth west-to-east route by eliminating ALL ping-ponging
+   */
+  private createSmoothWestToEastRoute(waypoints: Route66Waypoint[]): Route66Waypoint[] {
+    console.log('🚫 ANTI-PING-PONG: Creating perfectly smooth west-to-east route');
+    
+    // Filter to major stops only first
     const majorStops = waypoints.filter(wp => wp.is_major_stop);
     
-    // Sort by sequence order first, then by longitude (west to east) as backup
-    const sortedStops = majorStops.sort((a, b) => {
-      // Primary sort: sequence order
-      if (a.sequence_order !== b.sequence_order) {
-        return a.sequence_order - b.sequence_order;
-      }
-      // Secondary sort: longitude (west to east)
-      return a.longitude - b.longitude;
-    });
-
-    // Take a reasonable subset to avoid overcrowding while maintaining flow
-    const selectedStops = this.selectKeyStops(sortedStops);
+    // Sort by longitude (west to east) - ignore sequence_order as it may be causing ping-pong
+    const westToEastSorted = majorStops.sort((a, b) => a.longitude - b.longitude);
     
-    console.log('🔍 DirectRouteRenderer: Selected key stops for smooth route:', 
-      selectedStops.map(s => `${s.name} (seq: ${s.sequence_order}, lng: ${s.longitude.toFixed(2)})`));
+    console.log('📍 All major stops west-to-east:', westToEastSorted.map(s => `${s.name} (${s.longitude.toFixed(2)})`));
     
-    return selectedStops;
+    // Apply strict anti-ping-pong filtering
+    const smoothRoute = this.applyStrictAntiPingPongFilter(westToEastSorted);
+    
+    console.log('✅ ANTI-PING-PONG: Final smooth route:', smoothRoute.map(s => `${s.name} (${s.longitude.toFixed(2)})`));
+    
+    return smoothRoute;
   }
 
-  private selectKeyStops(sortedStops: Route66Waypoint[]): Route66Waypoint[] {
-    if (sortedStops.length <= 12) {
-      return sortedStops;
+  /**
+   * Applies strict filtering to prevent ANY backtracking
+   */
+  private applyStrictAntiPingPongFilter(sortedStops: Route66Waypoint[]): Route66Waypoint[] {
+    if (sortedStops.length <= 2) return sortedStops;
+    
+    console.log('🔍 ANTI-PING-PONG: Applying strict backtracking prevention');
+    
+    const smoothStops: Route66Waypoint[] = [sortedStops[0]]; // Always include first stop
+    let lastLongitude = sortedStops[0].longitude;
+    
+    // Only include stops that continue the eastward progression
+    for (let i = 1; i < sortedStops.length; i++) {
+      const currentStop = sortedStops[i];
+      
+      // Only add if it's definitely east of the last added stop
+      if (currentStop.longitude > lastLongitude + 0.1) { // 0.1 degree buffer to prevent tiny ping-pongs
+        smoothStops.push(currentStop);
+        lastLongitude = currentStop.longitude;
+        console.log(`✅ Added ${currentStop.name} (${currentStop.longitude.toFixed(2)}) - continuing eastward`);
+      } else {
+        console.log(`🚫 Skipped ${currentStop.name} (${currentStop.longitude.toFixed(2)}) - would cause backtrack from ${lastLongitude.toFixed(2)}`);
+      }
     }
+    
+    // If we have too few stops, space them out more evenly
+    if (smoothStops.length < 8) {
+      return this.selectEvenlySpacedStops(smoothStops, Math.min(10, sortedStops.length));
+    }
+    
+    return smoothStops;
+  }
 
-    // Always include start and end
-    const result = [sortedStops[0]];
+  /**
+   * Selects evenly spaced stops for a smoother route
+   */
+  private selectEvenlySpacedStops(stops: Route66Waypoint[], targetCount: number): Route66Waypoint[] {
+    if (stops.length <= targetCount) return stops;
     
-    // Select evenly spaced major stops
-    const step = Math.floor(sortedStops.length / 10);
-    for (let i = step; i < sortedStops.length - 1; i += step) {
-      result.push(sortedStops[i]);
+    const result: Route66Waypoint[] = [stops[0]]; // Always include first
+    
+    const step = Math.floor(stops.length / (targetCount - 1));
+    for (let i = step; i < stops.length - 1; i += step) {
+      result.push(stops[i]);
     }
     
-    // Always include the end
-    result.push(sortedStops[sortedStops.length - 1]);
+    result.push(stops[stops.length - 1]); // Always include last
+    
+    console.log('📏 Selected evenly spaced stops:', result.map(s => `${s.name} (${s.longitude.toFixed(2)})`));
     
     return result;
   }
