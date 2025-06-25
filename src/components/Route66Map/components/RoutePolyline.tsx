@@ -69,12 +69,20 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
           console.log('✅ RoutePolyline: Simple fallback route created');
           RouteGlobalState.setRouteCreated(true);
           
-          // Verify the polylines are actually on the map
-          const polylineCount = RouteGlobalState.getPolylineCount();
-          console.log('🔍 RoutePolyline: Polyline verification after creation:', {
-            count: polylineCount,
-            globalDebug: RouteGlobalState.getDebugInfo()
-          });
+          // Verify the polylines are actually on the map after a brief delay
+          setTimeout(() => {
+            const polylineCount = RouteGlobalState.getPolylineCount();
+            console.log('🔍 RoutePolyline: Polyline verification after creation:', {
+              count: polylineCount,
+              globalDebug: RouteGlobalState.getDebugInfo()
+            });
+            
+            if (polylineCount === 0) {
+              console.error('❌ RoutePolyline: Polylines disappeared after creation!');
+            } else {
+              console.log('✅ RoutePolyline: Polylines successfully visible on map');
+            }
+          }, 300);
           
         } else {
           console.warn('⚠️ RoutePolyline: Not enough major stops for route creation');

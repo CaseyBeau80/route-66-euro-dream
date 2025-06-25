@@ -22,19 +22,27 @@ export class FallbackRouteCreator {
     console.log('🔄 FallbackRouteCreator: Route path coordinates:', routePath);
 
     try {
-      // Create main asphalt polyline - BRIGHT AND VISIBLE
+      // Create main asphalt polyline - MAXIMUM VISIBILITY
       const fallbackPolyline = new google.maps.Polyline({
         path: routePath,
         geodesic: true,
         strokeColor: '#FF0000', // BRIGHT RED to ensure visibility
         strokeOpacity: 1.0, // Full opacity
-        strokeWeight: 8, // Thick line
-        zIndex: 10000,
+        strokeWeight: 12, // Very thick line
+        zIndex: 10000, // High z-index
         clickable: false,
-        map: this.map
+        draggable: false,
+        editable: false,
+        visible: true // Explicitly set visible
       });
 
-      console.log('✅ FallbackRouteCreator: Main polyline created and added to map');
+      // EXPLICITLY set the map
+      fallbackPolyline.setMap(this.map);
+      console.log('✅ FallbackRouteCreator: Main polyline created and explicitly set to map');
+
+      // Verify the polyline is attached to the map
+      const isAttachedToMap = fallbackPolyline.getMap() === this.map;
+      console.log('🔍 FallbackRouteCreator: Polyline attached to map?', isAttachedToMap);
 
       // Create bright yellow center line
       const fallbackCenterLine = new google.maps.Polyline({
@@ -42,24 +50,35 @@ export class FallbackRouteCreator {
         geodesic: true,
         strokeColor: '#FFFF00', // BRIGHT YELLOW
         strokeOpacity: 1.0,
-        strokeWeight: 3,
+        strokeWeight: 4,
         zIndex: 10001,
         clickable: false,
-        map: this.map
+        draggable: false,
+        editable: false,
+        visible: true
       });
 
-      console.log('✅ FallbackRouteCreator: Center line created and added to map');
+      // EXPLICITLY set the map for center line
+      fallbackCenterLine.setMap(this.map);
+      console.log('✅ FallbackRouteCreator: Center line created and explicitly set to map');
+
+      // Verify the center line is attached to the map
+      const isCenterLineAttachedToMap = fallbackCenterLine.getMap() === this.map;
+      console.log('🔍 FallbackRouteCreator: Center line attached to map?', isCenterLineAttachedToMap);
 
       // Store in global state for cleanup
       RouteGlobalState.addPolylines([fallbackPolyline, fallbackCenterLine]);
       
-      // Verify polylines are actually visible
-      console.log('🔍 FallbackRouteCreator: Polyline verification:', {
-        mainPolylineMap: !!fallbackPolyline.getMap(),
-        centerLineMap: !!fallbackCenterLine.getMap(),
-        mainPolylinePath: fallbackPolyline.getPath()?.getLength(),
-        centerLinePath: fallbackCenterLine.getPath()?.getLength()
-      });
+      // Final verification - check if polylines are actually visible on the map
+      setTimeout(() => {
+        const mainPolylineStillOnMap = fallbackPolyline.getMap() === this.map;
+        const centerLineStillOnMap = fallbackCenterLine.getMap() === this.map;
+        console.log('🔍 FallbackRouteCreator: Final verification after 100ms:', {
+          mainPolylineStillOnMap,
+          centerLineStillOnMap,
+          globalPolylineCount: RouteGlobalState.getPolylineCount()
+        });
+      }, 100);
 
       console.log('✅ FallbackRouteCreator: GUARANTEED VISIBLE route created successfully');
       
