@@ -93,7 +93,7 @@ export const useEnhancedPhotoUpload = () => {
       if (result.success) {
         setModerationResults(result.moderationResults);
         
-        // Declare isNewTrailblazer at this level so it's accessible in the return statement
+        // Declare isNewTrailblazer at the top level so it's accessible in the return statement
         let isNewTrailblazer = false;
         
         if (result.allowed) {
