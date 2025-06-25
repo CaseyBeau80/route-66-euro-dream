@@ -13,12 +13,13 @@ export const route66Towns: Route66Town[] = [
   { latLng: [40.1164, -89.4089], name: "McLean, IL" },
   { latLng: [40.0631, -89.4006], name: "Atlanta, IL" },
   { latLng: [40.1481, -89.3649], name: "Lincoln, IL" },
-  { latLng: [39.8003, -89.6437], name: "Springfield, IL" }, // CORRECT Springfield first
+  { latLng: [39.8003, -89.6437], name: "Springfield, IL" }, // FIRST Springfield - BEFORE St. Louis
+  { latLng: [39.1600, -89.9700], name: "Litchfield, IL" },
   
-  // Missouri section
-  { latLng: [38.6272, -90.1978], name: "St. Louis, MO" },
+  // Missouri section - St. Louis comes AFTER Springfield, IL
+  { latLng: [38.6272, -90.1978], name: "St. Louis, MO" }, // AFTER Springfield, IL
   { latLng: [38.0890, -91.7624], name: "Rolla, MO" },
-  { latLng: [37.2090, -93.2923], name: "Springfield, MO" }, // Second Springfield
+  { latLng: [37.2090, -93.2923], name: "Springfield, MO" }, // SECOND Springfield
   { latLng: [37.0947, -94.5133], name: "Joplin, MO" },
   
   // Kansas brief stretch

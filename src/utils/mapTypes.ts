@@ -7,11 +7,12 @@ export interface Location {
   name: string;
 }
 
-// Route 66 DESTINATION CITIES ONLY (no waypoints like Victorville)
+// CORRECTED Route 66 DESTINATION CITIES with proper sequence
 export const route66Towns: Location[] = [
   { latLng: [41.8781, -87.6298], name: "Chicago, IL" },
-  { latLng: [39.7817, -89.6501], name: "Springfield, IL" },
-  { latLng: [38.6273, -90.1979], name: "St. Louis, MO" },
+  { latLng: [39.8003, -89.6437], name: "Springfield, IL" }, // FIRST Springfield - BEFORE St. Louis
+  { latLng: [38.6273, -90.1979], name: "St. Louis, MO" }, // AFTER Springfield, IL
+  { latLng: [37.2090, -93.2923], name: "Springfield, MO" }, // SECOND Springfield - AFTER St. Louis
   { latLng: [37.0842, -94.5133], name: "Joplin, MO" },
   { latLng: [36.1540, -95.9928], name: "Tulsa, OK" },
   { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
