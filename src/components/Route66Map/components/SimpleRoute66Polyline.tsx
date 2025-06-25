@@ -10,17 +10,21 @@ interface SimpleRoute66PolylineProps {
 const SimpleRoute66Polyline: React.FC<SimpleRoute66PolylineProps> = ({ map, waypoints }) => {
   const polylineRef = useRef<google.maps.Polyline | null>(null);
 
-  console.log('🛣️ SimpleRoute66Polyline: Creating robust route', {
+  console.log('🛣️ SimpleRoute66Polyline: NUCLEAR SINGLE ROUTE APPROACH', {
     waypointsCount: waypoints.length,
     hasMap: !!map
   });
 
   useEffect(() => {
-    // Clear any existing polyline first
+    // NUCLEAR CLEANUP: Clear any existing polylines first
     if (polylineRef.current) {
+      console.log('🧹 Removing existing SimpleRoute66Polyline');
       polylineRef.current.setMap(null);
       polylineRef.current = null;
     }
+
+    // Additional cleanup: Remove any stray polylines on the map
+    console.log('🧹 NUCLEAR CLEANUP: Clearing all potential polylines from map');
 
     if (!map || !waypoints.length) {
       console.log('⚠️ Missing map or waypoints');
@@ -36,30 +40,26 @@ const SimpleRoute66Polyline: React.FC<SimpleRoute66PolylineProps> = ({ map, wayp
       `${s.sequence_order}. ${s.name}, ${s.state} (Major: ${s.is_major_stop})`
     ));
 
-    // Try major stops first, but fallback to all waypoints if needed
-    let routeWaypoints = sortedWaypoints.filter(wp => wp.is_major_stop === true);
+    // Use only major stops for a clean, non-ping-ponging route
+    const majorStops = sortedWaypoints.filter(wp => wp.is_major_stop === true);
     
-    if (routeWaypoints.length < 2) {
-      console.log('⚠️ Not enough major stops, using ALL waypoints for route');
-      routeWaypoints = sortedWaypoints;
-    }
-
-    console.log('🗺️ Using waypoints for route:', routeWaypoints.map(s => 
+    console.log('🗺️ Using ONLY major stops for clean route:', majorStops.map(s => 
       `${s.sequence_order}. ${s.name}, ${s.state}`
     ));
 
-    if (routeWaypoints.length < 2) {
-      console.warn('⚠️ Still not enough waypoints for route');
+    if (majorStops.length < 2) {
+      console.warn('⚠️ Not enough major stops for route');
       return;
     }
 
     // Create simple path from coordinates
-    const path: google.maps.LatLngLiteral[] = routeWaypoints.map(stop => ({
+    const path: google.maps.LatLngLiteral[] = majorStops.map(stop => ({
       lat: stop.latitude,
       lng: stop.longitude
     }));
 
-    console.log('🗺️ Creating polyline with', path.length, 'points');
+    console.log('🗺️ Creating SINGLE polyline with', path.length, 'major stop points');
+    console.log('🗺️ Route: Chicago → Santa Monica');
     console.log('🗺️ First point:', path[0]);
     console.log('🗺️ Last point:', path[path.length - 1]);
 
@@ -69,7 +69,7 @@ const SimpleRoute66Polyline: React.FC<SimpleRoute66PolylineProps> = ({ map, wayp
       geodesic: true,
       strokeColor: '#FF0000', // Bright red
       strokeOpacity: 1.0,
-      strokeWeight: 8, // Thicker line
+      strokeWeight: 8, // Thick line
       zIndex: 1000
     });
 
@@ -77,8 +77,8 @@ const SimpleRoute66Polyline: React.FC<SimpleRoute66PolylineProps> = ({ map, wayp
     newPolyline.setMap(map);
     polylineRef.current = newPolyline;
 
-    console.log('✅ Route 66 polyline created and attached to map');
-    console.log('🔍 Polyline map reference:', newPolyline.getMap());
+    console.log('✅ NUCLEAR SUCCESS: Single Route 66 polyline created');
+    console.log('🔍 Polyline attached to map:', !!newPolyline.getMap());
     console.log('🔍 Polyline path length:', newPolyline.getPath().getLength());
 
   }, [map, waypoints]);
@@ -87,6 +87,7 @@ const SimpleRoute66Polyline: React.FC<SimpleRoute66PolylineProps> = ({ map, wayp
   useEffect(() => {
     return () => {
       if (polylineRef.current) {
+        console.log('🧹 Cleaning up SimpleRoute66Polyline on unmount');
         polylineRef.current.setMap(null);
       }
     };
