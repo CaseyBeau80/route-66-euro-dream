@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState, useRef } from 'react';
-import { DirectRouteRenderer } from '../services/DirectRouteRenderer';
+import React, { useEffect, useState } from 'react';
+import { SimplifiedRouteRenderer } from '../services/routing/SimplifiedRouteRenderer';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface RoutePolylineProps {
@@ -9,98 +9,63 @@ interface RoutePolylineProps {
 }
 
 const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
-  const [routeRenderer, setRouteRenderer] = useState<DirectRouteRenderer | null>(null);
-  const [isRouteCreated, setIsRouteCreated] = useState(false);
-  const polylinesRef = useRef<google.maps.Polyline[]>([]);
+  const [renderer, setRenderer] = useState<SimplifiedRouteRenderer | null>(null);
+  const [routeCreated, setRouteCreated] = useState(false);
 
-  console.log('🛣️ RoutePolyline: Rendering with', {
+  console.log('🛣️ RoutePolyline: SIMPLIFIED APPROACH', {
     waypointsCount: waypoints.length,
     hasMap: !!map,
-    isRouteCreated,
-    hasRenderer: !!routeRenderer
+    hasRenderer: !!renderer,
+    routeCreated
   });
 
-  // Initialize renderer when map is available
+  // Initialize renderer
   useEffect(() => {
-    if (map && !routeRenderer) {
-      console.log('🛣️ RoutePolyline: Initializing DirectRouteRenderer');
-      const renderer = new DirectRouteRenderer(map);
-      setRouteRenderer(renderer);
+    if (map && !renderer) {
+      console.log('🔧 RoutePolyline: Initializing SimplifiedRouteRenderer');
+      const newRenderer = new SimplifiedRouteRenderer(map);
+      setRenderer(newRenderer);
     }
-  }, [map, routeRenderer]);
+  }, [map, renderer]);
 
-  // Create route when renderer and waypoints are available
+  // Create route when we have renderer and waypoints
   useEffect(() => {
-    if (!routeRenderer || !waypoints.length || isRouteCreated) {
+    if (!renderer || !waypoints.length || routeCreated) {
       return;
     }
 
-    console.log('🛣️ RoutePolyline: Creating route with DirectRouteRenderer');
+    console.log('🛣️ RoutePolyline: Creating route with simplified approach');
     
     try {
-      // Clear any existing polylines first
-      polylinesRef.current.forEach(polyline => {
-        polyline.setMap(null);
-      });
-      polylinesRef.current = [];
-
-      routeRenderer.createVisibleRoute(waypoints);
+      renderer.createRoute66(waypoints);
       
-      // Get the polylines from the renderer and store them
-      const newPolylines = routeRenderer.getPolylines();
-      polylinesRef.current = newPolylines;
-      
-      console.log('🔍 RoutePolyline: Created polylines:', {
-        count: newPolylines.length,
-        attached: newPolylines.map(p => p.getMap() === map)
-      });
-
-      // Verify the route was created successfully after a short delay
+      // Verify creation
       setTimeout(() => {
-        const isVisible = routeRenderer.isRouteVisible();
-        console.log('🔍 RoutePolyline: Route visibility check:', isVisible);
+        const isVisible = renderer.isVisible();
+        console.log('🔍 Route visibility after creation:', isVisible);
         
-        if (isVisible && newPolylines.length > 0) {
-          setIsRouteCreated(true);
-          console.log('✅ RoutePolyline: Route successfully created and verified');
-          
-          // Double-check each polyline is still attached
-          newPolylines.forEach((polyline, index) => {
-            const attached = polyline.getMap() === map;
-            console.log(`🔍 Polyline ${index + 1} still attached:`, attached);
-            if (!attached) {
-              console.log('🔧 Re-attaching polyline to map');
-              polyline.setMap(map);
-            }
-          });
+        if (isVisible) {
+          setRouteCreated(true);
+          console.log('✅ RoutePolyline: Route successfully created and visible');
         } else {
-          console.error('❌ RoutePolyline: Route creation failed verification');
+          console.error('❌ RoutePolyline: Route not visible after creation');
         }
-      }, 500); // Increased timeout to 500ms
+      }, 200);
       
     } catch (error) {
       console.error('❌ RoutePolyline: Error creating route:', error);
     }
-  }, [routeRenderer, waypoints, isRouteCreated, map]);
+  }, [renderer, waypoints, routeCreated]);
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     return () => {
-      if (routeRenderer) {
-        console.log('🧹 RoutePolyline: Cleanup on unmount');
-        routeRenderer.clearRoute();
+      if (renderer) {
+        console.log('🧹 RoutePolyline: Cleanup');
+        renderer.clearRoute();
       }
-      // Also clean up our local references
-      polylinesRef.current.forEach(polyline => {
-        try {
-          polyline.setMap(null);
-        } catch (error) {
-          console.warn('⚠️ Error cleaning up polyline:', error);
-        }
-      });
-      polylinesRef.current = [];
     };
-  }, [routeRenderer]);
+  }, [renderer]);
 
   return null;
 };

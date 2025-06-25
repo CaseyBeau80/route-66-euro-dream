@@ -9,7 +9,6 @@ import DriveInsContainer from './DriveIns/DriveInsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
 import MapDebugPanel from './MapDebugPanel';
-import { GlobalPolylineCleaner } from '../services/GlobalPolylineCleaner';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
@@ -35,27 +34,23 @@ const MapCore: React.FC<MapCoreProps> = ({
 }) => {
   const [showScrollHint, setShowScrollHint] = useState(false);
 
-  // Simplified map load handler
   const handleMapLoad = async (map: google.maps.Map) => {
-    console.log('🗺️ MapCore: Simplified map load with gentle cleanup');
+    console.log('🗺️ MapCore: SIMPLIFIED map load for route system');
     
-    // Enable mouse wheel zoom on the map
+    // Enable mouse wheel zoom
     map.setOptions({
       scrollwheel: true,
       gestureHandling: 'greedy'
     });
     
-    // Call the original onMapLoad
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - ROUTE RESTORED:', {
+  console.log('🗺️ MapCore render - SIMPLIFIED ROUTE SYSTEM:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length,
-    hasGoogleMaps: !!(window.google && window.google.maps),
-    showScrollHint,
-    activePolylines: mapRef.current ? GlobalPolylineCleaner.getActivePolylineCount() : 0
+    hasGoogleMaps: !!(window.google && window.google.maps)
   });
 
   return (
@@ -69,24 +64,24 @@ const MapCore: React.FC<MapCoreProps> = ({
         setShowScrollHint={setShowScrollHint}
       />
       
-      {/* Scroll Zoom Hint Overlay */}
+      {/* Scroll Zoom Hint */}
       <ScrollZoomHint show={showScrollHint} />
       
-      {/* Orange State Highlighting */}
+      {/* State Highlighting */}
       {mapRef.current && isMapReady && (
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* MAIN ROUTE SYSTEM: Re-enabled RoutePolyline */}
+      {/* MAIN ROUTE SYSTEM: Simplified RoutePolyline */}
       {mapRef.current && isMapReady && visibleWaypoints.length > 0 && (
         <RoutePolyline
-          key={`route-polyline-${isMapReady}-${visibleWaypoints.length}`}
+          key={`simplified-route-${isMapReady}-${visibleWaypoints.length}`}
           map={mapRef.current}
           waypoints={visibleWaypoints}
         />
       )}
 
-      {/* Destination Markers - using destination_cities table */}
+      {/* Destination Markers */}
       {mapRef.current && isMapReady && (
         <DestinationCitiesContainer
           map={mapRef.current}
@@ -95,36 +90,36 @@ const MapCore: React.FC<MapCoreProps> = ({
         />
       )}
 
-      {/* Attraction Markers - using attractions table directly */}
+      {/* Attraction Markers */}
       {mapRef.current && isMapReady && (
         <AttractionsContainer
           map={mapRef.current}
-          waypoints={[]} // Empty since we're using the attractions table
+          waypoints={[]}
           onAttractionClick={onAttractionClick}
         />
       )}
 
-      {/* Drive-In Theaters - using drive_ins table */}
+      {/* Drive-In Theaters */}
       {mapRef.current && isMapReady && (
         <DriveInsContainer
           map={mapRef.current}
           onDriveInClick={(driveIn) => {
-            console.log('🎬 Drive-in selected from drive_ins table:', driveIn.name);
+            console.log('🎬 Drive-in selected:', driveIn.name);
           }}
         />
       )}
 
-      {/* Hidden Gems - using hidden_gems table directly */}
+      {/* Hidden Gems */}
       {mapRef.current && isMapReady && (
         <HiddenGemsContainer 
           map={mapRef.current} 
           onGemClick={(gem) => {
-            console.log('💎 Hidden gem selected from hidden_gems table:', gem.title);
+            console.log('💎 Hidden gem selected:', gem.title);
           }}
         />
       )}
 
-      {/* Debug Panel - only in development */}
+      {/* Debug Panel */}
       {process.env.NODE_ENV === 'development' && (
         <MapDebugPanel map={mapRef.current} />
       )}

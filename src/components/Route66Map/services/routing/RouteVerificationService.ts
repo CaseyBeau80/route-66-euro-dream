@@ -1,7 +1,7 @@
 
 export class RouteVerificationService {
   /**
-   * Verifies that all polylines are properly attached to the map
+   * SIMPLIFIED: Verifies that polylines are properly attached to the map
    */
   static verifyRouteVisibility(
     polylines: google.maps.Polyline[],
@@ -10,31 +10,25 @@ export class RouteVerificationService {
     const visible = polylines.length > 0 && 
            polylines.every(polyline => polyline.getMap() === map);
     
-    console.log('🔍 RouteVerificationService: Route visibility check:', {
+    console.log('🔍 RouteVerificationService: SIMPLIFIED visibility check:', {
       polylineCount: polylines.length,
-      allAttached: visible,
-      individualStatus: polylines.map((p, i) => ({
-        index: i + 1,
-        attached: p.getMap() === map
-      }))
+      allAttached: visible
     });
     
     return visible;
   }
 
   /**
-   * Forces re-attachment of polylines to the map if needed
+   * SIMPLIFIED: Ensures polylines are attached to map
    */
   static ensurePolylineAttachment(
     polylines: google.maps.Polyline[],
     map: google.maps.Map
   ): void {
-    console.log('🔧 RouteVerificationService: Ensuring polyline attachment');
+    console.log('🔧 RouteVerificationService: SIMPLIFIED attachment check');
     
     polylines.forEach((polyline, index) => {
       const isAttached = polyline.getMap() === map;
-      console.log(`🔍 Polyline ${index + 1} attachment check:`, isAttached);
-      
       if (!isAttached) {
         console.log(`🔧 Re-attaching polyline ${index + 1} to map`);
         polyline.setMap(map);
@@ -43,20 +37,10 @@ export class RouteVerificationService {
   }
 
   /**
-   * Forces a map refresh to ensure visibility
+   * SIMPLIFIED: No longer needed - removed complex refresh logic
    */
   static forceMapRefresh(map: google.maps.Map): void {
-    console.log('🔄 RouteVerificationService: Forcing map refresh for visibility');
-    
-    // Trigger a small map movement to force redraw
-    const currentCenter = map.getCenter();
-    if (currentCenter) {
-      const lat = currentCenter.lat();
-      const lng = currentCenter.lng();
-      map.panTo(new google.maps.LatLng(lat + 0.0001, lng + 0.0001));
-      setTimeout(() => {
-        map.panTo(new google.maps.LatLng(lat, lng));
-      }, 100);
-    }
+    console.log('🔄 RouteVerificationService: SIMPLIFIED - no refresh needed');
+    // Simplified approach doesn't need complex refresh logic
   }
 }
