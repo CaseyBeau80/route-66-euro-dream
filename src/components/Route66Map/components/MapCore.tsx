@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import MapInitializerCore from './MapInitializerCore';
-import SimpleRoute66Polyline from './SimpleRoute66Polyline';
+import DirectRoute66Polyline from './DirectRoute66Polyline';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
@@ -35,10 +35,7 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [showScrollHint, setShowScrollHint] = useState(false);
 
   const handleMapLoad = async (map: google.maps.Map) => {
-    console.log('🗺️ MapCore: NUCLEAR CLEAN APPROACH - ONLY SimpleRoute66Polyline allowed');
-    
-    // Clear any existing polylines on the map before we start
-    console.log('🧹 Clearing any existing polylines from map');
+    console.log('🗺️ MapCore: Using DirectRoute66Polyline for single route');
     
     // Enable mouse wheel zoom
     map.setOptions({
@@ -49,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - SINGLE ROUTE SYSTEM ONLY:', {
+  console.log('🗺️ MapCore render - DirectRoute66Polyline system:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -74,10 +71,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* ABSOLUTE SINGLE ROUTE: Only SimpleRoute66Polyline */}
+      {/* SINGLE ROUTE: DirectRoute66Polyline only */}
       {mapRef.current && isMapReady && visibleWaypoints.length > 0 && (
-        <SimpleRoute66Polyline
-          key={`single-route-${isMapReady}-${visibleWaypoints.length}`}
+        <DirectRoute66Polyline
+          key={`direct-route-${isMapReady}-${visibleWaypoints.length}`}
           map={mapRef.current}
           waypoints={visibleWaypoints}
         />
