@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import MapInitializerCore from './MapInitializerCore';
-import RoutePolyline from './RoutePolyline';
+import SimpleRoute66Polyline from './SimpleRoute66Polyline';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
@@ -35,7 +35,7 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [showScrollHint, setShowScrollHint] = useState(false);
 
   const handleMapLoad = async (map: google.maps.Map) => {
-    console.log('🗺️ MapCore: THE SINGLE AUTHORITATIVE ROUTE SYSTEM - map load');
+    console.log('🗺️ MapCore: Clean map load with ONLY SimpleRoute66Polyline');
     
     // Enable mouse wheel zoom
     map.setOptions({
@@ -46,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - THE SINGLE AUTHORITATIVE ROUTE SYSTEM ONLY:', {
+  console.log('🗺️ MapCore render - CLEAN SIMPLE ROUTE ONLY:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -71,10 +71,10 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* THE ONLY ROUTE SYSTEM: AuthoritativeRoute66Renderer via RoutePolyline */}
+      {/* ONLY ONE ROUTE SYSTEM: SimpleRoute66Polyline */}
       {mapRef.current && isMapReady && visibleWaypoints.length > 0 && (
-        <RoutePolyline
-          key={`single-authoritative-route-${isMapReady}-${visibleWaypoints.length}`}
+        <SimpleRoute66Polyline
+          key={`simple-route-${isMapReady}-${visibleWaypoints.length}`}
           map={mapRef.current}
           waypoints={visibleWaypoints}
         />
