@@ -12,13 +12,11 @@ interface RoutePolylineProps {
 }
 
 const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
-  const [routeCreated, setRouteCreated] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   console.log('🛣️ RoutePolyline: DEBUG STATE', {
     waypointsCount: waypoints.length,
     hasMap: !!map,
-    routeCreated,
     isCreating,
     globalRouteState: RouteGlobalState.isRouteCreated(),
     globalPolylineCount: RouteGlobalState.getPolylineCount(),
@@ -26,14 +24,22 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
   });
 
   useEffect(() => {
-    if (!map || !waypoints.length || routeCreated || isCreating || RouteGlobalState.isRouteCreated()) {
+    // Only check global state and creation status - remove local routeCreated state
+    if (!map || !waypoints.length || isCreating) {
       console.log('🛣️ RoutePolyline: Skipping route creation', {
         hasMap: !!map,
         waypointsCount: waypoints.length,
-        routeCreated,
         isCreating,
-        globalRouteCreated: RouteGlobalState.isRouteCreated()
+        globalRouteCreated: RouteGlobalState.isRouteCreated(),
+        globalPolylineCount: RouteGlobalState.getPolylineCount()
       });
+      return;
+    }
+
+    // Check if we actually have visible polylines, not just the global flag
+    const actualPolylineCount = RouteGlobalState.getPolylineCount();
+    if (actualPolylineCount > 0) {
+      console.log('🛣️ RoutePolyline: Route already exists with', actualPolylineCount, 'polylines');
       return;
     }
 
@@ -54,14 +60,13 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
         const majorStops = waypoints.filter(wp => wp.is_major_stop).slice(0, 15);
         
         if (majorStops.length >= 2) {
-          console.log('🛣️ RoutePolyline: Creating SIMPLE FALLBACK route first');
+          console.log('🛣️ RoutePolyline: Creating SIMPLE FALLBACK route with', majorStops.length, 'stops');
           
-          // FIRST: Create a simple fallback route that should definitely work
+          // Create a simple fallback route that should definitely work
           const fallbackCreator = new FallbackRouteCreator(map);
           fallbackCreator.createAsphaltFallbackRoute(majorStops);
           
           console.log('✅ RoutePolyline: Simple fallback route created');
-          setRouteCreated(true);
           RouteGlobalState.setRouteCreated(true);
           
           // Verify the polylines are actually on the map
@@ -77,14 +82,15 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
         
       } catch (error) {
         console.error('❌ RoutePolyline: Error creating route:', error);
-        // Don't set routeCreated to true on error - allow retry
+        // Clear global state on error so we can retry
+        RouteGlobalState.clearAll();
       } finally {
         setIsCreating(false);
       }
     };
 
     createRoute();
-  }, [map, waypoints, routeCreated, isCreating]);
+  }, [map, waypoints, isCreating]);
 
   // Cleanup on unmount
   useEffect(() => {
