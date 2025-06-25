@@ -93,11 +93,14 @@ export const useEnhancedPhotoUpload = () => {
       if (result.success) {
         setModerationResults(result.moderationResults);
         
+        // Declare isNewTrailblazer at this level so it's accessible in the return statement
+        let isNewTrailblazer = false;
+        
         if (result.allowed) {
           setPhotoUrl(result.photoUrl);
           
           // Check if this upload made the user a trailblazer
-          const isNewTrailblazer = result.isTrailblazer || false;
+          isNewTrailblazer = result.isTrailblazer || false;
           setIsTrailblazer(isNewTrailblazer);
           
           if (isNewTrailblazer) {
