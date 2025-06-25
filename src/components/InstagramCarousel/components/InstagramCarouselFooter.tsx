@@ -25,7 +25,7 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
   onNext
 }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 mt-8">
       {/* Page Info */}
       <div className="text-center">
         <p className="text-gray-600 font-medium">
@@ -33,23 +33,23 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
         </p>
       </div>
 
-      {/* Enhanced Pagination Controls with Blue Theme */}
-      <div className="flex items-center justify-center gap-6">
+      {/* Pagination Controls matching reference design */}
+      <div className="flex items-center justify-center gap-4">
         <Button
           onClick={onPrevious}
           disabled={!canGoPrevious}
           variant="outline"
           size="lg"
           className="
-            flex items-center gap-3 px-8 py-4 rounded-full 
-            bg-white border-2 border-blue-500 text-blue-500
-            hover:bg-blue-50 hover:border-blue-600 hover:text-blue-600
+            flex items-center gap-2 px-6 py-3 rounded-md 
+            bg-red-100 border-2 border-red-300 text-red-600
+            hover:bg-red-200 hover:border-red-400
             disabled:opacity-40 disabled:cursor-not-allowed
-            shadow-md hover:shadow-lg transition-all duration-300
-            font-semibold text-lg
+            shadow-sm hover:shadow-md transition-all duration-200
+            font-medium
           "
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
           Previous
         </Button>
 
@@ -59,16 +59,16 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
           variant="outline"
           size="lg"
           className="
-            flex items-center gap-3 px-8 py-4 rounded-full 
-            bg-blue-500 border-2 border-blue-500 text-white
-            hover:bg-blue-700 hover:border-blue-700
+            flex items-center gap-2 px-6 py-3 rounded-md 
+            bg-red-500 border-2 border-red-500 text-white
+            hover:bg-red-600 hover:border-red-600
             disabled:opacity-40 disabled:cursor-not-allowed
-            shadow-md hover:shadow-lg transition-all duration-300
-            font-semibold text-lg
+            shadow-sm hover:shadow-md transition-all duration-200
+            font-medium
           "
         >
           Next
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
     </div>

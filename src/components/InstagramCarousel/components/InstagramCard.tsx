@@ -2,10 +2,8 @@
 import React, { useState } from 'react';
 import { InstagramPost } from '../types';
 import MediaDisplay from './MediaDisplay';
-import PostContent from './PostContent';
 import PostStats from './PostStats';
 import ErrorPlaceholder from './ErrorPlaceholder';
-import MediaDebugInfo from './MediaDebugInfo';
 import { ExternalLink } from 'lucide-react';
 
 interface InstagramCardProps {
@@ -28,48 +26,36 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
 
   return (
     <div 
-      className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:scale-105"
+      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group transform hover:scale-105"
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Enhanced Media Container with Larger Hover Effect */}
+      {/* Compact Media Container */}
       <div className="relative aspect-square overflow-hidden">
-        <div className="transition-transform duration-500 group-hover:scale-110">
-          <MediaDisplay post={post} />
-        </div>
+        <MediaDisplay post={post} />
         
-        {/* Hover Overlay with Blue Theme */}
+        {/* Hover Overlay */}
         <div className={`
-          absolute inset-0 bg-blue-600 bg-opacity-60 transition-opacity duration-300 flex items-center justify-center
+          absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 flex items-center justify-center
           ${isHovered ? 'opacity-100' : 'opacity-0'}
         `}>
-          <div className="bg-white bg-opacity-95 rounded-full p-4 transform transition-transform duration-300 group-hover:scale-110">
-            <ExternalLink className="w-8 h-8 text-blue-600" />
-          </div>
-          
-          {/* View Post Text with Blue Theme */}
-          <div className="absolute bottom-4 left-0 right-0 text-center">
-            <span className="text-white font-semibold text-lg bg-blue-600 bg-opacity-80 px-4 py-2 rounded-full">
-              View Post
-            </span>
+          <div className="bg-white bg-opacity-90 rounded-full p-3 transform transition-transform duration-300 group-hover:scale-110">
+            <ExternalLink className="w-6 h-6 text-gray-800" />
           </div>
         </div>
         
         {/* Like Count Overlay - Bottom Right */}
-        <div className="absolute bottom-3 right-3">
+        <div className="absolute bottom-2 right-2">
           <PostStats post={post} />
         </div>
         
-        {/* Debug info only in development mode */}
-        {process.env.NODE_ENV === 'development' && (
-          <MediaDebugInfo post={post} />
+        {/* Date overlay - Top Right */}
+        {post.timestamp && (
+          <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
+            {new Date(post.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </div>
         )}
-      </div>
-
-      {/* Simplified Content Area */}
-      <div className="p-6">
-        <PostContent post={post} />
       </div>
     </div>
   );
