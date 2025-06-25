@@ -10,123 +10,121 @@ interface NuclearRouteManagerProps {
   isMapReady: boolean;
 }
 
-// Enhanced function to generate Route 66 polyline with detailed logging
-const generateRoute66Polyline = (waypoints: Route66Waypoint[]): google.maps.LatLngLiteral[] => {
-  console.log('🛣️ generateRoute66Polyline: Starting with waypoints from database ONLY');
-  console.log('🔍 RAW waypoints from database:', waypoints.map(wp => ({
-    name: wp.name,
-    state: wp.state,
-    sequence_order: wp.sequence_order,
-    is_major_stop: wp.is_major_stop,
-    lat: wp.latitude,
-    lng: wp.longitude
-  })));
+// Enhanced function to create smooth curved path between waypoints
+const createSmoothCurvedPath = (waypoints: Route66Waypoint[]): google.maps.LatLngLiteral[] => {
+  console.log('🛣️ Creating smooth curved path for Route 66');
   
-  // STEP 1: Filter valid waypoints (ONLY from waypoints table)
   const validWaypoints = waypoints
-    .filter(wp => {
-      const isValid = wp.latitude && 
-        wp.longitude && 
-        wp.sequence_order !== null &&
-        !isNaN(wp.latitude) &&
-        !isNaN(wp.longitude) &&
-        wp.sequence_order > 0; // Ensure positive sequence
-      
-      if (!isValid) {
-        console.warn('❌ INVALID waypoint filtered out:', {
-          name: wp.name,
-          lat: wp.latitude,
-          lng: wp.longitude,
-          sequence: wp.sequence_order
-        });
-      }
-      
-      return isValid;
-    });
+    .filter(wp => wp.latitude && wp.longitude && wp.sequence_order !== null)
+    .sort((a, b) => a.sequence_order - b.sequence_order);
 
-  console.log('✅ STEP 1 - Valid waypoints after filtering:', validWaypoints.length);
-
-  // STEP 2: Sort by sequence_order (CRITICAL for correct routing)
-  const sortedWaypoints = validWaypoints.sort((a, b) => {
-    const diff = a.sequence_order - b.sequence_order;
-    console.log(`🔄 Sorting: ${a.name} (${a.sequence_order}) vs ${b.name} (${b.sequence_order}) = ${diff}`);
-    return diff;
-  });
-
-  console.log('✅ STEP 2 - Waypoints sorted by sequence_order:');
-  sortedWaypoints.forEach((wp, index) => {
-    console.log(`  ${index + 1}. SEQ ${wp.sequence_order}: ${wp.name}, ${wp.state} (${wp.latitude}, ${wp.longitude})`);
-  });
-  
-  if (sortedWaypoints.length < 2) {
-    console.error('❌ Insufficient waypoints for route:', sortedWaypoints.length);
+  if (validWaypoints.length < 2) {
+    console.error('❌ Insufficient waypoints for curved path');
     return [];
   }
 
-  // STEP 3: Generate path and validate each segment
-  const path: google.maps.LatLngLiteral[] = [];
-  const segmentLogs: string[] = [];
-  let totalDistance = 0;
-  let largeJumpCount = 0;
-  
-  sortedWaypoints.forEach((waypoint, index) => {
-    const point = {
-      lat: waypoint.latitude,
-      lng: waypoint.longitude
+  const smoothPath: google.maps.LatLngLiteral[] = [];
+  const segmentsPerSection = 15; // More segments for smoother curves
+
+  for (let i = 0; i < validWaypoints.length - 1; i++) {
+    const current = validWaypoints[i];
+    const next = validWaypoints[i + 1];
+    
+    // Get control points for Bezier curve
+    const prev = i > 0 ? validWaypoints[i - 1] : current;
+    const afterNext = i < validWaypoints.length - 2 ? validWaypoints[i + 2] : next;
+    
+    // Calculate control points for smooth curves
+    const cp1 = {
+      lat: current.latitude + (next.latitude - prev.latitude) * 0.2,
+      lng: current.longitude + (next.longitude - prev.longitude) * 0.2
     };
     
-    path.push(point);
+    const cp2 = {
+      lat: next.latitude - (afterNext.latitude - current.latitude) * 0.2,
+      lng: next.longitude - (afterNext.longitude - current.longitude) * 0.2
+    };
     
-    // Log each coordinate added
-    console.log(`📍 ADDED Point ${index + 1}: ${waypoint.name} = (${point.lat}, ${point.lng})`);
-    
-    // Validate segment distance (only between consecutive waypoints)
-    if (index > 0) {
-      const prevWaypoint = sortedWaypoints[index - 1];
-      const distance = DistanceCalculationService.calculateDistance(
-        prevWaypoint.latitude,
-        prevWaypoint.longitude,
-        waypoint.latitude,
-        waypoint.longitude
-      );
+    // Create cubic Bezier curve
+    for (let t = 0; t <= segmentsPerSection; t++) {
+      const ratio = t / segmentsPerSection;
+      const invRatio = 1 - ratio;
       
-      totalDistance += distance;
+      // Cubic Bezier formula
+      const lat = Math.pow(invRatio, 3) * current.latitude +
+                  3 * Math.pow(invRatio, 2) * ratio * cp1.lat +
+                  3 * invRatio * Math.pow(ratio, 2) * cp2.lat +
+                  Math.pow(ratio, 3) * next.latitude;
       
-      const segmentInfo = `Segment ${index}: ${prevWaypoint.name} → ${waypoint.name} = ${distance.toFixed(1)} miles`;
-      segmentLogs.push(segmentInfo);
+      const lng = Math.pow(invRatio, 3) * current.longitude +
+                  3 * Math.pow(invRatio, 2) * ratio * cp1.lng +
+                  3 * invRatio * Math.pow(ratio, 2) * cp2.lng +
+                  Math.pow(ratio, 3) * next.longitude;
       
-      // Flag large jumps (over 50 miles)
-      if (distance > 50) {
-        largeJumpCount++;
-        console.warn(`🚨 LARGE JUMP DETECTED: ${segmentInfo}`);
-        console.warn(`   Previous: (${prevWaypoint.latitude}, ${prevWaypoint.longitude})`);
-        console.warn(`   Current:  (${waypoint.latitude}, ${waypoint.longitude})`);
-      } else {
-        console.log(`✅ Normal segment: ${segmentInfo}`);
-      }
+      smoothPath.push({ lat, lng });
     }
-  });
+  }
+  
+  console.log(`✅ Created smooth curved path with ${smoothPath.length} points`);
+  return smoothPath;
+};
 
-  // STEP 4: Final validation and summary
-  console.log('🏁 ROUTE GENERATION COMPLETE:');
-  console.log(`   Total waypoints processed: ${sortedWaypoints.length}`);
-  console.log(`   Total path points: ${path.length}`);
-  console.log(`   Total distance: ${totalDistance.toFixed(1)} miles`);
-  console.log(`   Large jumps (>50mi): ${largeJumpCount}`);
-  console.log(`   Start: ${sortedWaypoints[0].name} (${path[0].lat}, ${path[0].lng})`);
-  console.log(`   End: ${sortedWaypoints[sortedWaypoints.length - 1].name} (${path[path.length - 1].lat}, ${path[path.length - 1].lng})`);
+// Function to create road-like styling with multiple layers
+const createRoadPolylines = (map: google.maps.Map, path: google.maps.LatLngLiteral[]): google.maps.Polyline[] => {
+  const polylines: google.maps.Polyline[] = [];
   
-  // Log all segments for review
-  console.log('📋 ALL SEGMENTS:');
-  segmentLogs.forEach(log => console.log(`   ${log}`));
-  
-  // Final path verification
-  console.log('🔍 FINAL PATH VERIFICATION:');
-  path.forEach((point, i) => {
-    console.log(`   ${i + 1}. (${point.lat}, ${point.lng})`);
+  // Base road (dark asphalt)
+  const baseRoad = new google.maps.Polyline({
+    path: path,
+    geodesic: true,
+    strokeColor: '#2C2C2C', // Dark asphalt gray
+    strokeOpacity: 1.0,
+    strokeWeight: 16,
+    clickable: false,
+    zIndex: 1000
   });
   
-  return path;
+  // Road surface (lighter gray)
+  const roadSurface = new google.maps.Polyline({
+    path: path,
+    geodesic: true,
+    strokeColor: '#4A4A4A', // Medium gray
+    strokeOpacity: 1.0,
+    strokeWeight: 12,
+    clickable: false,
+    zIndex: 1001
+  });
+  
+  // Center yellow divider line
+  const centerLine = new google.maps.Polyline({
+    path: path,
+    geodesic: true,
+    strokeColor: '#FFD700', // Golden yellow
+    strokeOpacity: 1.0,
+    strokeWeight: 2,
+    clickable: false,
+    zIndex: 1002,
+    icons: [{
+      icon: {
+        path: 'M 0,-1 0,1',
+        strokeOpacity: 1,
+        strokeColor: '#FFD700',
+        strokeWeight: 2
+      },
+      offset: '0',
+      repeat: '20px'
+    }]
+  });
+  
+  // Add all polylines to map
+  baseRoad.setMap(map);
+  roadSurface.setMap(map);
+  centerLine.setMap(map);
+  
+  polylines.push(baseRoad, roadSurface, centerLine);
+  
+  console.log('🛣️ Created realistic road appearance with multiple layers');
+  return polylines;
 };
 
 // Function to create numbered markers for debugging
@@ -168,18 +166,17 @@ const createDebugMarkers = (map: google.maps.Map, waypoints: Route66Waypoint[]):
 
 const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapReady }) => {
   const { waypoints, isLoading, error } = useSupabaseRoute66();
-  const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const polylinesRef = useRef<google.maps.Polyline[]>([]);
   const debugMarkersRef = useRef<google.maps.Marker[]>([]);
   const [hasCreatedRoute, setHasCreatedRoute] = useState(false);
   const initializationRef = useRef(false);
 
-  console.log('☢️ NuclearRouteManager: THE ONLY route renderer', {
+  console.log('☢️ NuclearRouteManager: Enhanced road renderer', {
     isMapReady,
     isLoading,
     error,
     waypointsCount: waypoints.length,
-    hasCreatedRoute,
-    hasPolylineRef: !!polylineRef.current
+    hasCreatedRoute
   });
 
   // NUCLEAR CLEANUP on mount
@@ -198,7 +195,7 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
     
   }, [map, isMapReady]);
 
-  // Create the SINGLE Route 66 polyline with debug markers
+  // Create the enhanced curved Route 66 road
   useEffect(() => {
     if (!initializationRef.current || !map || !isMapReady || isLoading || error || waypoints.length === 0 || hasCreatedRoute) {
       console.log('☢️ NuclearRouteManager: Skipping route creation', {
@@ -213,54 +210,40 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
       return;
     }
 
-    console.log('☢️ NuclearRouteManager: Creating THE ONLY Route 66 polyline from waypoints table');
-    console.log('📊 Data source confirmation: Using useSupabaseRoute66 hook which queries route66_waypoints table ONLY');
+    console.log('☢️ NuclearRouteManager: Creating enhanced curved Route 66 road');
 
-    // Clean up any existing polyline and debug markers first
-    if (polylineRef.current) {
-      polylineRef.current.setMap(null);
-      polylineRef.current = null;
-    }
+    // Clean up any existing polylines and debug markers first
+    polylinesRef.current.forEach(polyline => polyline.setMap(null));
+    polylinesRef.current = [];
     
     debugMarkersRef.current.forEach(marker => marker.setMap(null));
     debugMarkersRef.current = [];
 
-    // Use the enhanced function to generate the polyline path
-    const path = generateRoute66Polyline(waypoints);
+    // Create smooth curved path
+    const smoothPath = createSmoothCurvedPath(waypoints);
 
-    if (path.length < 2) {
-      console.error('☢️ NuclearRouteManager: generateRoute66Polyline returned insufficient points');
+    if (smoothPath.length < 2) {
+      console.error('☢️ NuclearRouteManager: createSmoothCurvedPath returned insufficient points');
       return;
     }
 
-    console.log('☢️ NuclearRouteManager: Creating NUCLEAR SINGLE polyline with', path.length, 'points');
+    console.log('☢️ NuclearRouteManager: Creating realistic road with', smoothPath.length, 'curved points');
 
-    // Create the ONLY polyline
-    const polyline = new google.maps.Polyline({
-      path: path,
-      geodesic: true,
-      strokeColor: '#DC2626', // Bright red for visibility
-      strokeOpacity: 1.0,
-      strokeWeight: 6,
-      clickable: false,
-      zIndex: 1000
-    });
-
-    // Add to map
-    polyline.setMap(map);
-    polylineRef.current = polyline;
+    // Create road-like polylines
+    const roadPolylines = createRoadPolylines(map, smoothPath);
+    polylinesRef.current = roadPolylines;
     setHasCreatedRoute(true);
     
     // Create debug markers for sequence validation
     debugMarkersRef.current = createDebugMarkers(map, waypoints);
     
     // Track in global state
-    RouteGlobalState.addPolylines([polyline]);
+    RouteGlobalState.addPolylines(roadPolylines);
     RouteGlobalState.setRouteCreated(true);
 
     // Fit map to route bounds
     const bounds = new google.maps.LatLngBounds();
-    path.forEach(point => bounds.extend(point));
+    smoothPath.forEach(point => bounds.extend(point));
     map.fitBounds(bounds);
 
     // Zoom out slightly for better view
@@ -269,15 +252,12 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
       map.setZoom(Math.max(4, currentZoom - 1));
     }, 1000);
 
-    console.log('☢️ NuclearRouteManager: NUCLEAR SINGLE Route 66 polyline created successfully');
-    console.log('✅ FINAL VERIFICATION: Polyline connects', path.length, 'points sequentially from waypoints table ONLY');
+    console.log('☢️ NuclearRouteManager: Enhanced curved Route 66 road created successfully');
 
     // Add cleanup callback
     RouteGlobalState.addCleanupCallback(() => {
-      if (polylineRef.current) {
-        polylineRef.current.setMap(null);
-        polylineRef.current = null;
-      }
+      polylinesRef.current.forEach(polyline => polyline.setMap(null));
+      polylinesRef.current = [];
       debugMarkersRef.current.forEach(marker => marker.setMap(null));
       debugMarkersRef.current = [];
       setHasCreatedRoute(false);
@@ -289,10 +269,8 @@ const NuclearRouteManager: React.FC<NuclearRouteManagerProps> = ({ map, isMapRea
   useEffect(() => {
     return () => {
       console.log('☢️ NuclearRouteManager: Component unmounting - cleaning up');
-      if (polylineRef.current) {
-        polylineRef.current.setMap(null);
-        polylineRef.current = null;
-      }
+      polylinesRef.current.forEach(polyline => polyline.setMap(null));
+      polylinesRef.current = [];
       debugMarkersRef.current.forEach(marker => marker.setMap(null));
       debugMarkersRef.current = [];
       setHasCreatedRoute(false);
