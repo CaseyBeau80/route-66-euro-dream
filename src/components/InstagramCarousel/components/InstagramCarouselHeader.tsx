@@ -4,8 +4,8 @@ import React from 'react';
 const InstagramCarouselHeader = () => {
   return (
     <div className="mb-16">
-      {/* Hero-style Header Banner */}
-      <div className="bg-gradient-to-r from-route66-background-alt to-white rounded-2xl shadow-lg border border-route66-border/20 overflow-hidden">
+      {/* Hero-style Header Banner with Blue Theme */}
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl shadow-lg border-2 border-route66-primary/20 overflow-hidden">
         <div className="py-12 px-8 text-center">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-route66 font-bold text-route66-primary mb-6 uppercase tracking-wide">
             Route 66 Adventures
@@ -15,13 +15,13 @@ const InstagramCarouselHeader = () => {
           </p>
         </div>
         
-        {/* Decorative Bottom Border */}
-        <div className="h-2 bg-gradient-to-r from-route66-primary via-route66-accent-red to-route66-orange"></div>
+        {/* Decorative Bottom Border with Blue Theme */}
+        <div className="h-2 bg-gradient-to-r from-route66-primary via-blue-600 to-route66-primary"></div>
       </div>
       
       {/* Optional Section Divider */}
       <div className="mt-8 flex justify-center">
-        <div className="w-32 h-1 bg-gradient-to-r from-transparent via-route66-text-muted to-transparent rounded-full opacity-30"></div>
+        <div className="w-32 h-1 bg-gradient-to-r from-transparent via-route66-primary to-transparent rounded-full opacity-30"></div>
       </div>
     </div>
   );

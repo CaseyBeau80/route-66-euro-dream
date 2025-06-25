@@ -29,7 +29,7 @@ const InstagramCarousel = () => {
   }
 
   return (
-    <section className="py-20 bg-route66-background-section">
+    <section className="py-20 bg-blue-50">
       <div className="container mx-auto px-4 max-w-7xl">
         <InstagramCarouselHeader />
         
