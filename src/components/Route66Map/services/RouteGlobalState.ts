@@ -1,34 +1,43 @@
 
 export class RouteGlobalState {
-  private static polylineSegments: google.maps.Polyline[] = [];
-  private static directionsRenderers: google.maps.DirectionsRenderer[] = [];
-  private static markers: google.maps.Marker[] = [];
-  private static routeMarkers: google.maps.Marker[] = [];
-  private static smoothPolyline: google.maps.Polyline | null = null;
-  private static centerLine: google.maps.Polyline | null = null;
   private static routeCreated: boolean = false;
+  private static polylines: google.maps.Polyline[] = [];
+  private static routeMarkers: google.maps.Marker[] = [];
+  private static lastCreationTimestamp: number = 0;
 
-  static addPolylineSegment(polyline: google.maps.Polyline): void {
-    this.polylineSegments.push(polyline);
+  static setRouteCreated(created: boolean): void {
+    console.log(`🌍 RouteGlobalState: Route created status changed to ${created}`);
+    this.routeCreated = created;
+    if (created) {
+      this.lastCreationTimestamp = Date.now();
+    }
   }
 
-  static addDirectionsRenderer(renderer: google.maps.DirectionsRenderer): void {
-    this.directionsRenderers.push(renderer);
+  static isRouteCreated(): boolean {
+    return this.routeCreated;
   }
 
-  static addMarker(marker: google.maps.Marker): void {
-    this.markers.push(marker);
+  static getLastCreationTimestamp(): number {
+    return this.lastCreationTimestamp;
   }
 
-  static getPolylineSegments(): google.maps.Polyline[] {
-    return this.polylineSegments;
+  static addPolylines(polylines: google.maps.Polyline[]): void {
+    console.log(`🌍 RouteGlobalState: Adding ${polylines.length} polylines to global state`);
+    this.polylines = [...this.polylines, ...polylines];
   }
 
-  static clearPolylineSegments(): void {
-    this.polylineSegments.forEach(polyline => {
-      polyline.setMap(null);
-    });
-    this.polylineSegments = [];
+  static getPolylines(): google.maps.Polyline[] {
+    return this.polylines;
+  }
+
+  static getPolylineCount(): number {
+    // Filter out null/invalid polylines
+    const validPolylines = this.polylines.filter(p => p && p.getMap());
+    return validPolylines.length;
+  }
+
+  static addRouteMarker(marker: google.maps.Marker): void {
+    this.routeMarkers.push(marker);
   }
 
   static getRouteMarkers(): google.maps.Marker[] {
@@ -36,80 +45,40 @@ export class RouteGlobalState {
   }
 
   static clearRouteMarkers(): void {
-    this.routeMarkers.forEach(marker => {
-      marker.setMap(null);
-    });
+    console.log('🌍 RouteGlobalState: Clearing route markers');
     this.routeMarkers = [];
   }
 
-  static getSmoothPolyline(): google.maps.Polyline | null {
-    return this.smoothPolyline;
-  }
-
-  static setSmoothPolyline(polyline: google.maps.Polyline | null): void {
-    this.smoothPolyline = polyline;
-  }
-
-  static getCenterLine(): google.maps.Polyline | null {
-    return this.centerLine;
-  }
-
-  static setCenterLine(centerLine: google.maps.Polyline | null): void {
-    this.centerLine = centerLine;
-  }
-
-  static isRouteCreated(): boolean {
-    return this.routeCreated;
-  }
-
-  static setRouteCreated(created: boolean): void {
-    this.routeCreated = created;
+  static clearPolylines(): void {
+    console.log('🌍 RouteGlobalState: Clearing polylines from global state');
+    // Remove polylines from map
+    this.polylines.forEach(polyline => {
+      try {
+        if (polyline && polyline.getMap()) {
+          polyline.setMap(null);
+        }
+      } catch (error) {
+        console.warn('⚠️ Error removing polyline:', error);
+      }
+    });
+    this.polylines = [];
   }
 
   static clearAll(): void {
-    console.log('🧹 RouteGlobalState: Clearing all route elements');
-    
-    // Clear polylines
-    this.polylineSegments.forEach(polyline => {
-      polyline.setMap(null);
-    });
-    this.polylineSegments = [];
-
-    // Clear directions renderers
-    this.directionsRenderers.forEach(renderer => {
-      renderer.setMap(null);
-    });
-    this.directionsRenderers = [];
-
-    // Clear markers
-    this.markers.forEach(marker => {
-      marker.setMap(null);
-    });
-    this.markers = [];
-
-    // Clear route markers
+    console.log('🌍 RouteGlobalState: Complete reset');
+    this.clearPolylines();
     this.clearRouteMarkers();
-
-    // Clear legacy polylines
-    if (this.smoothPolyline) {
-      this.smoothPolyline.setMap(null);
-      this.smoothPolyline = null;
-    }
-    
-    if (this.centerLine) {
-      this.centerLine.setMap(null);
-      this.centerLine = null;
-    }
-
-    // Reset route created flag
     this.routeCreated = false;
+    this.lastCreationTimestamp = 0;
   }
 
-  static getPolylineCount(): number {
-    return this.polylineSegments.length;
-  }
-
-  static getRendererCount(): number {
-    return this.directionsRenderers.length;
+  static getDebugInfo(): object {
+    return {
+      routeCreated: this.routeCreated,
+      polylinesCount: this.getPolylineCount(),
+      routeMarkersCount: this.routeMarkers.length,
+      lastCreationTimestamp: this.lastCreationTimestamp,
+      timeSinceCreation: this.lastCreationTimestamp ? Date.now() - this.lastCreationTimestamp : 0
+    };
   }
 }

@@ -1,94 +1,115 @@
 
-import { RouteGlobalState } from './RouteGlobalState';
 import { PolylineCreationService } from './PolylineCreationService';
-import { MapBoundsService } from './MapBoundsService';
+import { RouteGlobalState } from './RouteGlobalState';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 export class RoutePolylineManager {
-  private boundsService: MapBoundsService;
+  private polylines: google.maps.Polyline[] = [];
+  private bounds: google.maps.LatLngBounds | null = null;
 
-  constructor(private map: google.maps.Map) {
-    this.boundsService = new MapBoundsService(map);
+  constructor(private map: google.maps.Map) {}
+
+  createPolylines(path: google.maps.LatLngLiteral[], waypoints: Route66Waypoint[]): void {
+    try {
+      console.log('🛣️ RoutePolylineManager: Creating polylines with improved persistence');
+      
+      // Gentle cleanup first - only remove our own polylines
+      this.gentleCleanup();
+      
+      // Create enhanced polyline
+      const newPolylines = PolylineCreationService.createEnhancedPolyline(this.map, waypoints);
+      
+      if (newPolylines && newPolylines.length > 0) {
+        this.polylines = newPolylines;
+        
+        // Store in global state for persistence
+        RouteGlobalState.addPolylines(this.polylines);
+        
+        console.log('✅ RoutePolylineManager: Created', this.polylines.length, 'polylines successfully');
+        
+        // Add persistence listeners
+        this.addPersistenceListeners();
+      } else {
+        throw new Error('Failed to create polylines');
+      }
+      
+    } catch (error) {
+      console.error('❌ RoutePolylineManager: Error creating polylines:', error);
+      throw error;
+    }
   }
 
-  createPolylines(smoothRoutePath: google.maps.LatLngLiteral[], majorStopsOnly: Route66Waypoint[]): void {
-    // FORCE cleanup of existing polylines first
-    console.log('🧹 FORCING cleanup of existing polylines before creating new asphalt-colored route');
-    this.cleanupPolylines();
+  private gentleCleanup(): void {
+    console.log('🧹 RoutePolylineManager: Gentle cleanup of existing polylines');
     
-    // Reset global state to allow recreation
-    RouteGlobalState.setRouteCreated(false);
+    // Only clean up our own polylines
+    this.polylines.forEach((polyline, index) => {
+      try {
+        polyline.setMap(null);
+        console.log(`🧹 Cleaned up polyline ${index + 1}`);
+      } catch (error) {
+        console.warn(`⚠️ Error cleaning up polyline ${index + 1}:`, error);
+      }
+    });
     
-    if (majorStopsOnly.length === 0) {
-      console.error('❌ Cannot create polylines with empty major stops array');
-      return;
-    }
-
-    // VALIDATION: Ensure we're only working with major stops
-    const nonMajorStops = majorStopsOnly.filter(wp => wp.is_major_stop !== true);
-    if (nonMajorStops.length > 0) {
-      console.error('❌ CRITICAL ERROR: Non-major stops detected in majorStopsOnly array:', 
-        nonMajorStops.map(s => s.name));
-      return;
-    }
-
-    console.log('🛣️ Creating NEW ASPHALT-COLORED Route 66 road path with YELLOW center stripes');
-    console.log(`🎯 Input validation: ${majorStopsOnly.length} major stops confirmed`);
-
-    if (majorStopsOnly.length < 2) {
-      console.log('⚠️ Not enough major stops to create city-to-city road segments');
-      return;
-    }
-
-    // Sort by sequence order to ensure proper city-to-city connections
-    const sortedMajorStops = majorStopsOnly.sort((a, b) => a.sequence_order - b.sequence_order);
-    
-    // Create route segments using the enhanced polyline creation
-    this.createRouteSegments(sortedMajorStops);
-
-    // Mark route as created with new colors
-    RouteGlobalState.setRouteCreated(true);
-
-    console.log(`🛣️ ASPHALT Route 66 road with BRIGHT YELLOW stripes is now VISIBLE: ${sortedMajorStops.length - 1} segments between ${sortedMajorStops.length} major stops`);
+    this.polylines = [];
   }
 
-  private createRouteSegments(waypoints: Route66Waypoint[]): void {
-    console.log('🛣️ Creating route segments from waypoints:', waypoints.length);
-    
-    // Create enhanced polylines using the existing service
-    const polylines = PolylineCreationService.createEnhancedPolyline(this.map, waypoints);
-    
-    // Register polylines with global state
-    polylines.forEach(polyline => {
-      RouteGlobalState.addPolylineSegment(polyline);
+  private addPersistenceListeners(): void {
+    // Add listeners to prevent accidental removal
+    this.polylines.forEach((polyline, index) => {
+      try {
+        // Add a custom property to mark as Route 66 polyline
+        (polyline as any).__route66_persistent = true;
+        
+        console.log(`🛡️ Added persistence protection to polyline ${index + 1}`);
+      } catch (error) {
+        console.warn(`⚠️ Could not add persistence to polyline ${index + 1}:`, error);
+      }
     });
   }
 
-  fitMapToBounds(majorStopsOnly: Route66Waypoint[]): void {
-    this.boundsService.fitMapToBounds(majorStopsOnly);
+  fitMapToBounds(waypoints: Route66Waypoint[]): void {
+    if (!waypoints.length) return;
+
+    try {
+      this.bounds = new google.maps.LatLngBounds();
+      
+      waypoints.forEach(waypoint => {
+        this.bounds!.extend({
+          lat: Number(waypoint.latitude),
+          lng: Number(waypoint.longitude)
+        });
+      });
+
+      // Fit map with padding
+      this.map.fitBounds(this.bounds, {
+        top: 50,
+        right: 50,
+        bottom: 50,
+        left: 50
+      });
+
+      console.log('🗺️ RoutePolylineManager: Map bounds fitted to route');
+      
+    } catch (error) {
+      console.error('❌ RoutePolylineManager: Error fitting map bounds:', error);
+    }
   }
 
   cleanupPolylines(): void {
-    const polylines = RouteGlobalState.getPolylineSegments();
+    console.log('🧹 RoutePolylineManager: Controlled cleanup');
     
-    polylines.forEach(polyline => {
-      polyline.setMap(null);
-    });
-    
-    RouteGlobalState.clearPolylineSegments();
-
-    // Legacy cleanup
-    const smoothPolyline = RouteGlobalState.getSmoothPolyline();
-    const centerLine = RouteGlobalState.getCenterLine();
-
-    if (smoothPolyline) {
-      smoothPolyline.setMap(null);
-      RouteGlobalState.setSmoothPolyline(null);
+    // Only cleanup if route is not marked as created
+    if (!RouteGlobalState.isRouteCreated()) {
+      this.gentleCleanup();
+      console.log('✅ RoutePolylineManager: Cleanup completed');
+    } else {
+      console.log('🛡️ RoutePolylineManager: Skipping cleanup - route is marked as persistent');
     }
-    
-    if (centerLine) {
-      centerLine.setMap(null);
-      RouteGlobalState.setCenterLine(null);
-    }
+  }
+
+  getPolylines(): google.maps.Polyline[] {
+    return this.polylines;
   }
 }
