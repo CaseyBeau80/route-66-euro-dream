@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import MapInitializerCore from './MapInitializerCore';
-import CleanSingleRoute from './CleanSingleRoute';
+import AccurateRoute66Polyline from './AccurateRoute66Polyline';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
 import HiddenGemsContainer from './HiddenGemsContainer';
@@ -46,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - Clean Single Route System:', {
+  console.log('🗺️ MapCore render - Using AccurateRoute66Polyline:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -71,12 +71,11 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* Clean Single Route - Simple and Reliable */}
-      {mapRef.current && isMapReady && visibleWaypoints.length > 0 && (
-        <CleanSingleRoute
-          key={`clean-route-${isMapReady}-${visibleWaypoints.length}`}
+      {/* UPDATED: Use AccurateRoute66Polyline for complete waypoints-based rendering */}
+      {mapRef.current && isMapReady && (
+        <AccurateRoute66Polyline
           map={mapRef.current}
-          waypoints={visibleWaypoints}
+          isMapReady={isMapReady}
         />
       )}
 

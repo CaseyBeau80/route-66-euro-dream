@@ -1,141 +1,67 @@
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Info, MapPin, Database } from 'lucide-react';
-import { useDestinationCities } from '../hooks/useDestinationCities';
-import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
+import { Bug, Database, CheckCircle } from 'lucide-react';
+import WaypointValidationDisplay from './WaypointValidationDisplay';
 
 interface MapDebugPanelProps {
-  map?: google.maps.Map;
+  map: google.maps.Map | null;
 }
 
 const MapDebugPanel: React.FC<MapDebugPanelProps> = ({ map }) => {
+  const [showValidation, setShowValidation] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const { destinationCities, isLoading: citiesLoading } = useDestinationCities();
-  const { waypoints, isLoading: waypointsLoading } = useSupabaseRoute66();
 
-  const santaFeInCities = destinationCities.find(city => 
-    city.name.toLowerCase().includes('santa fe')
-  );
-
-  const santaFeInWaypoints = waypoints.find(waypoint => 
-    waypoint.name.toLowerCase().includes('santa fe')
-  );
-
-  if (!isExpanded) {
-    return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-colors"
-        >
-          <Info className="w-5 h-5" />
-        </button>
-      </div>
-    );
-  }
+  if (!map) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-white rounded-lg shadow-xl border border-gray-200 max-w-md">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-          <Database className="w-4 h-4" />
-          Map Debug Panel
-        </h3>
+    <>
+      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg border z-40">
+        {/* Toggle Button */}
         <button
-          onClick={() => setIsExpanded(false)}
-          className="text-gray-500 hover:text-gray-700"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 p-3 hover:bg-gray-50 rounded-lg"
         >
-          <ChevronUp className="w-4 h-4" />
+          <Bug className="h-4 w-4 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Debug Panel</span>
         </button>
-      </div>
-      
-      <div className="p-4 space-y-4">
-        {/* Map Status */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-gray-900">Map Status</h4>
-          <div className="text-sm space-y-1">
-            <div className="flex justify-between">
-              <span>Google Maps:</span>
-              <span className={!!window.google?.maps ? 'text-green-600' : 'text-red-600'}>
-                {!!window.google?.maps ? '✓ Ready' : '✗ Not Ready'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Map Instance:</span>
-              <span className={!!map ? 'text-green-600' : 'text-red-600'}>
-                {!!map ? '✓ Available' : '✗ Missing'}
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Destination Cities Status */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-gray-900">Destination Cities</h4>
-          <div className="text-sm space-y-1">
-            <div className="flex justify-between">
-              <span>Loading:</span>
-              <span className={citiesLoading ? 'text-yellow-600' : 'text-green-600'}>
-                {citiesLoading ? 'Yes' : 'No'}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Count:</span>
-              <span className="text-blue-600">{destinationCities.length}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Santa Fe Status */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-gray-900 flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
-            Santa Fe Status
-          </h4>
-          <div className="text-sm space-y-2">
-            <div className="bg-gray-50 p-2 rounded">
-              <div className="font-medium">In destination_cities:</div>
-              {santaFeInCities ? (
-                <div className="text-green-600 mt-1">
-                  ✓ Found: {santaFeInCities.name}, {santaFeInCities.state}
-                  <br />
-                  Coords: {santaFeInCities.latitude}, {santaFeInCities.longitude}
-                </div>
-              ) : (
-                <div className="text-red-600 mt-1">✗ Not found</div>
-              )}
-            </div>
+        {/* Expanded Content */}
+        {isExpanded && (
+          <div className="border-t p-3 space-y-2">
+            <div className="text-xs text-gray-500 mb-2">Map Debug Tools</div>
             
-            <div className="bg-gray-50 p-2 rounded">
-              <div className="font-medium">In route66_waypoints:</div>
-              {santaFeInWaypoints ? (
-                <div className="text-blue-600 mt-1">
-                  ✓ Found: {santaFeInWaypoints.name}, {santaFeInWaypoints.state}
-                  <br />
-                  Major Stop: {santaFeInWaypoints.is_major_stop ? 'Yes' : 'No'}
-                </div>
-              ) : (
-                <div className="text-gray-600 mt-1">✗ Not found</div>
-              )}
+            {/* Map Info */}
+            <div className="text-xs space-y-1">
+              <div>Zoom: {map.getZoom()?.toFixed(1)}</div>
+              <div>
+                Center: {map.getCenter()?.lat().toFixed(4)}, {map.getCenter()?.lng().toFixed(4)}
+              </div>
+            </div>
+
+            {/* Validation Button */}
+            <button
+              onClick={() => setShowValidation(true)}
+              className="flex items-center gap-2 w-full p-2 text-left text-sm bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+            >
+              <Database className="h-4 w-4 text-blue-600" />
+              <span className="text-blue-700">Validate Waypoints</span>
+            </button>
+
+            {/* Route Status */}
+            <div className="flex items-center gap-2 p-2 bg-green-50 rounded border border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="text-xs text-green-700">AccurateRoute66Polyline Active</span>
             </div>
           </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-2">
-          <h4 className="font-medium text-gray-900">Quick Actions</h4>
-          <button
-            onClick={() => {
-              console.log('🔄 Force refresh destination cities data');
-              window.location.reload();
-            }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors"
-          >
-            Refresh Data
-          </button>
-        </div>
+        )}
       </div>
-    </div>
+
+      {/* Validation Modal */}
+      <WaypointValidationDisplay
+        isVisible={showValidation}
+        onClose={() => setShowValidation(false)}
+      />
+    </>
   );
 };
 
