@@ -41,19 +41,6 @@ class RouteGlobalStateManager {
       }
     });
     
-    // Clear any polylines that might exist on the map but aren't tracked
-    if (this.activeMap) {
-      try {
-        // Force clear by iterating through all map overlays
-        const mapInstance = this.activeMap as any;
-        if (mapInstance.overlayMapTypes) {
-          mapInstance.overlayMapTypes.clear();
-        }
-      } catch (error) {
-        console.warn('⚠️ Error during nuclear overlay cleanup:', error);
-      }
-    }
-    
     // Execute all cleanup callbacks
     this.cleanupCallbacks.forEach((callback, index) => {
       try {
@@ -73,8 +60,17 @@ class RouteGlobalStateManager {
   }
 
   addPolylines(polylines: google.maps.Polyline[]): void {
-    this.activePolylines = [...this.activePolylines, ...polylines];
-    console.log('📍 RouteGlobalState: Added', polylines.length, 'polylines. Total:', this.activePolylines.length);
+    // Clear existing polylines before adding new ones to ensure only one exists
+    this.activePolylines.forEach(polyline => {
+      try {
+        polyline.setMap(null);
+      } catch (error) {
+        console.warn('⚠️ Error clearing existing polyline:', error);
+      }
+    });
+    
+    this.activePolylines = [...polylines];
+    console.log('📍 RouteGlobalState: Replaced with', polylines.length, 'polylines. Total:', this.activePolylines.length);
   }
 
   addCleanupCallback(callback: () => void): void {
