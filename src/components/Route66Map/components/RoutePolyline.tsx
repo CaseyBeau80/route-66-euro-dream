@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { RouteCreationService } from '../services/RouteCreationService';
 import { NuclearCleanupService } from '../services/NuclearCleanupService';
 import { RouteGlobalState } from '../services/RouteGlobalState';
+import { FallbackRouteCreator } from '../services/FallbackRouteCreator';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface RoutePolylineProps {
@@ -14,12 +15,14 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
   const [routeCreated, setRouteCreated] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  console.log('🛣️ RoutePolyline: Re-enabled and ready to create route', {
+  console.log('🛣️ RoutePolyline: DEBUG STATE', {
     waypointsCount: waypoints.length,
     hasMap: !!map,
     routeCreated,
     isCreating,
-    globalRouteState: RouteGlobalState.isRouteCreated()
+    globalRouteState: RouteGlobalState.isRouteCreated(),
+    globalPolylineCount: RouteGlobalState.getPolylineCount(),
+    debugInfo: RouteGlobalState.getDebugInfo()
   });
 
   useEffect(() => {
@@ -36,40 +39,38 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
 
     const createRoute = async () => {
       setIsCreating(true);
-      console.log('🛣️ RoutePolyline: Starting route creation with waypoints:', waypoints.length);
+      console.log('🛣️ RoutePolyline: STARTING ROUTE CREATION WITH FALLBACK');
 
       try {
-        // Simple cleanup first
+        // Clear everything first
         const cleanupService = new NuclearCleanupService(map);
         cleanupService.performNuclearCleanup();
+        RouteGlobalState.clearAll();
 
         // Small delay to ensure cleanup is complete
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        // Create route with better error handling
-        const routeService = new RouteCreationService(map);
-        
-        // Filter to major stops only for cleaner route
-        const majorStops = waypoints.filter(wp => wp.is_major_stop).slice(0, 20); // Limit to prevent too many waypoints
+        // Filter to major stops only
+        const majorStops = waypoints.filter(wp => wp.is_major_stop).slice(0, 15);
         
         if (majorStops.length >= 2) {
-          console.log('🛣️ RoutePolyline: Creating route with', majorStops.length, 'major stops');
+          console.log('🛣️ RoutePolyline: Creating SIMPLE FALLBACK route first');
           
-          // Convert to destination city format for route creation
-          const destinationCities = majorStops.map(wp => ({
-            id: wp.id,
-            name: wp.name,
-            state: wp.state,
-            latitude: Number(wp.latitude),
-            longitude: Number(wp.longitude),
-            description: wp.description
-          }));
-
-          await routeService.createFlowingRoute66(destinationCities);
+          // FIRST: Create a simple fallback route that should definitely work
+          const fallbackCreator = new FallbackRouteCreator(map);
+          fallbackCreator.createAsphaltFallbackRoute(majorStops);
           
-          console.log('✅ RoutePolyline: Route created successfully');
+          console.log('✅ RoutePolyline: Simple fallback route created');
           setRouteCreated(true);
           RouteGlobalState.setRouteCreated(true);
+          
+          // Verify the polylines are actually on the map
+          const polylineCount = RouteGlobalState.getPolylineCount();
+          console.log('🔍 RoutePolyline: Polyline verification after creation:', {
+            count: polylineCount,
+            globalDebug: RouteGlobalState.getDebugInfo()
+          });
+          
         } else {
           console.warn('⚠️ RoutePolyline: Not enough major stops for route creation');
         }
@@ -89,10 +90,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
   useEffect(() => {
     return () => {
       console.log('🧹 RoutePolyline: Cleanup on unmount');
-      if (map) {
-        const cleanupService = new NuclearCleanupService(map);
-        cleanupService.performNuclearCleanup();
-      }
+      // Don't cleanup - let the route persist
     };
   }, [map]);
 

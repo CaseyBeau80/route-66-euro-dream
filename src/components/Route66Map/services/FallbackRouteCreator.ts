@@ -6,51 +6,66 @@ export class FallbackRouteCreator {
   constructor(private map: google.maps.Map) {}
 
   createAsphaltFallbackRoute(majorStops: Route66Waypoint[]): void {
-    console.log('🔄 Creating ASPHALT fallback straight-line route with BRIGHT YELLOW stripes');
+    console.log('🔄 FallbackRouteCreator: Creating GUARANTEED VISIBLE fallback route');
+    console.log('🔄 FallbackRouteCreator: Input major stops:', majorStops.length);
     
+    if (majorStops.length < 2) {
+      console.error('❌ FallbackRouteCreator: Need at least 2 stops');
+      return;
+    }
+
     const routePath = majorStops.map(stop => ({
       lat: stop.latitude,
       lng: stop.longitude
     }));
 
-    const fallbackPolyline = new google.maps.Polyline({
-      path: routePath,
-      geodesic: true,
-      strokeColor: '#2C2C2C', // Dark charcoal/asphalt color
-      strokeOpacity: 0.9,
-      strokeWeight: 8,
-      zIndex: 10000,
-      clickable: false,
-      map: this.map
-    });
+    console.log('🔄 FallbackRouteCreator: Route path coordinates:', routePath);
 
-    // Add bright yellow center line to fallback route
-    const fallbackCenterLine = new google.maps.Polyline({
-      path: routePath,
-      geodesic: true,
-      strokeColor: '#FFD700', // Bright yellow
-      strokeOpacity: 0,
-      strokeWeight: 0,
-      zIndex: 10001,
-      clickable: false,
-      map: this.map,
-      icons: [{
-        icon: {
-          path: 'M 0,-1 0,1',
-          strokeOpacity: 1.0, // Full opacity for bright yellow
-          strokeColor: '#FFD700', // Bright yellow
-          strokeWeight: 2,
-          scale: 1
-        },
-        offset: '0%',
-        repeat: '40px'
-      }]
-    });
+    try {
+      // Create main asphalt polyline - BRIGHT AND VISIBLE
+      const fallbackPolyline = new google.maps.Polyline({
+        path: routePath,
+        geodesic: true,
+        strokeColor: '#FF0000', // BRIGHT RED to ensure visibility
+        strokeOpacity: 1.0, // Full opacity
+        strokeWeight: 8, // Thick line
+        zIndex: 10000,
+        clickable: false,
+        map: this.map
+      });
 
-    console.log('✅ ASPHALT Fallback route with BRIGHT YELLOW stripes created');
-    
-    // Store in global state for cleanup
-    RouteGlobalState.addPolylines([fallbackPolyline]);
-    RouteGlobalState.addPolylines([fallbackCenterLine]);
+      console.log('✅ FallbackRouteCreator: Main polyline created and added to map');
+
+      // Create bright yellow center line
+      const fallbackCenterLine = new google.maps.Polyline({
+        path: routePath,
+        geodesic: true,
+        strokeColor: '#FFFF00', // BRIGHT YELLOW
+        strokeOpacity: 1.0,
+        strokeWeight: 3,
+        zIndex: 10001,
+        clickable: false,
+        map: this.map
+      });
+
+      console.log('✅ FallbackRouteCreator: Center line created and added to map');
+
+      // Store in global state for cleanup
+      RouteGlobalState.addPolylines([fallbackPolyline, fallbackCenterLine]);
+      
+      // Verify polylines are actually visible
+      console.log('🔍 FallbackRouteCreator: Polyline verification:', {
+        mainPolylineMap: !!fallbackPolyline.getMap(),
+        centerLineMap: !!fallbackCenterLine.getMap(),
+        mainPolylinePath: fallbackPolyline.getPath()?.getLength(),
+        centerLinePath: fallbackCenterLine.getPath()?.getLength()
+      });
+
+      console.log('✅ FallbackRouteCreator: GUARANTEED VISIBLE route created successfully');
+      
+    } catch (error) {
+      console.error('❌ FallbackRouteCreator: Error creating fallback route:', error);
+      throw error;
+    }
   }
 }
