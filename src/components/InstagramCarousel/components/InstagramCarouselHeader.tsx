@@ -1,15 +1,28 @@
 
 import React from 'react';
 
-const InstagramCarouselHeader: React.FC = () => {
+const InstagramCarouselHeader = () => {
   return (
-    <div className="text-center mb-12 bg-white p-8 rounded-xl shadow-2xl border-4 border-route66-red">
-      <h2 className="text-4xl font-route66 text-route66-red mb-4 font-bold">
-        Route 66 Adventures
-      </h2>
-      <p className="text-gray-900 max-w-2xl mx-auto text-xl font-semibold">
-        Discover authentic moments from the Mother Road through the eyes of fellow travelers
-      </p>
+    <div className="mb-16">
+      {/* Hero-style Header Banner */}
+      <div className="bg-gradient-to-r from-route66-background-alt to-white rounded-2xl shadow-lg border border-route66-border/20 overflow-hidden">
+        <div className="py-12 px-8 text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-route66 font-bold text-route66-primary mb-6 uppercase tracking-wide">
+            Route 66 Adventures
+          </h2>
+          <p className="text-xl md:text-2xl text-route66-text-secondary max-w-4xl mx-auto leading-relaxed font-medium">
+            Discover authentic moments from the Mother Road through the eyes of fellow travelers
+          </p>
+        </div>
+        
+        {/* Decorative Bottom Border */}
+        <div className="h-2 bg-gradient-to-r from-route66-primary via-route66-accent-red to-route66-orange"></div>
+      </div>
+      
+      {/* Optional Section Divider */}
+      <div className="mt-8 flex justify-center">
+        <div className="w-32 h-1 bg-gradient-to-r from-transparent via-route66-text-muted to-transparent rounded-full opacity-30"></div>
+      </div>
     </div>
   );
 };

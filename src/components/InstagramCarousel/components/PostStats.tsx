@@ -1,58 +1,21 @@
 
 import React from 'react';
 import { InstagramPost } from '../types';
-import { Heart, MessageCircle, ExternalLink } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 interface PostStatsProps {
   post: InstagramPost;
 }
 
 const PostStats: React.FC<PostStatsProps> = ({ post }) => {
-  const formatCount = (count: number | null) => {
-    if (!count) return '0';
-    if (count >= 1000) {
-      return `${(count / 1000).toFixed(1)}k`;
-    }
-    return count.toString();
-  };
-
-  const handleLinkClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent the parent card click
-    window.open(post.permalink, '_blank', 'noopener,noreferrer');
-  };
+  if (!post.like_count) return null;
 
   return (
-    <div className="space-y-3">
-      {/* Stats and Link */}
-      <div className="flex items-center justify-between border-t border-gray-200 pt-3">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 text-gray-600 text-sm">
-            <Heart className="w-4 h-4 text-red-500" />
-            <span>{formatCount(post.like_count)}</span>
-          </div>
-          <div className="flex items-center gap-1 text-gray-600 text-sm">
-            <MessageCircle className="w-4 h-4 text-blue-500" />
-            <span>{formatCount(post.comments_count)}</span>
-          </div>
-        </div>
-        
-        <button 
-          onClick={handleLinkClick}
-          className="flex items-center gap-1 text-route66-rust hover:text-route66-vintage-brown transition-colors text-sm font-medium"
-        >
-          <ExternalLink className="w-4 h-4" />
-          View
-        </button>
-      </div>
-
-      {/* Timestamp */}
-      <div className="text-xs text-gray-500">
-        {new Date(post.timestamp).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        })}
-      </div>
+    <div className="flex items-center gap-1 bg-black bg-opacity-60 text-white rounded-full px-3 py-1.5 backdrop-blur-sm">
+      <Heart className="w-4 h-4 text-red-400 fill-current" />
+      <span className="text-sm font-medium">
+        {post.like_count}
+      </span>
     </div>
   );
 };

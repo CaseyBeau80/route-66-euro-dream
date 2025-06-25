@@ -5,16 +5,12 @@ import { useInstagramPosts } from "./useInstagramPosts";
 export const useCarouselLogic = () => {
   const { posts, isLoading, error } = useInstagramPosts();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [postsPerView, setPostsPerView] = useState(6);
+  const [postsPerView, setPostsPerView] = useState(4);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1536) {
-        setPostsPerView(6); // Extra large screens - 6 posts
-      } else if (window.innerWidth >= 1280) {
-        setPostsPerView(4); // Large screens - 4 posts
-      } else if (window.innerWidth >= 1024) {
-        setPostsPerView(3); // Medium screens - 3 posts
+      if (window.innerWidth >= 1024) {
+        setPostsPerView(4); // Large screens - 4 posts (reduced from 6)
       } else if (window.innerWidth >= 768) {
         setPostsPerView(2); // Tablets - 2 posts
       } else {

@@ -29,14 +29,14 @@ const InstagramCarousel = () => {
   }
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-20 bg-route66-background-section">
       <div className="container mx-auto px-4 max-w-7xl">
         <InstagramCarouselHeader />
         
         {isLoading ? (
           <InstagramCarouselLoading />
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             <InstagramCarouselGrid 
               visiblePosts={visiblePosts}
               currentIndex={currentIndex}

@@ -1,17 +1,20 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { InstagramPost } from '../types';
 import MediaDisplay from './MediaDisplay';
 import PostContent from './PostContent';
 import PostStats from './PostStats';
 import ErrorPlaceholder from './ErrorPlaceholder';
 import MediaDebugInfo from './MediaDebugInfo';
+import { ExternalLink } from 'lucide-react';
 
 interface InstagramCardProps {
   post: InstagramPost;
 }
 
 const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   // Basic validation - if no media_url at all, show error
   if (!post.media_url && !post.thumbnail_url && (!post.carousel_media || post.carousel_media === '[]')) {
     return <ErrorPlaceholder post={post} />;
@@ -25,22 +28,35 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
 
   return (
     <div 
-      className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+      className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:scale-105"
       onClick={handleCardClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Media */}
-      <div className="relative">
+      {/* Enhanced Media Container */}
+      <div className="relative aspect-square overflow-hidden">
         <MediaDisplay post={post} />
         
-        {/* Interactive indicator */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black bg-opacity-30 transition-opacity duration-300">
-          <div className="bg-white bg-opacity-90 rounded-full p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-route66-rust">
-              <path d="M15 3h6v6"></path>
-              <path d="M10 14 21 3"></path>
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            </svg>
+        {/* Hover Overlay with Instagram Icon */}
+        <div className={`
+          absolute inset-0 bg-black bg-opacity-40 transition-opacity duration-300 flex items-center justify-center
+          ${isHovered ? 'opacity-100' : 'opacity-0'}
+        `}>
+          <div className="bg-white bg-opacity-95 rounded-full p-4 transform transition-transform duration-300 group-hover:scale-110">
+            <ExternalLink className="w-8 h-8 text-route66-primary" />
           </div>
+          
+          {/* View Post Text */}
+          <div className="absolute bottom-4 left-0 right-0 text-center">
+            <span className="text-white font-semibold text-lg bg-black bg-opacity-60 px-4 py-2 rounded-full">
+              View Post
+            </span>
+          </div>
+        </div>
+        
+        {/* Like Count Overlay - Bottom Right */}
+        <div className="absolute bottom-3 right-3">
+          <PostStats post={post} />
         </div>
         
         {/* Debug info only in development mode */}
@@ -49,12 +65,9 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
         )}
       </div>
 
-      {/* Content */}
-      <div className="p-4">
+      {/* Simplified Content Area */}
+      <div className="p-6">
         <PostContent post={post} />
-        <div className="mt-3">
-          <PostStats post={post} />
-        </div>
       </div>
     </div>
   );
