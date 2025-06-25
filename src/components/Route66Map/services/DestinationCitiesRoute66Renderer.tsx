@@ -15,14 +15,13 @@ const DestinationCitiesRoute66Renderer: React.FC<DestinationCitiesRoute66Rendere
 }) => {
   const { destinationCities, isLoading } = useDestinationCities();
   const [routeRenderer, setRouteRenderer] = useState<DestinationCitiesRouteRenderer | null>(null);
-  const [isRouteRendered, setIsRouteRendered] = useState(false);
-  const [renderKey, setRenderKey] = useState(0);
+  const [hasRendered, setHasRendered] = useState(false);
 
-  // Initialize route renderer immediately when map is ready
+  // Initialize route renderer once
   useEffect(() => {
     if (!isMapReady || !map || routeRenderer) return;
 
-    console.log('🛣️ FORCE INITIALIZING Route Renderer with cache clearing');
+    console.log('🛣️ ULTRA SIMPLE: Initializing Route Renderer');
     const renderer = new DestinationCitiesRouteRenderer(map);
     setRouteRenderer(renderer);
 
@@ -34,144 +33,40 @@ const DestinationCitiesRoute66Renderer: React.FC<DestinationCitiesRoute66Rendere
     };
   }, [map, isMapReady, routeRenderer]);
 
-  // FORCE render the route with cache clearing and debugging
+  // Create route only once when conditions are met
   useEffect(() => {
-    if (!routeRenderer || !destinationCities.length || isLoading) {
-      console.log('🛣️ Route rendering conditions not met:', {
-        hasRenderer: !!routeRenderer,
-        citiesCount: destinationCities.length,
-        isLoading,
-        renderKey
-      });
+    if (!routeRenderer || !destinationCities.length || isLoading || hasRendered) {
       return;
     }
 
-    console.log('🛣️ FORCE RENDERING Route 66 with enhanced debugging');
-    console.log(`🏛️ Creating route with ${destinationCities.length} destination cities`);
-
-    // Enhanced city validation with debugging
-    const chicago = destinationCities.find(city => city.name.toLowerCase().includes('chicago'));
-    const santaMonica = destinationCities.find(city => city.name.toLowerCase().includes('santa monica'));
-    const santaFe = destinationCities.find(city => city.name.toLowerCase().includes('santa fe'));
-    const albuquerque = destinationCities.find(city => city.name.toLowerCase().includes('albuquerque'));
-    const santaRosa = destinationCities.find(city => city.name.toLowerCase().includes('santa rosa'));
-    const gallup = destinationCities.find(city => city.name.toLowerCase().includes('gallup'));
+    console.log('🛣️ ULTRA SIMPLE: Creating route ONCE');
     
-    console.log('🔧 DEBUG: Key cities validation:', {
-      hasChicago: !!chicago,
-      hasSantaMonica: !!santaMonica,
-      hasSantaFe: !!santaFe,
-      hasAlbuquerque: !!albuquerque,
-      hasSantaRosa: !!santaRosa,
-      hasGallup: !!gallup,
-      chicagoCoords: chicago ? `${chicago.latitude}, ${chicago.longitude}` : 'N/A',
-      santaMonicaCoords: santaMonica ? `${santaMonica.latitude}, ${santaMonica.longitude}` : 'N/A',
-      santaFeCoords: santaFe ? `${santaFe.latitude}, ${santaFe.longitude}` : 'N/A'
-    });
-    
-    if (!chicago || !santaMonica) {
-      console.error('❌ Missing key endpoint cities (Chicago or Santa Monica)');
-      console.log('Available cities:', destinationCities.map(c => `${c.name}, ${c.state}`));
-      return;
-    }
-
-    if (!santaFe) {
-      console.warn('⚠️ Santa Fe not found - branch route will not be created');
-    }
-
-    if (!santaRosa || !gallup) {
-      console.error('❌ Missing Santa Rosa or Gallup for direct connection');
-    }
-
-    console.log('🏁 Route endpoints confirmed for FORCE creation:', {
-      start: `${chicago.name}, ${chicago.state}`,
-      end: `${santaMonica.name}, ${santaMonica.state}`,
-      totalCities: destinationCities.length,
-      santaFeBranch: santaFe ? `${santaFe.name}, ${santaFe.state}` : 'Not available'
-    });
-
-    // FORCE create the route with enhanced debugging
-    const createRouteWithDebugging = async () => {
+    const createRoute = async () => {
       try {
-        console.log('🔧 DEBUG: Starting route creation process...');
-        
-        // Clear any existing route state
-        RouteGlobalState.setRouteCreated(false);
-        setIsRouteRendered(false);
-        
         await routeRenderer.createRoute66FromDestinations(destinationCities);
-        
-        console.log('✅ Route 66 FORCE CREATED and should be VISIBLE');
-        setIsRouteRendered(true);
-        
-        // Verify route creation with detailed logging
-        setTimeout(() => {
-          const polylineCount = RouteGlobalState.getPolylineCount();
-          const routeCreated = RouteGlobalState.isRouteCreated();
-          
-          console.log(`🔍 Route verification after creation:`, {
-            polylineCount,
-            routeCreated,
-            renderKey,
-            timestamp: new Date().toISOString()
-          });
-          
-          if (polylineCount === 0) {
-            console.error('❌ CRITICAL: No polylines were created despite successful route creation');
-            console.log('🔧 DEBUG: Attempting to force re-render...');
-            setRenderKey(prev => prev + 1);
-          } else {
-            console.log('🎯 SUCCESS: Route 66 with historically accurate Santa Fe branch should be VISIBLE now');
-          }
-        }, 1000);
-        
+        setHasRendered(true);
+        console.log('✅ Route created successfully - stopping future renders');
       } catch (error) {
-        console.error('❌ CRITICAL ERROR creating FORCE Route 66:', error);
-        setIsRouteRendered(false);
-        
-        // Attempt recovery
-        console.log('🔧 DEBUG: Attempting route creation recovery...');
-        setTimeout(() => {
-          setRenderKey(prev => prev + 1);
-        }, 2000);
+        console.error('❌ Error creating route:', error);
+        // Don't set hasRendered to true on error, allow retry
       }
     };
 
-    createRouteWithDebugging();
+    createRoute();
 
-  }, [routeRenderer, destinationCities, isLoading, renderKey]);
+  }, [routeRenderer, destinationCities, isLoading, hasRendered]);
 
-  // Enhanced status logging for debugging
+  // Log status for debugging
   useEffect(() => {
-    const polylineCount = RouteGlobalState.getPolylineCount();
-    const routeCreated = RouteGlobalState.isRouteCreated();
-    
-    console.log('📊 Route system status - FORCE RECREATION MODE:', {
+    console.log('📊 Route Renderer Status:', {
       isMapReady,
       hasRouteRenderer: !!routeRenderer,
       citiesLoaded: destinationCities.length,
       isLoading,
-      isRouteRendered,
-      polylineSegments: polylineCount,
-      routeGlobalStateCreated: routeCreated,
-      renderKey,
-      timestamp: new Date().toISOString()
+      hasRendered,
+      polylineCount: RouteGlobalState.getPolylineCount()
     });
-
-    // Enhanced debugging for missing road with recovery
-    if (isRouteRendered && polylineCount === 0) {
-      console.error('🚨 ROAD MISSING: Route marked as rendered but no polylines found!');
-      console.log('🔧 DEBUG: Triggering recovery re-render...');
-      setTimeout(() => {
-        setRenderKey(prev => prev + 1);
-        setIsRouteRendered(false);
-      }, 1000);
-    }
-    
-    if (!isRouteRendered && destinationCities.length > 0 && routeRenderer && isMapReady) {
-      console.warn('⚠️ ROAD ISSUE: All conditions met but route not rendered yet');
-    }
-  }, [isMapReady, routeRenderer, destinationCities.length, isLoading, isRouteRendered, renderKey]);
+  }, [isMapReady, routeRenderer, destinationCities.length, isLoading, hasRendered]);
 
   return null;
 };

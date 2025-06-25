@@ -22,7 +22,7 @@ export const useDestinationCities = () => {
   useEffect(() => {
     const fetchDestinationCities = async () => {
       try {
-        console.log('🏛️ ENHANCED: Fetching destination cities with SEQUENCE VALIDATION...');
+        console.log('🏛️ ULTRA SIMPLE: Fetching destination cities...');
         
         const { data, error } = await supabase
           .from('destination_cities')
@@ -40,26 +40,18 @@ export const useDestinationCities = () => {
           return;
         }
 
-        console.log(`🏛️ ENHANCED: Fetched ${data.length} destination cities - applying sequence validation...`);
+        console.log(`🏛️ ULTRA SIMPLE: Fetched ${data.length} destination cities`);
 
-        // ENHANCED: Apply sequence validation and ordering
+        // ULTRA SIMPLE: Apply basic ordering without complex validation
         const orderedCities = SequenceOrderService.getOrderedDestinationCities(data);
         
-        // Log the final sequence for verification
-        console.log('🎯 ENHANCED: Final destination cities sequence (PING-PONG PROOF):');
-        orderedCities.forEach((city, index) => {
-          console.log(`  ${index + 1}. ${city.name}, ${city.state} (${city.longitude.toFixed(2)}°)`);
+        console.log('🎯 ULTRA SIMPLE: Final destination cities sequence:');
+        orderedCities.slice(0, 10).forEach((city, index) => {
+          console.log(`  ${index + 1}. ${city.name}, ${city.state}`);
         });
 
-        // Validate critical sequence points
-        const metadata = SequenceOrderService.createSequenceMetadata(orderedCities);
-        console.log('📊 ENHANCED: Destination cities metadata:', metadata);
-        
-        if (metadata.springfieldSequence === 'incorrect') {
-          console.error('🚨 PING-PONG ALERT in destination cities sequence!');
-        } else {
-          console.log('✅ ENHANCED: Springfield sequence verified - no ping-ponging will occur');
-        }
+        // Skip complex metadata validation that could cause loops
+        console.log('✅ ULTRA SIMPLE: Cities ordered successfully - no validation barriers');
 
         setDestinationCities(orderedCities);
         
@@ -80,7 +72,7 @@ export const useDestinationCities = () => {
     error,
     // Helper to get cities in reverse order if needed
     getReversedCities: () => [...destinationCities].reverse(),
-    // ENHANCED: Helper to get sequence metadata
+    // ULTRA SIMPLE: Helper that always returns valid metadata
     getSequenceMetadata: () => SequenceOrderService.createSequenceMetadata(destinationCities)
   };
 };

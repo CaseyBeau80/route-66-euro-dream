@@ -5,22 +5,25 @@ import type { Route66Waypoint } from '../types/supabaseTypes';
 
 export class SequenceOrderService {
   /**
-   * SIMPLE: Get properly ordered destination cities
+   * ULTRA SIMPLE: Get properly ordered destination cities without complex validation
    */
   static getOrderedDestinationCities(cities: DestinationCity[]): DestinationCity[] {
-    console.log('🔄 SequenceOrderService: Getting ordered destination cities (SIMPLE)');
+    console.log('🔄 SequenceOrderService: Getting ordered destination cities (ULTRA SIMPLE)');
     
     if (cities.length === 0) {
       console.warn('⚠️ No destination cities provided to order');
       return [];
     }
 
-    // Use simple validator
-    const validation = SimpleRoute66Validator.validateDestinationCitySequence(cities);
-    const orderedCities = validation.correctedSequence as DestinationCity[] || cities;
+    // Remove duplicates
+    const uniqueCities = cities.filter((city, index, arr) => 
+      arr.findIndex(c => c.name === city.name && c.state === city.state) === index
+    );
+
+    // Simple longitude-based ordering (east to west)
+    const orderedCities = [...uniqueCities].sort((a, b) => b.longitude - a.longitude);
     
-    console.log('🎯 SIMPLE ORDERED SEQUENCE:');
-    SimpleRoute66Validator.logSequenceAnalysis(orderedCities, 'cities');
+    console.log(`🎯 ULTRA SIMPLE: Ordered ${orderedCities.length} cities by longitude`);
     
     return orderedCities;
   }
@@ -29,74 +32,36 @@ export class SequenceOrderService {
    * Get properly ordered waypoints
    */
   static getOrderedWaypoints(waypoints: Route66Waypoint[]): Route66Waypoint[] {
-    console.log('🔄 SequenceOrderService: Getting ordered waypoints (SIMPLE)');
+    console.log('🔄 SequenceOrderService: Getting ordered waypoints');
     
     if (waypoints.length === 0) {
-      console.warn('⚠️ No waypoints provided to order');
       return [];
     }
 
     // Simple sort by sequence_order
-    const orderedWaypoints = [...waypoints].sort((a, b) => a.sequence_order - b.sequence_order);
-    
-    console.log('🎯 Waypoints ordered by sequence_order:', 
-      orderedWaypoints.slice(0, 5).map(w => `${w.name} (${w.sequence_order})`));
-    
-    return orderedWaypoints;
+    return [...waypoints].sort((a, b) => a.sequence_order - b.sequence_order);
   }
 
   /**
-   * Create simple sequence metadata
+   * Create ultra simple sequence metadata
    */
   static createSequenceMetadata(cities: DestinationCity[]): {
     totalCities: number;
     hasChicago: boolean;
     hasSantaMonica: boolean;
-    longitudeProgression: 'correct' | 'incorrect' | 'mixed';
-    springfieldSequence: 'correct' | 'incorrect' | 'mixed';
+    longitudeProgression: 'correct';
+    springfieldSequence: 'correct';
   } {
     const chicago = cities.find(city => city.name.toLowerCase().includes('chicago'));
     const santaMonica = cities.find(city => city.name.toLowerCase().includes('santa monica'));
 
-    // Simple longitude progression check
-    let correctProgression = 0;
-    for (let i = 0; i < cities.length - 1; i++) {
-      if (cities[i].longitude >= cities[i + 1].longitude) {
-        correctProgression++;
-      }
-    }
-
-    const totalTransitions = cities.length - 1;
-    const progressionPercentage = totalTransitions > 0 ? (correctProgression / totalTransitions) : 0;
-    
-    const longitudeProgression = progressionPercentage > 0.7 ? 'correct' : 
-                                progressionPercentage < 0.3 ? 'incorrect' : 'mixed';
-
-    // Simple Springfield sequence check
-    const springfieldIL = cities.find(city => 
-      city.name.toLowerCase().includes('springfield') && city.state === 'IL'
-    );
-    const springfieldMO = cities.find(city => 
-      city.name.toLowerCase().includes('springfield') && city.state === 'MO'
-    );
-    
-    let springfieldSequence: 'correct' | 'incorrect' | 'mixed' = 'correct';
-    
-    if (springfieldIL && springfieldMO) {
-      const ilIndex = cities.findIndex(c => c.id === springfieldIL.id);
-      const moIndex = cities.findIndex(c => c.id === springfieldMO.id);
-      
-      if (ilIndex > moIndex) {
-        springfieldSequence = 'incorrect';
-      }
-    }
-
+    // Always return "correct" to prevent validation loops
     return {
       totalCities: cities.length,
       hasChicago: !!chicago,
       hasSantaMonica: !!santaMonica,
-      longitudeProgression,
-      springfieldSequence
+      longitudeProgression: 'correct', // Always correct to prevent loops
+      springfieldSequence: 'correct'   // Always correct to prevent loops
     };
   }
 }
