@@ -35,7 +35,7 @@ const MapCore: React.FC<MapCoreProps> = ({
   const [showScrollHint, setShowScrollHint] = useState(false);
 
   const handleMapLoad = async (map: google.maps.Map) => {
-    console.log('🗺️ MapCore: AUTHORITATIVE ROUTE SYSTEM - map load');
+    console.log('🗺️ MapCore: THE SINGLE AUTHORITATIVE ROUTE SYSTEM - map load');
     
     // Enable mouse wheel zoom
     map.setOptions({
@@ -46,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - AUTHORITATIVE ROUTE SYSTEM ONLY:', {
+  console.log('🗺️ MapCore render - THE SINGLE AUTHORITATIVE ROUTE SYSTEM ONLY:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -74,7 +74,7 @@ const MapCore: React.FC<MapCoreProps> = ({
       {/* THE ONLY ROUTE SYSTEM: AuthoritativeRoute66Renderer via RoutePolyline */}
       {mapRef.current && isMapReady && visibleWaypoints.length > 0 && (
         <RoutePolyline
-          key={`authoritative-route-${isMapReady}-${visibleWaypoints.length}`}
+          key={`single-authoritative-route-${isMapReady}-${visibleWaypoints.length}`}
           map={mapRef.current}
           waypoints={visibleWaypoints}
         />

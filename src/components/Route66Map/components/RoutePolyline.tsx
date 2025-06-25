@@ -11,23 +11,26 @@ interface RoutePolylineProps {
 const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
   const [renderer, setRenderer] = useState<AuthoritativeRoute66Renderer | null>(null);
 
-  console.log('🚀 RoutePolyline: AUTHORITATIVE APPROACH ONLY', {
+  console.log('🚀 RoutePolyline: THE SINGLE AUTHORITATIVE ROUTE SYSTEM', {
     waypointsCount: waypoints.length,
     hasMap: !!map,
     hasRenderer: !!renderer
   });
 
-  // Clear all existing instances when component mounts
+  // Clear all existing instances when component mounts - NUCLEAR APPROACH
   useEffect(() => {
-    console.log('🧹 RoutePolyline: Clearing all existing route instances');
+    console.log('🧨 RoutePolyline: NUCLEAR CLEANUP - Clearing ALL route instances');
     AuthoritativeRoute66Renderer.clearAllInstances();
     
-    // Create the ONE authoritative renderer
-    const newRenderer = new AuthoritativeRoute66Renderer(map);
-    setRenderer(newRenderer);
+    // Wait a moment for cleanup, then create the ONE authoritative renderer
+    setTimeout(() => {
+      console.log('🏗️ RoutePolyline: Creating THE SINGLE authoritative renderer');
+      const newRenderer = new AuthoritativeRoute66Renderer(map);
+      setRenderer(newRenderer);
+    }, 100);
 
     return () => {
-      console.log('🧹 RoutePolyline: Component cleanup');
+      console.log('🧨 RoutePolyline: Component cleanup - NUCLEAR');
       AuthoritativeRoute66Renderer.clearAllInstances();
     };
   }, [map]);
@@ -38,7 +41,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       return;
     }
 
-    console.log('🛣️ RoutePolyline: Creating Route 66 with authoritative renderer');
+    console.log('🛣️ RoutePolyline: Creating THE SINGLE Route 66 with authoritative renderer');
     
     try {
       renderer.createRoute66(waypoints);
@@ -46,17 +49,17 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({ map, waypoints }) => {
       // Verify creation
       setTimeout(() => {
         const isVisible = renderer.isVisible();
-        console.log('🔍 Route visibility after creation:', isVisible);
+        console.log('🔍 THE SINGLE Route visibility after creation:', isVisible);
         
         if (!isVisible) {
-          console.error('❌ RoutePolyline: Route not visible - THIS SHOULD NOT HAPPEN');
+          console.error('❌ RoutePolyline: THE SINGLE Route not visible - CRITICAL ERROR');
         } else {
-          console.log('✅ RoutePolyline: Route successfully created and visible');
+          console.log('✅ RoutePolyline: THE SINGLE Route successfully created and visible');
         }
       }, 200);
       
     } catch (error) {
-      console.error('❌ RoutePolyline: Error creating route:', error);
+      console.error('❌ RoutePolyline: Error creating THE SINGLE route:', error);
     }
   }, [renderer, waypoints]);
 

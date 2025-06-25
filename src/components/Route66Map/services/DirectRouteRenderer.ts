@@ -6,12 +6,17 @@ export class DirectRouteRenderer {
 
   constructor(map: google.maps.Map) {
     this.map = map;
+    console.log('🚫 DirectRouteRenderer: COMPLETELY DISABLED');
   }
 
   createVisibleRoute(waypoints: Route66Waypoint[]): void {
-    console.log('🚫 DirectRouteRenderer: DISABLED - using SimplifiedRouteRenderer instead');
-    console.log('🔧 This prevents conflicts with the new simplified route system');
+    console.log('🚫 DirectRouteRenderer: DISABLED - using AuthoritativeRoute66Renderer instead');
+    console.log('🔧 This prevents conflicts with the authoritative route system');
     // This renderer is now disabled to prevent conflicts
+  }
+
+  createRoute66(waypoints: Route66Waypoint[]): void {
+    console.log('🚫 DirectRouteRenderer: createRoute66 DISABLED');
   }
 
   clearRoute(): void {

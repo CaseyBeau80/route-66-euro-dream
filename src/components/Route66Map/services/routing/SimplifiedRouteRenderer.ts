@@ -14,6 +14,10 @@ export class SimplifiedRouteRenderer {
     // This renderer is now completely disabled to prevent conflicts
   }
 
+  createVisibleRoute(waypoints: Route66Waypoint[]): void {
+    console.log('🚫 SimplifiedRouteRenderer: createVisibleRoute DISABLED');
+  }
+
   clearRoute(): void {
     console.log('🚫 SimplifiedRouteRenderer: DISABLED - No cleanup needed');
   }
