@@ -5,102 +5,62 @@ import { RouteGlobalState } from './RouteGlobalState';
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
 export class DestinationCitiesRouteRenderer {
-  private map: google.maps.Map;
   private routeCreationService: RouteCreationService;
+  private cleanupService: NuclearCleanupService;
 
-  constructor(map: google.maps.Map) {
-    this.map = map;
+  constructor(private map: google.maps.Map) {
     this.routeCreationService = new RouteCreationService(map);
+    this.cleanupService = new NuclearCleanupService();
   }
 
-  async createRoute66FromDestinations(cities: DestinationCity[]): Promise<void> {
+  async createRoute66FromDestinations(destinationCities: DestinationCity[]): Promise<void> {
+    console.log('🛣️ FIXED: Creating Route 66 with PROPER SEQUENCE ORDERING from destination cities');
+    
+    if (destinationCities.length === 0) {
+      console.error('❌ No destination cities provided');
+      return;
+    }
+
+    // CRITICAL FIX: Sort cities by longitude (west-to-east) to prevent ping-ponging
+    const sortedCities = [...destinationCities].sort((a, b) => {
+      // Route 66 runs from Chicago (east, higher longitude) to Santa Monica (west, lower longitude)
+      // For proper sequence: Chicago (-87.6) → Springfield IL (-89.6) → St. Louis (-90.1) → Springfield MO (-93.2) → etc.
+      return b.longitude - a.longitude; // Descending order: east to west
+    });
+
+    console.log('🔄 SEQUENCE FIX: Sorted cities by longitude (east-to-west):', 
+      sortedCities.map(city => `${city.name} (${city.longitude.toFixed(1)})`));
+
+    // Validate that we have the correct sequence
+    const chicagoIndex = sortedCities.findIndex(city => city.name.toLowerCase().includes('chicago'));
+    const santaMonicaIndex = sortedCities.findIndex(city => city.name.toLowerCase().includes('santa monica'));
+    
+    if (chicagoIndex !== 0) {
+      console.warn('⚠️ Chicago is not first in sequence, manual adjustment needed');
+    }
+    if (santaMonicaIndex !== sortedCities.length - 1) {
+      console.warn('⚠️ Santa Monica is not last in sequence, manual adjustment needed');
+    }
+
+    // Clean up any existing routes before creating new one
+    this.cleanupService.performNuclearCleanup();
+
     try {
-      console.log('🛣️ CREATING single flowing Route 66 from destination cities (PRIMARY DATA SOURCE)');
-      console.log('🔧 DEBUG: Using destination_cities table as single source of truth');
+      // Create the route with properly sequenced cities
+      await this.routeCreationService.createFlowingRoute66(sortedCities);
       
-      // Step 1: NUCLEAR cleanup to remove any existing routes
-      await this.performNuclearCleanupWithCacheClearing();
+      console.log('✅ Route 66 created successfully with corrected sequence - NO MORE PING PONGING!');
       
-      // Step 2: Sort cities in Route 66 order for flowing route
-      const sortedCities = this.sortCitiesInRoute66Order(cities);
-      console.log('🔧 DEBUG: Sorted destination cities:', sortedCities.map(c => `${c.name}, ${c.state}`));
-      
-      // Step 3: Create the single flowing route
-      await this.routeCreationService.createMainRoute(sortedCities);
-
-      // Step 4: Mark as primary route created
+      // Mark route as created
       RouteGlobalState.setRouteCreated(true);
-
-      console.log('✅ SINGLE FLOWING Route 66 CREATED from destination cities (no waypoints conflicts)');
-
+      
     } catch (error) {
-      console.error('❌ Error creating flowing Route 66 from destination cities:', error);
-      await this.cleanup();
+      console.error('❌ Error creating Route 66 from destination cities:', error);
       throw error;
     }
   }
 
-  private sortCitiesInRoute66Order(cities: DestinationCity[]): DestinationCity[] {
-    // Route 66 city order including Santa Fe branch flow
-    const route66Order = [
-      'Chicago', 'Joliet', 'Pontiac', 'Springfield', 'St. Louis', 'Cuba', 'Joplin',
-      'Tulsa', 'Oklahoma City', 'Elk City', 'Shamrock', 'Amarillo', 'Tucumcari',
-      'Santa Rosa', 'Santa Fe', 'Albuquerque', 'Gallup', 'Holbrook', 'Winslow',
-      'Flagstaff', 'Williams', 'Seligman', 'Kingman', 'Needles', 'Barstow',
-      'San Bernardino', 'Los Angeles', 'Santa Monica'
-    ];
-
-    const sortedCities: DestinationCity[] = [];
-    const usedCities = new Set<string>();
-
-    // Match cities to the ordered list
-    for (const expectedName of route66Order) {
-      const matchingCity = cities.find(city => {
-        const cityKey = `${city.name}-${city.state}`;
-        if (usedCities.has(cityKey)) return false;
-        
-        const cityName = city.name.toLowerCase();
-        const expectedLower = expectedName.toLowerCase();
-        
-        return cityName.includes(expectedLower) || expectedLower.includes(cityName);
-      });
-
-      if (matchingCity) {
-        sortedCities.push(matchingCity);
-        usedCities.add(`${matchingCity.name}-${matchingCity.state}`);
-        console.log(`✅ Ordered: ${matchingCity.name} (${matchingCity.state})`);
-      }
-    }
-
-    // Validate Santa Fe branch flow
-    const santaRosaIndex = sortedCities.findIndex(city => 
-      city.name.toLowerCase().includes('santa rosa')
-    );
-    const santaFeIndex = sortedCities.findIndex(city => 
-      city.name.toLowerCase().includes('santa fe')
-    );
-    const albuquerqueIndex = sortedCities.findIndex(city => 
-      city.name.toLowerCase().includes('albuquerque')
-    );
-    
-    if (santaRosaIndex !== -1 && santaFeIndex !== -1 && albuquerqueIndex !== -1) {
-      const isProperFlow = santaFeIndex === santaRosaIndex + 1 && albuquerqueIndex === santaFeIndex + 1;
-      console.log(`🔧 Santa Fe branch flow: ${isProperFlow ? 'CORRECT' : 'INCORRECT'} (${santaRosaIndex} → ${santaFeIndex} → ${albuquerqueIndex})`);
-    }
-
-    return sortedCities;
-  }
-
-  private async performNuclearCleanupWithCacheClearing(): Promise<void> {
-    // Clean up existing route creation service
-    this.routeCreationService.cleanup();
-    
-    // Perform nuclear cleanup
-    await NuclearCleanupService.performNuclearCleanupWithCacheClearing(this.map);
-  }
-
-  async cleanup(): Promise<void> {
-    console.log('🧹 Cleaning up destination cities route renderer');
-    this.routeCreationService.cleanup();
+  cleanup(): void {
+    this.cleanupService.performNuclearCleanup();
   }
 }

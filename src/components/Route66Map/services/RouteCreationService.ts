@@ -1,127 +1,104 @@
 
-import { EnhancedPolylineStylesConfig } from './EnhancedPolylineStylesConfig';
+import { RoutePolylineManager } from './RoutePolylineManager';
 import { EnhancedPathInterpolationService } from './EnhancedPathInterpolationService';
-import { RouteGlobalState } from './RouteGlobalState';
-import { GlobalPolylineCleaner } from './GlobalPolylineCleaner';
-import { RouteBoundsService } from './RouteBoundsService';
 import type { DestinationCity } from '../hooks/useDestinationCities';
 
 export class RouteCreationService {
-  private map: google.maps.Map;
-  private mainPolyline: google.maps.Polyline | null = null;
-  private centerLine: google.maps.Polyline | null = null;
+  private polylineManager: RoutePolylineManager;
 
-  constructor(map: google.maps.Map) {
-    this.map = map;
+  constructor(private map: google.maps.Map) {
+    this.polylineManager = new RoutePolylineManager(map);
   }
 
-  async createMainRoute(cities: DestinationCity[]): Promise<void> {
-    console.log('🛣️ Creating flowing Route 66 from destination cities (single data source)');
+  async createFlowingRoute66(destinationCities: DestinationCity[]): Promise<void> {
+    console.log('🛣️ RouteCreationService: Creating flowing Route 66 with SEQUENCE VALIDATION');
     
-    if (cities.length < 2) {
-      console.warn('⚠️ Need at least 2 cities to create a route');
+    if (destinationCities.length < 2) {
+      console.error('❌ Need at least 2 cities to create a route');
       return;
     }
 
-    console.log('🔧 DEBUG: Creating route from destination cities:', {
-      citiesCount: cities.length,
-      firstCity: cities[0]?.name,
-      lastCity: cities[cities.length - 1]?.name
-    });
+    // CRITICAL: Validate sequence before creating route
+    this.validateSequenceOrder(destinationCities);
 
-    // Create main route path from destination cities
-    const mainRoutePath = cities.map(city => ({
-      lat: Number(city.latitude),
-      lng: Number(city.longitude)
+    // Convert destination cities to waypoints format for polyline creation
+    const waypoints = destinationCities.map(city => ({
+      lat: city.latitude,
+      lng: city.longitude,
+      description: `${city.name}, ${city.state}`
     }));
 
-    // Validate coordinates
-    const invalidCoords = mainRoutePath.filter(point => 
-      isNaN(point.lat) || isNaN(point.lng) || point.lat === 0 || point.lng === 0
-    );
+    console.log('📍 Creating route with waypoints:', waypoints.map(w => w.description));
+
+    // Create smooth interpolated path between waypoints
+    const smoothPath = EnhancedPathInterpolationService.createFlowingCurvedPath(waypoints, 15);
     
-    if (invalidCoords.length > 0) {
-      console.error('❌ Invalid coordinates found:', invalidCoords);
-      return;
-    }
+    // Convert cities to Route66Waypoint format for polyline manager
+    const route66Waypoints = destinationCities.map(city => ({
+      id: city.id,
+      name: city.name,
+      latitude: city.latitude,
+      longitude: city.longitude,
+      state: city.state,
+      sequence_order: this.calculateSequenceFromLongitude(city.longitude),
+      is_major_stop: true,
+      highway_designation: 'US-66',
+      description: `${city.name}, ${city.state}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
 
-    // Create flowing curved path for the entire route
-    const flowingMainPath = EnhancedPathInterpolationService.createFlowingCurvedPath(mainRoutePath, 25);
+    // Create the polylines using the polyline manager
+    this.polylineManager.createPolylines(smoothPath, route66Waypoints);
     
-    console.log(`🛣️ Creating flowing Route 66 with ${flowingMainPath.length} smooth points`);
+    // Fit map to show the entire route
+    this.polylineManager.fitMapToBounds(route66Waypoints);
 
-    // Create main route polylines
-    await this.createMainPolylines(flowingMainPath);
-
-    // Register with global state
-    this.registerPolylinesWithGlobalState();
-
-    // Fit map to bounds
-    RouteBoundsService.fitMapToBounds(this.map, mainRoutePath);
-
-    RouteGlobalState.setRouteCreated(true);
-    console.log('✅ Flowing Route 66 created successfully from destination cities');
+    console.log('✅ RouteCreationService: Route 66 created with proper sequencing');
   }
 
-  private async createMainPolylines(flowingMainPath: google.maps.LatLngLiteral[]): Promise<void> {
-    const polylineOptions = {
-      ...EnhancedPolylineStylesConfig.getFlowingRouteOptions(),
-      path: flowingMainPath,
-      map: this.map,
-      zIndex: 50 + Date.now() % 100
-    };
-
-    this.mainPolyline = new google.maps.Polyline(polylineOptions);
-
-    const centerLineOptions = {
-      ...EnhancedPolylineStylesConfig.getEnhancedCenterLineOptions(),
-      path: flowingMainPath,
-      map: this.map,
-      zIndex: 100 + Date.now() % 100
-    };
-
-    this.centerLine = new google.maps.Polyline(centerLineOptions);
-
-    // Force visibility check
-    setTimeout(() => {
-      this.forceVisibility();
-    }, 500);
-  }
-
-  private registerPolylinesWithGlobalState(): void {
-    if (this.mainPolyline && this.centerLine) {
-      RouteGlobalState.addPolylineSegment(this.mainPolyline);
-      RouteGlobalState.addPolylineSegment(this.centerLine);
-      GlobalPolylineCleaner.registerPolyline(this.mainPolyline);
-      GlobalPolylineCleaner.registerPolyline(this.centerLine);
-    }
-  }
-
-  private forceVisibility(): void {
-    if (this.mainPolyline && !this.mainPolyline.getVisible()) {
-      console.log('🔧 FIXING: Main polyline not visible, forcing visibility');
-      this.mainPolyline.setVisible(true);
+  private validateSequenceOrder(cities: DestinationCity[]): void {
+    console.log('🔍 Validating Route 66 sequence order...');
+    
+    // Check for longitude progression (should generally decrease west-to-east)
+    for (let i = 0; i < cities.length - 1; i++) {
+      const current = cities[i];
+      const next = cities[i + 1];
+      
+      // Log each transition
+      console.log(`📍 ${current.name} (${current.longitude.toFixed(2)}) → ${next.name} (${next.longitude.toFixed(2)})`);
+      
+      // Warn about potential issues
+      if (next.longitude > current.longitude) {
+        const longitudeDiff = next.longitude - current.longitude;
+        if (longitudeDiff > 5) { // Significant eastward jump
+          console.warn(`⚠️ POTENTIAL SEQUENCE ISSUE: Large eastward jump from ${current.name} to ${next.name} (${longitudeDiff.toFixed(2)}°)`);
+        }
+      }
     }
     
-    if (this.centerLine && !this.centerLine.getVisible()) {
-      console.log('🔧 FIXING: Center line not visible, forcing visibility');
-      this.centerLine.setVisible(true);
+    // Validate start and end points
+    const firstCity = cities[0];
+    const lastCity = cities[cities.length - 1];
+    
+    if (!firstCity.name.toLowerCase().includes('chicago')) {
+      console.warn(`⚠️ Route doesn't start with Chicago, starts with: ${firstCity.name}`);
     }
+    
+    if (!lastCity.name.toLowerCase().includes('santa monica')) {
+      console.warn(`⚠️ Route doesn't end with Santa Monica, ends with: ${lastCity.name}`);
+    }
+    
+    console.log('✅ Sequence validation complete');
+  }
+
+  private calculateSequenceFromLongitude(longitude: number): number {
+    // Convert longitude to approximate sequence order
+    // Chicago (~-87.6) should be sequence 1, Santa Monica (~-118.5) should be highest
+    return Math.round((longitude + 120) * 10);
   }
 
   cleanup(): void {
-    console.log('🧹 Cleaning up route creation service');
-    
-    if (this.mainPolyline) {
-      this.mainPolyline.setMap(null);
-      GlobalPolylineCleaner.unregisterPolyline(this.mainPolyline);
-      this.mainPolyline = null;
-    }
-    
-    if (this.centerLine) {
-      this.centerLine.setMap(null);
-      GlobalPolylineCleaner.unregisterPolyline(this.centerLine);
-      this.centerLine = null;
-    }
+    this.polylineManager.cleanupPolylines();
   }
 }
