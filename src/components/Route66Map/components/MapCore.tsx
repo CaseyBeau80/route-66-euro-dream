@@ -8,7 +8,7 @@ import DriveInsContainer from './DriveIns/DriveInsContainer';
 import StateHighlighting from './StateHighlighting';
 import ScrollZoomHint from './ScrollZoomHint';
 import MapDebugPanel from './MapDebugPanel';
-import SingleRouteManager from './SingleRouteManager';
+import NuclearRouteManager from './NuclearRouteManager';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface MapCoreProps {
@@ -46,7 +46,7 @@ const MapCore: React.FC<MapCoreProps> = ({
     onMapLoad(map);
   };
 
-  console.log('🗺️ MapCore render - Using SINGLE RouteManager ONLY:', {
+  console.log('☢️ MapCore render - Using NUCLEAR RouteManager ONLY:', {
     isMapReady,
     hasMap: !!mapRef.current,
     visibleWaypoints: visibleWaypoints.length
@@ -71,9 +71,9 @@ const MapCore: React.FC<MapCoreProps> = ({
         <StateHighlighting map={mapRef.current} />
       )}
       
-      {/* SINGLE ROUTE MANAGER - THE ONLY ROUTE COMPONENT */}
+      {/* ☢️ NUCLEAR ROUTE MANAGER - THE ONLY ROUTE COMPONENT ☢️ */}
       {mapRef.current && isMapReady && (
-        <SingleRouteManager
+        <NuclearRouteManager
           map={mapRef.current}
           isMapReady={isMapReady}
         />

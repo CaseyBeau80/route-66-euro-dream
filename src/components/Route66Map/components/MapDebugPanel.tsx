@@ -48,9 +48,9 @@ const MapDebugPanel: React.FC<MapDebugPanelProps> = ({ map }) => {
             </button>
 
             {/* Route Status */}
-            <div className="flex items-center gap-2 p-2 bg-green-50 rounded border border-green-200">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="text-xs text-green-700">AccurateRoute66Polyline Active</span>
+            <div className="flex items-center gap-2 p-2 bg-red-50 rounded border border-red-200">
+              <CheckCircle className="h-4 w-4 text-red-600" />
+              <span className="text-xs text-red-700">☢️ NuclearRouteManager Active</span>
             </div>
           </div>
         )}

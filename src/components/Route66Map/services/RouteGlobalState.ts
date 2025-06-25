@@ -1,6 +1,7 @@
 
 /**
  * Global state manager to prevent multiple Route 66 polylines
+ * NUCLEAR VERSION - Aggressively prevents any duplicate polylines
  */
 class RouteGlobalStateManager {
   private static instance: RouteGlobalStateManager;
@@ -8,6 +9,7 @@ class RouteGlobalStateManager {
   private activePolylines: google.maps.Polyline[] = [];
   private activeMap: google.maps.Map | null = null;
   private routeMarkers: google.maps.Marker[] = [];
+  private cleanupCallbacks: (() => void)[] = [];
 
   static getInstance(): RouteGlobalStateManager {
     if (!RouteGlobalStateManager.instance) {
@@ -25,30 +27,66 @@ class RouteGlobalStateManager {
     return this.routeCreated;
   }
 
+  // NUCLEAR CLEANUP - Remove ALL polylines from the map
+  nuclearCleanup(): void {
+    console.log('☢️ NUCLEAR CLEANUP: Removing ALL polylines from map');
+    
+    // Clear tracked polylines
+    this.activePolylines.forEach((polyline, index) => {
+      try {
+        polyline.setMap(null);
+        console.log(`☢️ Cleared tracked polyline ${index + 1}`);
+      } catch (error) {
+        console.warn(`⚠️ Error clearing tracked polyline ${index + 1}:`, error);
+      }
+    });
+    
+    // Clear any polylines that might exist on the map but aren't tracked
+    if (this.activeMap) {
+      try {
+        // Force clear by iterating through all map overlays
+        const mapInstance = this.activeMap as any;
+        if (mapInstance.overlayMapTypes) {
+          mapInstance.overlayMapTypes.clear();
+        }
+      } catch (error) {
+        console.warn('⚠️ Error during nuclear overlay cleanup:', error);
+      }
+    }
+    
+    // Execute all cleanup callbacks
+    this.cleanupCallbacks.forEach((callback, index) => {
+      try {
+        callback();
+        console.log(`☢️ Executed cleanup callback ${index + 1}`);
+      } catch (error) {
+        console.warn(`⚠️ Error in cleanup callback ${index + 1}:`, error);
+      }
+    });
+    
+    // Clear all tracking arrays
+    this.activePolylines = [];
+    this.cleanupCallbacks = [];
+    this.routeCreated = false;
+    
+    console.log('☢️ NUCLEAR CLEANUP COMPLETE - All polylines should be removed');
+  }
+
   addPolylines(polylines: google.maps.Polyline[]): void {
     this.activePolylines = [...this.activePolylines, ...polylines];
     console.log('📍 RouteGlobalState: Added', polylines.length, 'polylines. Total:', this.activePolylines.length);
   }
 
-  clearAllPolylines(): void {
-    console.log('🧹 RouteGlobalState: Clearing all', this.activePolylines.length, 'polylines');
-    
-    this.activePolylines.forEach((polyline, index) => {
-      try {
-        polyline.setMap(null);
-        console.log(`✅ Cleared polyline ${index + 1}`);
-      } catch (error) {
-        console.warn(`⚠️ Error clearing polyline ${index + 1}:`, error);
-      }
-    });
-    
-    this.activePolylines = [];
-    this.routeCreated = false;
+  addCleanupCallback(callback: () => void): void {
+    this.cleanupCallbacks.push(callback);
   }
 
-  // Missing methods that other components need
+  clearAllPolylines(): void {
+    this.nuclearCleanup();
+  }
+
   clearAll(): void {
-    this.clearAllPolylines();
+    this.nuclearCleanup();
     this.clearRouteMarkers();
   }
 
@@ -86,9 +124,9 @@ class RouteGlobalStateManager {
   }
 
   reset(): void {
-    this.clearAll();
+    this.nuclearCleanup();
     this.activeMap = null;
-    console.log('🔄 RouteGlobalState: Complete reset');
+    console.log('🔄 RouteGlobalState: Complete nuclear reset');
   }
 }
 
