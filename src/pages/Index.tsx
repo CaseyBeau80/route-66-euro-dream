@@ -23,11 +23,6 @@ const Index = () => {
         <HeroSection language={language} />
       </section>
 
-      {/* Unified Route 66 Directory - Restored comprehensive directory view */}
-      <FadeInSection id="route66-directory" delay={100}>
-        <UnifiedRoute66Carousel className="bg-route66-background-section" />
-      </FadeInSection>
-
       {/* Interactive Map Section with fade-in */}
       <FadeInSection id="interactive-map" delay={200}>
         <InteractiveMapSection language={language} />
@@ -36,6 +31,11 @@ const Index = () => {
       {/* Trip Planner Section with fade-in */}
       <FadeInSection id="trip-planner" delay={300}>
         <TripPlannerSection />
+      </FadeInSection>
+
+      {/* Unified Route 66 Directory - Restored comprehensive directory view */}
+      <FadeInSection id="route66-directory" delay={350}>
+        <UnifiedRoute66Carousel className="bg-route66-background-section" />
       </FadeInSection>
 
       {/* Social Section with fade-in */}
