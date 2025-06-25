@@ -97,10 +97,10 @@ export const useEnhancedPhotoUpload = () => {
           setPhotoUrl(result.photoUrl);
           
           // Check if this upload made the user a trailblazer
-          const trailblazerStatus = result.isTrailblazer || false;
-          setIsTrailblazer(trailblazerStatus);
+          const isNewTrailblazer = result.isTrailblazer || false;
+          setIsTrailblazer(isNewTrailblazer);
           
-          if (trailblazerStatus) {
+          if (isNewTrailblazer) {
             setStatus('🏆 INCREDIBLE! You are now a TRAILBLAZER - the first to capture this Route 66 location!');
             setShowTrailblazerCelebration(true);
           } else {
@@ -115,7 +115,7 @@ export const useEnhancedPhotoUpload = () => {
         return {
           success: true,
           photoUrl: result.photoUrl,
-          isTrailblazer: trailblazerStatus,
+          isTrailblazer: isNewTrailblazer,
           moderationResults: result.moderationResults
         };
       } else {
