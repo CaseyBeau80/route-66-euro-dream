@@ -454,7 +454,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      validate_route66_sequence: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          is_valid: boolean
+          errors: string[]
+          sequence_gaps: number[]
+          duplicate_sequences: number[]
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
