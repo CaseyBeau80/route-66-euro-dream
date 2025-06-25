@@ -33,7 +33,7 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
         </p>
       </div>
 
-      {/* Pagination Controls matching reference design */}
+      {/* Pagination Controls with blue color scheme */}
       <div className="flex items-center justify-center gap-4">
         <Button
           onClick={onPrevious}
@@ -42,8 +42,8 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
           size="lg"
           className="
             flex items-center gap-2 px-6 py-3 rounded-md 
-            bg-red-100 border-2 border-red-300 text-red-600
-            hover:bg-red-200 hover:border-red-400
+            bg-blue-100 border-2 border-blue-300 text-route66-primary
+            hover:bg-blue-200 hover:border-blue-400
             disabled:opacity-40 disabled:cursor-not-allowed
             shadow-sm hover:shadow-md transition-all duration-200
             font-medium
@@ -60,8 +60,8 @@ const InstagramCarouselFooter: React.FC<InstagramCarouselFooterProps> = ({
           size="lg"
           className="
             flex items-center gap-2 px-6 py-3 rounded-md 
-            bg-red-500 border-2 border-red-500 text-white
-            hover:bg-red-600 hover:border-red-600
+            bg-route66-primary border-2 border-route66-primary text-white
+            hover:bg-route66-primary-dark hover:border-route66-primary-dark
             disabled:opacity-40 disabled:cursor-not-allowed
             shadow-sm hover:shadow-md transition-all duration-200
             font-medium

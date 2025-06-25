@@ -26,33 +26,35 @@ const InstagramCard: React.FC<InstagramCardProps> = ({ post }) => {
 
   return (
     <div 
-      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group transform hover:scale-105"
+      className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:scale-110"
       onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Compact Media Container */}
+      {/* Larger Media Container with enhanced hover effect */}
       <div className="relative aspect-square overflow-hidden">
-        <MediaDisplay post={post} />
+        <div className="transform transition-transform duration-700 group-hover:scale-125">
+          <MediaDisplay post={post} />
+        </div>
         
-        {/* Hover Overlay */}
+        {/* Enhanced Hover Overlay */}
         <div className={`
-          absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 flex items-center justify-center
+          absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-500 flex items-center justify-center
           ${isHovered ? 'opacity-100' : 'opacity-0'}
         `}>
-          <div className="bg-white bg-opacity-90 rounded-full p-3 transform transition-transform duration-300 group-hover:scale-110">
-            <ExternalLink className="w-6 h-6 text-gray-800" />
+          <div className="bg-white bg-opacity-95 rounded-full p-4 transform transition-all duration-500 group-hover:scale-125 shadow-lg">
+            <ExternalLink className="w-8 h-8 text-route66-primary" />
           </div>
         </div>
         
-        {/* Like Count Overlay - Bottom Right */}
-        <div className="absolute bottom-2 right-2">
+        {/* Like Count Overlay - Bottom Right with blue theme */}
+        <div className="absolute bottom-3 right-3">
           <PostStats post={post} />
         </div>
         
-        {/* Date overlay - Top Right */}
+        {/* Date overlay - Top Right with blue theme */}
         {post.timestamp && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">
+          <div className="absolute top-3 right-3 bg-route66-primary bg-opacity-80 text-white px-3 py-1.5 rounded text-sm font-medium backdrop-blur-sm">
             {new Date(post.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </div>
         )}
