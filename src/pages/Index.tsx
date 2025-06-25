@@ -5,6 +5,7 @@ import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
 import HeroSection from "../components/Hero/HeroSection";
 import InteractiveMapSection from "../components/InteractiveMap/InteractiveMapSection";
+import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
 import TripPlannerSection from "../components/TripPlannerSection";
 import SocialSection from "../components/SocialSection/SocialSection";
 import TollRoads from "../components/TollRoads";
@@ -13,7 +14,7 @@ import FunSection from "../components/FunSection/FunSection";
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   
-  console.log("🏠 Index page: Rendering redesigned landing page with new structure");
+  console.log("🏠 Index page: Rendering with restored directory view");
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>
@@ -21,6 +22,11 @@ const Index = () => {
       <section id="hero">
         <HeroSection language={language} />
       </section>
+
+      {/* Unified Route 66 Directory - Restored comprehensive directory view */}
+      <FadeInSection id="route66-directory" delay={100}>
+        <UnifiedRoute66Carousel className="bg-route66-background-section" />
+      </FadeInSection>
 
       {/* Interactive Map Section with fade-in */}
       <FadeInSection id="interactive-map" delay={200}>
