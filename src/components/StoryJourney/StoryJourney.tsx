@@ -6,15 +6,15 @@ import { ImmersiveStorySection } from './components/ImmersiveStorySection';
 import { ImmersiveProgressTracker } from './components/ImmersiveProgressTracker';
 import { MobileSwipeNavigation } from './components/MobileSwipeNavigation';
 import { AnimatedRouteLine } from './components/AnimatedRouteLine';
-import { useTimelineValidation } from './hooks/useTimelineValidation';
+import { useEnhancedTimelineValidation } from './hooks/useEnhancedTimelineValidation';
 import { AudioService } from './services/AudioService';
 
 const StoryJourney: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
 
-  // Validate timeline images on component mount
-  useTimelineValidation(timelineMilestones);
+  // Enhanced timeline validation with Supabase integration
+  useEnhancedTimelineValidation(timelineMilestones);
 
   // Cleanup audio when component unmounts
   useEffect(() => {

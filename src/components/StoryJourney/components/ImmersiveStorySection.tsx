@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Calendar, MapPin, Volume2, VolumeX, ArrowRight } from 'lucide-react';
 import type { TimelineMilestone } from '@/data/timelineData';
-import { TimelineImage } from './TimelineImage';
+import { EnhancedTimelineImage } from './EnhancedTimelineImage';
 import { AudioService } from '../services/AudioService';
 
 interface ImmersiveStorySectionProps {
@@ -228,7 +228,7 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
           }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <TimelineImage
+          <EnhancedTimelineImage
             imageUrl={milestone.imageUrl}
             title={milestone.title}
             year={milestone.year}
