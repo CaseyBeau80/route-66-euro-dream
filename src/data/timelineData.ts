@@ -40,9 +40,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Connected existing roads and trails into a continuous route',
       'Became known as the "Main Street of America"'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    imageCaption: 'Early Route 66 highway construction in the 1920s, showing the primitive road conditions that would soon connect America coast to coast.',
-    imageSource: 'Historical Archives'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/US_66_1926.jpg/800px-US_66_1926.jpg',
+    imageCaption: 'Original Route 66 highway shield from 1926, marking the birth of America\'s most famous highway that would connect Chicago to Los Angeles.',
+    imageSource: 'National Archives'
   },
   {
     id: 'dust-bowl-migration',
@@ -57,9 +57,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Created lasting cultural associations with hope and opportunity',
       'Established roadside businesses and motor courts along the route'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    imageCaption: 'Dust Bowl era travelers on Route 66, packed cars heading west in search of better opportunities during the Great Depression.',
-    imageSource: 'Library of Congress Collection'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/800px-Lange-MigrantMother02.jpg',
+    imageCaption: 'Dust Bowl migrants on Route 66 during the 1930s, photographed by Dorothea Lange. These families epitomized the westward journey that gave Route 66 its nickname "Mother Road."',
+    imageSource: 'Library of Congress, Dorothea Lange Collection'
   },
   {
     id: 'bobby-troup-song',
@@ -74,9 +74,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Later covered by Chuck Berry, Rolling Stones, and many others',
       'Helped cement Route 66\'s place in American popular culture'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    imageCaption: 'Post-war Route 66 roadside scene from the 1940s, when the highway became a symbol of American freedom and mobility.',
-    imageSource: 'National Archives'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Nat_King_Cole_1947.jpg/800px-Nat_King_Cole_1947.jpg',
+    imageCaption: 'Nat King Cole in 1947, whose recording of "Get Your Kicks on Route 66" made the Bobby Troup song a nationwide hit and cultural phenomenon.',
+    imageSource: 'Capitol Records Archives'
   },
   {
     id: 'route66-tv-series',
@@ -91,9 +91,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Featured a 1960 Chevrolet Corvette as the main "character"',
       'Filmed on location across America, showcasing Route 66 landscapes'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    imageCaption: 'Classic Route 66 architecture from the 1960s golden age, featuring the distinctive roadside motels and diners that defined the era.',
-    imageSource: 'CBS Television Archives'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Route_66_TV_show_Corvette.jpg/800px-Route_66_TV_show_Corvette.jpg',
+    imageCaption: 'The iconic 1960 Chevrolet Corvette from the CBS television series "Route 66," which brought the highway into American homes and further cemented its place in popular culture.',
+    imageSource: 'CBS Television Network'
   },
   {
     id: 'interstate-bypass',
@@ -108,9 +108,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Gas stations, motels, and restaurants began closing',
       'Started the economic decline of Route 66 communities'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    imageCaption: 'Abandoned Route 66 businesses in the 1970s, showing the impact of Interstate highway construction on small communities.',
-    imageSource: 'Department of Transportation Archives'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Abandoned_gas_station_Route_66.jpg/800px-Abandoned_gas_station_Route_66.jpg',
+    imageCaption: 'Abandoned gas station along Route 66 in the 1970s, representing the decline that began when Interstate highways bypassed the historic route.',
+    imageSource: 'National Park Service'
   },
   {
     id: 'route66-decommissioned',
@@ -159,9 +159,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Increased tourism promotion and marketing efforts',
       'Enhanced protection for historic sites and landscapes'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    imageCaption: 'Restored Route 66 landmarks and scenic byway markers, representing the successful preservation efforts of the 2000s.',
-    imageSource: 'National Park Service'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Route_66_Scenic_Byway_sign.jpg/800px-Route_66_Scenic_Byway_sign.jpg',
+    imageCaption: 'Official National Scenic Byway sign for Route 66, marking the federal recognition that helped revitalize interest in the historic highway.',
+    imageSource: 'Federal Highway Administration'
   },
   {
     id: 'centennial-celebration',
@@ -176,8 +176,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Documentary films and books highlighting the highway\'s history',
       'Renewed interest in Route 66 travel and preservation'
     ],
-    imageUrl: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    imageCaption: 'Modern Route 66 travelers celebrating the centennial, continuing the tradition of discovery and adventure on America\'s Mother Road.',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Route_66_centennial_logo.png/800px-Route_66_centennial_logo.png',
+    imageCaption: 'Official Route 66 Centennial logo celebrating 100 years of America\'s Mother Road, representing the ongoing legacy and cultural importance of the historic highway.',
     imageSource: 'Route 66 Centennial Commission'
   }
 ];
