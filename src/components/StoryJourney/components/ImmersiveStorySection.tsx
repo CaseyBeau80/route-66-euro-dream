@@ -31,7 +31,7 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
   
-  const isInView = useInView(sectionRef, { threshold: 0.6 });
+  const isInView = useInView(sectionRef, { amount: 0.6 });
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"]
