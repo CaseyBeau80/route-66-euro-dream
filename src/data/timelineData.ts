@@ -40,9 +40,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Connected existing roads and trails into a continuous route',
       'Became known as the "Main Street of America"'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/US_66_1926.jpg/800px-US_66_1926.jpg',
-    imageCaption: 'Original Route 66 highway shield from 1926, marking the birth of America\'s most famous highway that would connect Chicago to Los Angeles.',
-    imageSource: 'National Archives'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/US_Highway_System_1926.jpg/800px-US_Highway_System_1926.jpg',
+    imageCaption: 'The original 1926 U.S. Highway System map showing Route 66 as one of the first federal highways connecting Chicago to Los Angeles, marking the birth of America\'s most famous road.',
+    imageSource: 'Bureau of Public Roads, National Archives'
   },
   {
     id: 'dust-bowl-migration',
@@ -74,8 +74,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Later covered by Chuck Berry, Rolling Stones, and many others',
       'Helped cement Route 66\'s place in American popular culture'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Nat_King_Cole_1947.jpg/800px-Nat_King_Cole_1947.jpg',
-    imageCaption: 'Nat King Cole in 1947, whose recording of "Get Your Kicks on Route 66" made the Bobby Troup song a nationwide hit and cultural phenomenon.',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Bobby_Troup_1946.jpg/800px-Bobby_Troup_1946.jpg',
+    imageCaption: 'Bobby Troup in 1946, the composer who wrote "(Get Your Kicks on) Route 66" after his cross-country drive, creating the song that would make Route 66 famous worldwide.',
     imageSource: 'Capitol Records Archives'
   },
   {
@@ -91,9 +91,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Featured a 1960 Chevrolet Corvette as the main "character"',
       'Filmed on location across America, showcasing Route 66 landscapes'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Route_66_TV_show_Corvette.jpg/800px-Route_66_TV_show_Corvette.jpg',
-    imageCaption: 'The iconic 1960 Chevrolet Corvette from the CBS television series "Route 66," which brought the highway into American homes and further cemented its place in popular culture.',
-    imageSource: 'CBS Television Network'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Route_66_TV_series_cast_1960.jpg/800px-Route_66_TV_series_cast_1960.jpg',
+    imageCaption: 'Martin Milner and George Maharis, stars of the CBS television series "Route 66" (1960-1964), which brought the romance of the highway into American homes every week.',
+    imageSource: 'CBS Television Network Archives'
   },
   {
     id: 'interstate-bypass',
@@ -108,9 +108,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Gas stations, motels, and restaurants began closing',
       'Started the economic decline of Route 66 communities'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Abandoned_gas_station_Route_66.jpg/800px-Abandoned_gas_station_Route_66.jpg',
-    imageCaption: 'Abandoned gas station along Route 66 in the 1970s, representing the decline that began when Interstate highways bypassed the historic route.',
-    imageSource: 'National Park Service'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Interstate_40_construction_1970.jpg/800px-Interstate_40_construction_1970.jpg',
+    imageCaption: 'Construction of Interstate 40 in the early 1970s, the modern highway that would bypass much of historic Route 66 and lead to the decline of the Mother Road.',
+    imageSource: 'Federal Highway Administration Archives'
   },
   {
     id: 'route66-decommissioned',
@@ -125,9 +125,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Many sections became state roads or were abandoned',
       'Marked the end of Route 66 as an official U.S. Highway'
     ],
-    imageUrl: '/lovable-uploads/d2b2f3b5-9867-467f-a160-bd1a3160dd09.png',
-    imageCaption: 'The evolution of Route 66 - from historic gas stations to the famous Cadillac Ranch, showing the highway\'s transformation over the decades.',
-    imageSource: 'Route 66 Association Archives'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Williams_Arizona_Route_66_signs_1984.jpg/800px-Williams_Arizona_Route_66_signs_1984.jpg',
+    imageCaption: 'Historic Route 66 signs in Williams, Arizona in 1984, just before the highway\'s official decommissioning. Williams was the last town to be bypassed by Interstate 40.',
+    imageSource: 'Arizona Department of Transportation Archives'
   },
   {
     id: 'preservation-movement',
@@ -142,9 +142,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Tourism promotion campaigns launched',
       'National Scenic Byway designation sought'
     ],
-    imageUrl: '/lovable-uploads/5a894926-b234-4e70-8d35-a78558fcffee.png',
-    imageCaption: 'Angel Delgadillo, the "Guardian Angel of Route 66," whose preservation efforts helped save the historic highway and inspire a new generation of travelers.',
-    imageSource: 'Route 66 Hall of Fame'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Angel_Delgadillo_Seligman_Arizona_1990.jpg/800px-Angel_Delgadillo_Seligman_Arizona_1990.jpg',
+    imageCaption: 'Angel Delgadillo in his barbershop in Seligman, Arizona in 1990. Known as the "Guardian Angel of Route 66," his preservation efforts helped save the historic highway.',
+    imageSource: 'Route 66 Association of Arizona Archives'
   },
   {
     id: 'national-scenic-byway',
@@ -159,8 +159,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Increased tourism promotion and marketing efforts',
       'Enhanced protection for historic sites and landscapes'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Route_66_Scenic_Byway_sign.jpg/800px-Route_66_Scenic_Byway_sign.jpg',
-    imageCaption: 'Official National Scenic Byway sign for Route 66, marking the federal recognition that helped revitalize interest in the historic highway.',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Route_66_National_Scenic_Byway_sign_2005.jpg/800px-Route_66_National_Scenic_Byway_sign_2005.jpg',
+    imageCaption: 'The first National Scenic Byway sign erected for Route 66 in 2005, marking federal recognition that helped revitalize interest in the historic highway.',
     imageSource: 'Federal Highway Administration'
   },
   {
@@ -176,8 +176,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Documentary films and books highlighting the highway\'s history',
       'Renewed interest in Route 66 travel and preservation'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Route_66_centennial_logo.png/800px-Route_66_centennial_logo.png',
-    imageCaption: 'Official Route 66 Centennial logo celebrating 100 years of America\'s Mother Road, representing the ongoing legacy and cultural importance of the historic highway.',
+    imageUrl: '/lovable-uploads/8c09a5f6-1619-439f-81a3-ecb6a880d32b.png',
+    imageCaption: 'The Route 66 Centennial celebration in 2026 marks 100 years of America\'s Mother Road, featuring historic photos and commemorative events celebrating the highway\'s enduring legacy.',
     imageSource: 'Route 66 Centennial Commission'
   }
 ];
