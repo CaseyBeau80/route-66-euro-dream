@@ -28,6 +28,7 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
   const imageRef = useRef<HTMLImageElement>(null);
   
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
   
@@ -48,6 +49,15 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
     }
   }, [isInView, isActive, onBecomeActive]);
 
+  // Debug image URL
+  useEffect(() => {
+    console.log(`🖼️ ImmersiveStorySection: Image URL for ${milestone.title}:`, {
+      imageUrl: milestone.imageUrl,
+      hasImage: !!milestone.imageUrl,
+      year: milestone.year
+    });
+  }, [milestone.imageUrl, milestone.title, milestone.year]);
+
   // Apply visual style filters
   const getImageFilter = () => {
     switch (milestone.visualStyle) {
@@ -58,6 +68,21 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
       default:
         return 'none';
     }
+  };
+
+  const handleImageLoad = () => {
+    console.log(`✅ Image loaded successfully for ${milestone.title}`);
+    setImageLoaded(true);
+    setImageError(false);
+  };
+
+  const handleImageError = (error: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error(`❌ Image failed to load for ${milestone.title}:`, {
+      src: milestone.imageUrl,
+      error: error.currentTarget.src
+    });
+    setImageError(true);
+    setImageLoaded(false);
   };
 
   const handleAudioToggle = () => {
@@ -246,8 +271,29 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
               viewport={{ once: true }}
               className="relative"
             >
-              {milestone.imageUrl && (
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              {milestone.imageUrl ? (
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-200">
+                  {/* Loading placeholder */}
+                  {!imageLoaded && !imageError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-route66-primary"></div>
+                    </div>
+                  )}
+                  
+                  {/* Error placeholder */}
+                  {imageError && (
+                    <div className="w-full h-96 md:h-[600px] flex items-center justify-center bg-gray-200 text-gray-500">
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">📷</div>
+                        <div className="text-sm">Image not available</div>
+                        <div className="text-xs mt-1 text-gray-400">
+                          {milestone.year}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Actual image */}
                   <img
                     ref={imageRef}
                     src={milestone.imageUrl}
@@ -256,7 +302,8 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
                       imageLoaded ? 'opacity-100' : 'opacity-0'
                     }`}
                     style={{ filter: getImageFilter() }}
-                    onLoad={() => setImageLoaded(true)}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
                     loading="lazy"
                   />
                   
@@ -281,6 +328,15 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
                       )}
                     </div>
                   )}
+                </div>
+              ) : (
+                // Fallback when no image URL is provided
+                <div className="w-full h-96 md:h-[600px] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-route66-primary/20 to-route66-accent-gold/20 flex items-center justify-center">
+                  <div className="text-center text-route66-text-muted">
+                    <div className="text-6xl mb-4">{milestone.icon}</div>
+                    <div className="text-xl font-semibold">{milestone.year}</div>
+                    <div className="text-sm mt-2">Historical Photo</div>
+                  </div>
                 </div>
               )}
 
