@@ -1,9 +1,11 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Calendar, MapPin, Volume2, VolumeX, ArrowRight } from 'lucide-react';
 import type { TimelineMilestone } from '@/data/timelineData';
 import { TimelineImage } from './TimelineImage';
 import { ImageValidationService } from '../services/ImageValidationService';
+import { AudioService } from '../services/AudioService';
 
 interface ImmersiveStorySectionProps {
   milestone: TimelineMilestone;
@@ -26,6 +28,7 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
   
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
+  const [audioLoading, setAudioLoading] = useState(false);
   
   // Auto-activate when in view
   useEffect(() => {
@@ -45,24 +48,48 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
     }
   }, [milestone.imageUrl, milestone.title, milestone.year]);
 
-  const handleAudioToggle = () => {
+  // Cleanup audio when component unmounts or changes
+  useEffect(() => {
+    return () => {
+      if (audioRef) {
+        audioRef.pause();
+        audioRef.currentTime = 0;
+      }
+    };
+  }, [audioRef]);
+
+  const handleAudioToggle = async () => {
     if (isAudioPlaying) {
       audioRef?.pause();
       setIsAudioPlaying(false);
-    } else {
-      if (!audioRef) {
-        const audio = new Audio(`/audio/timeline/${milestone.year}.mp3`);
-        audio.addEventListener('ended', () => setIsAudioPlaying(false));
-        setAudioRef(audio);
-        audio.play().catch(() => {
-          console.log('Audio playback failed - file may not exist');
-        });
-      } else {
-        audioRef.play().catch(() => {
-          console.log('Audio playback failed');
-        });
+      return;
+    }
+
+    if (!audioRef) {
+      setAudioLoading(true);
+      try {
+        const audio = await AudioService.createAudioForMilestone(milestone.year);
+        if (audio) {
+          audio.addEventListener('ended', () => setIsAudioPlaying(false));
+          audio.addEventListener('pause', () => setIsAudioPlaying(false));
+          setAudioRef(audio);
+          await audio.play();
+          setIsAudioPlaying(true);
+        } else {
+          console.log('No audio available for this milestone');
+        }
+      } catch (error) {
+        console.log('Audio playback failed:', error);
+      } finally {
+        setAudioLoading(false);
       }
-      setIsAudioPlaying(true);
+    } else {
+      try {
+        await audioRef.play();
+        setIsAudioPlaying(true);
+      } catch (error) {
+        console.log('Audio playback failed:', error);
+      }
     }
   };
 
@@ -82,6 +109,11 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
         return {
           background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
           borderColor: 'rgba(249, 115, 22, 0.2)'
+        };
+      case 'modern':
+        return {
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+          borderColor: 'rgba(59, 130, 246, 0.2)'
         };
       default:
         return {
@@ -179,18 +211,21 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
           {/* Audio Control */}
           <motion.button
             onClick={handleAudioToggle}
-            className="flex items-center gap-3 px-6 py-3 bg-route66-primary/10 hover:bg-route66-primary/20 rounded-full transition-colors duration-300"
+            disabled={audioLoading}
+            className="flex items-center gap-3 px-6 py-3 bg-route66-primary/10 hover:bg-route66-primary/20 rounded-full transition-colors duration-300 disabled:opacity-50"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: isActive ? 0 : 10, opacity: isActive ? 1 : 0.8 }}
             transition={{ duration: 0.6, delay: 1 }}
           >
-            {isAudioPlaying ? (
+            {audioLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-route66-primary"></div>
+            ) : isAudioPlaying ? (
               <VolumeX className="w-5 h-5 text-route66-primary" />
             ) : (
               <Volume2 className="w-5 h-5 text-route66-primary" />
             )}
             <span className="text-route66-text-primary font-medium">
-              {isAudioPlaying ? 'Stop Audio' : 'Listen to Story'}
+              {audioLoading ? 'Loading...' : isAudioPlaying ? 'Stop Audio' : 'Listen to Story'}
             </span>
           </motion.button>
         </motion.div>

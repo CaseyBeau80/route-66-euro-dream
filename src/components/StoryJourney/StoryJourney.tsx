@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { timelineMilestones } from '@/data/timelineData';
@@ -6,6 +7,7 @@ import { ImmersiveProgressTracker } from './components/ImmersiveProgressTracker'
 import { MobileSwipeNavigation } from './components/MobileSwipeNavigation';
 import { AnimatedRouteLine } from './components/AnimatedRouteLine';
 import { useTimelineValidation } from './hooks/useTimelineValidation';
+import { AudioService } from './services/AudioService';
 
 const StoryJourney: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -14,8 +16,18 @@ const StoryJourney: React.FC = () => {
   // Validate timeline images on component mount
   useTimelineValidation(timelineMilestones);
 
+  // Cleanup audio when component unmounts
+  useEffect(() => {
+    return () => {
+      AudioService.cleanup();
+    };
+  }, []);
+
   const handleNavigate = (index: number) => {
     if (index >= 0 && index < timelineMilestones.length && index !== currentIndex) {
+      // Stop any playing audio when navigating
+      AudioService.stopAllAudio();
+      
       setCurrentIndex(index);
       setIsScrolling(true);
       
@@ -35,6 +47,8 @@ const StoryJourney: React.FC = () => {
 
   const handleSectionBecomeActive = (index: number) => {
     if (!isScrolling && index !== currentIndex) {
+      // Stop any playing audio when changing sections
+      AudioService.stopAllAudio();
       setCurrentIndex(index);
     }
   };
