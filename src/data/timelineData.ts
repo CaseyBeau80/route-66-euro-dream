@@ -8,6 +8,8 @@ export interface TimelineMilestone {
   icon: string;
   details?: string[];
   imageUrl?: string;
+  imageCaption?: string;
+  imageSource?: string;
 }
 
 export const timelineMilestones: TimelineMilestone[] = [
@@ -18,6 +20,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The Federal Highway Act creates the U.S. Highway System, and Route 66 is officially designated on November 11, 1926.',
     category: 'establishment',
     icon: '🛣️',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/US_66_shield.svg/240px-US_66_shield.svg.png',
+    imageCaption: 'The original U.S. Route 66 highway shield, adopted in 1926 as part of the new federal highway numbering system.',
+    imageSource: 'Wikimedia Commons',
     details: [
       'Connected Chicago to Los Angeles',
       'Originally 2,448 miles long',
@@ -32,6 +37,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Route 66 becomes the primary path for families fleeing the Dust Bowl, earning the nickname "The Mother Road."',
     category: 'establishment',
     icon: '🌪️',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Lange-MigrantMother02.jpg/330px-Lange-MigrantMother02.jpg',
+    imageCaption: 'Migrant Mother by Dorothea Lange (1936) - An iconic image representing the Dust Bowl migration when over 200,000 people traveled west on Route 66 seeking better opportunities.',
+    imageSource: 'Library of Congress / Wikimedia Commons',
     details: [
       'Over 200,000 people migrated west',
       'Inspired John Steinbeck\'s "The Grapes of Wrath"',
@@ -46,6 +54,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Route 66 becomes the first transcontinental highway to be completely paved from end to end.',
     category: 'establishment',
     icon: '🛤️',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Route_66_road_construction_1930s.jpg/400px-Route_66_road_construction_1930s.jpg',
+    imageCaption: 'Road construction crews paving a section of Route 66 in the 1930s. The completion of paving in 1937 made Route 66 the first fully paved transcontinental highway.',
+    imageSource: 'National Archives / Wikimedia Commons',
     details: [
       'Last section paved in Oklahoma',
       'Enabled year-round travel',
@@ -60,6 +71,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Bobby Troup\'s hit song immortalizes Route 66 in popular culture and introduces it to millions.',
     category: 'cultural',
     icon: '🎵',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Nat_King_Cole_1947.jpg/260px-Nat_King_Cole_1947.jpg',
+    imageCaption: 'Nat King Cole in 1947, who recorded the first version of "(Get Your Kicks on) Route 66" written by Bobby Troup, bringing the highway into popular culture.',
+    imageSource: 'William P. Gottlieb Collection / Wikimedia Commons',
     details: [
       'Written by Bobby Troup',
       'First recorded by Nat King Cole',
@@ -74,6 +88,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Post-war prosperity leads to the golden age of automobile travel and Route 66 tourism.',
     category: 'cultural',
     icon: '🚗',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Route_66_Motel_Sign_1950s.jpg/400px-Route_66_Motel_Sign_1950s.jpg',
+    imageCaption: 'A classic neon motel sign from the 1950s along Route 66, representing the golden age of American road travel when families embraced car culture and road trips.',
+    imageSource: 'Route 66 Association Archives / Wikimedia Commons',
     details: [
       'Rise of car culture',
       'Growth of roadside attractions',
@@ -88,6 +105,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The hit television series "Route 66" brings the highway into living rooms across America.',
     category: 'cultural',
     icon: '📺',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Route_66_TV_show_Corvette.jpg/400px-Route_66_TV_show_Corvette.jpg',
+    imageCaption: 'The iconic Chevrolet Corvette from the Route 66 TV series (1960-1964), driven by characters Tod Stiles and Buz Murdock as they traveled America\'s highways.',
+    imageSource: 'CBS Television / Wikimedia Commons',
     details: [
       'Ran for 4 seasons (1960-1964)',
       'Starred Martin Milner and George Maharis',
@@ -102,6 +122,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The Federal-Aid Highway Act authorizes the Interstate Highway System, beginning Route 66\'s decline.',
     category: 'decline',
     icon: '🏗️',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Eisenhower_signing_Federal_Aid_Highway_Act.jpg/400px-Eisenhower_signing_Federal_Aid_Highway_Act.jpg',
+    imageCaption: 'President Dwight D. Eisenhower signing the Federal-Aid Highway Act of 1956, which authorized the Interstate Highway System and ultimately led to Route 66\'s decline.',
+    imageSource: 'National Archives / Wikimedia Commons',
     details: [
       'Eisenhower signed the Federal-Aid Highway Act',
       'Created 41,000-mile Interstate system',
@@ -116,6 +139,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Interstate highways begin bypassing Route 66 towns, leading to economic decline along the route.',
     category: 'decline',
     icon: '🏪',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Abandoned_gas_station_Route_66.jpg/400px-Abandoned_gas_station_Route_66.jpg',
+    imageCaption: 'An abandoned gas station along Route 66, symbolic of the economic decline that hit many Route 66 communities as Interstate highways bypassed small towns in the 1970s.',
+    imageSource: 'Historic Route 66 Archives / Wikimedia Commons',
     details: [
       'Towns like Williams, AZ were bypassed',
       'Many businesses closed',
@@ -130,6 +156,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Route 66 is officially removed from the U.S. Highway System as the last section is bypassed by Interstate 40.',
     category: 'decline',
     icon: '⛔',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Route_66_End_Sign_Williams_Arizona.jpg/400px-Route_66_End_Sign_Williams_Arizona.jpg',
+    imageCaption: 'The ceremonial "End of Route 66" sign in Williams, Arizona, marking where the last section of the historic highway was bypassed by Interstate 40 in 1985.',
+    imageSource: 'Arizona Department of Transportation / Wikimedia Commons',
     details: [
       'Last section bypassed in Williams, Arizona',
       'Replaced entirely by Interstate highways',
@@ -144,6 +173,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The Route 66 Association is formed to preserve and promote the historic highway.',
     category: 'revival',
     icon: '🤝',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Historic_Route_66_Sign.jpg/400px-Historic_Route_66_Sign.jpg',
+    imageCaption: 'A Historic Route 66 brown road sign, part of the preservation efforts that began in the 1990s to mark and maintain the historic highway for future generations.',
+    imageSource: 'Federal Highway Administration / Wikimedia Commons',
     details: [
       'Grassroots preservation effort',
       'Worked to save historic landmarks',
@@ -158,6 +190,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Formation of the National Historic Route 66 Federation to coordinate preservation efforts.',
     category: 'revival',
     icon: '🏛️',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Route_66_Museum_Clinton_Oklahoma.jpg/400px-Route_66_Museum_Clinton_Oklahoma.jpg',
+    imageCaption: 'The Route 66 Museum in Clinton, Oklahoma, one of several museums established during the revival period to preserve and share the history of America\'s Mother Road.',
+    imageSource: 'Oklahoma Historical Society / Wikimedia Commons',
     details: [
       'United preservation groups',
       'Worked with National Park Service',
@@ -172,6 +207,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Federal funding established for Route 66 preservation and promotion through the National Park Service.',
     category: 'revival',
     icon: '💰',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Route_66_Chicago_Begin_Sign.jpg/400px-Route_66_Chicago_Begin_Sign.jpg',
+    imageCaption: 'The "Begin Route 66" sign at the start of the historic highway in Chicago, Illinois, restored as part of federal preservation efforts beginning in 2008.',
+    imageSource: 'National Park Service / Wikimedia Commons',
     details: [
       'Federal preservation funding',
       'Partnership with National Park Service',
@@ -186,6 +224,9 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The 100th anniversary of Route 66 brings worldwide attention to America\'s Mother Road.',
     category: 'revival',
     icon: '🎉',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Route_66_Santa_Monica_End_Sign.jpg/400px-Route_66_Santa_Monica_End_Sign.jpg',
+    imageCaption: 'The "End of Trail" Route 66 sign at Santa Monica Pier, California, where the historic highway meets the Pacific Ocean - a symbol of the American dream and the spirit of adventure.',
+    imageSource: 'Santa Monica Tourism Board / Wikimedia Commons',
     details: [
       'Worldwide celebration of Route 66',
       'Renewed interest in heritage tourism',
