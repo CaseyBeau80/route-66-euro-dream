@@ -10,6 +10,16 @@ export interface TimelineMilestone {
   imageUrl?: string;
   imageCaption?: string;
   imageSource?: string;
+  // New fields for enhanced experience
+  audioNarrationUrl?: string;
+  visualStyle?: 'color' | 'sepia' | 'black-and-white';
+  ambientColor?: string;
+  extendedStory?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  isFavoritable?: boolean;
 }
 
 export const categoryLabels = {
@@ -26,6 +36,13 @@ export const categoryColors = {
   revival: 'bg-blue-50'
 } as const;
 
+export const categoryAmbientColors = {
+  establishment: '#22c55e',
+  cultural: '#8b5cf6',
+  decline: '#f97316',
+  revival: '#3b82f6'
+} as const;
+
 export const timelineMilestones: TimelineMilestone[] = [
   {
     id: 'route66-establishment',
@@ -34,6 +51,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The Federal Highway Act establishes Route 66 as one of the original numbered highways, connecting Chicago to Los Angeles across 2,448 miles of American landscape.',
     category: 'establishment',
     icon: '🛣️',
+    visualStyle: 'sepia',
+    ambientColor: '#22c55e',
+    coordinates: { lat: 41.8781, lng: -87.6298 }, // Chicago
+    isFavoritable: true,
+    extendedStory: 'On November 11, 1926, Route 66 was born from the vision of Cyrus Avery, known as the "Father of Route 66." This highway would become more than just a road—it would become a symbol of American freedom and opportunity.',
     details: [
       'Original length: 2,448 miles from Chicago, IL to Santa Monica, CA',
       'Part of the original federal highway numbering system',
@@ -51,6 +73,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'During the Great Depression, hundreds of thousands of families traveled Route 66 westward, earning it the nickname "Mother Road" from John Steinbeck\'s novel.',
     category: 'cultural',
     icon: '🌪️',
+    visualStyle: 'black-and-white',
+    ambientColor: '#8b5cf6',
+    coordinates: { lat: 36.7783, lng: -119.4179 }, // Central California
+    isFavoritable: true,
+    extendedStory: 'The Dust Bowl years transformed Route 66 into a river of humanity. Families packed their belongings and dreams into jalopy cars, following the western sun toward hope in California\'s promised land.',
     details: [
       'Over 200,000 people migrated west on Route 66 during the 1930s',
       'Immortalized in John Steinbeck\'s "The Grapes of Wrath"',
@@ -68,6 +95,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Bobby Troup\'s hit song popularizes Route 66 in American culture, later covered by artists like Nat King Cole and the Rolling Stones.',
     category: 'cultural',
     icon: '🎵',
+    visualStyle: 'color',
+    ambientColor: '#8b5cf6',
+    coordinates: { lat: 34.0522, lng: -118.2437 }, // Los Angeles
+    isFavoritable: true,
+    extendedStory: 'The infectious rhythm of Bobby Troup\'s song captured the spirit of post-war America. As Nat King Cole\'s smooth voice crooned about getting kicks on Route 66, the highway became a soundtrack to the American dream.',
     details: [
       'Written by Bobby Troup after driving Route 66 from Pennsylvania to California',
       'First recorded by Nat King Cole, becoming a major hit',
@@ -85,6 +117,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The CBS television series "Route 66" brings the highway into American living rooms, following two young men traveling the road in a Corvette.',
     category: 'cultural',
     icon: '📺',
+    visualStyle: 'color',
+    ambientColor: '#8b5cf6',
+    coordinates: { lat: 35.0844, lng: -106.6504 }, // New Mexico
+    isFavoritable: true,
+    extendedStory: 'Every Friday night, millions of Americans gathered around their television sets to follow Tod and Buz on their endless journey. The show made Route 66 synonymous with freedom, adventure, and the open road.',
     details: [
       'Ran from 1960-1964 on CBS television',
       'Starred Martin Milner and George Maharis',
@@ -102,6 +139,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The Interstate Highway System begins bypassing Route 66 sections, leading to the decline of many roadside businesses and small towns.',
     category: 'decline',
     icon: '🚧',
+    visualStyle: 'sepia',
+    ambientColor: '#f97316',
+    coordinates: { lat: 35.2137, lng: -101.8313 }, // Amarillo, Texas
+    isFavoritable: true,
+    extendedStory: 'The roar of progress echoed across the American Southwest as massive interstate highways carved new paths through the desert. For Route 66, this technological marvel spelled the beginning of the end.',
     details: [
       'Interstate 40 and other highways provided faster alternatives',
       'Many small towns and businesses along Route 66 were bypassed',
@@ -119,6 +161,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The American Association of State Highway Officials removes Route 66 from the U.S. Highway System, ending its 59-year official existence.',
     category: 'decline',
     icon: '🚫',
+    visualStyle: 'black-and-white',
+    ambientColor: '#f97316',
+    coordinates: { lat: 35.2502, lng: -112.1901 }, // Williams, Arizona
+    isFavoritable: true,
+    extendedStory: 'On a quiet day in Williams, Arizona, the last Route 66 sign was ceremonially removed. The Mother Road had officially reached the end of her journey, but her spirit would live on in the hearts of those who remembered.',
     details: [
       'Williams, Arizona was the last town to be bypassed by Interstate 40',
       'Route 66 shields were officially removed from the highway system',
@@ -136,6 +183,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Grassroots organizations and state governments begin efforts to preserve and promote the historic route as a cultural and tourism asset.',
     category: 'revival',
     icon: '🏛️',
+    visualStyle: 'color',
+    ambientColor: '#3b82f6',
+    coordinates: { lat: 35.5161, lng: -113.2041 }, // Seligman, Arizona
+    isFavoritable: true,
+    extendedStory: 'From a small barbershop in Seligman, Arizona, Angel Delgadillo sparked a movement that would resurrect the Mother Road. His passion ignited hearts across eight states, proving that some roads are too important to let die.',
     details: [
       'Route 66 associations formed in multiple states',
       'Historic preservation efforts began for roadside architecture',
@@ -153,6 +205,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'Route 66 receives National Scenic Byway designation, providing federal support for preservation and tourism development efforts.',
     category: 'revival',
     icon: '🏞️',
+    visualStyle: 'color',
+    ambientColor: '#3b82f6',
+    coordinates: { lat: 34.9457, lng: -92.3310 }, // Little Rock, Arkansas
+    isFavoritable: true,
+    extendedStory: 'Official recognition came at last. Route 66\'s designation as a National Scenic Byway marked not just preservation, but celebration—a national acknowledgment of the road\'s irreplaceable place in American culture.',
     details: [
       'Received All-American Road designation in several states',
       'Federal funding became available for preservation projects',
@@ -170,6 +227,11 @@ export const timelineMilestones: TimelineMilestone[] = [
     description: 'The 100th anniversary of Route 66 brings renewed attention and celebration of America\'s most famous highway and its enduring cultural legacy.',
     category: 'revival',
     icon: '🎉',
+    visualStyle: 'color',
+    ambientColor: '#3b82f6',
+    coordinates: { lat: 34.0195, lng: -118.4912 }, // Santa Monica
+    isFavoritable: true,
+    extendedStory: 'One hundred years after her birth, Route 66 stands triumphant. From sea to shining sea, millions celebrate the Mother Road\'s centennial, ensuring her legacy will inspire generations of travelers yet to come.',
     details: [
       'Nationwide celebrations and festivals planned',
       'Special commemorative events in all Route 66 states',
