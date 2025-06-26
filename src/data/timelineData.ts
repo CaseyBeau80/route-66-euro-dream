@@ -8,8 +8,24 @@ export interface TimelineMilestone {
   category: 'establishment' | 'cultural' | 'decline' | 'modern';
   icon: string;
   imageUrl?: string;
+  imageCaption?: string;
+  imageSource?: string;
   audioUrl?: string;
 }
+
+export const categoryColors = {
+  establishment: 'bg-green-50 border-green-200',
+  cultural: 'bg-purple-50 border-purple-200', 
+  decline: 'bg-orange-50 border-orange-200',
+  modern: 'bg-blue-50 border-blue-200'
+} as const;
+
+export const categoryLabels = {
+  establishment: 'Birth & Growth',
+  cultural: 'Cultural Impact',
+  decline: 'Decline Era', 
+  modern: 'Modern Revival'
+} as const;
 
 export const timelineMilestones: TimelineMilestone[] = [
   {

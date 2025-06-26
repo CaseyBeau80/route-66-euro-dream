@@ -14,7 +14,7 @@ const categoryIcons = {
   establishment: MapPin,
   cultural: Music,
   decline: Heart,
-  revival: Sparkles
+  modern: Sparkles
 } as const;
 
 export const TimelineFilters: React.FC<TimelineFiltersProps> = ({
