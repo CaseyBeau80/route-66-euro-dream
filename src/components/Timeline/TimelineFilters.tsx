@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, MapPin, Music, Heart } from 'lucide-react';
-import { categoryLabels } from '../../data/timelineData';
+import { categoryLabels, categoryColors } from '@/data/timelineData';
 
 interface TimelineFiltersProps {
   selectedCategory: string | null;
@@ -21,6 +21,7 @@ export const TimelineFilters: React.FC<TimelineFiltersProps> = ({
   selectedCategory,
   onCategoryChange
 }) => {
+  // Fix the type issues by properly typing the categories
   const categories = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
 
   return (
