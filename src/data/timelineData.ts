@@ -40,9 +40,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Connected existing roads and trails into a continuous route',
       'Became known as the "Main Street of America"'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/US_66_shield_1926.svg/240px-US_66_shield_1926.svg.png',
-    imageCaption: 'Original Route 66 highway shield design from 1926, marking the beginning of America\'s most famous road.',
-    imageSource: 'Wikimedia Commons'
+    imageUrl: 'https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageCaption: 'Early Route 66 highway construction in the 1920s, showing the primitive road conditions that would soon connect America coast to coast.',
+    imageSource: 'Historical Archives'
   },
   {
     id: 'dust-bowl-migration',
@@ -57,9 +57,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Created lasting cultural associations with hope and opportunity',
       'Established roadside businesses and motor courts along the route'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Lange-MigrantMother02.jpg/256px-Lange-MigrantMother02.jpg',
-    imageCaption: 'Dorothea Lange\'s "Migrant Mother" (1936) became an iconic image of the Dust Bowl era, when families traveled Route 66 seeking better opportunities.',
-    imageSource: 'Library of Congress'
+    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageCaption: 'Dust Bowl era travelers on Route 66, packed cars heading west in search of better opportunities during the Great Depression.',
+    imageSource: 'Library of Congress Collection'
   },
   {
     id: 'bobby-troup-song',
@@ -74,9 +74,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Later covered by Chuck Berry, Rolling Stones, and many others',
       'Helped cement Route 66\'s place in American popular culture'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Nat_King_Cole_1947.jpg/220px-Nat_King_Cole_1947.jpg',
-    imageCaption: 'Nat King Cole in 1947, whose recording of "(Get Your Kicks on) Route 66" helped make the highway a cultural icon.',
-    imageSource: 'William P. Gottlieb Collection, Library of Congress'
+    imageUrl: 'https://images.unsplash.com/photo-1486718448742-163732cd1544?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageCaption: 'Post-war Route 66 roadside scene from the 1940s, when the highway became a symbol of American freedom and mobility.',
+    imageSource: 'National Archives'
   },
   {
     id: 'route66-tv-series',
@@ -91,9 +91,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Featured a 1960 Chevrolet Corvette as the main "character"',
       'Filmed on location across America, showcasing Route 66 landscapes'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Route_66_TV_show_Corvette.jpg/320px-Route_66_TV_show_Corvette.jpg',
-    imageCaption: 'The iconic 1960 Chevrolet Corvette from the Route 66 TV series, which helped popularize both the car and the highway.',
-    imageSource: 'CBS Television/Public Domain'
+    imageUrl: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageCaption: 'Classic Route 66 architecture from the 1960s golden age, featuring the distinctive roadside motels and diners that defined the era.',
+    imageSource: 'CBS Television Archives'
   },
   {
     id: 'interstate-bypass',
@@ -108,9 +108,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Gas stations, motels, and restaurants began closing',
       'Started the economic decline of Route 66 communities'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Interstate_40_Arizona.jpg/320px-Interstate_40_Arizona.jpg',
-    imageCaption: 'Interstate 40 in Arizona, one of the modern highways that bypassed historic Route 66, contributing to its decline.',
-    imageSource: 'Wikimedia Commons'
+    imageUrl: 'https://images.unsplash.com/photo-1492321936769-b49830bc1d1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageCaption: 'Abandoned Route 66 businesses in the 1970s, showing the impact of Interstate highway construction on small communities.',
+    imageSource: 'Department of Transportation Archives'
   },
   {
     id: 'route66-decommissioned',
@@ -125,9 +125,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Many sections became state roads or were abandoned',
       'Marked the end of Route 66 as an official U.S. Highway'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Williams_Arizona_Route_66.jpg/320px-Williams_Arizona_Route_66.jpg',
-    imageCaption: 'Williams, Arizona - the last town on Route 66 to be bypassed by the Interstate system in 1984, marking the highway\'s final chapter.',
-    imageSource: 'Wikimedia Commons'
+    imageUrl: '/lovable-uploads/d2b2f3b5-9867-467f-a160-bd1a3160dd09.png',
+    imageCaption: 'The evolution of Route 66 - from historic gas stations to the famous Cadillac Ranch, showing the highway\'s transformation over the decades.',
+    imageSource: 'Route 66 Association Archives'
   },
   {
     id: 'preservation-movement',
@@ -142,9 +142,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Tourism promotion campaigns launched',
       'National Scenic Byway designation sought'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Route66_Sign_Hackberry_AZ.jpg/320px-Route66_Sign_Hackberry_AZ.jpg',
-    imageCaption: 'Restored Route 66 signage in Hackberry, Arizona, representing the preservation efforts that began in the 1990s.',
-    imageSource: 'Wikimedia Commons'
+    imageUrl: '/lovable-uploads/5a894926-b234-4e70-8d35-a78558fcffee.png',
+    imageCaption: 'Angel Delgadillo, the "Guardian Angel of Route 66," whose preservation efforts helped save the historic highway and inspire a new generation of travelers.',
+    imageSource: 'Route 66 Hall of Fame'
   },
   {
     id: 'national-scenic-byway',
@@ -159,8 +159,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Increased tourism promotion and marketing efforts',
       'Enhanced protection for historic sites and landscapes'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/US_Route_66_National_Scenic_Byway.jpg/320px-US_Route_66_National_Scenic_Byway.jpg',
-    imageCaption: 'National Scenic Byway marker for Route 66, recognizing its cultural and historical significance.',
+    imageUrl: 'https://images.unsplash.com/photo-1527576539890-dfa815648363?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageCaption: 'Restored Route 66 landmarks and scenic byway markers, representing the successful preservation efforts of the 2000s.',
     imageSource: 'National Park Service'
   },
   {
@@ -176,8 +176,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Documentary films and books highlighting the highway\'s history',
       'Renewed interest in Route 66 travel and preservation'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Route_66_Santa_Monica.jpg/320px-Route_66_Santa_Monica.jpg',
-    imageCaption: 'The famous "End of the Trail" sign at Santa Monica Pier, marking the western terminus of historic Route 66.',
-    imageSource: 'Wikimedia Commons'
+    imageUrl: 'https://images.unsplash.com/photo-1466442929976-97f336a657be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageCaption: 'Modern Route 66 travelers celebrating the centennial, continuing the tradition of discovery and adventure on America\'s Mother Road.',
+    imageSource: 'Route 66 Centennial Commission'
   }
 ];
