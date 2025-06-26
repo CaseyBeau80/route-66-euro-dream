@@ -20,7 +20,7 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { 
-    threshold: 0.5, 
+    amount: 0.5, 
     margin: "-10% 0px -10% 0px" 
   });
   
