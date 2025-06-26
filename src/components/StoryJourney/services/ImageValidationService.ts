@@ -1,8 +1,6 @@
 
 export class ImageValidationService {
-  private static readonly SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png'];
-  private static readonly MAX_RETRY_ATTEMPTS = 2;
-  private static readonly RETRY_DELAY = 1000; // 1 second
+  private static readonly SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 
   /**
    * Validates if a URL points to a supported image format
@@ -13,12 +11,25 @@ export class ImageValidationService {
     }
 
     try {
-      const parsedUrl = new URL(url);
-      const pathname = parsedUrl.pathname.toLowerCase();
+      // Check if it's a valid URL
+      new URL(url);
       
-      return this.SUPPORTED_FORMATS.some(format => 
-        pathname.includes(format)
+      // More lenient check - if it contains an image extension or is from a known image host
+      const lowerUrl = url.toLowerCase();
+      const hasImageExtension = this.SUPPORTED_FORMATS.some(format => 
+        lowerUrl.includes(format)
       );
+      
+      const isKnownImageHost = [
+        'lovable-uploads',
+        'images.unsplash.com',
+        'unsplash.com',
+        'cdn.',
+        'imgur.com',
+        'cloudinary.com'
+      ].some(host => lowerUrl.includes(host));
+
+      return hasImageExtension || isKnownImageHost;
     } catch {
       return false;
     }
@@ -34,74 +45,53 @@ export class ImageValidationService {
       img.onerror = () => resolve(false);
       img.src = url;
       
-      // Timeout after 5 seconds
-      setTimeout(() => resolve(false), 5000);
+      // Timeout after 10 seconds
+      setTimeout(() => resolve(false), 10000);
     });
-  }
-
-  /**
-   * Attempts to load an image with retry logic
-   */
-  static async loadImageWithRetry(
-    url: string, 
-    onSuccess: () => void, 
-    onError: (error: string) => void,
-    onRetry?: (attempt: number) => void
-  ): Promise<void> {
-    let attempts = 0;
-
-    const attemptLoad = async (): Promise<void> => {
-      attempts++;
-      
-      try {
-        const success = await this.testImageLoad(url);
-        
-        if (success) {
-          onSuccess();
-          return;
-        }
-        
-        if (attempts < this.MAX_RETRY_ATTEMPTS) {
-          onRetry?.(attempts);
-          console.log(`🔄 Retrying image load (attempt ${attempts + 1}/${this.MAX_RETRY_ATTEMPTS}): ${url}`);
-          setTimeout(attemptLoad, this.RETRY_DELAY);
-        } else {
-          onError(`Failed to load after ${this.MAX_RETRY_ATTEMPTS} attempts`);
-        }
-      } catch (error) {
-        if (attempts < this.MAX_RETRY_ATTEMPTS) {
-          onRetry?.(attempts);
-          setTimeout(attemptLoad, this.RETRY_DELAY);
-        } else {
-          onError(`Network error: ${error}`);
-        }
-      }
-    };
-
-    attemptLoad();
   }
 
   /**
    * Validates timeline image URLs and provides feedback
    */
   static validateTimelineImages(milestones: Array<{ imageUrl?: string; title: string; year: number }>) {
+    console.log('🔍 Starting timeline image validation...');
+    
     const validationResults = milestones.map(milestone => {
-      const isValid = milestone.imageUrl ? this.isValidImageUrl(milestone.imageUrl) : false;
-      
-      if (milestone.imageUrl && !isValid) {
-        console.warn(`⚠️ Invalid image URL for ${milestone.title} (${milestone.year}):`, milestone.imageUrl);
+      if (!milestone.imageUrl) {
+        console.log(`⚠️ No image URL for ${milestone.title} (${milestone.year})`);
+        return {
+          title: milestone.title,
+          year: milestone.year,
+          url: milestone.imageUrl,
+          isValid: false,
+          hasUrl: false
+        };
       }
+
+      const isValid = this.isValidImageUrl(milestone.imageUrl);
+      
+      console.log(`${isValid ? '✅' : '❌'} Image URL for ${milestone.title} (${milestone.year}):`, {
+        url: milestone.imageUrl,
+        isValid
+      });
       
       return {
         title: milestone.title,
         year: milestone.year,
         url: milestone.imageUrl,
         isValid,
-        hasUrl: !!milestone.imageUrl
+        hasUrl: true
       };
     });
 
-    console.log('📊 Timeline Image Validation Results:', validationResults);
+    const summary = {
+      total: validationResults.length,
+      withUrls: validationResults.filter(r => r.hasUrl).length,
+      valid: validationResults.filter(r => r.isValid).length,
+      invalid: validationResults.filter(r => r.hasUrl && !r.isValid).length
+    };
+
+    console.log('📊 Timeline Image Validation Summary:', summary);
     return validationResults;
   }
 }

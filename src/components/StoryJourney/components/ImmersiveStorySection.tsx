@@ -4,7 +4,6 @@ import { motion, useInView } from 'framer-motion';
 import { Calendar, MapPin, Volume2, VolumeX, ArrowRight } from 'lucide-react';
 import type { TimelineMilestone } from '@/data/timelineData';
 import { TimelineImage } from './TimelineImage';
-import { ImageValidationService } from '../services/ImageValidationService';
 import { AudioService } from '../services/AudioService';
 
 interface ImmersiveStorySectionProps {
@@ -36,17 +35,6 @@ export const ImmersiveStorySection: React.FC<ImmersiveStorySectionProps> = ({
       onBecomeActive();
     }
   }, [isInView, isActive, onBecomeActive]);
-
-  // Validate image URL on mount
-  useEffect(() => {
-    if (milestone.imageUrl && !ImageValidationService.isValidImageUrl(milestone.imageUrl)) {
-      console.warn(`⚠️ Timeline image validation failed for ${milestone.title}:`, {
-        url: milestone.imageUrl,
-        year: milestone.year,
-        supportedFormats: ['.jpg', '.jpeg', '.png']
-      });
-    }
-  }, [milestone.imageUrl, milestone.title, milestone.year]);
 
   // Cleanup audio when component unmounts or changes
   useEffect(() => {

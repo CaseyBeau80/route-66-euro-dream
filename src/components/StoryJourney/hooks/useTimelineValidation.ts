@@ -6,6 +6,12 @@ import { ImageValidationService } from '../services/ImageValidationService';
 export const useTimelineValidation = (milestones: TimelineMilestone[]) => {
   useEffect(() => {
     console.log('🔍 Validating timeline images...');
+    console.log('📋 Milestones to validate:', milestones.map(m => ({
+      title: m.title,
+      year: m.year,
+      hasImageUrl: !!m.imageUrl,
+      imageUrl: m.imageUrl
+    })));
     
     const validationResults = ImageValidationService.validateTimelineImages(
       milestones.map(m => ({
@@ -15,37 +21,27 @@ export const useTimelineValidation = (milestones: TimelineMilestone[]) => {
       }))
     );
 
-    const totalImages = validationResults.length;
-    const imagesWithUrls = validationResults.filter(r => r.hasUrl).length;
-    const validImages = validationResults.filter(r => r.isValid).length;
-    const invalidImages = validationResults.filter(r => r.hasUrl && !r.isValid);
-
-    console.log('📊 Timeline Image Validation Summary:', {
-      totalMilestones: totalImages,
-      milestonesWithImages: imagesWithUrls,
-      validImageUrls: validImages,
-      invalidImageUrls: invalidImages.length,
-      invalidUrls: invalidImages.map(img => ({ title: img.title, year: img.year, url: img.url }))
-    });
-
-    if (invalidImages.length > 0) {
-      console.warn('⚠️ Invalid image URLs detected:', invalidImages);
-    }
-
-    // Test load a sample of images to verify they actually work
-    const sampleUrls = validationResults
+    // Test actual image loading for the first few images
+    const imagesToTest = validationResults
       .filter(r => r.isValid && r.url)
-      .slice(0, 3)
-      .map(r => r.url!);
+      .slice(0, 3);
 
-    Promise.all(
-      sampleUrls.map(async (url) => {
-        const success = await ImageValidationService.testImageLoad(url);
-        return { url, success };
-      })
-    ).then(results => {
-      console.log('🧪 Sample image load test results:', results);
-    });
+    if (imagesToTest.length > 0) {
+      console.log('🧪 Testing actual image loading for sample images...');
+      
+      Promise.all(
+        imagesToTest.map(async (item) => {
+          const success = await ImageValidationService.testImageLoad(item.url!);
+          console.log(`${success ? '✅' : '❌'} Load test for ${item.title}:`, {
+            url: item.url,
+            success
+          });
+          return { ...item, loadSuccess: success };
+        })
+      ).then(results => {
+        console.log('🏁 Image load test results:', results);
+      });
+    }
 
   }, [milestones]);
 };

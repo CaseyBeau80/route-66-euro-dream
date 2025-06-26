@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, RefreshCw } from 'lucide-react';
-import { ImageValidationService } from '../services/ImageValidationService';
+import { Camera, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface TimelineImageProps {
   imageUrl?: string;
@@ -21,43 +20,45 @@ export const TimelineImage: React.FC<TimelineImageProps> = ({
   category,
   className = ""
 }) => {
-  const [loadState, setLoadState] = useState<'loading' | 'loaded' | 'error' | 'retrying'>('loading');
-  const [retryCount, setRetryCount] = useState(0);
+  const [loadState, setLoadState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [actualImageUrl, setActualImageUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
     if (!imageUrl) {
+      console.log(`❌ No image URL provided for ${title}`);
       setLoadState('error');
+      setErrorMessage('No image URL provided');
       return;
     }
 
-    // Validate URL format first
-    if (!ImageValidationService.isValidImageUrl(imageUrl)) {
-      console.warn(`⚠️ Invalid image format for ${title}: ${imageUrl}`);
-      setLoadState('error');
-      return;
-    }
-
-    console.log(`🖼️ Loading image for ${title}:`, imageUrl);
+    console.log(`🖼️ Attempting to load image for ${title}:`, imageUrl);
     setLoadState('loading');
     setActualImageUrl(imageUrl);
 
-    ImageValidationService.loadImageWithRetry(
-      imageUrl,
-      () => {
-        console.log(`✅ Image loaded successfully for ${title}`);
-        setLoadState('loaded');
-      },
-      (error) => {
-        console.error(`❌ Image failed to load for ${title}:`, { url: imageUrl, error });
-        setLoadState('error');
-      },
-      (attempt) => {
-        console.log(`🔄 Retrying image load for ${title} (attempt ${attempt})`);
-        setLoadState('retrying');
-        setRetryCount(attempt);
-      }
-    );
+    // Create a new image element to test loading
+    const img = new Image();
+    
+    img.onload = () => {
+      console.log(`✅ Image loaded successfully for ${title}`);
+      setLoadState('loaded');
+      setErrorMessage('');
+    };
+    
+    img.onerror = (error) => {
+      console.error(`❌ Image failed to load for ${title}:`, { url: imageUrl, error });
+      setLoadState('error');
+      setErrorMessage(`Failed to load: ${imageUrl}`);
+    };
+    
+    // Set the source to trigger loading
+    img.src = imageUrl;
+
+    // Cleanup function
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [imageUrl, title]);
 
   const getImageFilter = () => {
@@ -74,18 +75,13 @@ export const TimelineImage: React.FC<TimelineImageProps> = ({
   };
 
   // Loading state
-  if (loadState === 'loading' || loadState === 'retrying') {
+  if (loadState === 'loading') {
     return (
       <div className={`relative rounded-2xl overflow-hidden shadow-2xl bg-gray-200 ${className}`}>
         <div className="w-full h-96 md:h-[600px] flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-route66-primary mx-auto mb-4"></div>
-            {loadState === 'retrying' && (
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
-                <RefreshCw className="w-4 h-4" />
-                <span>Retrying... (attempt {retryCount})</span>
-              </div>
-            )}
+            <p className="text-sm text-gray-600">Loading image...</p>
           </div>
         </div>
       </div>
@@ -97,7 +93,7 @@ export const TimelineImage: React.FC<TimelineImageProps> = ({
     return (
       <div className={`relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-route66-primary/20 to-route66-accent-gold/20 ${className}`}>
         <div className="w-full h-96 md:h-[600px] flex items-center justify-center">
-          <div className="text-center text-route66-text-muted">
+          <div className="text-center text-route66-text-muted p-6">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -113,9 +109,12 @@ export const TimelineImage: React.FC<TimelineImageProps> = ({
               <div>
                 <div className="text-xl font-semibold text-route66-text-primary">{year}</div>
                 <div className="text-sm mt-1 text-gray-500">Image not available</div>
-                <div className="text-xs mt-2 text-gray-400 max-w-xs mx-auto">
-                  Historical photo for this milestone could not be loaded
-                </div>
+                {errorMessage && (
+                  <div className="text-xs mt-2 text-red-500 flex items-center justify-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
@@ -136,6 +135,11 @@ export const TimelineImage: React.FC<TimelineImageProps> = ({
         initial={{ opacity: 0, scale: 1.05 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
+        onError={() => {
+          console.error(`❌ Image render failed for ${title}:`, actualImageUrl);
+          setLoadState('error');
+          setErrorMessage('Image render failed');
+        }}
       />
       
       {/* Image overlay with year */}
