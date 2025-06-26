@@ -41,7 +41,7 @@ export const timelineMilestones: TimelineMilestone[] = [
     ],
     category: 'establishment',
     icon: '🛣️',
-    imageUrl: 'milestones/1926-route-66-is-born.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80'
   },
   {
     id: 'route66-culture-1946',
@@ -56,7 +56,7 @@ export const timelineMilestones: TimelineMilestone[] = [
     ],
     category: 'cultural',
     icon: '🎵',
-    imageUrl: 'milestones/1946-get-your-kicks-on-route-66.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80'
   },
   {
     id: 'route66-golden-1950s',
@@ -71,7 +71,7 @@ export const timelineMilestones: TimelineMilestone[] = [
     ],
     category: 'cultural',
     icon: '🏨',
-    imageUrl: 'milestones/1950-the-golden-age-begins.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80'
   },
   {
     id: 'route66-interstate-1956',
@@ -86,7 +86,7 @@ export const timelineMilestones: TimelineMilestone[] = [
     ],
     category: 'decline',
     icon: '🏛️',
-    imageUrl: 'milestones/1956-interstate-system-approved.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80'
   },
   {
     id: 'route66-decommission-1985',
@@ -101,7 +101,7 @@ export const timelineMilestones: TimelineMilestone[] = [
     ],
     category: 'decline',
     icon: '🚧',
-    imageUrl: 'milestones/1985-official-decommissioning.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80'
   },
   {
     id: 'route66-historic-1999',
@@ -116,6 +116,6 @@ export const timelineMilestones: TimelineMilestone[] = [
     ],
     category: 'modern',
     icon: '🏛️',
-    imageUrl: 'milestones/1999-historic-route-66-designation.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80'
   }
 ];

@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, RefreshCw, AlertCircle, Image } from 'lucide-react';
-import { SupabaseImageService } from '../services/SupabaseImageService';
-import { EnhancedImageValidationService } from '../services/EnhancedImageValidationService';
 
 interface EnhancedTimelineImageProps {
   imageUrl?: string;
@@ -24,57 +22,31 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
 }) => {
   const [loadState, setLoadState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
-  const [imageSource, setImageSource] = useState<'original' | 'migrated' | 'fallback' | 'none'>('none');
-  const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
     const loadImage = async () => {
-      console.log(`🖼️ Loading image for ${title} (${year})`);
+      if (!imageUrl) {
+        setLoadState('error');
+        return;
+      }
+
       setLoadState('loading');
-
-      // Try migrated URL first
-      const migratedUrl = SupabaseImageService.migrateTimelineImageUrl(imageUrl, year);
       
-      if (migratedUrl && EnhancedImageValidationService.isValidImageUrl(migratedUrl)) {
-        console.log(`🔄 Testing migrated URL for ${title}:`, migratedUrl);
-        
-        const canLoad = await EnhancedImageValidationService.testImageLoad(migratedUrl, 3000);
-        
-        if (canLoad) {
-          console.log(`✅ Migrated image loaded for ${title}`);
-          setFinalImageUrl(migratedUrl);
-          setImageSource(migratedUrl === imageUrl ? 'original' : 'migrated');
-          setLoadState('loaded');
-          return;
-        }
-      }
-
-      // Try fallback image
-      const fallbackUrl = EnhancedImageValidationService.getFallbackImageUrl(year);
-      
-      if (fallbackUrl) {
-        console.log(`🔄 Testing fallback URL for ${title}:`, fallbackUrl);
-        
-        const canLoad = await EnhancedImageValidationService.testImageLoad(fallbackUrl, 3000);
-        
-        if (canLoad) {
-          console.log(`✅ Fallback image loaded for ${title}`);
-          setFinalImageUrl(fallbackUrl);
-          setImageSource('fallback');
-          setLoadState('loaded');
-          return;
-        }
-      }
-
-      // No valid image found
-      console.log(`❌ No valid image found for ${title}`);
-      setLoadState('error');
-      setImageSource('none');
-      setErrorMessage(`No valid image available for ${year}`);
+      // Test if the image can actually load
+      const img = new Image();
+      img.onload = () => {
+        setFinalImageUrl(imageUrl);
+        setLoadState('loaded');
+      };
+      img.onerror = () => {
+        console.error(`❌ Image failed to load for ${title}:`, imageUrl);
+        setLoadState('error');
+      };
+      img.src = imageUrl;
     };
 
     loadImage();
-  }, [imageUrl, title, year]);
+  }, [imageUrl, title]);
 
   const getImageFilter = () => {
     switch (category) {
@@ -86,32 +58,6 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
         return 'saturate(1.2) contrast(1.05)';
       default:
         return 'none';
-    }
-  };
-
-  const getSourceBadgeColor = () => {
-    switch (imageSource) {
-      case 'original':
-        return 'bg-green-500';
-      case 'migrated':
-        return 'bg-blue-500';
-      case 'fallback':
-        return 'bg-orange-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const getSourceBadgeText = () => {
-    switch (imageSource) {
-      case 'original':
-        return 'Original';
-      case 'migrated':
-        return 'Supabase';
-      case 'fallback':
-        return 'Fallback';
-      default:
-        return 'None';
     }
   };
 
@@ -145,18 +91,12 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
           onError={() => {
             console.error(`❌ Image render failed for ${title}:`, finalImageUrl);
             setLoadState('error');
-            setErrorMessage('Image render failed');
           }}
         />
         
         {/* Year overlay */}
         <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
           {year}
-        </div>
-        
-        {/* Source badge */}
-        <div className={`absolute top-4 right-4 ${getSourceBadgeColor()} text-white px-2 py-1 rounded text-xs font-medium`}>
-          {getSourceBadgeText()}
         </div>
         
         {/* Vintage film effect */}
@@ -184,13 +124,7 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
             </div>
             <div>
               <div className="text-xl font-semibold text-route66-text-primary">{year}</div>
-              <div className="text-sm mt-1 text-gray-500">Image not available</div>
-              {errorMessage && (
-                <div className="text-xs mt-2 text-red-500 flex items-center justify-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
+              <div className="text-sm mt-1 text-gray-500">Image loading...</div>
             </div>
           </motion.div>
         </div>
