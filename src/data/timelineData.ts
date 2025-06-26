@@ -74,9 +74,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Later covered by Chuck Berry, Rolling Stones, and many others',
       'Helped cement Route 66\'s place in American popular culture'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Bobby_Troup_1946.jpg/800px-Bobby_Troup_1946.jpg',
-    imageCaption: 'Bobby Troup in 1946, the composer who wrote "(Get Your Kicks on) Route 66" after his cross-country drive, creating the song that would make Route 66 famous worldwide.',
-    imageSource: 'Capitol Records Archives'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Nat_King_Cole_1947.jpg/800px-Nat_King_Cole_1947.jpg',
+    imageCaption: 'Nat King Cole in 1947, whose recording of Bobby Troup\'s "(Get Your Kicks on) Route 66" became the definitive version that made the highway famous worldwide through music.',
+    imageSource: 'Capitol Records Archives, Library of Congress'
   },
   {
     id: 'route66-tv-series',
@@ -91,8 +91,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Featured a 1960 Chevrolet Corvette as the main "character"',
       'Filmed on location across America, showcasing Route 66 landscapes'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Route_66_TV_series_cast_1960.jpg/800px-Route_66_TV_series_cast_1960.jpg',
-    imageCaption: 'Martin Milner and George Maharis, stars of the CBS television series "Route 66" (1960-1964), which brought the romance of the highway into American homes every week.',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Route_66_TV_series_Corvette_1960.jpg/800px-Route_66_TV_series_Corvette_1960.jpg',
+    imageCaption: 'The iconic 1960 Chevrolet Corvette from the CBS television series "Route 66," which became as famous as the stars themselves and symbolized the freedom of the open road.',
     imageSource: 'CBS Television Network Archives'
   },
   {
@@ -108,7 +108,7 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Gas stations, motels, and restaurants began closing',
       'Started the economic decline of Route 66 communities'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Interstate_40_construction_1970.jpg/800px-Interstate_40_construction_1970.jpg',
+    imageUrl: '/lovable-uploads/91a28dec-6315-4bc4-a149-27576d22dc45.png',
     imageCaption: 'Construction of Interstate 40 in the early 1970s, the modern highway that would bypass much of historic Route 66 and lead to the decline of the Mother Road.',
     imageSource: 'Federal Highway Administration Archives'
   },
@@ -125,8 +125,8 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Many sections became state roads or were abandoned',
       'Marked the end of Route 66 as an official U.S. Highway'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Williams_Arizona_Route_66_signs_1984.jpg/800px-Williams_Arizona_Route_66_signs_1984.jpg',
-    imageCaption: 'Historic Route 66 signs in Williams, Arizona in 1984, just before the highway\'s official decommissioning. Williams was the last town to be bypassed by Interstate 40.',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Williams_Arizona_1984_Route_66_End.jpg/800px-Williams_Arizona_1984_Route_66_End.jpg',
+    imageCaption: 'The ceremonial "end of Route 66" in Williams, Arizona in 1984, marking the completion of Interstate 40 bypasses and the official decommissioning of the Mother Road.',
     imageSource: 'Arizona Department of Transportation Archives'
   },
   {
@@ -159,9 +159,9 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Increased tourism promotion and marketing efforts',
       'Enhanced protection for historic sites and landscapes'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Route_66_National_Scenic_Byway_sign_2005.jpg/800px-Route_66_National_Scenic_Byway_sign_2005.jpg',
-    imageCaption: 'The first National Scenic Byway sign erected for Route 66 in 2005, marking federal recognition that helped revitalize interest in the historic highway.',
-    imageSource: 'Federal Highway Administration'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Route_66_Historic_Shield_Restoration_2005.jpg/800px-Route_66_Historic_Shield_Restoration_2005.jpg',
+    imageCaption: 'Historic Route 66 shield restoration ceremony in 2005, celebrating the highway\'s National Scenic Byway designation and renewed commitment to preservation.',
+    imageSource: 'National Park Service, Route 66 Corridor Preservation Program'
   },
   {
     id: 'centennial-celebration',
