@@ -32,8 +32,8 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
 
       setLoadState('loading');
       
-      // Test if the image can actually load
-      const img = new Image();
+      // Test if the image can actually load using HTMLImageElement
+      const img = document.createElement('img');
       img.onload = () => {
         setFinalImageUrl(imageUrl);
         setLoadState('loaded');
@@ -124,7 +124,7 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
             </div>
             <div>
               <div className="text-xl font-semibold text-route66-text-primary">{year}</div>
-              <div className="text-sm mt-1 text-gray-500">Image loading...</div>
+              <div className="text-sm mt-1 text-gray-500">Image not available</div>
             </div>
           </motion.div>
         </div>
