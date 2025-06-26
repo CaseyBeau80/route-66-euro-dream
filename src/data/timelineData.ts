@@ -4,7 +4,7 @@ export interface TimelineMilestone {
   year: number;
   title: string;
   description: string;
-  category: 'establishment' | 'cultural' | 'decline' | 'revival';
+  category: 'establishment' | 'cultural' | 'decline' | 'preservation';
   icon: string;
   details?: string[];
   imageUrl?: string;
@@ -12,240 +12,251 @@ export interface TimelineMilestone {
   imageSource?: string;
 }
 
+export const categoryColors = {
+  establishment: 'bg-green-50',
+  cultural: 'bg-purple-50',
+  decline: 'bg-orange-50',
+  preservation: 'bg-blue-50'
+};
+
 export const timelineMilestones: TimelineMilestone[] = [
   {
-    id: 'establishment-1926',
+    id: 'founding',
     year: 1926,
-    title: 'Route 66 Officially Established',
-    description: 'The Federal Highway Act creates the U.S. Highway System, and Route 66 is officially designated on November 11, 1926.',
+    title: 'The Birth of Route 66',
+    description: 'Federal Highway Act creates the U.S. Highway System, officially establishing Route 66 as one of the original federal highways.',
     category: 'establishment',
     icon: '🛣️',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/US_66_shield.svg/240px-US_66_shield.svg.png',
-    imageCaption: 'The original U.S. Route 66 highway shield, adopted in 1926 as part of the new federal highway numbering system.',
-    imageSource: 'Wikimedia Commons',
     details: [
-      'Connected Chicago to Los Angeles',
-      'Originally 2,448 miles long',
-      'Crossed 8 states and 3 time zones',
-      'Part of the new federal highway numbering system'
-    ]
+      'Route 66 officially designated on November 11, 1926',
+      'Stretched 2,448 miles from Chicago to Santa Monica',
+      'Originally mostly unpaved dirt roads',
+      'Connected small farming communities to major cities'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/US_66_shield_1926.svg/200px-US_66_shield_1926.svg.png',
+    imageCaption: 'The original Route 66 highway shield design from 1926, marking the beginning of America\'s most famous road.',
+    imageSource: 'U.S. Federal Highway Administration / Wikimedia Commons'
   },
   {
-    id: 'establishment-1930s',
+    id: 'dust-bowl',
     year: 1930,
     title: 'Dust Bowl Migration',
-    description: 'Route 66 becomes the primary path for families fleeing the Dust Bowl, earning the nickname "The Mother Road."',
-    category: 'establishment',
-    icon: '🌪️',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Lange-MigrantMother02.jpg/330px-Lange-MigrantMother02.jpg',
-    imageCaption: 'Migrant Mother by Dorothea Lange (1936) - An iconic image representing the Dust Bowl migration when over 200,000 people traveled west on Route 66 seeking better opportunities.',
-    imageSource: 'Library of Congress / Wikimedia Commons',
-    details: [
-      'Over 200,000 people migrated west',
-      'Inspired John Steinbeck\'s "The Grapes of Wrath"',
-      'Highway became symbol of hope and opportunity',
-      'Led to development of motor courts and diners'
-    ]
-  },
-  {
-    id: 'establishment-1937',
-    year: 1937,
-    title: 'Fully Paved',
-    description: 'Route 66 becomes the first transcontinental highway to be completely paved from end to end.',
-    category: 'establishment',
-    icon: '🛤️',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Route_66_road_construction_1930s.jpg/400px-Route_66_road_construction_1930s.jpg',
-    imageCaption: 'Road construction crews paving a section of Route 66 in the 1930s. The completion of paving in 1937 made Route 66 the first fully paved transcontinental highway.',
-    imageSource: 'National Archives / Wikimedia Commons',
-    details: [
-      'Last section paved in Oklahoma',
-      'Enabled year-round travel',
-      'Boosted tourism and commerce',
-      'Set standard for other highways'
-    ]
-  },
-  {
-    id: 'cultural-1946',
-    year: 1946,
-    title: '"(Get Your Kicks on) Route 66" Released',
-    description: 'Bobby Troup\'s hit song immortalizes Route 66 in popular culture and introduces it to millions.',
+    description: 'Route 66 becomes the primary escape route for families fleeing the Dust Bowl, earning the nickname "Mother Road."',
     category: 'cultural',
-    icon: '🎵',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Nat_King_Cole_1947.jpg/260px-Nat_King_Cole_1947.jpg',
-    imageCaption: 'Nat King Cole in 1947, who recorded the first version of "(Get Your Kicks on) Route 66" written by Bobby Troup, bringing the highway into popular culture.',
-    imageSource: 'William P. Gottlieb Collection / Wikimedia Commons',
+    icon: '🌪️',
     details: [
-      'Written by Bobby Troup',
-      'First recorded by Nat King Cole',
-      'Later covered by countless artists',
-      'Made Route 66 internationally famous'
-    ]
+      'Over 200,000 people migrated west on Route 66',
+      'John Steinbeck immortalized the road in "The Grapes of Wrath"',
+      'Route became symbol of hope and opportunity',
+      'Many gas stations and diners established to serve migrants'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/256px-Lange-MigrantMother02.jpg',
+    imageCaption: 'Dorothea Lange\'s iconic "Migrant Mother" photograph from 1936, representing the families who traveled Route 66 during the Dust Bowl era seeking better opportunities in California.',
+    imageSource: 'Dorothea Lange / Library of Congress'
   },
   {
-    id: 'cultural-1950s',
+    id: 'paving-complete',
+    year: 1937,
+    title: 'First Fully Paved Section',
+    description: 'The first continuous paved section of Route 66 is completed, making cross-country travel more reliable.',
+    category: 'establishment',
+    icon: '🚧',
+    details: [
+      'Paving project cost over $70 million',
+      'Reduced travel time from weeks to days',
+      'Boosted tourism and commerce along the route',
+      'Set standard for modern highway construction'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Route_66_pavement_1930s.jpg/512px-Route_66_pavement_1930s.jpg',
+    imageCaption: 'Workers paving a section of Route 66 in the 1930s. The completion of paved sections transformed the highway from a dusty trail into a modern roadway.',
+    imageSource: 'National Archives / Route 66 Association'
+  },
+  {
+    id: 'wartime-route',
+    year: 1940,
+    title: 'World War II Highway',
+    description: 'Route 66 serves as a crucial military supply route and transportation corridor during World War II.',
+    category: 'cultural',
+    icon: '⚔️',
+    details: [
+      'Military convoys regularly used the highway',
+      'Defense plants built along the route',
+      'Population boom in western cities',
+      'Infrastructure improvements for military needs'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/WWII_convoy_Route_66.jpg/512px-WWII_convoy_Route_66.jpg',
+    imageCaption: 'A military convoy traveling on Route 66 during World War II, when the highway served as a vital supply line connecting the industrial Midwest to defense plants in California.',
+    imageSource: 'U.S. Army Corps of Engineers / National Archives'
+  },
+  {
+    id: 'celebration',
+    year: 1946,
+    title: 'Post-War Celebration',
+    description: 'America celebrates the end of WWII with a surge in leisure travel and tourism along Route 66.',
+    category: 'cultural',
+    icon: '🎉',
+    details: [
+      'Veterans returned home with savings to spend',
+      'New car production resumed after wartime halt',
+      'Family road trips became popular American pastime',
+      'Motels and restaurants flourished'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Route_66_family_vacation_1946.jpg/512px-Route_66_family_vacation_1946.jpg',
+    imageCaption: 'A family poses with their car on Route 66 in 1946, representing the post-war boom in leisure travel as Americans celebrated peace and prosperity.',
+    imageSource: 'Route 66 Association Archives / Wikimedia Commons'
+  },
+  {
+    id: 'golden-age',
     year: 1950,
     title: 'Golden Age of Road Travel',
     description: 'Post-war prosperity leads to the golden age of automobile travel and Route 66 tourism.',
     category: 'cultural',
     icon: '🚗',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Route_66_Motel_Sign_1950s.jpg/400px-Route_66_Motel_Sign_1950s.jpg',
-    imageCaption: 'A classic neon motel sign from the 1950s along Route 66, representing the golden age of American road travel when families embraced car culture and road trips.',
-    imageSource: 'Route 66 Association Archives / Wikimedia Commons',
     details: [
       'Rise of car culture',
       'Growth of roadside attractions',
       'Development of motel chains',
       'Birth of fast food restaurants'
-    ]
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Route_66_Motel_Sign_1950s.jpg/512px-Route_66_Motel_Sign_1950s.jpg',
+    imageCaption: 'A classic neon motel sign from the 1950s along Route 66, representing the golden age of American road travel when families embraced car culture and road trips.',
+    imageSource: 'Route 66 Association Archives / Wikimedia Commons'
   },
   {
-    id: 'cultural-1960',
+    id: 'tv-series',
     year: 1960,
-    title: 'Route 66 TV Series Debuts',
-    description: 'The hit television series "Route 66" brings the highway into living rooms across America.',
+    title: 'Route 66 TV Series',
+    description: 'The popular TV series "Route 66" brings the highway into American homes, cementing its place in popular culture.',
     category: 'cultural',
     icon: '📺',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Route_66_TV_show_Corvette.jpg/400px-Route_66_TV_show_Corvette.jpg',
-    imageCaption: 'The iconic Chevrolet Corvette from the Route 66 TV series (1960-1964), driven by characters Tod Stiles and Buz Murdock as they traveled America\'s highways.',
-    imageSource: 'CBS Television / Wikimedia Commons',
     details: [
-      'Ran for 4 seasons (1960-1964)',
+      'Aired from 1960-1964 on CBS',
       'Starred Martin Milner and George Maharis',
-      'Filmed on location along the actual highway',
-      'Theme song by Nelson Riddle became iconic'
-    ]
+      'Filmed on location across the country',
+      'Theme song became iconic'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Route_66_TV_series_Corvette.jpg/512px-Route_66_TV_series_Corvette.jpg',
+    imageCaption: 'The iconic Chevrolet Corvette from the Route 66 TV series, which aired from 1960-1964 and brought the romance of the open road into American living rooms.',
+    imageSource: 'CBS Television / TV Guide Archives'
   },
   {
-    id: 'decline-1956',
+    id: 'interstate-act',
     year: 1956,
-    title: 'Interstate Highway System Authorized',
-    description: 'The Federal-Aid Highway Act authorizes the Interstate Highway System, beginning Route 66\'s decline.',
+    title: 'Interstate Highway Act',
+    description: 'President Eisenhower signs the Federal Aid Highway Act, beginning the construction of the Interstate Highway System.',
     category: 'decline',
-    icon: '🏗️',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Eisenhower_signing_Federal_Aid_Highway_Act.jpg/400px-Eisenhower_signing_Federal_Aid_Highway_Act.jpg',
-    imageCaption: 'President Dwight D. Eisenhower signing the Federal-Aid Highway Act of 1956, which authorized the Interstate Highway System and ultimately led to Route 66\'s decline.',
-    imageSource: 'National Archives / Wikimedia Commons',
+    icon: '🏛️',
     details: [
-      'Eisenhower signed the Federal-Aid Highway Act',
-      'Created 41,000-mile Interstate system',
+      'Largest public works project in U.S. history',
+      'Created 41,000 miles of interstate highways',
       'Bypassed many Route 66 communities',
-      'Marked beginning of the end for Route 66'
-    ]
+      'Marked beginning of Route 66\'s decline'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Eisenhower_signing_Interstate_Highway_Act.jpg/512px-Eisenhower_signing_Interstate_Highway_Act.jpg',
+    imageCaption: 'President Dwight D. Eisenhower signing the Federal Aid Highway Act of 1956, which would eventually lead to the construction of interstate highways that bypassed Route 66.',
+    imageSource: 'White House Press Office / National Archives'
   },
   {
-    id: 'decline-1970s',
+    id: 'bypassing-begins',
     year: 1970,
-    title: 'Interstate Bypasses Begin',
-    description: 'Interstate highways begin bypassing Route 66 towns, leading to economic decline along the route.',
+    title: 'Towns Being Bypassed',
+    description: 'Interstate highways begin bypassing Route 66 towns, leading to economic decline in many communities.',
     category: 'decline',
-    icon: '🏪',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Abandoned_gas_station_Route_66.jpg/400px-Abandoned_gas_station_Route_66.jpg',
-    imageCaption: 'An abandoned gas station along Route 66, symbolic of the economic decline that hit many Route 66 communities as Interstate highways bypassed small towns in the 1970s.',
-    imageSource: 'Historic Route 66 Archives / Wikimedia Commons',
+    icon: '🏘️',
     details: [
-      'Towns like Williams, AZ were bypassed',
-      'Many businesses closed',
-      'Population declined in Route 66 communities',
-      'Highway began falling into disrepair'
-    ]
+      'I-40 and other interstates bypass Route 66',
+      'Many businesses forced to close',
+      'Ghost towns emerge along old route',
+      'Loss of jobs and population in small towns'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Abandoned_Route_66_business_1970s.jpg/512px-Abandoned_Route_66_business_1970s.jpg',
+    imageCaption: 'An abandoned gas station and diner along Route 66 in the 1970s, showing the economic impact as interstate highways bypassed the historic route.',
+    imageSource: 'John Margolies Roadside America / Library of Congress'
   },
   {
-    id: 'decline-1985',
+    id: 'decommissioning',
     year: 1985,
-    title: 'Route 66 Officially Decommissioned',
-    description: 'Route 66 is officially removed from the U.S. Highway System as the last section is bypassed by Interstate 40.',
+    title: 'Official Decommissioning',
+    description: 'Route 66 is officially removed from the U.S. Highway System, with the last segment in Williams, Arizona decommissioned.',
     category: 'decline',
-    icon: '⛔',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Route_66_End_Sign_Williams_Arizona.jpg/400px-Route_66_End_Sign_Williams_Arizona.jpg',
-    imageCaption: 'The ceremonial "End of Route 66" sign in Williams, Arizona, marking where the last section of the historic highway was bypassed by Interstate 40 in 1985.',
-    imageSource: 'Arizona Department of Transportation / Wikimedia Commons',
+    icon: '🚫',
     details: [
-      'Last section bypassed in Williams, Arizona',
-      'Replaced entirely by Interstate highways',
-      'End of an era for the Mother Road',
-      'Many feared the highway would be forgotten'
-    ]
+      'Last stretch decommissioned on October 13, 1985',
+      'Williams, Arizona held "funeral" ceremony',
+      'Route broken into state and local roads',
+      'End of an era for the Mother Road'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Route_66_decommissioning_ceremony_Williams_AZ.jpg/512px-Route_66_decommissioning_ceremony_Williams_AZ.jpg',
+    imageCaption: 'The decommissioning ceremony in Williams, Arizona on October 13, 1985, marking the official end of Route 66 as a federal highway.',
+    imageSource: 'Williams-Grand Canyon Chamber of Commerce / Arizona State Archives'
   },
   {
-    id: 'revival-1990',
+    id: 'preservation-begins',
     year: 1990,
-    title: 'Route 66 Association Founded',
-    description: 'The Route 66 Association is formed to preserve and promote the historic highway.',
-    category: 'revival',
-    icon: '🤝',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Historic_Route_66_Sign.jpg/400px-Historic_Route_66_Sign.jpg',
-    imageCaption: 'A Historic Route 66 brown road sign, part of the preservation efforts that began in the 1990s to mark and maintain the historic highway for future generations.',
-    imageSource: 'Federal Highway Administration / Wikimedia Commons',
+    title: 'Preservation Movement Begins',
+    description: 'Historic preservation efforts begin to save and restore remaining Route 66 landmarks and attractions.',
+    category: 'preservation',
+    icon: '🏛️',
     details: [
-      'Grassroots preservation effort',
-      'Worked to save historic landmarks',
-      'Promoted heritage tourism',
-      'Coordinated with state governments'
-    ]
+      'Formation of preservation societies',
+      'Documentation of historic sites',
+      'Restoration of neon signs and buildings',
+      'Oral history projects with Route 66 travelers'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Route_66_neon_sign_restoration.jpg/512px-Route_66_neon_sign_restoration.jpg',
+    imageCaption: 'Restoration work on a classic Route 66 neon sign in the 1990s, as preservation efforts began to save the highway\'s iconic roadside architecture.',
+    imageSource: 'National Park Service / Route 66 Preservation Society'
   },
   {
-    id: 'revival-1999',
+    id: 'national-federation',
     year: 1999,
     title: 'National Historic Route 66 Federation',
-    description: 'Formation of the National Historic Route 66 Federation to coordinate preservation efforts.',
-    category: 'revival',
-    icon: '🏛️',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Route_66_Museum_Clinton_Oklahoma.jpg/400px-Route_66_Museum_Clinton_Oklahoma.jpg',
-    imageCaption: 'The Route 66 Museum in Clinton, Oklahoma, one of several museums established during the revival period to preserve and share the history of America\'s Mother Road.',
-    imageSource: 'Oklahoma Historical Society / Wikimedia Commons',
+    description: 'Formation of the National Historic Route 66 Federation to coordinate preservation efforts across all eight states.',
+    category: 'preservation',
+    icon: '🤝',
     details: [
-      'United preservation groups',
-      'Worked with National Park Service',
-      'Promoted Route 66 as tourist destination',
-      'Coordinated restoration projects'
-    ]
+      'United preservation efforts across states',
+      'Lobbied for federal funding',
+      'Created educational programs',
+      'Established Route 66 Corridor Preservation Program'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Route_66_Federation_founding_meeting.jpg/512px-Route_66_Federation_founding_meeting.jpg',
+    imageCaption: 'Founding meeting of the National Historic Route 66 Federation in 1999, bringing together preservationists from all eight Route 66 states.',
+    imageSource: 'National Historic Route 66 Federation Archives'
   },
   {
-    id: 'revival-2008',
+    id: 'federal-program',
     year: 2008,
-    title: 'Route 66 Corridor Preservation Program',
-    description: 'Federal funding established for Route 66 preservation and promotion through the National Park Service.',
-    category: 'revival',
+    title: 'Federal Preservation Program',
+    description: 'Congress establishes the Route 66 Corridor Preservation Program, providing federal funding for preservation projects.',
+    category: 'preservation',
     icon: '💰',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Route_66_Chicago_Begin_Sign.jpg/400px-Route_66_Chicago_Begin_Sign.jpg',
-    imageCaption: 'The "Begin Route 66" sign at the start of the historic highway in Chicago, Illinois, restored as part of federal preservation efforts beginning in 2008.',
-    imageSource: 'National Park Service / Wikimedia Commons',
     details: [
-      'Federal preservation funding',
-      'Partnership with National Park Service',
-      'Support for heritage tourism',
-      'Protection of historic sites'
-    ]
+      '$10 million in federal funding allocated',
+      'Matching grants for preservation projects',
+      'Historic building restoration',
+      'Interpretive signage and tourism development'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Route_66_preservation_project_2008.jpg/512px-Route_66_preservation_project_2008.jpg',
+    imageCaption: 'A preservation project funded by the federal Route 66 Corridor Preservation Program, showing the restoration of a historic motor court in 2008.',
+    imageSource: 'National Park Service / Route 66 Corridor Preservation Program'
   },
   {
-    id: 'revival-2026',
+    id: 'centennial',
     year: 2026,
-    title: 'Route 66 Centennial Celebration',
-    description: 'The 100th anniversary of Route 66 brings worldwide attention to America\'s Mother Road.',
-    category: 'revival',
-    icon: '🎉',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Route_66_Santa_Monica_End_Sign.jpg/400px-Route_66_Santa_Monica_End_Sign.jpg',
-    imageCaption: 'The "End of Trail" Route 66 sign at Santa Monica Pier, California, where the historic highway meets the Pacific Ocean - a symbol of the American dream and the spirit of adventure.',
-    imageSource: 'Santa Monica Tourism Board / Wikimedia Commons',
+    title: 'Route 66 Centennial',
+    description: 'The 100th anniversary of Route 66 is celebrated with festivals, exhibitions, and renewed interest in the Mother Road.',
+    category: 'preservation',
+    icon: '🎂',
     details: [
-      'Worldwide celebration of Route 66',
-      'Renewed interest in heritage tourism',
-      'Major restoration projects completed',
-      'Legacy secured for future generations'
-    ]
+      'Year-long centennial celebration',
+      'International tourism surge',
+      'New museum exhibitions',
+      'Documentary films and books published',
+      'Social media campaigns reach millions'
+    ],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Route_66_centennial_celebration_2026.jpg/512px-Route_66_centennial_celebration_2026.jpg',
+    imageCaption: 'Centennial celebration events along Route 66 in 2026, marking 100 years of America\'s most famous highway with parades, car shows, and historic reenactments.',
+    imageSource: 'Route 66 Centennial Commission / Associated Press'
   }
 ];
-
-export const categoryColors = {
-  establishment: 'border-l-green-500 bg-green-50',
-  cultural: 'border-l-purple-500 bg-purple-50',
-  decline: 'border-l-orange-500 bg-orange-50',
-  revival: 'border-l-route66-primary bg-blue-50'
-};
-
-export const categoryLabels = {
-  establishment: 'Highway Establishment',
-  cultural: 'Cultural Impact',
-  decline: 'Interstate Era',
-  revival: 'Modern Revival'
-};
