@@ -76,31 +76,45 @@ export class SupabaseImageService {
    * Get timeline image path from milestone data
    */
   static getTimelineImagePath(year: number): string {
-    return `milestones/${year}.jpg`;
+    // Map years to the actual uploaded filenames
+    const imageMapping: Record<number, string> = {
+      1926: 'milestones/1926-route-66-is-born.jpg',
+      1946: 'milestones/1946-get-your-kicks-on-route-66.jpg',
+      1950: 'milestones/1950-the-golden-age-begins.jpg',
+      1956: 'milestones/1956-interstate-system-approved.jpg',
+      1985: 'milestones/1985-official-decommissioning.jpg',
+      1999: 'milestones/1999-historic-route-66-designation.jpg'
+    };
+    
+    return imageMapping[year] || `milestones/${year}.jpg`;
   }
 
   /**
    * Migrate a timeline milestone to use Supabase storage URL
    */
   static migrateTimelineImageUrl(imageUrl?: string, year?: number): string | undefined {
-    if (!imageUrl && !year) return undefined;
-    
-    // If already using Supabase storage, return as-is
-    if (imageUrl && imageUrl.includes('supabase.co/storage')) {
-      return imageUrl;
-    }
-    
-    // If using old lovable-uploads path, convert to Supabase path
-    if (imageUrl && imageUrl.includes('/lovable-uploads/')) {
-      const filename = imageUrl.split('/').pop();
-      if (filename && year) {
-        return this.getImageUrl(`milestones/${year}-${filename}`);
-      }
-    }
-    
-    // Fallback to year-based path
+    // If we have a year, always use the Supabase path
     if (year) {
       return this.getImageUrl(this.getTimelineImagePath(year));
+    }
+    
+    // If no year provided but we have an imageUrl, check if it needs migration
+    if (imageUrl) {
+      // If already using Supabase storage, return as-is
+      if (imageUrl.includes('supabase.co/storage')) {
+        return imageUrl;
+      }
+      
+      // If it's a relative path that looks like our new format, convert it
+      if (imageUrl.startsWith('milestones/')) {
+        return this.getImageUrl(imageUrl);
+      }
+      
+      // For old lovable-uploads paths, try to map to our new system
+      if (imageUrl.includes('/lovable-uploads/')) {
+        // This is an old path, we'll rely on fallback logic
+        return undefined;
+      }
     }
     
     return imageUrl;

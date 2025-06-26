@@ -3,13 +3,15 @@ import { SupabaseImageService } from './SupabaseImageService';
 
 export class EnhancedImageValidationService {
   private static readonly SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+  
+  // Updated fallback mapping using the new Supabase paths
   private static readonly FALLBACK_IMAGES = {
-    1926: 'milestones/1926-establishment.jpg',
-    1946: 'milestones/1946-cultural.jpg', 
-    1950: 'milestones/1950-golden-age.jpg',
-    1956: 'milestones/1956-interstate.jpg',
-    1985: 'milestones/1985-decommission.jpg',
-    1999: 'milestones/1999-historic.jpg'
+    1926: 'milestones/1926-route-66-is-born.jpg',
+    1946: 'milestones/1946-get-your-kicks-on-route-66.jpg', 
+    1950: 'milestones/1950-the-golden-age-begins.jpg',
+    1956: 'milestones/1956-interstate-system-approved.jpg',
+    1985: 'milestones/1985-official-decommissioning.jpg',
+    1999: 'milestones/1999-historic-route-66-designation.jpg'
   };
 
   /**
@@ -86,52 +88,46 @@ export class EnhancedImageValidationService {
    * Enhanced timeline image validation with Supabase integration
    */
   static async validateTimelineImages(milestones: Array<{ imageUrl?: string; title: string; year: number }>) {
-    console.log('🔍 Starting enhanced timeline image validation...');
+    console.log('🔍 Starting enhanced timeline image validation with Supabase images...');
     
     const validationResults = await Promise.all(
       milestones.map(async (milestone) => {
-        const migratedUrl = SupabaseImageService.migrateTimelineImageUrl(milestone.imageUrl, milestone.year);
-        const fallbackUrl = this.getFallbackImageUrl(milestone.year);
+        // For timeline images, always use the Supabase path based on year
+        const supabaseUrl = SupabaseImageService.migrateTimelineImageUrl(milestone.imageUrl, milestone.year);
         
-        if (!migratedUrl) {
-          console.log(`⚠️ No image URL for ${milestone.title} (${milestone.year})`);
+        if (!supabaseUrl) {
+          console.log(`⚠️ No Supabase URL generated for ${milestone.title} (${milestone.year})`);
           return {
             title: milestone.title,
             year: milestone.year,
             originalUrl: milestone.imageUrl,
-            finalUrl: fallbackUrl,
-            isValid: !!fallbackUrl,
-            source: fallbackUrl ? 'fallback' : 'none',
-            hasUrl: !!fallbackUrl
+            finalUrl: undefined,
+            isValid: false,
+            source: 'none',
+            hasUrl: false
           };
         }
 
-        const isValidFormat = this.isValidImageUrl(migratedUrl);
+        const isValidFormat = this.isValidImageUrl(supabaseUrl);
         
         if (!isValidFormat) {
-          console.log(`❌ Invalid format for ${milestone.title} (${milestone.year}):`, migratedUrl);
+          console.log(`❌ Invalid format for ${milestone.title} (${milestone.year}):`, supabaseUrl);
           return {
             title: milestone.title,
             year: milestone.year,
             originalUrl: milestone.imageUrl,
-            finalUrl: fallbackUrl,
-            isValid: !!fallbackUrl,
-            source: fallbackUrl ? 'fallback' : 'invalid',
-            hasUrl: !!fallbackUrl
+            finalUrl: supabaseUrl,
+            isValid: false,
+            source: 'invalid',
+            hasUrl: true
           };
         }
 
         // Test actual loading for Supabase images
-        let canLoad = true;
-        if (migratedUrl.includes('supabase.co/storage')) {
-          canLoad = await this.testImageLoad(migratedUrl, 3000);
-        }
-
-        const finalUrl = canLoad ? migratedUrl : fallbackUrl;
+        const canLoad = await this.testImageLoad(supabaseUrl, 3000);
         
-        console.log(`${canLoad ? '✅' : '⚠️'} Image for ${milestone.title} (${milestone.year}):`, {
-          url: finalUrl,
-          source: canLoad ? 'supabase' : 'fallback',
+        console.log(`${canLoad ? '✅' : '⚠️'} Supabase image for ${milestone.title} (${milestone.year}):`, {
+          url: supabaseUrl,
           canLoad
         });
         
@@ -139,10 +135,10 @@ export class EnhancedImageValidationService {
           title: milestone.title,
           year: milestone.year,
           originalUrl: milestone.imageUrl,
-          finalUrl,
-          isValid: !!finalUrl,
-          source: canLoad ? 'supabase' : (fallbackUrl ? 'fallback' : 'none'),
-          hasUrl: !!finalUrl,
+          finalUrl: supabaseUrl,
+          isValid: canLoad,
+          source: canLoad ? 'supabase' : 'failed',
+          hasUrl: true,
           canLoad
         };
       })
@@ -153,8 +149,7 @@ export class EnhancedImageValidationService {
       withUrls: validationResults.filter(r => r.hasUrl).length,
       valid: validationResults.filter(r => r.isValid).length,
       supabaseImages: validationResults.filter(r => r.source === 'supabase').length,
-      fallbackImages: validationResults.filter(r => r.source === 'fallback').length,
-      failed: validationResults.filter(r => r.source === 'none').length
+      failed: validationResults.filter(r => r.source === 'failed' || r.source === 'none').length
     };
 
     console.log('📊 Enhanced Timeline Image Validation Summary:', summary);
