@@ -33,7 +33,7 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
       setLoadState('loading');
       
       // Test if the image can actually load using HTMLImageElement
-      const img = document.createElement('img');
+      const img = document.createElement('img') as HTMLImageElement;
       img.onload = () => {
         setFinalImageUrl(imageUrl);
         setLoadState('loaded');
