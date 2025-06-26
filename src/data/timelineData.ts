@@ -142,7 +142,7 @@ export const timelineMilestones: TimelineMilestone[] = [
       'Tourism promotion campaigns launched',
       'National Scenic Byway designation sought'
     ],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Angel_Delgadillo_Seligman_Arizona_1990.jpg/800px-Angel_Delgadillo_Seligman_Arizona_1990.jpg',
+    imageUrl: '/lovable-uploads/2811b8b8-268d-41aa-8f8d-0a37d0c7f735.png',
     imageCaption: 'Angel Delgadillo in his barbershop in Seligman, Arizona in 1990. Known as the "Guardian Angel of Route 66," his preservation efforts helped save the historic highway.',
     imageSource: 'Route 66 Association of Arizona Archives'
   },
