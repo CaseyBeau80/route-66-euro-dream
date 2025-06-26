@@ -10,10 +10,12 @@ import { timelineMilestones, categoryLabels } from '../data/timelineData';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Clock, MapPin, Sparkles, Play, List } from 'lucide-react';
 
+type ViewMode = 'timeline' | 'journey';
+
 const TimelinePage = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'timeline' | 'journey'>('timeline');
+  const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const navigate = useNavigate();
 
   // Filter milestones based on selected category
