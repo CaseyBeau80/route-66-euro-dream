@@ -2,80 +2,107 @@
 export class AttractionIconCreator {
   /**
    * Creates an enhanced professional map pin icon for attractions (📍 representation)
+   * High-resolution SVG with crisp lines and proper scaling
    */
   static createAttractionIcon(isCloseZoom: boolean = false): google.maps.Icon {
-    const baseSize = isCloseZoom ? 36 : 28;
+    const baseSize = isCloseZoom ? 42 : 32;
+    const pinHeight = baseSize * 1.2;
+    
     const svgContent = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${baseSize}" height="${baseSize + 4}" viewBox="0 0 ${baseSize} ${baseSize + 4}">
-        <!-- Drop shadow -->
-        <ellipse cx="${baseSize/2}" cy="${baseSize + 2}" rx="${baseSize*0.2}" ry="${baseSize*0.08}" 
-                 fill="#000000" opacity="0.25"/>
-        
-        <!-- Pin outer glow -->
-        <path d="M${baseSize/2},${baseSize} 
-                 C${baseSize*0.15},${baseSize*0.65} 
-                 ${baseSize*0.15},${baseSize*0.25} 
-                 ${baseSize/2},${baseSize*0.25}
-                 C${baseSize*0.85},${baseSize*0.25} 
-                 ${baseSize*0.85},${baseSize*0.65} 
-                 ${baseSize/2},${baseSize} Z" 
-              fill="#ff6b6b" 
-              opacity="0.3"
-              stroke="none"/>
-        
-        <!-- Main pin body with gradient -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="${baseSize}" height="${pinHeight}" viewBox="0 0 ${baseSize} ${pinHeight}" style="shape-rendering: geometricPrecision;">
         <defs>
-          <linearGradient id="pinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#c0392b;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#a93226;stop-opacity:1" />
+          <!-- High-quality gradients for depth -->
+          <linearGradient id="pinBodyGradient" x1="10%" y1="0%" x2="90%" y2="100%">
+            <stop offset="0%" style="stop-color:#ff4444;stop-opacity:1" />
+            <stop offset="25%" style="stop-color:#ff3333;stop-opacity:1" />
+            <stop offset="75%" style="stop-color:#cc2222;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#aa1111;stop-opacity:1" />
           </linearGradient>
-          <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="100%" y2="50%">
-            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.4" />
+          
+          <radialGradient id="pinHighlight" cx="35%" cy="25%" r="40%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+            <stop offset="50%" style="stop-color:#ffffff;stop-opacity:0.2" />
             <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0" />
-          </linearGradient>
+          </radialGradient>
+          
+          <filter id="pinShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.4)"/>
+          </filter>
+          
+          <filter id="pinGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+            <feMerge> 
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
         
-        <path d="M${baseSize/2},${baseSize - 2} 
-                 C${baseSize*0.18},${baseSize*0.63} 
-                 ${baseSize*0.18},${baseSize*0.28} 
-                 ${baseSize/2},${baseSize*0.28}
-                 C${baseSize*0.82},${baseSize*0.28} 
-                 ${baseSize*0.82},${baseSize*0.63} 
-                 ${baseSize/2},${baseSize - 2} Z" 
-              fill="url(#pinGradient)" 
-              stroke="#ffffff" 
-              stroke-width="2"/>
+        <!-- Pin shadow on ground -->
+        <ellipse cx="${baseSize/2}" cy="${pinHeight - 2}" rx="${baseSize * 0.2}" ry="${baseSize * 0.06}" 
+                 fill="#000000" opacity="0.2"/>
         
-        <!-- Pin highlight for 3D effect -->
-        <path d="M${baseSize/2},${baseSize - 2} 
-                 C${baseSize*0.18},${baseSize*0.63} 
-                 ${baseSize*0.18},${baseSize*0.28} 
-                 ${baseSize/2},${baseSize*0.28}
-                 C${baseSize*0.82},${baseSize*0.28} 
-                 ${baseSize*0.82},${baseSize*0.63} 
-                 ${baseSize/2},${baseSize - 2} Z" 
-              fill="url(#highlightGradient)"/>
+        <!-- Pin body with crisp edges -->
+        <g filter="url(#pinShadow)">
+          <!-- Main pin teardrop shape -->
+          <path d="M${baseSize/2},${pinHeight - 4} 
+                   C${baseSize * 0.15},${pinHeight * 0.6} 
+                   ${baseSize * 0.15},${baseSize * 0.4} 
+                   ${baseSize/2},${baseSize * 0.4}
+                   C${baseSize * 0.85},${baseSize * 0.4} 
+                   ${baseSize * 0.85},${pinHeight * 0.6} 
+                   ${baseSize/2},${pinHeight - 4} Z" 
+                fill="url(#pinBodyGradient)" 
+                stroke="#ffffff" 
+                stroke-width="1.5"
+                vector-effect="non-scaling-stroke"/>
+          
+          <!-- Pin highlight for 3D effect -->
+          <path d="M${baseSize/2},${pinHeight - 4} 
+                   C${baseSize * 0.15},${pinHeight * 0.6} 
+                   ${baseSize * 0.15},${baseSize * 0.4} 
+                   ${baseSize/2},${baseSize * 0.4}
+                   C${baseSize * 0.85},${baseSize * 0.4} 
+                   ${baseSize * 0.85},${pinHeight * 0.6} 
+                   ${baseSize/2},${pinHeight - 4} Z" 
+                fill="url(#pinHighlight)"/>
+        </g>
         
-        <!-- Center circle with depth -->
-        <circle cx="${baseSize/2}" cy="${baseSize*0.42}" r="${baseSize*0.15}" 
+        <!-- Center circle with crisp definition -->
+        <circle cx="${baseSize/2}" cy="${baseSize * 0.52}" r="${baseSize * 0.16}" 
                 fill="#ffffff" 
-                stroke="#c0392b" 
-                stroke-width="1"/>
-        <circle cx="${baseSize/2}" cy="${baseSize*0.42}" r="${baseSize*0.08}" 
-                fill="#e74c3c"/>
+                stroke="#cc2222" 
+                stroke-width="1.2"
+                vector-effect="non-scaling-stroke"/>
+        <circle cx="${baseSize/2}" cy="${baseSize * 0.52}" r="${baseSize * 0.08}" 
+                fill="#ff4444"/>
         
-        <!-- Shine effect -->
-        <ellipse cx="${baseSize*0.4}" cy="${baseSize*0.35}" rx="${baseSize*0.08}" ry="${baseSize*0.15}" 
+        <!-- Subtle glow effect for visibility -->
+        <g filter="url(#pinGlow)" opacity="0.6">
+          <path d="M${baseSize/2},${pinHeight - 4} 
+                   C${baseSize * 0.15},${pinHeight * 0.6} 
+                   ${baseSize * 0.15},${baseSize * 0.4} 
+                   ${baseSize/2},${baseSize * 0.4}
+                   C${baseSize * 0.85},${baseSize * 0.4} 
+                   ${baseSize * 0.85},${pinHeight * 0.6} 
+                   ${baseSize/2},${pinHeight - 4} Z" 
+                fill="#ff4444" 
+                opacity="0.3"/>
+        </g>
+        
+        <!-- Retro shine for Americana feel -->
+        <ellipse cx="${baseSize * 0.38}" cy="${baseSize * 0.45}" rx="${baseSize * 0.08}" ry="${baseSize * 0.12}" 
                  fill="#ffffff" 
-                 opacity="0.3"/>
+                 opacity="0.4"
+                 transform="rotate(-15 ${baseSize * 0.38} ${baseSize * 0.45})"/>
       </svg>
     `;
 
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
-      scaledSize: new google.maps.Size(baseSize, baseSize + 4),
-      anchor: new google.maps.Point(baseSize/2, baseSize - 2)
+      scaledSize: new google.maps.Size(baseSize, pinHeight),
+      anchor: new google.maps.Point(baseSize/2, pinHeight - 4),
+      optimized: true
     };
   }
 
