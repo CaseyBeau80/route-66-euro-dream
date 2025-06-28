@@ -27,7 +27,7 @@ const WeatherTile: React.FC<WeatherTileProps> = ({ destination }) => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-stone-100 to-stone-200 border-2 border-black hover:shadow-lg transition-all duration-200 hover:border-gray-800">
+    <Card className="bg-amber-50 border-2 border-black hover:shadow-lg transition-all duration-200 hover:border-gray-800">
       <CardHeader 
         className="pb-2 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}

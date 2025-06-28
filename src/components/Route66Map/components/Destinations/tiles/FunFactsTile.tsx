@@ -43,7 +43,7 @@ const FunFactsTile: React.FC<FunFactsTileProps> = ({ destination }) => {
   const funFacts = getFunFacts(cityName);
 
   return (
-    <Card className="bg-gradient-to-br from-stone-100 to-stone-200 border-2 border-black hover:shadow-lg transition-all duration-200 hover:border-gray-800">
+    <Card className="bg-amber-50 border-2 border-black hover:shadow-lg transition-all duration-200 hover:border-gray-800">
       <CardHeader 
         className="pb-2 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -66,22 +66,22 @@ const FunFactsTile: React.FC<FunFactsTileProps> = ({ destination }) => {
             {funFacts.map((fact, index) => (
               <div 
                 key={index}
-                className="bg-stone-50 rounded-lg p-3 border border-gray-400 hover:bg-stone-100 transition-colors"
+                className="bg-white rounded-lg p-3 border border-black hover:bg-amber-25 transition-colors"
               >
                 <div className="flex items-start gap-3">
                   <div className="text-lg flex-shrink-0 mt-0.5">
                     💡
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-800 leading-relaxed">
+                    <p className="text-sm text-black leading-relaxed">
                       {fact}
                     </p>
                   </div>
                 </div>
               </div>
             ))}
-            <div className="bg-stone-200 border border-black rounded-lg p-2 text-center">
-              <p className="text-xs text-gray-800 font-medium">
+            <div className="bg-amber-100 border border-black rounded-lg p-2 text-center">
+              <p className="text-xs text-black font-medium">
                 🏛️ Discover more about {cityName} on Route 66
               </p>
             </div>
