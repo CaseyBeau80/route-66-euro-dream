@@ -1,4 +1,6 @@
 
+type QualityLevel = 'high' | 'medium' | 'low';
+
 export class IconQualityManager {
   private static readonly PERFORMANCE_THRESHOLDS = {
     HIGH_MARKER_COUNT: 100,
@@ -7,12 +9,10 @@ export class IconQualityManager {
   };
 
   private static readonly QUALITY_LEVELS = {
-    HIGH: 'high',
-    MEDIUM: 'medium',
-    LOW: 'low'
-  } as const;
-
-  type QualityLevel = typeof IconQualityManager.QUALITY_LEVELS[keyof typeof IconQualityManager.QUALITY_LEVELS];
+    HIGH: 'high' as const,
+    MEDIUM: 'medium' as const,
+    LOW: 'low' as const
+  };
 
   /**
    * Determines the appropriate quality level based on performance metrics
