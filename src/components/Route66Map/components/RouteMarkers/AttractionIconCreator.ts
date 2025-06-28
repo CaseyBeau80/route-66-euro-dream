@@ -101,8 +101,7 @@ export class AttractionIconCreator {
     return {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
       scaledSize: new google.maps.Size(baseSize, pinHeight),
-      anchor: new google.maps.Point(baseSize/2, pinHeight - 4),
-      optimized: true
+      anchor: new google.maps.Point(baseSize/2, pinHeight - 4)
     };
   }
 
