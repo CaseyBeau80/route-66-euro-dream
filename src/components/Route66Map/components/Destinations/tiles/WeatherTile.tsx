@@ -27,12 +27,12 @@ const WeatherTile: React.FC<WeatherTileProps> = ({ destination }) => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-orange-100 to-orange-200 border-2 border-orange-500 hover:shadow-lg transition-all duration-200 hover:border-orange-600">
+    <Card className="bg-gradient-to-br from-stone-100 to-stone-200 border-2 border-black hover:shadow-lg transition-all duration-200 hover:border-gray-800">
       <CardHeader 
         className="pb-2 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <CardTitle className="text-sm font-bold text-orange-900 flex items-center justify-between">
+        <CardTitle className="text-sm font-bold text-black flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Cloud className="w-4 h-4" />
             Weather

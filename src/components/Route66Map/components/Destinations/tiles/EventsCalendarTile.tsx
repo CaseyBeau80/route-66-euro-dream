@@ -21,12 +21,12 @@ const EventsCalendarTile: React.FC<EventsCalendarTileProps> = ({ destination }) 
   };
 
   return (
-    <Card className="bg-gradient-to-br from-orange-100 to-orange-200 border-2 border-orange-500 hover:shadow-lg transition-all duration-200 hover:border-orange-600">
+    <Card className="bg-gradient-to-br from-stone-100 to-stone-200 border-2 border-black hover:shadow-lg transition-all duration-200 hover:border-gray-800">
       <CardHeader 
         className="pb-2 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <CardTitle className="text-sm font-bold text-orange-900 flex items-center justify-between">
+        <CardTitle className="text-sm font-bold text-black flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Events Calendar
@@ -46,7 +46,7 @@ const EventsCalendarTile: React.FC<EventsCalendarTileProps> = ({ destination }) 
                 {cityEventData.eventSources.map((source, index) => (
                   <div 
                     key={index} 
-                    className="bg-orange-50 rounded-lg p-3 border border-orange-400 hover:bg-orange-100 transition-colors cursor-pointer group"
+                    className="bg-stone-50 rounded-lg p-3 border border-gray-400 hover:bg-stone-100 transition-colors cursor-pointer group"
                     onClick={() => handleEventSourceClick(source.url, source.name)}
                   >
                     <div className="flex items-start gap-3">
@@ -55,36 +55,36 @@ const EventsCalendarTile: React.FC<EventsCalendarTileProps> = ({ destination }) 
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-sm font-semibold text-orange-900 group-hover:text-orange-700 truncate">
+                          <h4 className="text-sm font-semibold text-black group-hover:text-gray-700 truncate">
                             {source.name}
                           </h4>
-                          <ExternalLink className="w-3 h-3 text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                          <ExternalLink className="w-3 h-3 text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           <span className={`text-xs px-2 py-1 rounded-full border ${getEventSourceBadgeClass(source.type)}`}>
                             {source.type.replace('_', ' ')}
                           </span>
                         </div>
-                        <p className="text-xs text-orange-800 leading-relaxed">
+                        <p className="text-xs text-gray-800 leading-relaxed">
                           {source.description}
                         </p>
                       </div>
                     </div>
                   </div>
                 ))}
-                <div className="bg-orange-200 border border-orange-500 rounded-lg p-2 text-center">
-                  <p className="text-xs text-orange-800 font-medium">
+                <div className="bg-stone-200 border border-black rounded-lg p-2 text-center">
+                  <p className="text-xs text-gray-800 font-medium">
                     📅 Click any source above to view current events in {cityName}
                   </p>
                 </div>
               </>
             ) : (
-              <div className="bg-orange-200 border border-orange-500 rounded-lg p-3 text-center">
-                <Calendar className="w-8 h-8 text-orange-700 mx-auto mb-2" />
-                <p className="text-xs text-orange-800 font-medium">
+              <div className="bg-stone-200 border border-black rounded-lg p-3 text-center">
+                <Calendar className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                <p className="text-xs text-gray-800 font-medium">
                   Event listings for {cityName} are being curated.
                 </p>
-                <p className="text-xs text-orange-700 mt-1">
+                <p className="text-xs text-gray-700 mt-1">
                   Check back soon for local festivals, car shows, and Route 66 celebrations!
                 </p>
               </div>

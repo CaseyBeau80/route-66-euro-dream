@@ -58,15 +58,15 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
   };
 
   return (
-    <Card className="w-80 max-w-sm shadow-xl border-3 border-orange-800 bg-gradient-to-b from-orange-50 via-orange-100 to-orange-200 max-h-[85vh] overflow-hidden">
+    <Card className="w-80 max-w-sm shadow-xl border-3 border-black bg-gradient-to-b from-stone-50 via-stone-100 to-stone-200 max-h-[85vh] overflow-hidden">
       <CardContent className="p-4 overflow-y-auto max-h-[calc(85vh-2rem)]">
         <div className="space-y-3">
           {/* City, State and Population Header */}
           <div className="text-center py-3 px-4">
-            <h4 className="text-2xl font-black text-orange-900 mb-1 uppercase tracking-wide">
+            <h4 className="text-2xl font-black text-black mb-1 uppercase tracking-wide">
               {cityName}, {stateName}
             </h4>
-            <p className="text-orange-800 font-bold text-lg uppercase tracking-wider">
+            <p className="text-gray-800 font-bold text-lg uppercase tracking-wider">
               Population: {population}
             </p>
           </div>
