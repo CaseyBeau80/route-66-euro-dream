@@ -30,7 +30,7 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
 
   // Updated card dimensions to account for expanded tiles
   const cardWidth = 320;
-  const cardHeight = 450; // Increased to accommodate expanded tiles
+  const cardHeight = 500; // Increased height to accommodate expanded weather content
   const margin = 20;
 
   // Better positioning to ensure card is always visible within viewport
@@ -53,6 +53,10 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   if (position.y + cardHeight + margin > viewportHeight) {
     // Position above the marker
     adjustedY = position.y - cardHeight - margin;
+    // If it would go off the top, position it at the top with some margin
+    if (adjustedY < margin) {
+      adjustedY = margin;
+    }
   } else {
     // Position below the marker
     adjustedY = position.y + margin;

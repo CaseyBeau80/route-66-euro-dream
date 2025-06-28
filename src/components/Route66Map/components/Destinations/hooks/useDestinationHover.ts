@@ -21,12 +21,12 @@ export const useDestinationHover = () => {
 
     console.log(`⏳ Starting hover delay for destination: ${destinationName || 'unknown'}`);
     
-    // Add 400ms delay before showing the tooltip (same as hidden gems)
+    // Reduced delay from 400ms to 200ms for faster response
     showDelayTimeoutRef.current = setTimeout(() => {
       console.log(`🏛️ Hover started for destination: ${destinationName || 'unknown'}`);
       setIsHovered(true);
       showDelayTimeoutRef.current = null;
-    }, 400);
+    }, 200);
   }, []);
 
   const handleMouseLeave = useCallback((destinationName?: string) => {
