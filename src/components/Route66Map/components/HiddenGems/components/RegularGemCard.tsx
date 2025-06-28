@@ -90,7 +90,7 @@ const RegularGemCard: React.FC<RegularGemCardProps> = ({ gem, onClose, onWebsite
               color: '#40E0D0 !important',
               borderBottomColor: '#40E0D0 !important',
               borderBottomWidth: '2px !important',
-              borderBottomStyle: 'solid !important'
+              borderBottomStyle: 'solid'
             }}
           >
             {gem.title}
