@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback } from 'react';
 
 export const useDestinationHover = () => {
@@ -21,12 +20,12 @@ export const useDestinationHover = () => {
 
     console.log(`⏳ Starting hover delay for destination: ${destinationName || 'unknown'}`);
     
-    // Reduced delay from 400ms to 200ms for faster response
+    // Increased delay from 200ms to 250ms (25% increase)
     showDelayTimeoutRef.current = setTimeout(() => {
       console.log(`🏛️ Hover started for destination: ${destinationName || 'unknown'}`);
       setIsHovered(true);
       showDelayTimeoutRef.current = null;
-    }, 200);
+    }, 250);
   }, []);
 
   const handleMouseLeave = useCallback((destinationName?: string) => {
