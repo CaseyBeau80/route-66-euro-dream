@@ -49,14 +49,32 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
   useEffect(() => {
     if (!map || markerRef.current) return;
 
+    // Validate coordinates before creating marker
+    const lat = Number(attraction.latitude);
+    const lng = Number(attraction.longitude);
+    
+    console.log(`🎯 AttractionCustomMarker: Creating marker for "${attraction.name}"`);
+    console.log(`🎯   Coordinates: lat=${lat}, lng=${lng}`);
+    console.log(`🎯   Map bounds: ${map.getBounds()?.toString()}`);
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      console.error(`❌ Invalid coordinates for ${attraction.name}: lat=${lat}, lng=${lng}`);
+      return;
+    }
+    
+    if (lat === 0 && lng === 0) {
+      console.error(`❌ Zero coordinates for ${attraction.name} - likely missing data`);
+      return;
+    }
+
     console.log('🎯 Creating attraction marker with new 📍 icon for:', attraction.name);
 
     try {
       const marker = new google.maps.Marker({
         map,
         position: {
-          lat: Number(attraction.latitude),
-          lng: Number(attraction.longitude)
+          lat: lat,
+          lng: lng
         },
         title: IconCreator.createAttractionTitle(attraction.name),
         icon: IconCreator.createAttractionIcon(map.getZoom() >= 12),
@@ -67,6 +85,9 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
       setIsMarkerReady(true);
 
       console.log('✅ Attraction marker with 📍 icon created successfully for:', attraction.name);
+      console.log(`✅   Marker position: ${marker.getPosition()?.toString()}`);
+      console.log(`✅   Marker visible: ${marker.getVisible()}`);
+      console.log(`✅   Marker map: ${marker.getMap() ? 'SET' : 'NOT SET'}`);
 
     } catch (error) {
       console.error('❌ Error creating attraction marker:', error);
@@ -75,6 +96,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     return () => {
       cleanup();
       if (markerRef.current) {
+        console.log(`🧹 Cleaning up marker for: ${attraction.name}`);
         // Clear all event listeners
         google.maps.event.clearInstanceListeners(markerRef.current);
         markerRef.current.setMap(null);

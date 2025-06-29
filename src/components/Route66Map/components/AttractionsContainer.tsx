@@ -48,6 +48,31 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
         }
 
         console.log(`✅ Fetched ${data?.length || 0} attractions from database`);
+        
+        // Debug: Log all attraction names to see what we have
+        if (data) {
+          console.log('🔍 ALL ATTRACTIONS IN DATABASE:');
+          data.forEach((attraction, index) => {
+            console.log(`  ${index + 1}. "${attraction.name}" in ${attraction.city_name}, ${attraction.state}`);
+            console.log(`     Coordinates: ${attraction.latitude}, ${attraction.longitude}`);
+          });
+          
+          // Specifically look for the missing attractions
+          const waterfalls = data.find(a => a.name.toLowerCase().includes('waterfall'));
+          const shoalCreek = data.find(a => a.name.toLowerCase().includes('shoal creek'));
+          
+          console.log('🔍 LOOKING FOR SPECIFIC ATTRACTIONS:');
+          console.log('  The Waterfalls:', waterfalls ? `FOUND - ${waterfalls.name}` : 'NOT FOUND');
+          console.log('  Shoal Creek Overlook:', shoalCreek ? `FOUND - ${shoalCreek.name}` : 'NOT FOUND');
+          
+          if (waterfalls) {
+            console.log(`    Waterfalls details: lat=${waterfalls.latitude}, lng=${waterfalls.longitude}, city=${waterfalls.city_name}`);
+          }
+          if (shoalCreek) {
+            console.log(`    Shoal Creek details: lat=${shoalCreek.latitude}, lng=${shoalCreek.longitude}, city=${shoalCreek.city_name}`);
+          }
+        }
+        
         setAttractions(data || []);
       } catch (error) {
         console.error('❌ Error in fetchAttractions:', error);
@@ -97,6 +122,14 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
       console.log(`🎯 LOW ZOOM (${currentZoom}): Showing ${visibleAttractions.length} of ${attractions.length} attractions`);
     }
 
+    // Debug: Check if our specific attractions are in the filtered list
+    const waterfalls = visibleAttractions.find(a => a.name.toLowerCase().includes('waterfall'));
+    const shoalCreek = visibleAttractions.find(a => a.name.toLowerCase().includes('shoal creek'));
+    
+    console.log('🔍 FILTERED ATTRACTIONS CHECK:');
+    console.log('  The Waterfalls in filtered list:', waterfalls ? 'YES' : 'NO');
+    console.log('  Shoal Creek in filtered list:', shoalCreek ? 'YES' : 'NO');
+
     return visibleAttractions;
   }, [attractions, currentZoom, loading]);
 
@@ -135,27 +168,32 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
 
   return (
     <>
-      {filteredAttractions.map((attraction) => (
-        <AttractionCustomMarker
-          key={`attraction-${attraction.id}`}
-          attraction={{
-            id: attraction.id,
-            name: attraction.name,
-            latitude: Number(attraction.latitude),
-            longitude: Number(attraction.longitude),
-            description: attraction.description,
-            state: attraction.state,
-            city_name: attraction.city_name,
-            // Add required Route66Waypoint properties with default values
-            sequence_order: 0, // Attractions don't have a sequence order
-            is_major_stop: false, // Attractions are not major stops by default
-            highway_designation: null // Attractions don't have highway designations
-          }}
-          map={map}
-          onAttractionClick={onAttractionClick}
-          onWebsiteClick={handleWebsiteClick}
-        />
-      ))}
+      {filteredAttractions.map((attraction) => {
+        // Debug log for each attraction being rendered
+        console.log(`🎯 Rendering attraction marker: "${attraction.name}" at ${attraction.latitude}, ${attraction.longitude}`);
+        
+        return (
+          <AttractionCustomMarker
+            key={`attraction-${attraction.id}`}
+            attraction={{
+              id: attraction.id,
+              name: attraction.name,
+              latitude: Number(attraction.latitude),
+              longitude: Number(attraction.longitude),
+              description: attraction.description,
+              state: attraction.state,
+              city_name: attraction.city_name,
+              // Add required Route66Waypoint properties with default values
+              sequence_order: 0, // Attractions don't have a sequence order
+              is_major_stop: false, // Attractions are not major stops by default
+              highway_designation: null // Attractions don't have highway designations
+            }}
+            map={map}
+            onAttractionClick={onAttractionClick}
+            onWebsiteClick={handleWebsiteClick}
+          />
+        );
+      })}
     </>
   );
 };
