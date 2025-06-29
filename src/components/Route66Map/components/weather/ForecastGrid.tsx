@@ -22,6 +22,10 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
     );
   }
 
+  // Limit to first 3 days only
+  const limitedForecast = forecast.slice(0, 3);
+  console.log('🔍 ForecastGrid: Limited forecast to 3 days:', limitedForecast);
+
   return (
     <div className="space-y-2 w-full">
       {showHeader && (
@@ -31,7 +35,7 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
         </div>
       )}
       <div className="grid grid-cols-3 gap-1 w-full">
-        {forecast.map((day, index) => {
+        {limitedForecast.map((day, index) => {
           console.log(`🔍 ForecastGrid: Rendering day ${index}:`, day);
           const { dayLabel, dateLabel } = getDayAndDateLabels(index);
           console.log(`🔍 ForecastGrid: Day ${index} - Day: ${dayLabel}, Date: ${dateLabel}`);
