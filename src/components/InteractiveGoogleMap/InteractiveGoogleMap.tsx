@@ -1,3 +1,4 @@
+
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -61,8 +62,8 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       // Gesture handling - greedy allows all touch gestures on mobile
       gestureHandling: 'greedy',
       
-      // Disable mouse scroll wheel zoom completely on desktop, keep enabled on mobile
-      scrollwheel: isMobile,
+      // Disable mouse scroll wheel zoom on both desktop and mobile by default
+      scrollwheel: false,
       
       // Map controls
       zoomControl: true,
@@ -102,31 +103,29 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    // For desktop, add additional protection against scroll zoom
-    if (!isMobile) {
-      const mapDiv = map.getDiv();
-      
-      const preventScrollZoom = (e: WheelEvent) => {
-        // Always prevent scroll zoom on desktop
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('🚫 Mouse scroll zoom blocked on desktop');
-        return false;
-      };
-      
-      // Add event listener with capture to ensure it runs first
-      mapDiv.addEventListener('wheel', preventScrollZoom, { passive: false, capture: true });
-      
-      // Store cleanup function
-      (map as any).__scrollCleanup = () => {
-        mapDiv.removeEventListener('wheel', preventScrollZoom, { capture: true });
-      };
-    }
+    // Disable scroll zoom by default on all devices
+    const mapDiv = map.getDiv();
+    
+    const preventScrollZoom = (e: WheelEvent) => {
+      // Always prevent scroll zoom by default
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🚫 Mouse scroll zoom disabled by default');
+      return false;
+    };
+    
+    // Add event listener with capture to ensure it runs first
+    mapDiv.addEventListener('wheel', preventScrollZoom, { passive: false, capture: true });
+    
+    // Store cleanup function
+    (map as any).__scrollCleanup = () => {
+      mapDiv.removeEventListener('wheel', preventScrollZoom, { capture: true });
+    };
     
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [isMobile, onMapLoad]);
+  }, [onMapLoad]);
 
   const handleMapClick = useCallback(() => {
     console.log('🗺️ Map clicked');
@@ -201,7 +200,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       {/* Device info display for debugging */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-          {isMobile ? '📱 Mobile' : '🖥️ Desktop'} | Scroll: {isMobile ? 'ON' : 'OFF'}
+          {isMobile ? '📱 Mobile' : '🖥️ Desktop'} | Scroll: OFF (Default)
         </div>
       )}
     </div>
