@@ -15,23 +15,7 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
     return null;
   }
 
-  console.log(`💎 HiddenGemsContainer: Rendering ${hiddenGems.length} hidden gems from hidden_gems table`);
-  
-  // Specific debug for the gems you mentioned
-  const waterfalls = hiddenGems.find(gem => gem.title.toLowerCase().includes('waterfalls'));
-  const shoalCreek = hiddenGems.find(gem => gem.title.toLowerCase().includes('shoal creek'));
-  
-  if (waterfalls) {
-    console.log(`🔍 Found "The Waterfalls": lat=${waterfalls.latitude}, lng=${waterfalls.longitude}`);
-  } else {
-    console.warn('⚠️ "The Waterfalls" not found in hidden gems data');
-  }
-  
-  if (shoalCreek) {
-    console.log(`🔍 Found "Shoal Creek Overlook": lat=${shoalCreek.latitude}, lng=${shoalCreek.longitude}`);
-  } else {
-    console.warn('⚠️ "Shoal Creek Overlook" not found in hidden gems data');
-  }
+  console.log(`💎 HiddenGemsContainer: Rendering ${hiddenGems.length} hidden gems from hidden_gems table only`);
 
   return (
     <>

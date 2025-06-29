@@ -13,68 +13,22 @@ export const useHiddenGems = () => {
 
   const fetchHiddenGems = async () => {
     try {
-      console.log('💎 Fetching hidden gems from hidden_gems table AND specific attractions...');
+      console.log('💎 Fetching hidden gems from hidden_gems table only...');
       
-      // Fetch from both tables in parallel
-      const [hiddenGemsResult, specificAttractionsResult] = await Promise.all([
-        supabase
-          .from('hidden_gems')
-          .select('*')
-          .order('title'),
-        supabase
-          .from('attractions')
-          .select('*')
-          .or('name.ilike.%waterfalls%,name.ilike.%shoal creek%')
-          .order('name')
-      ]);
+      const { data, error } = await supabase
+        .from('hidden_gems')
+        .select('*')
+        .order('title');
 
-      if (hiddenGemsResult.error) {
-        console.error('❌ Error fetching hidden gems:', hiddenGemsResult.error);
+      if (error) {
+        console.error('❌ Error fetching hidden gems:', error);
+        return;
       }
 
-      if (specificAttractionsResult.error) {
-        console.error('❌ Error fetching specific attractions:', specificAttractionsResult.error);
-      }
-
-      const allGems: any[] = [];
-
-      // Process hidden_gems data
-      if (hiddenGemsResult.data) {
-        console.log(`💎 Found ${hiddenGemsResult.data.length} items from hidden_gems table`);
-        hiddenGemsResult.data.forEach(gem => {
-          allGems.push({
-            ...gem,
-            source: 'hidden_gems'
-          });
-        });
-      }
-
-      // Process specific attractions data (format to match HiddenGem interface)
-      if (specificAttractionsResult.data) {
-        console.log(`🎯 Found ${specificAttractionsResult.data.length} specific attractions for hidden gem display`);
-        specificAttractionsResult.data.forEach(attraction => {
-          console.log(`🎯 Processing attraction: ${attraction.name} at ${attraction.latitude}, ${attraction.longitude}`);
-          allGems.push({
-            id: attraction.id,
-            title: attraction.name, // Map name to title
-            description: attraction.description,
-            city_name: attraction.city_name,
-            latitude: attraction.latitude,
-            longitude: attraction.longitude,
-            website: attraction.website,
-            image_url: attraction.image_url,
-            thumbnail_url: attraction.thumbnail_url,
-            created_at: attraction.created_at,
-            updated_at: attraction.updated_at,
-            source: 'attractions'
-          });
-        });
-      }
-
-      console.log(`💎 Total items found: ${allGems.length}`);
+      console.log(`💎 Found ${data?.length || 0} items from hidden_gems table`);
       
       // Validate and process the data
-      const validHiddenGems = allGems.filter(gem => {
+      const validHiddenGems = (data || []).filter(gem => {
         const lat = parseFloat(gem.latitude?.toString() || '0');
         const lng = parseFloat(gem.longitude?.toString() || '0');
         
@@ -87,7 +41,7 @@ export const useHiddenGems = () => {
           return false;
         }
         
-        console.log(`✅ Valid coordinates for ${gem.title} (${gem.source}): lat=${lat}, lng=${lng}`);
+        console.log(`✅ Valid coordinates for ${gem.title}: lat=${lat}, lng=${lng}`);
         return true;
       }).map(gem => ({
         ...gem,
@@ -97,24 +51,8 @@ export const useHiddenGems = () => {
       
       console.log(`💎 Valid hidden gems to display: ${validHiddenGems.length}`);
       validHiddenGems.forEach(gem => {
-        console.log(`  - ${gem.title} (${gem.source}): ${gem.latitude}, ${gem.longitude}`);
+        console.log(`  - ${gem.title}: ${gem.latitude}, ${gem.longitude}`);
       });
-
-      // Specific logging for the locations you're looking for
-      const waterfalls = validHiddenGems.find(gem => gem.title?.toLowerCase().includes('waterfalls'));
-      const shoalCreek = validHiddenGems.find(gem => gem.title?.toLowerCase().includes('shoal creek'));
-      
-      if (waterfalls) {
-        console.log(`🔍 Found "The Waterfalls" from ${waterfalls.source}: lat=${waterfalls.latitude}, lng=${waterfalls.longitude}`);
-      } else {
-        console.warn('⚠️ "The Waterfalls" not found in combined data');
-      }
-      
-      if (shoalCreek) {
-        console.log(`🔍 Found "Shoal Creek Overlook" from ${shoalCreek.source}: lat=${shoalCreek.latitude}, lng=${shoalCreek.longitude}`);
-      } else {
-        console.warn('⚠️ "Shoal Creek Overlook" not found in combined data');
-      }
       
       setHiddenGems(validHiddenGems);
     } catch (error) {
