@@ -28,54 +28,75 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
   useEffect(() => {
     if (!map || markerRef.current) return;
 
-    console.log(`💎 Creating hidden gem marker with new 💎 icon for: ${gem.title}`);
+    // Validate coordinates before creating marker
+    const lat = Number(gem.latitude);
+    const lng = Number(gem.longitude);
+    
+    if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+      console.error(`❌ Invalid coordinates for ${gem.title}: lat=${lat}, lng=${lng}`);
+      return;
+    }
+    
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      console.error(`❌ Coordinates out of range for ${gem.title}: lat=${lat}, lng=${lng}`);
+      return;
+    }
 
-    const currentZoom = map.getZoom() || 6;
-    const isCloseZoom = currentZoom >= 12;
+    console.log(`💎 Creating hidden gem marker with 💎 icon for: ${gem.title} at ${lat}, ${lng}`);
 
-    const marker = new google.maps.Marker({
-      position: { lat: Number(gem.latitude), lng: Number(gem.longitude) },
-      map: map,
-      icon: getMarkerIcon(gem.title, isCloseZoom),
-      title: getMarkerTitle(gem.title),
-      zIndex: getMarkerZIndex(gem.title)
-    });
+    try {
+      const currentZoom = map.getZoom() || 6;
+      const isCloseZoom = currentZoom >= 12;
 
-    markerRef.current = marker;
+      const marker = new google.maps.Marker({
+        position: { lat, lng },
+        map: map,
+        icon: getMarkerIcon(gem.title, isCloseZoom),
+        title: getMarkerTitle(gem.title),
+        zIndex: getMarkerZIndex(gem.title)
+      });
 
-    // Enhanced mouse enter with optimized animation
-    const enhancedMouseEnter = (gemTitle: string) => {
-      console.log(`💎 Enhanced mouse enter for ${gemTitle} - triggering optimized jiggle`);
-      MarkerAnimationUtils.triggerOptimizedJiggle(marker, gemTitle);
-      handleMouseEnter(gemTitle);
-    };
+      markerRef.current = marker;
+      
+      console.log(`✅ Hidden gem marker created successfully for: ${gem.title}`);
 
-    const eventHandlers = createMarkerEventHandlers({
-      gem,
-      map,
-      marker,
-      updatePosition,
-      handleMouseEnter: enhancedMouseEnter,
-      handleMouseLeave
-    });
+      // Enhanced mouse enter with optimized animation
+      const enhancedMouseEnter = (gemTitle: string) => {
+        console.log(`💎 Enhanced mouse enter for ${gemTitle} - triggering optimized jiggle`);
+        MarkerAnimationUtils.triggerOptimizedJiggle(marker, gemTitle);
+        handleMouseEnter(gemTitle);
+      };
 
-    // Add only hover event listeners
-    const mouseOverListener = marker.addListener('mouseover', eventHandlers.handleMouseOver);
-    const mouseOutListener = marker.addListener('mouseout', eventHandlers.handleMouseOut);
+      const eventHandlers = createMarkerEventHandlers({
+        gem,
+        map,
+        marker,
+        updatePosition,
+        handleMouseEnter: enhancedMouseEnter,
+        handleMouseLeave
+      });
 
-    listenersRef.current = [mouseOverListener, mouseOutListener];
+      // Add only hover event listeners
+      const mouseOverListener = marker.addListener('mouseover', eventHandlers.handleMouseOver);
+      const mouseOutListener = marker.addListener('mouseout', eventHandlers.handleMouseOut);
 
-    // Update position when map changes
-    const boundsListener = map.addListener('bounds_changed', eventHandlers.updateMarkerPosition);
-    const zoomListener = map.addListener('zoom_changed', () => {
-      // Update icon size based on zoom
-      const newZoom = map.getZoom() || 6;
-      const newIsCloseZoom = newZoom >= 12;
-      marker.setIcon(getMarkerIcon(gem.title, newIsCloseZoom));
-      eventHandlers.updateMarkerPosition();
-    });
+      listenersRef.current = [mouseOverListener, mouseOutListener];
 
-    listenersRef.current.push(boundsListener, zoomListener);
+      // Update position when map changes
+      const boundsListener = map.addListener('bounds_changed', eventHandlers.updateMarkerPosition);
+      const zoomListener = map.addListener('zoom_changed', () => {
+        // Update icon size based on zoom
+        const newZoom = map.getZoom() || 6;
+        const newIsCloseZoom = newZoom >= 12;
+        marker.setIcon(getMarkerIcon(gem.title, newIsCloseZoom));
+        eventHandlers.updateMarkerPosition();
+      });
+
+      listenersRef.current.push(boundsListener, zoomListener);
+
+    } catch (error) {
+      console.error(`❌ Error creating marker for ${gem.title}:`, error);
+    }
 
     // Cleanup function
     return () => {

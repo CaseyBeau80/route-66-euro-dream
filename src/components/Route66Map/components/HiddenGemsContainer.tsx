@@ -15,9 +15,23 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
     return null;
   }
 
-  // Now using direct hidden_gems table data - no need to filter drive-ins 
-  // since they're handled by the dedicated DriveInsContainer
   console.log(`💎 HiddenGemsContainer: Rendering ${hiddenGems.length} hidden gems from hidden_gems table`);
+  
+  // Specific debug for the gems you mentioned
+  const waterfalls = hiddenGems.find(gem => gem.title.toLowerCase().includes('waterfalls'));
+  const shoalCreek = hiddenGems.find(gem => gem.title.toLowerCase().includes('shoal creek'));
+  
+  if (waterfalls) {
+    console.log(`🔍 Found "The Waterfalls": lat=${waterfalls.latitude}, lng=${waterfalls.longitude}`);
+  } else {
+    console.warn('⚠️ "The Waterfalls" not found in hidden gems data');
+  }
+  
+  if (shoalCreek) {
+    console.log(`🔍 Found "Shoal Creek Overlook": lat=${shoalCreek.latitude}, lng=${shoalCreek.longitude}`);
+  } else {
+    console.warn('⚠️ "Shoal Creek Overlook" not found in hidden gems data');
+  }
 
   return (
     <>
@@ -38,16 +52,19 @@ const HiddenGemsContainer: React.FC<HiddenGemsProps> = ({ map, onGemClick }) => 
       )}
 
       {/* Render all hidden gem markers with hover functionality */}
-      {hiddenGems.map((gem) => (
-        <HiddenGemCustomMarker
-          key={`hidden-gem-marker-${gem.id}`}
-          gem={gem}
-          isActive={activeGem === gem.id}
-          onMarkerClick={handleMarkerClick}
-          onWebsiteClick={handleWebsiteClick}
-          map={map}
-        />
-      ))}
+      {hiddenGems.map((gem) => {
+        console.log(`💎 Rendering marker for: ${gem.title} at ${gem.latitude}, ${gem.longitude}`);
+        return (
+          <HiddenGemCustomMarker
+            key={`hidden-gem-marker-${gem.id}`}
+            gem={gem}
+            isActive={activeGem === gem.id}
+            onMarkerClick={handleMarkerClick}
+            onWebsiteClick={handleWebsiteClick}
+            map={map}
+          />
+        );
+      })}
     </>
   );
 };
