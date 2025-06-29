@@ -9,12 +9,12 @@ export const useScrollZoom = () => {
     setShowScrollHint: (show: boolean) => void
   ) => {
     return (e: WheelEvent) => {
-      // Don't interfere with Google Maps native zoom at all
-      console.log('🔍 Native Google Maps wheel zoom - no interference');
-      
-      // Let Google Maps handle all wheel events natively
-      // No preventDefault, no stopPropagation - just let it work
-      return;
+      // PREVENT all wheel events to disable zoom
+      console.log('🚫 Scroll zoom prevented by useScrollZoom hook');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
     };
   }, []);
 

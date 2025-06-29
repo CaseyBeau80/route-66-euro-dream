@@ -15,7 +15,7 @@ const MapScrollHandler: React.FC<MapScrollHandlerProps> = ({
   useEffect(() => {
     if (!map || !containerRef.current) return;
 
-    console.log('🔄 MapScrollHandler: Setting up scroll event handling with NATIVE Google Maps zoom');
+    console.log('🔄 MapScrollHandler: Setting up scroll event handling with DISABLED zoom');
 
     const mapContainer = containerRef.current;
     let hintTimeout: NodeJS.Timeout | null = null;
@@ -27,21 +27,21 @@ const MapScrollHandler: React.FC<MapScrollHandlerProps> = ({
       
       if (!isOverMap) return;
 
-      // Allow ALL wheel events on the map - let Google Maps handle zoom natively
-      console.log('🔍 Wheel event on map - allowing Google Maps to handle zoom');
-      
-      // Don't prevent default - let Google Maps handle the zoom
-      // This enables native mouse wheel zoom
-      return;
+      // PREVENT all wheel events on the map to disable zoom
+      console.log('🚫 Wheel event on map - preventing zoom');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
     };
 
-    // Add wheel event listener with passive: true to not interfere with Google Maps
-    mapContainer.addEventListener('wheel', handleWheel, { passive: true });
+    // Add wheel event listener with passive: false to allow preventDefault
+    mapContainer.addEventListener('wheel', handleWheel, { passive: false, capture: true });
 
     // Cleanup
     return () => {
       console.log('🧹 MapScrollHandler: Cleaning up scroll handlers');
-      mapContainer.removeEventListener('wheel', handleWheel);
+      mapContainer.removeEventListener('wheel', handleWheel, { capture: true });
       if (hintTimeout) {
         clearTimeout(hintTimeout);
       }
