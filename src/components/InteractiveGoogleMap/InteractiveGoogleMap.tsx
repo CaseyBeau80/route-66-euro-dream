@@ -1,4 +1,5 @@
 
+
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -62,7 +63,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       // Gesture handling - greedy allows all touch gestures on mobile
       gestureHandling: 'greedy',
       
-      // Disable mouse scroll wheel zoom on both desktop and mobile by default
+      // FORCE disable mouse scroll wheel zoom on all devices
       scrollwheel: false,
       
       // Map controls
@@ -103,29 +104,59 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Disable scroll zoom by default on all devices
+    // Multiple layers of scroll zoom prevention
     const mapDiv = map.getDiv();
     
-    const preventScrollZoom = (e: WheelEvent) => {
-      // Always prevent scroll zoom by default
+    // Method 1: Prevent wheel events on the map container
+    const preventWheelZoom = (e: WheelEvent) => {
+      console.log('🚫 Wheel event intercepted - preventing zoom');
       e.preventDefault();
       e.stopPropagation();
-      console.log('🚫 Mouse scroll zoom disabled by default');
+      e.stopImmediatePropagation();
       return false;
     };
     
-    // Add event listener with capture to ensure it runs first
-    mapDiv.addEventListener('wheel', preventScrollZoom, { passive: false, capture: true });
+    // Method 2: Prevent mousewheel events (older browsers)
+    const preventMouseWheelZoom = (e: Event) => {
+      console.log('🚫 MouseWheel event intercepted - preventing zoom');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    };
+    
+    // Method 3: Prevent DOMMouseScroll events (Firefox)
+    const preventDOMMouseScroll = (e: Event) => {
+      console.log('🚫 DOMMouseScroll event intercepted - preventing zoom');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    };
+    
+    // Add multiple event listeners to catch all scroll events
+    mapDiv.addEventListener('wheel', preventWheelZoom, { passive: false, capture: true });
+    mapDiv.addEventListener('mousewheel', preventMouseWheelZoom, { passive: false, capture: true });
+    mapDiv.addEventListener('DOMMouseScroll', preventDOMMouseScroll, { passive: false, capture: true });
+    
+    // Also disable zoom on the map itself using Google Maps API
+    map.setOptions({ 
+      scrollwheel: false,
+      gestureHandling: isMobile ? 'greedy' : 'cooperative'
+    });
     
     // Store cleanup function
     (map as any).__scrollCleanup = () => {
-      mapDiv.removeEventListener('wheel', preventScrollZoom, { capture: true });
+      console.log('🧹 Cleaning up scroll event listeners');
+      mapDiv.removeEventListener('wheel', preventWheelZoom, { capture: true });
+      mapDiv.removeEventListener('mousewheel', preventMouseWheelZoom, { capture: true });
+      mapDiv.removeEventListener('DOMMouseScroll', preventDOMMouseScroll, { capture: true });
     };
     
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [onMapLoad]);
+  }, [onMapLoad, isMobile]);
 
   const handleMapClick = useCallback(() => {
     console.log('🗺️ Map clicked');
@@ -197,10 +228,12 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         {children}
       </GoogleMap>
       
-      {/* Device info display for debugging */}
+      {/* Enhanced device info display for debugging */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-          {isMobile ? '📱 Mobile' : '🖥️ Desktop'} | Scroll: OFF (Default)
+        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
+          <div>{isMobile ? '📱 Mobile' : '🖥️ Desktop'}</div>
+          <div>Scroll Zoom: <span className="text-red-300 font-bold">DISABLED</span></div>
+          <div>Gesture: {isMobile ? 'Greedy' : 'Cooperative'}</div>
         </div>
       )}
     </div>
@@ -208,3 +241,4 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 };
 
 export default InteractiveGoogleMap;
+
