@@ -1,35 +1,115 @@
 
 export class DestinationCityIconCreator {
   static createDestinationCityIcon(cityName: string) {
-    console.log(`🏛️ Creating wooden post destination icon for: ${cityName}`);
+    const iconWidth = 50;  
+    const iconHeight = 60; 
     
-    const iconSize = 60;
-    const iconHeight = 70;
+    console.log(`🎨 Creating authentic Route 66 shield icon for ${cityName}`);
     
+    const svgContent = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
+        <defs>
+          <filter id="postShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000000" flood-opacity="0.4"/>
+          </filter>
+          
+          <!-- Wood grain texture for the post -->
+          <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+            <stop offset="20%" style="stop-color:#A0522D;stop-opacity:1" />
+            <stop offset="40%" style="stop-color:#8B4513;stop-opacity:1" />
+            <stop offset="60%" style="stop-color:#654321;stop-opacity:1" />
+            <stop offset="80%" style="stop-color:#8B4513;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
+          </linearGradient>
+          
+          <!-- Metal bracket gradient -->
+          <linearGradient id="metalBracket" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#C0C0C0;stop-opacity:1" />
+            <stop offset="50%" style="stop-color:#808080;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#606060;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        
+        <!-- Wooden post (vertical pole) -->
+        <rect x="21" y="25" width="8" height="35" 
+              fill="url(#woodGrain)" 
+              stroke="#654321" 
+              stroke-width="0.5"
+              filter="url(#postShadow)"/>
+        
+        <!-- Wood grain lines for texture -->
+        <line x1="22" y1="28" x2="28" y2="28" stroke="#654321" stroke-width="0.3" opacity="0.6"/>
+        <line x1="22" y1="35" x2="28" y2="35" stroke="#654321" stroke-width="0.3" opacity="0.4"/>
+        <line x1="22" y1="42" x2="28" y2="42" stroke="#654321" stroke-width="0.3" opacity="0.5"/>
+        <line x1="22" y1="49" x2="28" y2="49" stroke="#654321" stroke-width="0.3" opacity="0.6"/>
+        <line x1="22" y1="56" x2="28" y2="56" stroke="#654321" stroke-width="0.3" opacity="0.4"/>
+        
+        <!-- Metal mounting brackets -->
+        <rect x="19" y="22" width="12" height="3" 
+              fill="url(#metalBracket)" 
+              stroke="#606060" 
+              stroke-width="0.5"/>
+        <circle cx="21" cy="23.5" r="0.8" fill="#404040"/>
+        <circle cx="29" cy="23.5" r="0.8" fill="#404040"/>
+        
+        <!-- Authentic Route 66 Shield mounted on post - matching vintage image -->
+        <path d="M25 4
+                 L8 4
+                 L8 16
+                 C8 20 10 24 14 27
+                 C18 29 21 30 25 30
+                 C29 30 32 29 36 27
+                 C40 24 42 20 42 16
+                 L42 4
+                 L25 4 Z" 
+              fill="#F5F5DC" 
+              stroke="#000000" 
+              stroke-width="2"
+              filter="url(#postShadow)"/>
+        
+        <!-- Inner shield border for depth -->
+        <path d="M25 6
+                 L11 6
+                 L11 15
+                 C11 18 12 21 15 24
+                 C18 26 21 27 25 27
+                 C29 27 32 26 35 24
+                 C38 21 39 18 39 15
+                 L39 6
+                 L25 6 Z" 
+              fill="none" 
+              stroke="#000000" 
+              stroke-width="1"/>
+        
+        <!-- ROUTE text at top -->
+        <text x="25" y="11" text-anchor="middle" 
+              fill="#000000" 
+              font-family="Arial, sans-serif" 
+              font-size="4" 
+              font-weight="bold"
+              letter-spacing="0.5px">ROUTE</text>
+        
+        <!-- Large 66 numbers - matching vintage style -->
+        <text x="25" y="23" text-anchor="middle" 
+              fill="#000000" 
+              font-family="Arial Black, Arial, sans-serif" 
+              font-size="12" 
+              font-weight="900">66</text>
+        
+        <!-- City name below shield -->
+        <text x="25" y="34" text-anchor="middle" 
+              fill="#654321" 
+              font-family="Arial, sans-serif" 
+              font-size="3" 
+              font-weight="bold">${cityName.length > 10 ? cityName.substring(0, 8).toUpperCase() : cityName.toUpperCase()}</text>
+      </svg>
+    `;
+
     return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconHeight}" viewBox="0 0 ${iconSize} ${iconHeight}">
-          <!-- Wooden post base -->
-          <rect x="25" y="45" width="10" height="25" fill="#8B4513" stroke="#654321" stroke-width="1"/>
-          
-          <!-- Route 66 shield -->
-          <path d="M5 15 L5 30 Q5 35 10 35 L50 35 Q55 35 55 30 L55 15 Q55 10 50 10 L10 10 Q5 10 5 15 Z" 
-                fill="#F5F5DC" stroke="#000000" stroke-width="3"/>
-          
-          <!-- Route 66 text -->
-          <text x="30" y="20" text-anchor="middle" fill="#000" font-family="Arial Black" font-size="6" font-weight="bold">ROUTE</text>
-          <text x="30" y="30" text-anchor="middle" fill="#000" font-family="Arial Black" font-size="10" font-weight="bold">66</text>
-          
-          <!-- City name background -->
-          <rect x="2" y="38" width="56" height="8" fill="#000000" rx="2"/>
-          
-          <!-- City name text -->
-          <text x="30" y="44" text-anchor="middle" fill="#F5F5DC" font-family="Arial" font-size="6" font-weight="bold">${cityName.toUpperCase()}</text>
-        </svg>
-      `)}`,
-      scaledSize: new google.maps.Size(iconSize, iconHeight),
-      // Offset destination cities to the top-left
-      anchor: new google.maps.Point(iconSize/2 + 15, iconHeight/2 + 15)
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`,
+      scaledSize: new google.maps.Size(iconWidth, iconHeight),
+      anchor: new google.maps.Point(iconWidth/2, iconHeight - 5)
     };
   }
 }
