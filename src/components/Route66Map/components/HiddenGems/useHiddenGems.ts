@@ -13,10 +13,10 @@ export const useHiddenGems = () => {
 
   const fetchHiddenGems = async () => {
     try {
-      console.log('💎 Fetching hidden gems from both hidden_gems AND attractions tables...');
+      console.log('💎 Fetching hidden gems from hidden_gems table AND specific attractions...');
       
       // Fetch from both tables in parallel
-      const [hiddenGemsResult, attractionsResult] = await Promise.all([
+      const [hiddenGemsResult, specificAttractionsResult] = await Promise.all([
         supabase
           .from('hidden_gems')
           .select('*')
@@ -24,6 +24,7 @@ export const useHiddenGems = () => {
         supabase
           .from('attractions')
           .select('*')
+          .or('name.ilike.%waterfalls%,name.ilike.%shoal creek%')
           .order('name')
       ]);
 
@@ -31,8 +32,8 @@ export const useHiddenGems = () => {
         console.error('❌ Error fetching hidden gems:', hiddenGemsResult.error);
       }
 
-      if (attractionsResult.error) {
-        console.error('❌ Error fetching attractions:', attractionsResult.error);
+      if (specificAttractionsResult.error) {
+        console.error('❌ Error fetching specific attractions:', specificAttractionsResult.error);
       }
 
       const allGems: any[] = [];
@@ -48,10 +49,11 @@ export const useHiddenGems = () => {
         });
       }
 
-      // Process attractions data (format to match HiddenGem interface)
-      if (attractionsResult.data) {
-        console.log(`🎯 Found ${attractionsResult.data.length} items from attractions table`);
-        attractionsResult.data.forEach(attraction => {
+      // Process specific attractions data (format to match HiddenGem interface)
+      if (specificAttractionsResult.data) {
+        console.log(`🎯 Found ${specificAttractionsResult.data.length} specific attractions for hidden gem display`);
+        specificAttractionsResult.data.forEach(attraction => {
+          console.log(`🎯 Processing attraction: ${attraction.name} at ${attraction.latitude}, ${attraction.longitude}`);
           allGems.push({
             id: attraction.id,
             title: attraction.name, // Map name to title
