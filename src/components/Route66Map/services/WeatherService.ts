@@ -1,4 +1,3 @@
-
 import { WeatherData, WeatherWithForecast } from './weather/WeatherServiceTypes';
 import { WeatherApiClient } from './weather/WeatherApiClient';
 import { WeatherDataProcessor } from './weather/WeatherDataProcessor';
@@ -8,7 +7,7 @@ export class WeatherService {
   private static instance: WeatherService;
 
   private constructor() {
-    console.log('🌤️ WeatherService: Service initialized');
+    console.log('🌤️ WeatherService: Service initialized with improved key detection');
   }
 
   static getInstance(): WeatherService {
@@ -19,19 +18,36 @@ export class WeatherService {
   }
 
   setApiKey(apiKey: string): void {
-    console.log('🔑 WeatherService: Setting new API key through service');
-    WeatherApiKeyManager.setApiKey(apiKey);
+    console.log('🔑 WeatherService: Setting new API key...');
+    try {
+      WeatherApiKeyManager.setApiKey(apiKey);
+      console.log('✅ WeatherService: API key set successfully');
+      
+      // Immediate verification
+      const hasKey = this.hasApiKey();
+      console.log('🔍 WeatherService: Immediate verification after setting:', { hasKey });
+    } catch (error) {
+      console.error('❌ WeatherService: Failed to set API key:', error);
+      throw error;
+    }
   }
 
   hasApiKey(): boolean {
     const hasKey = WeatherApiKeyManager.hasApiKey();
     console.log(`🔑 WeatherService: hasApiKey() = ${hasKey}`);
+    
+    // Additional debugging - check what's actually in storage
+    if (!hasKey) {
+      const debugInfo = WeatherApiKeyManager.getDebugInfo();
+      console.log('🔍 WeatherService: No API key detected. Debug info:', debugInfo);
+    }
+    
     return hasKey;
   }
 
-  getDebugInfo(): { hasKey: boolean; keyLength: number | null; keyPreview: string | null } {
+  getDebugInfo(): { hasKey: boolean; keyLength: number | null; keyPreview: string | null; isValid: boolean; allStorageKeys: Record<string, string | null> } {
     const debugInfo = WeatherApiKeyManager.getDebugInfo();
-    console.log('🔍 WeatherService: Debug info requested:', debugInfo);
+    console.log('🔍 WeatherService: Full debug info requested:', debugInfo);
     return debugInfo;
   }
 
