@@ -15,7 +15,7 @@ const MapScrollHandler: React.FC<MapScrollHandlerProps> = ({
   useEffect(() => {
     if (!map || !containerRef.current) return;
 
-    console.log('🔄 MapScrollHandler: Setting up scroll event handling with DISABLED zoom');
+    console.log('🔄 MapScrollHandler: Setting up scroll event handling with Ctrl+scroll enabled');
 
     const mapContainer = containerRef.current;
     let hintTimeout: NodeJS.Timeout | null = null;
@@ -27,11 +27,27 @@ const MapScrollHandler: React.FC<MapScrollHandlerProps> = ({
       
       if (!isOverMap) return;
 
-      // PREVENT all wheel events on the map to disable zoom
-      console.log('🚫 Wheel event on map - preventing zoom');
+      // Allow Ctrl + scroll for zoom
+      if (e.ctrlKey || e.metaKey) {
+        console.log('🎯 Ctrl+scroll detected - allowing zoom');
+        return; // Let Google Maps handle the zoom
+      }
+
+      // PREVENT regular wheel events (without Ctrl) to disable zoom
+      console.log('🚫 Regular wheel event on map - preventing zoom (use Ctrl+scroll to zoom)');
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
+      
+      // Show hint about Ctrl+scroll
+      setShowScrollHint(true);
+      if (hintTimeout) {
+        clearTimeout(hintTimeout);
+      }
+      hintTimeout = setTimeout(() => {
+        setShowScrollHint(false);
+      }, 2000);
+      
       return false;
     };
 

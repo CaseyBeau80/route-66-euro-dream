@@ -9,8 +9,14 @@ export const useScrollZoom = () => {
     setShowScrollHint: (show: boolean) => void
   ) => {
     return (e: WheelEvent) => {
-      // PREVENT all wheel events to disable zoom
-      console.log('🚫 Scroll zoom prevented by useScrollZoom hook');
+      // Allow Ctrl + scroll for zoom
+      if (e.ctrlKey || e.metaKey) {
+        console.log('🎯 Ctrl+scroll detected in useScrollZoom - allowing zoom');
+        return; // Let Google Maps handle the zoom
+      }
+
+      // PREVENT regular wheel events to disable zoom
+      console.log('🚫 Regular scroll zoom prevented by useScrollZoom hook (use Ctrl+scroll to zoom)');
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
