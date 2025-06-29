@@ -30,7 +30,9 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
     cardHeight: 280
   });
 
-  const isDriveIn = gem.title.toLowerCase().includes('drive-in');
+  // Only show drive-in styling for actual drive-in theaters from the drive_ins table
+  // Hidden gems with "drive-in" in the name should use regular gem styling
+  const isDriveIn = false; // Hidden gems always use regular gem styling
 
   if (!isVisible) return null;
 
