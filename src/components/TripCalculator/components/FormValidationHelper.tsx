@@ -90,8 +90,8 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     );
   }
 
-  // Show day adjustment notice if trip will be automatically adjusted
-  if (dayAdjustmentInfo && formData.startLocation && formData.endLocation) {
+  // PRIORITY 1: Show day adjustment notice if trip will be automatically adjusted AND form is not fully valid yet
+  if (dayAdjustmentInfo && formData.startLocation && formData.endLocation && !isFormValid) {
     return (
       <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-4">
         <div className="flex items-start gap-2">
@@ -119,6 +119,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     );
   }
 
+  // PRIORITY 2: Show success message when form is valid (includes day adjustment info if present)
   if (isFormValid) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -148,6 +149,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     );
   }
 
+  // PRIORITY 3: Show incomplete form validation
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
       <div className="flex items-start gap-2 mb-3">
