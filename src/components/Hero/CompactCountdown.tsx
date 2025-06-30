@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Check } from 'lucide-react';
 
@@ -6,7 +5,7 @@ const CompactCountdown: React.FC = () => {
   const benefits = [
     {
       title: "Interactive Route 66 Google Map",
-      subtitle: "Explore attractions, destinations, and hidden gems with interactive filtering"
+      subtitle: "Explore iconic cities, quirky roadside attractions, and hidden gems"
     },
     {
       title: "Shareable Travel Planner", 
