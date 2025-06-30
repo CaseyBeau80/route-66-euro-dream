@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 import BenefitsRow from "./BenefitsRow";
-import Route66Countdown from "../Route66Countdown";
+import CompactCountdown from "../Route66Countdown/CompactCountdown";
 
 interface HeroSectionProps {
   language: string;
@@ -62,7 +61,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
 
         <div className="relative z-10 container mx-auto px-4 pt-16 pb-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-            {/* Left Column - Pain Points Content - Moved up with reduced spacing */}
+            {/* Left Column - Pain Points Content */}
             <div className="space-y-6">
               {/* Title - Bold, uppercase, bright blue */}
               <h1 className="text-3xl lg:text-4xl xl:text-5xl font-route66 font-bold uppercase leading-tight text-route66-primary">
@@ -116,31 +115,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
 
-            {/* Right Column - Big Bo Ramble Image - Reduced size */}
-            <div className="relative flex flex-col justify-center">
-              {/* Image Container */}
+            {/* Right Column - Split between Mascot and Countdown */}
+            <div className="relative flex flex-col justify-center space-y-6">
+              {/* Mascot Image Container */}
               <div className="relative w-full h-full flex items-center justify-center">
                 {/* Decorative Elements */}
                 <div className="absolute -inset-6 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-2xl animate-pulse"></div>
                 
-                {/* Image Container - Reduced size */}
-                <div className="relative bg-white rounded-2xl p-3 shadow-xl border-4 border-route66-primary/20 w-full max-w-md">
+                {/* Image Container */}
+                <div className="relative bg-white rounded-2xl p-3 shadow-xl border-4 border-route66-primary/20 w-full max-w-sm">
                   <img
                     src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png"
                     alt={content.mascotAlt}
-                    className="w-full h-auto object-contain rounded-xl min-h-[300px] lg:min-h-[350px]"
+                    className="w-full h-auto object-contain rounded-xl min-h-[250px] lg:min-h-[300px]"
                   />
+                </div>
+              </div>
+
+              {/* Compact Route 66 Countdown */}
+              <div className="w-full max-w-sm mx-auto">
+                <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-lg p-4 border border-route66-primary/20 shadow-lg">
+                  <CompactCountdown />
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Route 66 Countdown Section */}
-      <section className="w-full bg-route66-background-section py-8">
-        <div className="container mx-auto px-4">
-          <Route66Countdown />
         </div>
       </section>
 
