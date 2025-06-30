@@ -1,6 +1,5 @@
 
 import { useEffect } from 'react';
-import { route66StateIds } from '../config/MapConfig';
 
 interface StateStylingProps {
   map: google.maps.Map;
@@ -9,6 +8,8 @@ interface StateStylingProps {
 const StateStyling = ({ map }: StateStylingProps) => {
   useEffect(() => {
     if (!map) return;
+    
+    console.log('🎨 StateStyling: Adding Route 66 state highlighting');
     
     // Create a new data layer for US states
     const statesLayer = new google.maps.Data();
@@ -27,34 +28,19 @@ const StateStyling = ({ map }: StateStylingProps) => {
           const stateProperty = feature.getProperty('name');
           const stateName = typeof stateProperty === 'string' ? stateProperty : '';
           
-          // Explicitly check if the state is Montana and ensure it's not highlighted
-          if (stateName === 'Montana') {
-            return {
-              fillColor: '#d1d5db',
-              fillOpacity: 0.1,
-              strokeColor: '#9ca3af',
-              strokeWeight: 0.5,
-              visible: true
-            };
-          }
+          // Route 66 states to highlight
+          const route66States = [
+            'California', 'Arizona', 'New Mexico', 'Texas', 
+            'Oklahoma', 'Kansas', 'Missouri', 'Illinois'
+          ];
           
-          // Check for Missouri specifically - this should be highlighted
-          if (stateName === 'Missouri') {
-            return {
-              fillColor: '#f97316',
-              fillOpacity: 0.1,
-              strokeColor: '#c2410c',
-              strokeWeight: 2,
-              visible: true
-            };
-          }
+          const isRoute66State = route66States.includes(stateName);
           
-          // Check for each Route 66 state by exact full name
-          const isRoute66State = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Kansas', 'Illinois'].includes(stateName);
+          console.log(`🎨 Styling state: ${stateName} - Route 66: ${isRoute66State}`);
           
           return {
             fillColor: isRoute66State ? '#f97316' : '#d1d5db',
-            fillOpacity: 0.1,
+            fillOpacity: isRoute66State ? 0.15 : 0.05,
             strokeColor: isRoute66State ? '#c2410c' : '#9ca3af',
             strokeWeight: isRoute66State ? 2 : 0.5,
             visible: true
@@ -64,13 +50,15 @@ const StateStyling = ({ map }: StateStylingProps) => {
         // Add click events to states
         statesLayer.addListener('click', (event) => {
           const stateName = event.feature.getProperty('name');
-          console.log(`Clicked on state: ${stateName}`);
+          console.log(`🎨 State clicked: ${stateName}`);
         });
         
         // Add the layer to the map
         statesLayer.setMap(map);
+        
+        console.log('✅ StateStyling: Route 66 states highlighted successfully');
       } catch (error) {
-        console.error('Error loading states data:', error);
+        console.error('❌ StateStyling: Error loading states data:', error);
       }
     };
     
@@ -78,6 +66,7 @@ const StateStyling = ({ map }: StateStylingProps) => {
     
     // Cleanup function
     return () => {
+      console.log('🧹 StateStyling: Cleaning up states layer');
       statesLayer.setMap(null);
     };
   }, [map]);
