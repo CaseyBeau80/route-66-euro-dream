@@ -1,5 +1,4 @@
 
-
 // Map configuration constants
 
 // Styling for the Google Map
@@ -9,24 +8,24 @@ export const mapContainerStyle = {
   borderRadius: '0.75rem',
 };
 
-// Center the map to show the full Route 66 corridor as shown in the image
+// Center the map to show the full Route 66 corridor
 export const center = {
   lat: 36.0, // Slightly north to better center the route corridor
   lng: -96.0, // Adjusted to center between Chicago and LA
 };
 
-// Define map bounds to show the continental United States
+// RESTRICTED bounds to show only Route 66 corridor states
 export const mapBounds = {
-  north: 49.0, // Northern boundary (US-Canada border)
-  south: 25.0, // Southern boundary (covering southern Florida and Texas)
-  east: -66.0, // Eastern boundary (covering the East Coast)
-  west: -125.0, // Western boundary (covering the West Coast)
+  north: 42.0, // Northern boundary (covers Chicago area)
+  south: 32.0, // Southern boundary (covers Texas panhandle and southern CA)
+  east: -80.0, // Eastern boundary (covers Illinois/Missouri)
+  west: -125.0, // Western boundary (covers California coast)
 };
 
-// Map restrictions with bounds to show continental US
+// Map restrictions with strict bounds for Route 66 focus
 export const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: true, // Enable strict bounds to prevent panning outside continental US
+  strictBounds: true, // Enable strict bounds to prevent panning outside Route 66 area
 };
 
 // Route 66 states to highlight (using full names now for more reliable matching)
@@ -35,35 +34,35 @@ export const route66StateIds = ['California', 'Arizona', 'New Mexico', 'Texas', 
 // Custom styling to focus on Route 66 and de-emphasize other areas
 export const mapOptions = {
   disableDefaultUI: false,
-  zoomControl: false,
+  zoomControl: true,
   mapTypeControl: false,
   streetViewControl: false,
-  fullscreenControl: true,
-  restriction: mapRestrictions,
-  minZoom: 3, // Reduced minimum zoom to see the full continental US
-  maxZoom: 10, // Increased maximum zoom for more detail when needed
+  fullscreenControl: false, // Disable fullscreen to maintain Route 66 focus
+  restriction: mapRestrictions, // Apply Route 66 corridor restrictions
+  minZoom: 4, // Increased minimum zoom to focus on Route 66 corridor
+  maxZoom: 12, // Reduced maximum zoom to maintain overview perspective
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
     {
-      // Make all states lighter
+      // Highlight Route 66 states
       featureType: 'administrative.province',
       elementType: 'all',
       stylers: [{ visibility: 'on' }]
     },
     {
-      // Simplify the map overall
+      // De-emphasize non-Route 66 areas
       featureType: 'all',
       elementType: 'all',
-      stylers: [{ saturation: -20 }]
+      stylers: [{ saturation: -30 }, { lightness: 10 }]
     },
     {
-      // Make highways more visible
+      // Make highways more visible (especially historic US-66)
       featureType: 'road.highway',
       elementType: 'geometry',
-      stylers: [{ color: '#f8c967' }, { weight: 1.5 }]
+      stylers: [{ color: '#f8c967' }, { weight: 2 }]
     },
     {
-      // Make city labels smaller
+      // Simplify city labels to focus on Route 66 cities
       featureType: 'administrative.locality',
       elementType: 'labels',
       stylers: [{ visibility: 'simplified' }]
@@ -75,8 +74,20 @@ export const mapOptions = {
       stylers: [{ color: '#bfdbfe' }]
     },
     {
-      // Hide country labels except USA
+      // Hide non-US country labels
       featureType: 'administrative.country',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
+    },
+    {
+      // Hide unnecessary POI to focus on Route 66 content
+      featureType: 'poi.business',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }]
+    },
+    {
+      // Simplify transit to focus on Route 66
+      featureType: 'transit',
       elementType: 'labels',
       stylers: [{ visibility: 'off' }]
     }
@@ -94,6 +105,3 @@ export const polylineOptions = {
   visible: true,
   zIndex: 1,
 };
-
-// Note: API key is now managed centrally in the useGoogleMaps hook
-

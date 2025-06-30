@@ -3,6 +3,7 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useGoogleMaps } from '@/components/Route66Map/hooks/useGoogleMaps';
+import { mapOptions, mapRestrictions } from '@/components/Route66Map/config/MapConfig';
 
 interface InteractiveGoogleMapProps {
   onMapLoad?: (map: google.maps.Map) => void;
@@ -19,8 +20,8 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-  lat: 35.0,
-  lng: -98.0
+  lat: 36.0, // Route 66 corridor center
+  lng: -96.0
 };
 
 const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
@@ -38,73 +39,60 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options optimized for different devices with proper zoom controls
-  const mapOptions = React.useMemo((): google.maps.MapOptions => {
-    console.log('🗺️ Creating map options for device:', isMobile ? 'mobile' : 'desktop');
+  // Route 66 focused map options with strict restrictions
+  const route66MapOptions = React.useMemo((): google.maps.MapOptions => {
+    console.log('🗺️ Creating Route 66 restricted map options for device:', isMobile ? 'mobile' : 'desktop');
     
     return {
       // Enable scroll wheel zoom but with controlled gesture handling
       scrollwheel: true,
       gestureHandling: isMobile ? 'greedy' : 'cooperative',
       
-      // Map controls - ensure zoom control is enabled
+      // Map controls - minimal for Route 66 focus
       zoomControl: true,
       mapTypeControl: false,
-      scaleControl: true,
+      scaleControl: false,
       streetViewControl: false,
       rotateControl: false,
-      fullscreenControl: true,
+      fullscreenControl: false, // Disabled to maintain Route 66 focus
       clickableIcons: false,
       
-      // Map restrictions
-      restriction: {
-        latLngBounds: {
-          north: 85,
-          south: -85,
-          west: -180,
-          east: 180
-        },
-        strictBounds: false
-      },
-      minZoom: 2,
-      maxZoom: 18,
+      // STRICT Route 66 corridor restrictions
+      restriction: mapRestrictions,
+      minZoom: 4, // Increased to focus on Route 66 corridor
+      maxZoom: 12, // Reduced to maintain overview
       
-      // Map styling
-      styles: [
-        {
-          featureType: 'poi',
-          elementType: 'labels',
-          stylers: [{ visibility: 'off' }]
-        }
-      ]
+      // Route 66 focused styling
+      styles: mapOptions.styles
     };
   }, [isMobile]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ InteractiveGoogleMap loaded successfully - Route 66 content will be handled by GoogleMapsRoute66');
+    console.log('🗺️ InteractiveGoogleMap loaded with Route 66 restrictions');
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Set proper zoom options on the map
-    map.setOptions({ 
-      scrollwheel: true,
-      gestureHandling: isMobile ? 'greedy' : 'cooperative',
-      zoomControl: true
-    });
+    // Apply Route 66 focused settings
+    map.setOptions(route66MapOptions);
     
-    console.log('✅ Zoom controls enabled:', {
-      scrollwheel: true,
-      gestureHandling: isMobile ? 'greedy' : 'cooperative',
-      zoomControl: true
+    // Set initial view optimized for Route 66 corridor
+    map.setZoom(5);
+    map.setCenter(defaultCenter);
+    
+    console.log('✅ Route 66 restricted map loaded:', {
+      center: defaultCenter,
+      zoom: 5,
+      restrictions: 'Route 66 corridor only',
+      bounds: mapRestrictions.latLngBounds
     });
     
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [onMapLoad, isMobile]);
+  }, [onMapLoad, route66MapOptions]);
 
   const handleMapClick = useCallback(() => {
-    console.log('🗺️ Map clicked');
+    console.log('🗺️ Route 66 map clicked');
     if (onMapClick) {
       onMapClick();
     }
@@ -118,7 +106,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
             Google Maps API Key Required
           </h3>
           <p className="text-gray-600 text-sm">
-            Please add your Google Maps API key to display the map
+            Please add your Google Maps API key to display the Route 66 map
           </p>
         </div>
       </div>
@@ -130,7 +118,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       <div className={`flex items-center justify-center bg-red-50 border border-red-200 rounded-lg ${className}`}>
         <div className="text-center p-8">
           <h3 className="text-lg font-semibold text-red-700 mb-2">
-            Map Loading Error
+            Route 66 Map Loading Error
           </h3>
           <p className="text-red-600 text-sm">
             {loadError.message}
@@ -144,8 +132,8 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     return (
       <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}>
         <div className="text-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-sm">Loading interactive map...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm">Loading Route 66 interactive map...</p>
         </div>
       </div>
     );
@@ -157,21 +145,22 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         mapContainerStyle={mapContainerStyle}
         center={center}
         zoom={zoom}
-        options={mapOptions}
+        options={route66MapOptions}
         onLoad={handleMapLoad}
         onClick={handleMapClick}
       >
-        {/* Only render children passed from parent - Route 66 content handled by GoogleMapsRoute66 */}
+        {/* Route 66 content handled by parent GoogleMapsRoute66 component */}
         {children}
       </GoogleMap>
       
-      {/* Enhanced device info display for debugging */}
+      {/* Route 66 restriction info for debugging */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
+          <div className="text-orange-300 font-bold">🛣️ ROUTE 66 ONLY</div>
           <div>{isMobile ? '📱 Mobile' : '🖥️ Desktop'}</div>
-          <div>Scroll Zoom: <span className="text-green-300 font-bold">ENABLED</span></div>
-          <div>Gesture: {isMobile ? 'Greedy' : 'Cooperative'}</div>
-          <div>Route 66: <span className="text-blue-300 font-bold">HANDLED BY PARENT</span></div>
+          <div>Bounds: RESTRICTED</div>
+          <div>Zoom: {4}-{12}</div>
+          <div>Focus: Historic US-66</div>
         </div>
       )}
     </div>
