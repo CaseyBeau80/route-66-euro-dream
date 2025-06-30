@@ -74,8 +74,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
-              {/* Enhanced CTA Button */}
-              <div className="pt-6">
+              {/* Enhanced CTA Button - Now centered */}
+              <div className="pt-6 flex justify-center">
                 <Button onClick={scrollToInteractiveMap} size="lg" className="
                     font-bold py-6 px-12 text-xl rounded-xl shadow-lg
                     hover:shadow-2xl transform hover:scale-105 transition-all duration-300
