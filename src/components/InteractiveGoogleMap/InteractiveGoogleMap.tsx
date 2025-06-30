@@ -1,4 +1,5 @@
 
+
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -54,18 +55,18 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     libraries: ['maps'] as const,
   });
 
-  // FULLY INTERACTIVE map options - enable all interactions
+  // Map options optimized for different devices
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
-    console.log('🗺️ Creating FULLY INTERACTIVE map options for device:', isMobile ? 'mobile' : 'desktop');
+    console.log('🗺️ Creating map options for device:', isMobile ? 'mobile' : 'desktop');
     
     return {
-      // ENABLE all gesture handling for full interactivity
+      // Gesture handling - greedy allows all touch gestures on mobile
       gestureHandling: 'greedy',
       
-      // ENABLE mouse scroll wheel zoom
-      scrollwheel: true,
+      // FORCE disable mouse scroll wheel zoom on all devices
+      scrollwheel: false,
       
-      // Map controls - all enabled for full interactivity
+      // Map controls
       zoomControl: true,
       mapTypeControl: false,
       scaleControl: true,
@@ -99,24 +100,63 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   }, [isMobile]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ InteractiveGoogleMap loaded with FULL INTERACTIVITY enabled');
+    console.log('🗺️ InteractiveGoogleMap loaded successfully');
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Ensure map is fully interactive
+    // Multiple layers of scroll zoom prevention
+    const mapDiv = map.getDiv();
+    
+    // Method 1: Prevent wheel events on the map container
+    const preventWheelZoom = (e: WheelEvent) => {
+      console.log('🚫 Wheel event intercepted - preventing zoom');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    };
+    
+    // Method 2: Prevent mousewheel events (older browsers)
+    const preventMouseWheelZoom = (e: Event) => {
+      console.log('🚫 MouseWheel event intercepted - preventing zoom');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    };
+    
+    // Method 3: Prevent DOMMouseScroll events (Firefox)
+    const preventDOMMouseScroll = (e: Event) => {
+      console.log('🚫 DOMMouseScroll event intercepted - preventing zoom');
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    };
+    
+    // Add multiple event listeners to catch all scroll events
+    mapDiv.addEventListener('wheel', preventWheelZoom, { passive: false, capture: true });
+    mapDiv.addEventListener('mousewheel', preventMouseWheelZoom, { passive: false, capture: true });
+    mapDiv.addEventListener('DOMMouseScroll', preventDOMMouseScroll, { passive: false, capture: true });
+    
+    // Also disable zoom on the map itself using Google Maps API
     map.setOptions({ 
-      scrollwheel: true,
-      gestureHandling: 'greedy',
-      zoomControl: true,
-      draggable: true
+      scrollwheel: false,
+      gestureHandling: isMobile ? 'greedy' : 'cooperative'
     });
     
-    console.log('✅ Map configured for full interactivity: zoom, pan, scroll all enabled');
+    // Store cleanup function
+    (map as any).__scrollCleanup = () => {
+      console.log('🧹 Cleaning up scroll event listeners');
+      mapDiv.removeEventListener('wheel', preventWheelZoom, { capture: true });
+      mapDiv.removeEventListener('mousewheel', preventMouseWheelZoom, { capture: true });
+      mapDiv.removeEventListener('DOMMouseScroll', preventDOMMouseScroll, { capture: true });
+    };
     
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [onMapLoad]);
+  }, [onMapLoad, isMobile]);
 
   const handleMapClick = useCallback(() => {
     console.log('🗺️ Map clicked');
@@ -124,6 +164,15 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       onMapClick();
     }
   }, [onMapClick]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      if (mapRef.current && (mapRef.current as any).__scrollCleanup) {
+        (mapRef.current as any).__scrollCleanup();
+      }
+    };
+  }, []);
 
   if (!apiKey) {
     return (
@@ -179,13 +228,12 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         {children}
       </GoogleMap>
       
-      {/* Development info display */}
+      {/* Enhanced device info display for debugging */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
           <div>{isMobile ? '📱 Mobile' : '🖥️ Desktop'}</div>
-          <div>Scroll Zoom: <span className="text-green-300 font-bold">ENABLED</span></div>
-          <div>Gesture: Greedy</div>
-          <div>Draggable: <span className="text-green-300 font-bold">YES</span></div>
+          <div>Scroll Zoom: <span className="text-red-300 font-bold">DISABLED</span></div>
+          <div>Gesture: {isMobile ? 'Greedy' : 'Cooperative'}</div>
         </div>
       )}
     </div>
@@ -193,3 +241,4 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 };
 
 export default InteractiveGoogleMap;
+

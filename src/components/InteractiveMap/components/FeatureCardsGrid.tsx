@@ -13,29 +13,36 @@ interface FeatureCardsGridProps {
   features: Feature[];
 }
 
-const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({
-  features
-}) => {
+const FeatureCardsGrid: React.FC<FeatureCardsGridProps> = ({ features }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
       {features.map((feature, index) => {
         const IconComponent = feature.icon;
+        
         return (
-          <div
+          <div 
             key={index}
-            className={`${feature.bgColor} rounded-xl p-6 text-center hover:shadow-lg transition-shadow duration-300`}
+            className={`${feature.bgColor} rounded-xl border-2 border-gray-200 p-4 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105`}
           >
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <IconComponent className="w-6 h-6 text-gray-700" />
-              </div>
+            <div className="text-route66-primary mb-4 flex justify-center">
+              {typeof IconComponent === 'function' && IconComponent.name !== 'LucideIcon' ? (
+                // Handle custom components like Route66Badge
+                <div className="w-12 h-12 flex items-center justify-center">
+                  <IconComponent />
+                </div>
+              ) : (
+                // Handle Lucide icons
+                <IconComponent className="w-12 h-12" />
+              )}
             </div>
-            <h3 className="text-lg font-bold text-gray-800 mb-2">
-              {feature.title}
-            </h3>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              {feature.description}
-            </p>
+            <div className="text-center">
+              <h3 className="text-xl font-highway font-bold text-route66-text-primary mb-2">
+                {feature.title}
+              </h3>
+              <p className="text-route66-text-secondary leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
           </div>
         );
       })}
