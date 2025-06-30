@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { mapContent } from './data/mapContent';
 import FeatureCardsGrid from './components/FeatureCardsGrid';
 import InteractiveMapDisplay from './components/InteractiveMapDisplay';
-import InteractiveMapLegend from './components/InteractiveMapLegend';
 
 interface InteractiveMapSectionProps {
   language: string;
@@ -25,11 +24,6 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
             isMapExpanded={isMapExpanded}
             onToggleExpanded={() => setIsMapExpanded(!isMapExpanded)}
           />
-        </div>
-
-        {/* Map Legend - positioned below the map */}
-        <div className="mt-6">
-          <InteractiveMapLegend />
         </div>
 
         {/* Additional info section */}
