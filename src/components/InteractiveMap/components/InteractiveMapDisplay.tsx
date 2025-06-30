@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import Route66Map from '../../Route66Map';
+import { InteractiveGoogleMap } from '@/components/InteractiveGoogleMap';
 
 interface InteractiveMapDisplayProps {
   isMapExpanded: boolean;
@@ -12,6 +12,12 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
   isMapExpanded,
   onToggleExpanded
 }) => {
+  // Route 66 path center point
+  const route66Center = {
+    lat: 35.0,
+    lng: -98.0
+  };
+
   return (
     <div className="relative">
       <div 
@@ -21,10 +27,18 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
         `}
       >
         <div className="relative h-full bg-white rounded-2xl border-2 border-route66-border shadow-2xl overflow-hidden">
-          {/* Ensure the map container maintains full interactivity */}
-          <div className="w-full h-full">
-            <Route66Map />
-          </div>
+          {/* Use InteractiveGoogleMap directly for full interactivity */}
+          <InteractiveGoogleMap
+            center={route66Center}
+            zoom={5}
+            className="w-full h-full"
+            onMapLoad={(map) => {
+              console.log('🗺️ Interactive map loaded for Route 66 display');
+            }}
+            onMapClick={() => {
+              console.log('🗺️ Interactive map clicked');
+            }}
+          />
         </div>
       </div>
       
