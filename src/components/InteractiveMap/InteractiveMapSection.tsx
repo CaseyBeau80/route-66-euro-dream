@@ -19,17 +19,17 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
         {/* Feature Cards Grid */}
         <FeatureCardsGrid features={content.features} />
 
-        {/* Interactive Map Display with Legend positioned at bottom */}
+        {/* Interactive Map Display */}
         <div className="relative">
           <InteractiveMapDisplay
             isMapExpanded={isMapExpanded}
             onToggleExpanded={() => setIsMapExpanded(!isMapExpanded)}
           />
-          
-          {/* Map Legend - positioned at bottom of map */}
-          <div className="absolute bottom-4 left-4 right-4 z-20">
-            <InteractiveMapLegend />
-          </div>
+        </div>
+
+        {/* Map Legend - positioned below the map */}
+        <div className="mt-6">
+          <InteractiveMapLegend />
         </div>
 
         {/* Additional info section */}
