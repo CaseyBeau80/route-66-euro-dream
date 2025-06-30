@@ -1,12 +1,14 @@
 
-import React from 'react';
-import { GoogleMapsProvider, useGoogleMapsContext } from './components/GoogleMapsProvider';
-import { MapStateManager } from './components/MapStateManager';
-import { WaypointManager } from './components/WaypointManager';
-import { MapCleanupManager } from './components/MapCleanupManager';
-import { MapErrorHandler } from './components/MapErrorHandler';
-import MapOverlaysContainer from './components/MapOverlaysContainer';
-import MapCore from './components/MapCore';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
+import { useGoogleMaps } from './hooks/useGoogleMaps';
+import { useIsMobile } from '@/hooks/use-mobile';
+import MapLoadingStates from './components/MapLoadingStates';
+import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
+import NuclearRouteManager from './components/NuclearRouteManager';
+import DestinationCitiesContainer from './components/DestinationCitiesContainer';
+import AttractionsContainer from './components/AttractionsContainer';
+import HiddenGemsContainer from './components/HiddenGemsContainer';
+import DriveInsContainer from './components/DriveIns/DriveInsContainer';
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -14,97 +16,59 @@ interface GoogleMapsRoute66Props {
   onClearSelection: () => void;
 }
 
-const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({ 
+const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   selectedState,
   onStateClick,
   onClearSelection
-}: GoogleMapsRoute66Props) => {
-  return (
-    <GoogleMapsProvider>
-      <MapErrorHandler>
-        <MapStateManager
-          selectedState={selectedState}
-          onClearSelection={onClearSelection}
-        >
-          {({ mapEventHandlers, mapBounds, showRouteStats, setShowRouteStats }) => (
-            <WaypointManager selectedState={selectedState}>
-              {({ visibleWaypoints, handleDestinationClick, handleAttractionClick }) => (
-                <GoogleMapsRoute66Core
-                  selectedState={selectedState}
-                  onClearSelection={onClearSelection}
-                  mapEventHandlers={mapEventHandlers}
-                  mapBounds={mapBounds}
-                  showRouteStats={showRouteStats}
-                  setShowRouteStats={setShowRouteStats}
-                  visibleWaypoints={visibleWaypoints}
-                  handleDestinationClick={handleDestinationClick}
-                  handleAttractionClick={handleAttractionClick}
-                />
-              )}
-            </WaypointManager>
-          )}
-        </MapStateManager>
-        <MapCleanupManager />
-      </MapErrorHandler>
-    </GoogleMapsProvider>
-  );
-};
-
-interface GoogleMapsRoute66CoreProps {
-  selectedState: string | null;
-  onClearSelection: () => void;
-  mapEventHandlers: any;
-  mapBounds: any;
-  showRouteStats: boolean;
-  setShowRouteStats: (show: boolean) => void;
-  visibleWaypoints: any[];
-  handleDestinationClick: (destination: any) => void;
-  handleAttractionClick: (attraction: any) => void;
-}
-
-const GoogleMapsRoute66Core: React.FC<GoogleMapsRoute66CoreProps> = ({
-  selectedState,
-  onClearSelection,
-  mapEventHandlers,
-  mapBounds,
-  showRouteStats,
-  setShowRouteStats,
-  visibleWaypoints,
-  handleDestinationClick,
-  handleAttractionClick
 }) => {
-  const { isDragging, mapRef, handleMapClick } = useGoogleMapsContext();
+  const { isLoaded, loadError } = useGoogleMaps();
+  const isMobile = useIsMobile();
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const [isMapReady, setIsMapReady] = useState(false);
 
-  console.log('🗺️ Rendering GoogleMapsRoute66 with DIRECT zoom controls in MapCore', {
-    isMapReady: mapEventHandlers.isMapReady,
-    selectedState,
-    visibleWaypoints: visibleWaypoints.length,
-    hasMapRef: !!mapRef?.current
-  });
+  const handleMapLoad = useCallback((map: google.maps.Map) => {
+    console.log('🗺️ GoogleMapsRoute66: Map loaded successfully');
+    mapRef.current = map;
+    setIsMapReady(true);
+  }, []);
+
+  const handleMapClick = useCallback(() => {
+    console.log('🗺️ GoogleMapsRoute66: Map clicked - clearing selection');
+    onClearSelection();
+  }, [onClearSelection]);
+
+  if (loadError) {
+    return <MapLoadingStates loadError={loadError} isLoaded={false} />;
+  }
+
+  if (!isLoaded) {
+    return <MapLoadingStates loadError={undefined} isLoaded={false} />;
+  }
 
   return (
     <div className="relative w-full h-full">
-      {/* Simplified overlays - zoom controls moved to MapCore */}
-      <MapOverlaysContainer
-        selectedState={selectedState}
-        onClearSelection={onClearSelection}
-        isDragging={isDragging}
-        showRouteStats={showRouteStats}
-        isMapReady={mapEventHandlers.isMapReady}
-        onToggleRouteStats={() => setShowRouteStats(!showRouteStats)}
-        mapRef={mapRef}
-      />
-      
-      <MapCore
-        mapRef={mapRef}
-        isMapReady={mapEventHandlers.isMapReady}
-        visibleWaypoints={visibleWaypoints}
-        onMapLoad={mapBounds.handleMapLoad}
+      <InteractiveGoogleMap
+        onMapLoad={handleMapLoad}
         onMapClick={handleMapClick}
-        onMapReady={mapEventHandlers.onMapReady}
-        onDestinationClick={handleDestinationClick}
-        onAttractionClick={handleAttractionClick}
-      />
+        center={{ lat: 35.0, lng: -98.0 }}
+        zoom={isMobile ? 4 : 5}
+        className="w-full h-full"
+      >
+        {/* Route Rendering - SINGLE route system */}
+        {mapRef.current && isMapReady && (
+          <>
+            <NuclearRouteManager map={mapRef.current} isMapReady={isMapReady} />
+            
+            {/* Markers and Interactive Elements */}
+            <DestinationCitiesContainer map={mapRef.current} />
+            <AttractionsContainer map={mapRef.current} />
+            <HiddenGemsContainer map={mapRef.current} />
+            <DriveInsContainer map={mapRef.current} />
+            
+            {/* Debug Panel and Map Legend are now COMPLETELY DISABLED */}
+          </>
+        )}
+      </InteractiveGoogleMap>
     </div>
   );
 };
