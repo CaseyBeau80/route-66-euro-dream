@@ -28,6 +28,36 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     isFormValid
   });
 
+  // Show blocking error for over/under limit - this takes precedence over everything
+  if (hasBlockingError) {
+    return (
+      <div className="bg-red-100 border-2 border-red-500 rounded-lg p-4">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="h-6 w-6 text-red-600 mt-0.5" />
+          <div>
+            <h4 className="font-bold text-red-800 mb-2">
+              🚫 Cannot Plan Trip - Invalid Duration
+            </h4>
+            {isOverLimit && (
+              <div className="text-red-700 space-y-1">
+                <p className="font-semibold">Trip duration exceeds maximum limit</p>
+                <p>You entered <strong>{formData.travelDays} days</strong>, but our planner supports a maximum of <strong>{MAX_DAYS} days</strong>.</p>
+                <p className="text-sm">Please reduce your trip duration to {MAX_DAYS} days or fewer to continue.</p>
+              </div>
+            )}
+            {isUnderLimit && (
+              <div className="text-red-700 space-y-1">
+                <p className="font-semibold">Trip duration below minimum requirement</p>
+                <p>You entered <strong>{formData.travelDays} days</strong>, but you must select at least <strong>{MIN_DAYS} day</strong>.</p>
+                <p className="text-sm">Please select at least {MIN_DAYS} day for your trip.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const validationChecks = [
     {
       id: 'start-location',
@@ -60,123 +90,79 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 
   const incompleteChecks = validationChecks.filter(check => !check.isValid);
 
-  // Show blocking error for over/under limit
-  if (hasBlockingError) {
-    return (
-      <div className="bg-red-100 border-2 border-red-500 rounded-lg p-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="h-6 w-6 text-red-600 mt-0.5" />
-          <div>
-            <h4 className="font-bold text-red-800 mb-2">
-              🚫 Cannot Plan Trip - Invalid Duration
-            </h4>
-            {isOverLimit && (
-              <div className="text-red-700 space-y-1">
-                <p className="font-semibold">Trip duration exceeds maximum limit</p>
-                <p>You entered <strong>{formData.travelDays} days</strong>, but our planner supports a maximum of <strong>{MAX_DAYS} days</strong>.</p>
-                <p className="text-sm">Please reduce your trip duration to {MAX_DAYS} days or fewer to continue.</p>
-              </div>
-            )}
-            {isUnderLimit && (
-              <div className="text-red-700 space-y-1">
-                <p className="font-semibold">Trip duration below minimum requirement</p>
-                <p>You entered <strong>{formData.travelDays} days</strong>, but you must select at least <strong>{MIN_DAYS} day</strong>.</p>
-                <p className="text-sm">Please select at least {MIN_DAYS} day for your trip.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // PRIORITY 1: Show day adjustment notice if trip will be automatically adjusted AND form is not fully valid yet
-  if (dayAdjustmentInfo && formData.startLocation && formData.endLocation && !isFormValid) {
-    return (
-      <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="h-6 w-6 text-amber-600 mt-0.5" />
-          <div>
-            <h4 className="font-bold text-amber-800 mb-2">
-              ⚠️ Trip Duration Will Be Adjusted
-            </h4>
-            <div className="text-amber-700 space-y-2">
-              <div className="flex items-center gap-2 text-lg font-semibold">
-                <span className="bg-amber-200 px-2 py-1 rounded">{dayAdjustmentInfo.requested} days (your selection)</span>
-                <ArrowRight className="h-4 w-4" />
-                <span className="bg-green-200 text-green-800 px-2 py-1 rounded">{dayAdjustmentInfo.minimum} days (required)</span>
-              </div>
-              <p className="text-sm">
-                <strong>Why the adjustment?</strong> {dayAdjustmentInfo.reason}
-              </p>
-              <p className="text-sm">
-                Your trip will be automatically extended to {dayAdjustmentInfo.minimum} days to ensure safe daily driving limits (max 10 hours/day) and proper time at destinations.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // PRIORITY 2: Show success message when form is valid (includes day adjustment info if present)
-  if (isFormValid) {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <div className="flex items-center gap-2 text-green-700">
-          <CheckCircle className="h-5 w-5" />
-          <div className="flex-1">
-            <span className="font-medium">
-              Ready to plan your Route 66 adventure! 
-              {formData.tripStyle === 'destination-focused' && 
-                ' Destination-focused style will prioritize canonical Route 66 heritage cities.'}
-            </span>
-            {/* Add the trip adjustment info to the success message if present */}
-            {dayAdjustmentInfo && (
-              <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm">
-                <div className="flex items-center gap-2 text-amber-700">
-                  <AlertCircle className="h-4 w-4" />
-                  <span className="font-semibold">Trip will be optimized:</span>
-                </div>
-                <div className="mt-1 text-amber-700">
-                  Your {dayAdjustmentInfo.requested}-day selection will be extended to {dayAdjustmentInfo.minimum} days for optimal driving times and better route experience.
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // PRIORITY 3: Show incomplete form validation
+  // Show both messages when applicable
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-      <div className="flex items-start gap-2 mb-3">
-        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-        <div>
-          <h4 className="font-medium text-amber-800 mb-1">
-            Complete these steps to plan your trip:
-          </h4>
-          <ul className="space-y-1 text-sm text-amber-700">
-            {incompleteChecks.map((check) => (
-              <li key={check.id} className="flex items-center gap-2">
-                {check.id === 'start-date' && <Calendar className="h-4 w-4" />}
-                <span>• {check.label}</span>
-                {check.isBlocking && (
-                  <span className="text-red-600 font-semibold">(REQUIRED)</span>
-                )}
-              </li>
-            ))}
-          </ul>
-          {formData.tripStyle === 'destination-focused' && (
-            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-              💡 <strong>Destination-Focused Mode:</strong> Your trip will prioritize major Route 66 heritage cities 
-              and canonical destinations for an authentic Mother Road experience. Maximum {MAX_DAYS} days for optimal planning.
+    <div className="space-y-4">
+      {/* Day Adjustment Notice - Show when trip will be automatically adjusted */}
+      {dayAdjustmentInfo && formData.startLocation && formData.endLocation && (
+        <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-6 w-6 text-amber-600 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-amber-800 mb-2">
+                ⚠️ Trip Duration Will Be Adjusted
+              </h4>
+              <div className="text-amber-700 space-y-2">
+                <div className="flex items-center gap-2 text-lg font-semibold">
+                  <span className="bg-amber-200 px-2 py-1 rounded">{dayAdjustmentInfo.requested} days (your selection)</span>
+                  <ArrowRight className="h-4 w-4" />
+                  <span className="bg-green-200 text-green-800 px-2 py-1 rounded">{dayAdjustmentInfo.minimum} days (required)</span>
+                </div>
+                <p className="text-sm">
+                  <strong>Why the adjustment?</strong> {dayAdjustmentInfo.reason}
+                </p>
+                <p className="text-sm">
+                  Your trip will be automatically extended to {dayAdjustmentInfo.minimum} days to ensure safe daily driving limits (max 10 hours/day) and proper time at destinations.
+                </p>
+              </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Form Validation Status - Show success or incomplete form status */}
+      {isFormValid ? (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-green-700">
+            <CheckCircle className="h-5 w-5" />
+            <div className="flex-1">
+              <span className="font-medium">
+                Ready to plan your Route 66 adventure! 
+                {formData.tripStyle === 'destination-focused' && 
+                  ' Destination-focused style will prioritize canonical Route 66 heritage cities.'}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-start gap-2 mb-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-amber-800 mb-1">
+                Complete these steps to plan your trip:
+              </h4>
+              <ul className="space-y-1 text-sm text-amber-700">
+                {incompleteChecks.map((check) => (
+                  <li key={check.id} className="flex items-center gap-2">
+                    {check.id === 'start-date' && <Calendar className="h-4 w-4" />}
+                    <span>• {check.label}</span>
+                    {check.isBlocking && (
+                      <span className="text-red-600 font-semibold">(REQUIRED)</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {formData.tripStyle === 'destination-focused' && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                  💡 <strong>Destination-Focused Mode:</strong> Your trip will prioritize major Route 66 heritage cities 
+                  and canonical destinations for an authentic Mother Road experience. Maximum {MAX_DAYS} days for optimal planning.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
