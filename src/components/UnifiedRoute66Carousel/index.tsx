@@ -26,15 +26,6 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
     return (
       <section className={`py-16 lg:py-20 bg-route66-background-section ${className}`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-route66 text-route66-primary mb-4 font-bold">
-              Explore Route 66
-            </h2>
-            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
-              Discover historic attractions, drive-in theaters, and hidden gems along America's most famous highway
-            </p>
-          </div>
-
           {/* Loading Filters */}
           <div className="bg-route66-background-alt rounded-xl p-6 border border-route66-border mb-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -65,16 +56,6 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
   return (
     <section className={`py-16 lg:py-20 bg-route66-background-section ${className}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-route66 text-route66-primary mb-4 font-bold">
-            Explore Route 66
-          </h2>
-          <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto font-semibold">
-            Discover historic attractions, drive-in theaters, and hidden gems along America's most famous highway
-          </p>
-        </div>
-
         {/* Filter Panel */}
         <FilterPanel
           filters={filters}
