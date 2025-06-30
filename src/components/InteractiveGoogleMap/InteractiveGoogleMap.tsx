@@ -19,16 +19,8 @@ const mapContainerStyle = {
 };
 
 const defaultCenter = {
-  lat: 36.0, // Route 66 corridor center
-  lng: -96.0
-};
-
-// Route 66 focused bounds
-const mapBounds = {
-  north: 42.0,
-  south: 32.0,
-  east: -80.0,
-  west: -125.0,
+  lat: 35.0,
+  lng: -98.0
 };
 
 const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
@@ -46,67 +38,41 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Clean Route 66 focused map options
-  const route66MapOptions = React.useMemo((): google.maps.MapOptions => {
-    console.log('🗺️ Creating clean Route 66 map options for device:', isMobile ? 'mobile' : 'desktop');
+  // Map options optimized for different devices with proper zoom controls
+  const mapOptions = React.useMemo((): google.maps.MapOptions => {
+    console.log('🗺️ Creating map options for device:', isMobile ? 'mobile' : 'desktop');
     
     return {
-      // Enable scroll wheel zoom
+      // Enable scroll wheel zoom but with controlled gesture handling
       scrollwheel: true,
       gestureHandling: isMobile ? 'greedy' : 'cooperative',
       
-      // Map controls
+      // Map controls - ensure zoom control is enabled
       zoomControl: true,
       mapTypeControl: false,
-      scaleControl: false,
+      scaleControl: true,
       streetViewControl: false,
       rotateControl: false,
-      fullscreenControl: false,
+      fullscreenControl: true,
       clickableIcons: false,
       
-      // Route 66 corridor restrictions
+      // Map restrictions
       restriction: {
-        latLngBounds: mapBounds,
-        strictBounds: true
+        latLngBounds: {
+          north: 85,
+          south: -85,
+          west: -180,
+          east: 180
+        },
+        strictBounds: false
       },
-      minZoom: 4,
-      maxZoom: 12,
+      minZoom: 2,
+      maxZoom: 18,
       
-      // Clean map styling - remove aggressive orange overlay
+      // Map styling
       styles: [
         {
-          // Simplify water styling
-          featureType: 'water',
-          elementType: 'geometry',
-          stylers: [{ color: '#a2d2ff' }]
-        },
-        {
-          // Make highways more visible
-          featureType: 'road.highway',
-          elementType: 'geometry',
-          stylers: [{ color: '#ffd60a' }, { weight: 2 }]
-        },
-        {
-          // Clean up administrative boundaries
-          featureType: 'administrative',
-          elementType: 'geometry.stroke',
-          stylers: [{ color: '#c9b2a6' }, { weight: 1 }]
-        },
-        {
-          // Subtle landscape styling
-          featureType: 'landscape',
-          elementType: 'geometry',
-          stylers: [{ color: '#f8f4f0' }]
-        },
-        {
-          // Clean road styling
-          featureType: 'road',
-          elementType: 'geometry',
-          stylers: [{ color: '#ffffff' }]
-        },
-        {
-          // Hide unnecessary POI labels
-          featureType: 'poi.business',
+          featureType: 'poi',
           elementType: 'labels',
           stylers: [{ visibility: 'off' }]
         }
@@ -115,26 +81,30 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   }, [isMobile]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ InteractiveGoogleMap loaded with clean Route 66 styling');
+    console.log('🗺️ InteractiveGoogleMap loaded successfully - Route 66 content will be handled by GoogleMapsRoute66');
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Apply clean Route 66 settings
-    map.setOptions(route66MapOptions);
+    // Set proper zoom options on the map
+    map.setOptions({ 
+      scrollwheel: true,
+      gestureHandling: isMobile ? 'greedy' : 'cooperative',
+      zoomControl: true
+    });
     
-    // Set initial view optimized for Route 66 corridor
-    map.setZoom(5);
-    map.setCenter(defaultCenter);
-    
-    console.log('✅ Clean Route 66 map loaded successfully');
+    console.log('✅ Zoom controls enabled:', {
+      scrollwheel: true,
+      gestureHandling: isMobile ? 'greedy' : 'cooperative',
+      zoomControl: true
+    });
     
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [onMapLoad, route66MapOptions]);
+  }, [onMapLoad, isMobile]);
 
   const handleMapClick = useCallback(() => {
-    console.log('🗺️ Route 66 map clicked');
+    console.log('🗺️ Map clicked');
     if (onMapClick) {
       onMapClick();
     }
@@ -148,7 +118,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
             Google Maps API Key Required
           </h3>
           <p className="text-gray-600 text-sm">
-            Please add your Google Maps API key to display the Route 66 map
+            Please add your Google Maps API key to display the map
           </p>
         </div>
       </div>
@@ -160,7 +130,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       <div className={`flex items-center justify-center bg-red-50 border border-red-200 rounded-lg ${className}`}>
         <div className="text-center p-8">
           <h3 className="text-lg font-semibold text-red-700 mb-2">
-            Route 66 Map Loading Error
+            Map Loading Error
           </h3>
           <p className="text-red-600 text-sm">
             {loadError.message}
@@ -174,8 +144,8 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     return (
       <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}>
         <div className="text-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-sm">Loading Route 66 interactive map...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm">Loading interactive map...</p>
         </div>
       </div>
     );
@@ -187,20 +157,21 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         mapContainerStyle={mapContainerStyle}
         center={center}
         zoom={zoom}
-        options={route66MapOptions}
+        options={mapOptions}
         onLoad={handleMapLoad}
         onClick={handleMapClick}
       >
+        {/* Only render children passed from parent - Route 66 content handled by GoogleMapsRoute66 */}
         {children}
       </GoogleMap>
       
-      {/* Clean debug info */}
+      {/* Enhanced device info display for debugging */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
-          <div className="text-blue-300 font-bold">🛣️ ROUTE 66</div>
           <div>{isMobile ? '📱 Mobile' : '🖥️ Desktop'}</div>
-          <div>Bounds: RESTRICTED</div>
-          <div>Zoom: {4}-{12}</div>
+          <div>Scroll Zoom: <span className="text-green-300 font-bold">ENABLED</span></div>
+          <div>Gesture: {isMobile ? 'Greedy' : 'Cooperative'}</div>
+          <div>Route 66: <span className="text-blue-300 font-bold">HANDLED BY PARENT</span></div>
         </div>
       )}
     </div>
