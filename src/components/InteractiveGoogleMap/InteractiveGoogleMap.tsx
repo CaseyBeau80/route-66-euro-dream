@@ -48,15 +48,15 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options - Allow programmatic zoom but prevent user zoom gestures
+  // Map options - Disable user zoom gestures but allow programmatic zoom
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
     return {
-      // Allow programmatic zoom changes but prevent user-initiated zoom
+      // Disable user-initiated zoom gestures but allow programmatic zoom
       scrollwheel: false, // Disable scroll wheel zoom
       disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'none', // Disable all gesture handling to prevent zoom
+      gestureHandling: 'cooperative', // Allow programmatic changes but require Ctrl for user gestures
       
-      // Disable ALL map controls including default zoom
+      // Disable ALL default map controls including zoom
       zoomControl: false, // Always disabled - we use custom controls only
       mapTypeControl: false,
       scaleControl: false,
@@ -98,36 +98,36 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    console.log('🗺️ Map loaded with zoom controls enabled for custom buttons');
+    console.log('🗺️ Map loaded with custom zoom controls enabled');
     
-    // Set map options that allow programmatic zoom but prevent user zoom
-    map.setOptions({ 
-      scrollwheel: false,
-      disableDoubleClickZoom: true,
-      gestureHandling: 'none', // Completely disable gestures
-      zoomControl: false, // Never show default zoom controls
-      restriction: {
-        latLngBounds: route66Bounds,
-        strictBounds: true
-      }
-    });
-    
-    // Remove all zoom-related event listeners to prevent conflicts
+    // Get the map container element to add event listeners
     const mapDiv = map.getDiv();
     if (mapDiv) {
-      // Remove any existing wheel listeners
-      mapDiv.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }, { passive: false, capture: true });
+      console.log('🚫 Adding wheel event prevention for mouse wheel zoom');
       
-      // Prevent double-click zoom
-      mapDiv.addEventListener('dblclick', (e) => {
+      // Prevent wheel zoom completely (override cooperative gesture handling for wheel events)
+      const wheelHandler = (e: WheelEvent) => {
+        console.log('🚫 Preventing wheel zoom - use custom zoom controls instead');
         e.preventDefault();
         e.stopPropagation();
         return false;
-      }, { capture: true });
+      };
+      
+      // Prevent double-click zoom completely
+      const dblClickHandler = (e: MouseEvent) => {
+        console.log('🚫 Preventing double-click zoom - use custom zoom controls instead');
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      };
+      
+      // Add event listeners with capture to override Google Maps behavior
+      mapDiv.addEventListener('wheel', wheelHandler, { passive: false, capture: true });
+      mapDiv.addEventListener('dblclick', dblClickHandler, { capture: true });
+      
+      // Store handlers for cleanup
+      (mapDiv as any)._wheelHandler = wheelHandler;
+      (mapDiv as any)._dblClickHandler = dblClickHandler;
     }
     
     if (onMapLoad) {
@@ -140,6 +140,19 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       onMapClick();
     }
   }, [onMapClick]);
+
+  // Cleanup event listeners on unmount
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        const mapDiv = mapRef.current.getDiv();
+        if (mapDiv && (mapDiv as any)._wheelHandler) {
+          mapDiv.removeEventListener('wheel', (mapDiv as any)._wheelHandler, { capture: true });
+          mapDiv.removeEventListener('dblclick', (mapDiv as any)._dblClickHandler, { capture: true });
+        }
+      }
+    };
+  }, []);
 
   if (!hasApiKey) {
     return (
