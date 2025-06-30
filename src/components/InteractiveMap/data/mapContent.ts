@@ -1,5 +1,6 @@
 
-import { Pin, Gem } from 'lucide-react';
+import { MapPin, Pin, Gem } from 'lucide-react';
+import Route66Badge from '../../Route66Map/MapElements/Route66Badge';
 
 export const mapContent = {
   en: {
@@ -8,13 +9,13 @@ export const mapContent = {
     exploreButton: "Start Exploring",
     features: [
       { 
-        icon: Pin, 
+        icon: Route66Badge, 
         title: "Destination Cities", 
         description: "Explore major Route 66 cities including links for local events and be in the know for the weather forecast",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Pin, 
+        icon: MapPin, 
         title: "Attractions", 
         description: "Find must-see landmarks and roadside attractions",
         bgColor: "bg-purple-100"
@@ -33,13 +34,13 @@ export const mapContent = {
     exploreButton: "Erkunden Beginnen",
     features: [
       { 
-        icon: Pin, 
+        icon: Route66Badge, 
         title: "Zielstädte", 
         description: "Entdecke große Route 66 Städte einschließlich Links für lokale Veranstaltungen und bleibe über die Wettervorhersage informiert",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Pin, 
+        icon: MapPin, 
         title: "Attraktionen", 
         description: "Finde sehenswerte Wahrzeichen und Straßenattraktionen",
         bgColor: "bg-purple-100"
@@ -58,13 +59,13 @@ export const mapContent = {
     exploreButton: "Commencer l'Exploration",
     features: [
       { 
-        icon: Pin, 
+        icon: Route66Badge, 
         title: "Villes de Destination", 
         description: "Explorez les grandes villes de la Route 66 y compris les liens pour les événements locaux et restez informé des prévisions météo",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Pin, 
+        icon: MapPin, 
         title: "Attractions", 
         description: "Trouvez des monuments incontournables et des attractions routières",
         bgColor: "bg-purple-100"
@@ -83,13 +84,13 @@ export const mapContent = {
     exploreButton: "Começar a Explorar",
     features: [
       { 
-        icon: Pin, 
+        icon: Route66Badge, 
         title: "Cidades de Destino", 
         description: "Explore as principais cidades da Rota 66 incluindo links para eventos locais e fique por dentro da previsão do tempo",
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Pin, 
+        icon: MapPin, 
         title: "Atrações", 
         description: "Encontre marcos imperdíveis e atrações rodoviárias",
         bgColor: "bg-purple-100"
