@@ -66,7 +66,7 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
   const content = socialContent[language as keyof typeof socialContent] || socialContent.en;
 
   return (
-    <section className="py-20 bg-route66-background-section">
+    <section className="py-20 bg-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header - Matching Trip Planner Format */}
         <div className="max-w-6xl mx-auto mb-16">
