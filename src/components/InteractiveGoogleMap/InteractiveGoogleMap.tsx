@@ -47,13 +47,13 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options with scroll zoom disabled but allowing other interactions
+  // Map options with proper wheel zoom handling
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
     return {
-      // Disable scroll zoom but allow pan and click
-      scrollwheel: false, // Disable scroll wheel zoom
+      // Enable scroll wheel but use cooperative gesture handling
+      scrollwheel: true, // Enable wheel zoom
       disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'cooperative', // Allow pan but require Ctrl for zoom
+      gestureHandling: 'cooperative', // Require Ctrl for zoom, allow pan
       
       // Disable ALL map controls including default zoom
       zoomControl: false, // Always disabled - we use custom controls only
@@ -97,13 +97,13 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    console.log('🗺️ Map loaded, setting up zoom restrictions');
+    console.log('🗺️ Map loaded, setting up proper zoom controls');
     
-    // Enforce zoom restrictions on the map instance
+    // Ensure proper zoom settings on the map instance
     map.setOptions({ 
-      scrollwheel: false,
-      disableDoubleClickZoom: true,
-      gestureHandling: 'cooperative', // Allow pan, require Ctrl for zoom
+      scrollwheel: true, // Enable scroll wheel
+      disableDoubleClickZoom: true, // Disable double-click zoom
+      gestureHandling: 'cooperative', // Require Ctrl for wheel zoom
       zoomControl: false, // Never show default zoom controls
       restriction: {
         latLngBounds: route66Bounds,
@@ -111,25 +111,22 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       }
     });
     
-    // Add specific event listeners to prevent zoom without Ctrl
-    const preventZoomHandler = (e: any) => {
-      if (!e.ctrlKey && !e.metaKey) {
-        console.log('🚫 Preventing scroll zoom (use custom controls)');
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-    };
-    
-    // Add wheel event listener to map container
+    // Add wheel event handler to show helpful message for regular scroll
     const mapDiv = map.getDiv();
     if (mapDiv) {
-      mapDiv.addEventListener('wheel', preventZoomHandler, { passive: false });
+      const wheelHandler = (e: WheelEvent) => {
+        if (!e.ctrlKey && !e.metaKey) {
+          // Don't prevent the event - let Google Maps handle it with cooperative gesture
+          console.log('💡 Use Ctrl+scroll to zoom the map, or use the zoom controls');
+        }
+      };
+      
+      mapDiv.addEventListener('wheel', wheelHandler, { passive: true });
     }
     
     // Prevent double-click zoom specifically
     map.addListener('dblclick', (e: any) => {
-      console.log('🚫 Preventing double-click zoom (use custom controls)');
+      console.log('🚫 Preventing double-click zoom (use custom controls or Ctrl+scroll)');
       e.stop();
     });
     
