@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MapPin } from 'lucide-react';
 
@@ -143,7 +144,7 @@ const InteractiveMapLegend: React.FC = () => {
     <div className="absolute top-4 left-4 z-[1000] max-w-xs">
       <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-4">
         <h3 className="text-sm font-bold mb-3 text-gray-800 border-b border-gray-200 pb-2">
-          Route 66 Map Legend
+          Route 66 Map Legend - with clickable website links
         </h3>
         
         <div className="space-y-3">
