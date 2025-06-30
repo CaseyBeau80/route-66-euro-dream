@@ -1,4 +1,3 @@
-
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -48,24 +47,21 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options optimized for Route 66 experience with disabled zoom interactions
+  // Map options with ALL zoom interactions completely disabled
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
     return {
-      // Disable ALL zoom interactions except through custom controls
+      // COMPLETELY disable ALL zoom interactions
       scrollwheel: false, // Disable scroll wheel zoom
       disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'cooperative', // Require Ctrl+scroll for zoom, but allow pan
+      gestureHandling: 'none', // Disable all gesture handling including pinch zoom
       
-      // Map controls configuration
-      zoomControl: showDefaultZoomControls, // Enable/disable based on prop
-      zoomControlOptions: showDefaultZoomControls ? {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM
-      } : undefined,
+      // Disable ALL map controls including default zoom
+      zoomControl: false, // Always disabled - we use custom controls only
       mapTypeControl: false,
-      scaleControl: true,
+      scaleControl: false,
       streetViewControl: false,
       rotateControl: false,
-      fullscreenControl: true,
+      fullscreenControl: false,
       clickableIcons: false,
       
       // Expanded Route 66 corridor restrictions
@@ -95,31 +91,41 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         }
       ]
     };
-  }, [isMobile, showDefaultZoomControls]);
+  }, [isMobile]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Set proper options on the map to ensure zoom is disabled
+    // Enforce zoom restrictions on the map instance
     map.setOptions({ 
-      scrollwheel: false, // Disable scroll wheel zoom
-      disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'cooperative', // Require Ctrl+scroll for zoom, but allow pan
-      zoomControl: showDefaultZoomControls,
-      zoomControlOptions: showDefaultZoomControls ? {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM
-      } : undefined,
+      scrollwheel: false,
+      disableDoubleClickZoom: true,
+      gestureHandling: 'none', // Complete gesture disable
+      zoomControl: false, // Never show default zoom controls
       restriction: {
         latLngBounds: route66Bounds,
         strictBounds: true
       }
     });
     
+    // Add event listeners to prevent any zoom attempts
+    map.addListener('wheel', (e: any) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    });
+    
+    map.addListener('dblclick', (e: any) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    });
+    
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [onMapLoad, isMobile, showDefaultZoomControls]);
+  }, [onMapLoad]);
 
   const handleMapClick = useCallback(() => {
     if (onMapClick) {

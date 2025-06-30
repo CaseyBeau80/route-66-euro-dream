@@ -50,8 +50,11 @@ const GoogleMapsZoomControls: React.FC<GoogleMapsZoomControlsProps> = ({
     const currentMapZoom = map.getZoom();
     if (currentMapZoom === undefined || currentMapZoom >= 12) return;
 
+    console.log('🔍 Custom zoom in from:', currentMapZoom);
     setIsZooming(true);
     const newZoom = Math.min(currentMapZoom + 1, 12);
+    
+    // Force the zoom change through the map instance
     map.setZoom(newZoom);
     
     setTimeout(() => setIsZooming(false), 300);
@@ -66,8 +69,11 @@ const GoogleMapsZoomControls: React.FC<GoogleMapsZoomControlsProps> = ({
     const currentMapZoom = map.getZoom();
     if (currentMapZoom === undefined || currentMapZoom <= 4) return;
 
+    console.log('🔍 Custom zoom out from:', currentMapZoom);
     setIsZooming(true);
     const newZoom = Math.max(currentMapZoom - 1, 4);
+    
+    // Force the zoom change through the map instance
     map.setZoom(newZoom);
     
     setTimeout(() => setIsZooming(false), 300);
