@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
-import BenefitsRow from "./BenefitsRow";
 import CompactCountdown from "./CompactCountdown";
 
 interface HeroSectionProps {
@@ -116,13 +116,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Benefits Row - Full width section with reduced spacing */}
-      <section className="w-full bg-route66-background py-4">
-        <div className="container mx-auto px-4">
-          <BenefitsRow language={language} />
         </div>
       </section>
 
