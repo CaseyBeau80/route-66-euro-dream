@@ -23,11 +23,11 @@ const defaultCenter = {
   lng: -98.5
 };
 
-// Expanded Route 66 corridor bounds for viewport restriction
+// Expanded Route 66 corridor bounds - now includes both Chicago and California
 const route66Bounds = {
   north: 42.0,
   south: 32.0,
-  east: -87.0,
+  east: -85.0, // Expanded east to better include Chicago area
   west: -122.0 // Expanded west to better include California
 };
 
@@ -175,3 +175,4 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 };
 
 export default InteractiveGoogleMap;
+
