@@ -2,6 +2,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { InteractiveGoogleMap } from '@/components/InteractiveGoogleMap';
+import RouteMarkers from '../../Route66Map/components/RouteMarkers';
+import DestinationCitiesContainer from '../../Route66Map/components/DestinationCitiesContainer';
+import AttractionsContainer from '../../Route66Map/components/AttractionsContainer';
+import HiddenGemsContainer from '../../Route66Map/components/HiddenGemsContainer';
+import NuclearRouteManager from '../../Route66Map/components/NuclearRouteManager';
+import { useRoute66Waypoints } from '@/components/ComprehensiveListings/hooks/useRoute66Waypoints';
 
 interface InteractiveMapDisplayProps {
   isMapExpanded: boolean;
@@ -12,10 +18,22 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
   isMapExpanded,
   onToggleExpanded
 }) => {
+  const [map, setMap] = React.useState<google.maps.Map | null>(null);
+  const { waypoints } = useRoute66Waypoints();
+
   // Route 66 path center point
   const route66Center = {
     lat: 35.0,
     lng: -98.0
+  };
+
+  const handleMapLoad = (loadedMap: google.maps.Map) => {
+    console.log('🗺️ Interactive Route 66 map loaded with full content');
+    setMap(loadedMap);
+  };
+
+  const handleDestinationClick = (destination: any) => {
+    console.log('🏛️ Destination clicked:', destination.name);
   };
 
   return (
@@ -27,18 +45,37 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
         `}
       >
         <div className="relative h-full bg-white rounded-2xl border-2 border-route66-border shadow-2xl overflow-hidden">
-          {/* Use InteractiveGoogleMap directly for full interactivity */}
+          {/* Use InteractiveGoogleMap as base with Route 66 content */}
           <InteractiveGoogleMap
             center={route66Center}
             zoom={5}
             className="w-full h-full"
-            onMapLoad={(map) => {
-              console.log('🗺️ Interactive map loaded for Route 66 display');
-            }}
+            onMapLoad={handleMapLoad}
             onMapClick={() => {
-              console.log('🗺️ Interactive map clicked');
+              console.log('🗺️ Interactive Route 66 map clicked');
             }}
-          />
+          >
+            {/* Add Route 66 content when map is loaded */}
+            {map && (
+              <>
+                {/* Route 66 polyline */}
+                <NuclearRouteManager map={map} isMapReady={true} />
+                
+                {/* Destination cities */}
+                <DestinationCitiesContainer
+                  map={map}
+                  waypoints={waypoints}
+                  onDestinationClick={handleDestinationClick}
+                />
+                
+                {/* Attractions */}
+                <AttractionsContainer map={map} />
+                
+                {/* Hidden gems */}
+                <HiddenGemsContainer map={map} />
+              </>
+            )}
+          </InteractiveGoogleMap>
         </div>
       </div>
       
