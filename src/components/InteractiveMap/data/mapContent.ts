@@ -22,7 +22,7 @@ export const mapContent = {
       { 
         icon: Gem, 
         title: "Hidden Gems", 
-        description: "Uncover secret spots and local favorites",
+        description: "Discover the iconic cities, quirky roadside attractions, and hidden gems that make Route 66 unforgettable.",
         bgColor: "bg-orange-100"
       }
     ]
@@ -47,7 +47,7 @@ export const mapContent = {
       { 
         icon: Gem, 
         title: "Versteckte Perlen", 
-        description: "Entdecke geheime Orte und lokale Favoriten",
+        description: "Entdecke die ikonischen Städte, skurrilen Straßenattraktionen und versteckten Perlen, die Route 66 unvergesslich machen.",
         bgColor: "bg-orange-100"
       }
     ]
@@ -72,7 +72,7 @@ export const mapContent = {
       { 
         icon: Gem, 
         title: "Joyaux Cachés", 
-        description: "Découvrez des endroits secrets et des favoris locaux",
+        description: "Découvrez les villes emblématiques, les attractions routières pittoresques et les joyaux cachés qui rendent la Route 66 inoubliable.",
         bgColor: "bg-orange-100"
       }
     ]
@@ -97,7 +97,7 @@ export const mapContent = {
       { 
         icon: Gem, 
         title: "Joias Escondidas", 
-        description: "Descubra locais secretos e favoritos locais",
+        description: "Descubra as cidades icônicas, atrações rodoviárias peculiares e joias escondidas que tornam a Rota 66 inesquecível.",
         bgColor: "bg-orange-100"
       }
     ]
