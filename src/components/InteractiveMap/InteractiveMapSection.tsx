@@ -1,7 +1,5 @@
 
 import React, { useState } from 'react';
-import { mapContent } from './data/mapContent';
-import FeatureCardsGrid from './components/FeatureCardsGrid';
 import InteractiveMapDisplay from './components/InteractiveMapDisplay';
 import InteractiveMapLegend from './components/InteractiveMapLegend';
 
@@ -11,13 +9,14 @@ interface InteractiveMapSectionProps {
 
 const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language }) => {
   const [isMapExpanded, setIsMapExpanded] = useState(false);
-  const content = mapContent[language as keyof typeof mapContent] || mapContent.en;
 
   return (
     <section className="py-20 bg-route66-background-section">
       <div className="container mx-auto px-4">
-        {/* Feature Cards Grid */}
-        <FeatureCardsGrid features={content.features} />
+        {/* Map Legend - moved to top position */}
+        <div className="mb-6">
+          <InteractiveMapLegend />
+        </div>
 
         {/* Interactive Map Display */}
         <div className="relative">
@@ -25,11 +24,6 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
             isMapExpanded={isMapExpanded}
             onToggleExpanded={() => setIsMapExpanded(!isMapExpanded)}
           />
-        </div>
-
-        {/* Map Legend - positioned below the map */}
-        <div className="mt-6">
-          <InteractiveMapLegend />
         </div>
 
         {/* Additional info section */}
