@@ -1,3 +1,4 @@
+
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -47,13 +48,13 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options with scroll zoom disabled but allowing other interactions
+  // Map options - Allow programmatic zoom but prevent user zoom gestures
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
     return {
-      // Disable scroll zoom but allow pan and click
+      // Allow programmatic zoom changes but prevent user-initiated zoom
       scrollwheel: false, // Disable scroll wheel zoom
       disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'cooperative', // Allow pan but require Ctrl for zoom
+      gestureHandling: 'none', // Disable all gesture handling to prevent zoom
       
       // Disable ALL map controls including default zoom
       zoomControl: false, // Always disabled - we use custom controls only
@@ -97,13 +98,13 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    console.log('🗺️ Map loaded, setting up zoom restrictions');
+    console.log('🗺️ Map loaded with zoom controls enabled for custom buttons');
     
-    // Enforce zoom restrictions on the map instance
+    // Set map options that allow programmatic zoom but prevent user zoom
     map.setOptions({ 
       scrollwheel: false,
       disableDoubleClickZoom: true,
-      gestureHandling: 'cooperative', // Allow pan, require Ctrl for zoom
+      gestureHandling: 'none', // Completely disable gestures
       zoomControl: false, // Never show default zoom controls
       restriction: {
         latLngBounds: route66Bounds,
@@ -111,27 +112,23 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       }
     });
     
-    // Add specific event listeners to prevent zoom without Ctrl
-    const preventZoomHandler = (e: any) => {
-      if (!e.ctrlKey && !e.metaKey) {
-        console.log('🚫 Preventing scroll zoom (use custom controls)');
+    // Remove all zoom-related event listeners to prevent conflicts
+    const mapDiv = map.getDiv();
+    if (mapDiv) {
+      // Remove any existing wheel listeners
+      mapDiv.addEventListener('wheel', (e) => {
         e.preventDefault();
         e.stopPropagation();
         return false;
-      }
-    };
-    
-    // Add wheel event listener to map container
-    const mapDiv = map.getDiv();
-    if (mapDiv) {
-      mapDiv.addEventListener('wheel', preventZoomHandler, { passive: false });
+      }, { passive: false, capture: true });
+      
+      // Prevent double-click zoom
+      mapDiv.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }, { capture: true });
     }
-    
-    // Prevent double-click zoom specifically
-    map.addListener('dblclick', (e: any) => {
-      console.log('🚫 Preventing double-click zoom (use custom controls)');
-      e.stop();
-    });
     
     if (onMapLoad) {
       onMapLoad(map);
