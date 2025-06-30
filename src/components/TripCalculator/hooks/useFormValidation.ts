@@ -42,8 +42,16 @@ export const useFormValidation = (formData: TripFormData) => {
       );
 
       console.log('🔍 DEBUGGING: Travel day validation result:', validation);
+      console.log('🔍 DEBUGGING: Validation details:', {
+        'validation.isValid': validation.isValid,
+        'validation.minDaysRequired': validation.minDaysRequired,
+        'formData.travelDays': formData.travelDays,
+        'minDaysRequired > travelDays': validation.minDaysRequired > formData.travelDays,
+        'should create dayAdjustmentInfo': !validation.isValid && validation.minDaysRequired > formData.travelDays
+      });
 
-      if (!validation.isValid && validation.minDaysRequired > formData.travelDays) {
+      // FIXED: Check if minimum days required is greater than requested days
+      if (validation.minDaysRequired > formData.travelDays) {
         dayAdjustmentInfo = {
           requested: formData.travelDays,
           minimum: validation.minDaysRequired,

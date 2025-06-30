@@ -28,6 +28,13 @@ export class TravelDayValidator {
     const issues: string[] = [];
     const recommendations: string[] = [];
     
+    console.log('🔍 DEBUGGING TravelDayValidator.validateTravelDays called with:', {
+      startLocation,
+      endLocation,
+      requestedDays,
+      styleConfig
+    });
+    
     // CRITICAL: Hard enforcement of absolute bounds
     if (requestedDays < this.ABSOLUTE_MIN_DAYS) {
       issues.push(`Minimum ${this.ABSOLUTE_MIN_DAYS} day required for any Route 66 trip`);
@@ -42,6 +49,8 @@ export class TravelDayValidator {
       startLocation,
       endLocation
     );
+    
+    console.log('🔍 DEBUGGING: Estimated distance:', estimatedDistance);
     
     if (!estimatedDistance) {
       return {
@@ -59,12 +68,21 @@ export class TravelDayValidator {
     const minDaysForStyle = Math.ceil(estimatedDistance / (styleConfig.maxDailyDriveHours * 50));
     const minDaysRequired = Math.max(this.ABSOLUTE_MIN_DAYS, minDaysForAbsoluteSafety, minDaysForStyle);
     
+    console.log('🔍 DEBUGGING: Calculated minimum days:', {
+      minDaysForAbsoluteSafety,
+      minDaysForStyle,
+      minDaysRequired,
+      requestedDays
+    });
+    
     // Calculate maximum recommended days (capped at 14 days)
     const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(estimatedDistance / 100));
     
     // Check STRICT 10-hour constraint first
     if (requestedDays >= this.ABSOLUTE_MIN_DAYS && requestedDays <= this.ABSOLUTE_MAX_DAYS) {
       const averageDailyHours = estimatedDistance / requestedDays / 50; // Assuming 50 mph average
+      
+      console.log('🔍 DEBUGGING: Average daily hours:', averageDailyHours);
       
       if (averageDailyHours > this.MAX_DAILY_DRIVE_HOURS) {
         issues.push(`CRITICAL: Average ${averageDailyHours.toFixed(1)}h/day exceeds 10-hour absolute maximum`);
@@ -83,12 +101,14 @@ export class TravelDayValidator {
       }
     }
     
-    // CRITICAL: Form is only valid if within absolute bounds AND under 10h/day average
+    // CRITICAL FIX: Trip is INVALID if requested days < minimum required
+    // This ensures day adjustment notices appear when needed
     const isValid = requestedDays >= this.ABSOLUTE_MIN_DAYS && 
                    requestedDays <= this.ABSOLUTE_MAX_DAYS && 
+                   requestedDays >= minDaysRequired && // NEW: Must meet minimum requirement
                    issues.length === 0;
     
-    return {
+    const result = {
       isValid,
       minDaysRequired,
       maxDaysRecommended,
@@ -96,6 +116,10 @@ export class TravelDayValidator {
       issues,
       recommendations
     };
+    
+    console.log('🔍 DEBUGGING: Final validation result:', result);
+    
+    return result;
   }
   
   /**
