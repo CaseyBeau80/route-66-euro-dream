@@ -1,4 +1,5 @@
 
+
 import { MapPin, Star, Eye } from 'lucide-react';
 
 export const mapContent = {
@@ -10,7 +11,7 @@ export const mapContent = {
       { 
         icon: MapPin, 
         title: "Destination Cities", 
-        description: "Explore major Route 66 cities with attractions, local events, weather conditions, and unique experiences",
+        description: "Explore major Route 66 cities including links for local events and be in the know for the weather forecast",
         bgColor: "bg-blue-100"
       },
       { 
@@ -35,7 +36,7 @@ export const mapContent = {
       { 
         icon: MapPin, 
         title: "Zielstädte", 
-        description: "Entdecke große Route 66 Städte mit Attraktionen, lokalen Veranstaltungen, Wetterbedingungen und einzigartigen Erfahrungen",
+        description: "Entdecke große Route 66 Städte einschließlich Links für lokale Veranstaltungen und bleibe über die Wettervorhersage informiert",
         bgColor: "bg-blue-100"
       },
       { 
@@ -60,7 +61,7 @@ export const mapContent = {
       { 
         icon: MapPin, 
         title: "Villes de Destination", 
-        description: "Explorez les grandes villes de la Route 66 avec attractions, événements locaux, conditions météo et expériences uniques",
+        description: "Explorez les grandes villes de la Route 66 y compris les liens pour les événements locaux et restez informé des prévisions météo",
         bgColor: "bg-blue-100"
       },
       { 
@@ -85,7 +86,7 @@ export const mapContent = {
       { 
         icon: MapPin, 
         title: "Cidades de Destino", 
-        description: "Explore as principais cidades da Rota 66 com atrações, eventos locais, condições climáticas e experiências únicas",
+        description: "Explore as principais cidades da Rota 66 incluindo links para eventos locais e fique por dentro da previsão do tempo",
         bgColor: "bg-blue-100"
       },
       { 
@@ -103,3 +104,4 @@ export const mapContent = {
     ]
   }
 };
+
