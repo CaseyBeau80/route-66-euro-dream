@@ -74,7 +74,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
-              {/* Enhanced CTA Button - Now centered */}
+              {/* Three Benefits - Now positioned before the CTA button */}
+              <div className="pt-6">
+                <CompactCountdown />
+              </div>
+
+              {/* Enhanced CTA Button - Now positioned after the benefits */}
               <div className="pt-6 flex justify-center">
                 <Button onClick={scrollToInteractiveMap} size="lg" className="
                     font-bold py-6 px-12 text-xl rounded-xl shadow-lg
@@ -94,11 +99,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   {content.ctaButton}
                   <ArrowDown className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:animate-bounce" />
                 </Button>
-              </div>
-
-              {/* Compact Countdown Timer */}
-              <div className="pt-6">
-                <CompactCountdown />
               </div>
             </div>
 
