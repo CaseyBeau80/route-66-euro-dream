@@ -1,8 +1,8 @@
 
-
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useGoogleMaps } from '@/components/Route66Map/hooks/useGoogleMaps';
 
 interface InteractiveGoogleMapProps {
   onMapLoad?: (map: google.maps.Map) => void;
@@ -35,25 +35,8 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   const isMobile = useIsMobile();
   const [isMapReady, setIsMapReady] = useState(false);
 
-  // Get API key from environment or localStorage
-  const apiKey = React.useMemo(() => {
-    const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const storedApiKey = localStorage.getItem('google_maps_api_key');
-    
-    if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
-      return storedApiKey.trim();
-    } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
-      return envApiKey.trim();
-    }
-    
-    return '';
-  }, []);
-
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'interactive-google-map',
-    googleMapsApiKey: apiKey,
-    libraries: ['maps'] as const,
-  });
+  // Use the same Google Maps hook as the main map to avoid loader conflicts
+  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
   // Map options optimized for different devices
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
@@ -174,7 +157,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     };
   }, []);
 
-  if (!apiKey) {
+  if (!hasApiKey) {
     return (
       <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}>
         <div className="text-center p-8">
@@ -241,4 +224,3 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 };
 
 export default InteractiveGoogleMap;
-
