@@ -5,27 +5,37 @@ import { MapPin } from 'lucide-react';
 const InteractiveMapLegend: React.FC = () => {
   const legendItems = [
     {
-      icon: <div className="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-sm"></div>,
-      label: "Destination Cities",
-      description: "Major cities along Route 66"
+      icon: (
+        <div className="w-5 h-5 bg-blue-600 rounded-full border-2 border-white shadow-md flex items-center justify-center">
+          <div className="w-2 h-2 bg-white rounded-full"></div>
+        </div>
+      ),
+      label: "Major Route 66 Cities",
+      description: "Major Route 66 cities that include Event Calendars, Weather, Population, and Fun Facts"
     },
     {
-      icon: <MapPin className="w-4 h-4 text-red-600" />,
+      icon: <MapPin className="w-5 h-5 text-red-600 fill-red-600" />,
       label: "Attractions",
       description: "Points of interest & attractions"
     },
     {
-      icon: <div className="w-4 h-4 bg-purple-600 rounded transform rotate-45 border border-white shadow-sm"></div>,
+      icon: (
+        <div className="w-4 h-4 bg-purple-600 rounded transform rotate-45 border border-white shadow-md"></div>
+      ),
       label: "Hidden Gems",
       description: "Lesser-known treasures"
     },
     {
-      icon: <div className="w-4 h-4 bg-orange-500 rounded-full border-2 border-white shadow-sm"></div>,
+      icon: (
+        <div className="w-5 h-5 bg-orange-500 rounded-full border-2 border-white shadow-md flex items-center justify-center">
+          <div className="w-2 h-2 bg-white rounded-full"></div>
+        </div>
+      ),
       label: "Drive-In Theaters",
       description: "Classic American drive-ins"
     },
     {
-      icon: <div className="w-6 h-1 bg-orange-600 rounded-sm shadow-sm"></div>,
+      icon: <div className="w-6 h-1 bg-red-600 rounded-sm shadow-sm"></div>,
       label: "Route 66 Path",
       description: "The historic Mother Road"
     }
@@ -38,17 +48,17 @@ const InteractiveMapLegend: React.FC = () => {
           Map Legend
         </h3>
         
-        <div className="space-y-2">
+        <div className="space-y-3">
           {legendItems.map((item, index) => (
             <div 
               key={index}
-              className="flex items-center gap-3 text-xs"
+              className="flex items-start gap-3 text-xs"
             >
-              <div className="flex-shrink-0 flex items-center justify-center w-6 h-6">
+              <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 mt-0.5">
                 {item.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-gray-700 truncate">
+                <div className="font-medium text-gray-700 leading-tight mb-1">
                   {item.label}
                 </div>
                 <div className="text-gray-500 text-xs leading-tight">
@@ -59,7 +69,7 @@ const InteractiveMapLegend: React.FC = () => {
           ))}
         </div>
         
-        <div className="mt-3 pt-2 border-t border-gray-200 text-center">
+        <div className="mt-4 pt-3 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">
             💡 Click markers for details
           </p>

@@ -48,18 +48,18 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options optimized for Route 66 experience
+  // Map options optimized for Route 66 experience with disabled zoom interactions
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
     return {
-      // Enable scroll wheel zoom with controlled gesture handling
-      scrollwheel: true,
-      gestureHandling: isMobile ? 'greedy' : 'cooperative',
+      // Disable ALL zoom interactions except through custom controls
+      scrollwheel: false, // Disable scroll wheel zoom
+      disableDoubleClickZoom: true, // Disable double-click zoom
+      gestureHandling: 'none', // Disable all gesture handling
       
       // Map controls configuration
       zoomControl: showDefaultZoomControls, // Enable/disable based on prop
       zoomControlOptions: showDefaultZoomControls ? {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM,
-        style: google.maps.ZoomControlStyle.DEFAULT
+        position: google.maps.ControlPosition.RIGHT_BOTTOM
       } : undefined,
       mapTypeControl: false,
       scaleControl: true,
@@ -101,14 +101,14 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Set proper zoom options on the map
+    // Set proper options on the map to ensure zoom is disabled
     map.setOptions({ 
-      scrollwheel: true,
-      gestureHandling: isMobile ? 'greedy' : 'cooperative',
+      scrollwheel: false, // Disable scroll wheel zoom
+      disableDoubleClickZoom: true, // Disable double-click zoom
+      gestureHandling: 'none', // Disable all gesture handling
       zoomControl: showDefaultZoomControls,
       zoomControlOptions: showDefaultZoomControls ? {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM,
-        style: google.maps.ZoomControlStyle.DEFAULT
+        position: google.maps.ControlPosition.RIGHT_BOTTOM
       } : undefined,
       restriction: {
         latLngBounds: route66Bounds,
