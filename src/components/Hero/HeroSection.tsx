@@ -2,6 +2,8 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 import BenefitsRow from "./BenefitsRow";
+import CompactCountdown from "./CompactCountdown";
+
 interface HeroSectionProps {
   language: string;
 }
@@ -20,7 +22,7 @@ const heroContent = {
   },
   fr: {
     title: "Planifiez Vos Vacances Route 66 sans mal de tête",
-    painPoints: ["Trop de temps passé à faire tourner vos roues de Route 66?", "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66? La planification ne devrait pas ressembler à de la devinette.", "Vous vous demandez où les autres vont pour planifier leur voyage Route 66 — événements de ville, attractions, joyaux cachés, drive-ins, restaurants, météo, temps de conduite et arrêts de destination?", "Ici. Vous venez exactement ici — et c'est tout gratuit."],
+    painPoints: ["Trop de temps passé à faire tourner vos roues de Route 66?", "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66? La planification ne devrait pas ressembler à de la devinette.", "Vous vous demandez où les autres vont pour planifier leur voyage Route 66 — événements de ville, attractions, joyaux cachés, drive-ins, restaurants, météo, temps de direction et arrêts de destination?", "Ici. Vous venez exactement ici — et c'est tout gratuit."],
     ctaButton: "Commencer l'Exploration",
     mascotAlt: "Big Bo Ramble - Mascotte Route 66"
   },
@@ -92,6 +94,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   {content.ctaButton}
                   <ArrowDown className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:animate-bounce" />
                 </Button>
+              </div>
+
+              {/* Compact Countdown Timer */}
+              <div className="pt-6">
+                <CompactCountdown />
               </div>
             </div>
 
