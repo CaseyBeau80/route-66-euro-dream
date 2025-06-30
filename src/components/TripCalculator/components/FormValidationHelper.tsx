@@ -124,11 +124,25 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
         <div className="flex items-center gap-2 text-green-700">
           <CheckCircle className="h-5 w-5" />
-          <span className="font-medium">
-            Ready to plan your Route 66 adventure! 
-            {formData.tripStyle === 'destination-focused' && 
-              ' Destination-focused style will prioritize canonical Route 66 heritage cities.'}
-          </span>
+          <div className="flex-1">
+            <span className="font-medium">
+              Ready to plan your Route 66 adventure! 
+              {formData.tripStyle === 'destination-focused' && 
+                ' Destination-focused style will prioritize canonical Route 66 heritage cities.'}
+            </span>
+            {/* Add the trip adjustment info to the success message if present */}
+            {dayAdjustmentInfo && (
+              <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm">
+                <div className="flex items-center gap-2 text-amber-700">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="font-semibold">Trip will be optimized:</span>
+                </div>
+                <div className="mt-1 text-amber-700">
+                  Your {dayAdjustmentInfo.requested}-day selection will be extended to {dayAdjustmentInfo.minimum} days for optimal driving times and better route experience.
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
