@@ -13,71 +13,61 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
   const [isMapExpanded, setIsMapExpanded] = useState(false);
   const content = mapContent[language as keyof typeof mapContent] || mapContent.en;
 
-  const scrollToInteractiveMap = () => {
-    const mapSection = document.getElementById('interactive-map');
-    if (mapSection) {
-      mapSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <section className="py-20 bg-route66-background-section">
       <div className="container mx-auto px-4">
         {/* Feature Cards Grid */}
         <FeatureCardsGrid features={content.features} />
 
-        {/* Interactive Map Display */}
-        <InteractiveMapDisplay
-          isMapExpanded={isMapExpanded}
-          onToggleExpanded={() => setIsMapExpanded(!isMapExpanded)}
-        />
+        {/* Interactive Map Display with Legend positioned at bottom */}
+        <div className="relative">
+          <InteractiveMapDisplay
+            isMapExpanded={isMapExpanded}
+            onToggleExpanded={() => setIsMapExpanded(!isMapExpanded)}
+          />
+          
+          {/* Map Legend - positioned at bottom of map */}
+          <div className="absolute bottom-4 left-4 right-4 z-20">
+            <InteractiveMapLegend />
+          </div>
+        </div>
 
-        {/* Interactive Map Legend - Always Visible */}
+        {/* Additional info section */}
         <div className="mt-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Legend takes full width on mobile, 1/3 on desktop */}
-            <div className="lg:col-span-1">
-              <InteractiveMapLegend />
-            </div>
-            
-            {/* Additional info section */}
-            <div className="lg:col-span-2">
-              <div className="bg-route66-background rounded-2xl p-6 border border-route66-border shadow-lg h-full">
-                <h3 className="text-xl font-bold text-route66-text-primary mb-4">
-                  Discover Route 66's Hidden Stories
-                </h3>
-                <div className="space-y-4 text-route66-text-secondary">
-                  <p className="leading-relaxed">
-                    Each marker on our interactive map tells a unique story of America's Mother Road. 
-                    From the iconic Route 66 shields marking historic cities to the hidden gems that 
-                    only locals know about.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-route66-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-route66-primary font-bold text-sm">2.4K</span>
-                      </div>
-                      <span className="text-sm">Miles of Adventure</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-route66-accent-red/10 rounded-full flex items-center justify-center">
-                        <span className="text-route66-accent-red font-bold text-sm">8</span>
-                      </div>
-                      <span className="text-sm">States to Explore</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-600/10 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-sm">50+</span>
-                      </div>
-                      <span className="text-sm">Hidden Gems</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-route66-accent-orange/10 rounded-full flex items-center justify-center">
-                        <span className="text-route66-accent-orange font-bold text-sm">100+</span>
-                      </div>
-                      <span className="text-sm">Historic Attractions</span>
-                    </div>
+          <div className="bg-route66-background rounded-2xl p-6 border border-route66-border shadow-lg">
+            <h3 className="text-xl font-bold text-route66-text-primary mb-4">
+              Discover Route 66's Hidden Stories
+            </h3>
+            <div className="space-y-4 text-route66-text-secondary">
+              <p className="leading-relaxed">
+                Each marker on our interactive map tells a unique story of America's Mother Road. 
+                From the iconic Route 66 shields marking historic cities to the hidden gems that 
+                only locals know about.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-route66-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-route66-primary font-bold text-sm">2.4K</span>
                   </div>
+                  <span className="text-sm">Miles of Adventure</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-route66-accent-red/10 rounded-full flex items-center justify-center">
+                    <span className="text-route66-accent-red font-bold text-sm">8</span>
+                  </div>
+                  <span className="text-sm">States to Explore</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-600/10 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-bold text-sm">50+</span>
+                  </div>
+                  <span className="text-sm">Hidden Gems</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-route66-accent-orange/10 rounded-full flex items-center justify-center">
+                    <span className="text-route66-accent-orange font-bold text-sm">100+</span>
+                  </div>
+                  <span className="text-sm">Historic Attractions</span>
                 </div>
               </div>
             </div>

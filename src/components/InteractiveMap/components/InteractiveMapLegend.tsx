@@ -1,24 +1,25 @@
 
-import React from 'react';
-import { MapPin, Gem, Shield } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { MapPin, Gem, Shield, ChevronUp, ChevronDown } from 'lucide-react';
 
 const InteractiveMapLegend: React.FC = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const legendItems = [
     {
-      icon: <Shield className="w-5 h-5 text-route66-primary" />,
+      icon: <Shield className="w-4 h-4 text-route66-primary" />,
       label: "Route 66 Shields",
       description: "Historic Route 66 markers and destination cities",
       color: "text-route66-primary"
     },
     {
-      icon: <MapPin className="w-5 h-5 text-red-600" />,
+      icon: <MapPin className="w-4 h-4 text-red-600" />,
       label: "Red Pins",
       description: "Major attractions and points of interest",
       color: "text-red-600"
     },
     {
-      icon: <Gem className="w-5 h-5 text-blue-600" />,
+      icon: <Gem className="w-4 h-4 text-blue-600" />,
       label: "Blue Gem Markers",
       description: "Hidden gems and secret local treasures",
       color: "text-blue-600"
@@ -26,58 +27,71 @@ const InteractiveMapLegend: React.FC = () => {
   ];
 
   return (
-    <Card className="w-full border-2 border-route66-border shadow-lg">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-xl font-bold text-route66-text-primary flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-route66-primary" />
-          Interactive Map Legend
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-4">
-          {legendItems.map((item, index) => (
-            <div 
-              key={index}
-              className="flex items-start gap-4 p-3 rounded-lg bg-route66-background-alt border border-route66-divider hover:bg-route66-hover transition-all duration-200"
-            >
-              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm">
-                {item.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className={`font-semibold text-sm mb-1 ${item.color}`}>
-                  {item.label}
-                </h4>
-                <p className="text-xs text-route66-text-muted leading-relaxed">
-                  {item.description}
-                </p>
-              </div>
-            </div>
-          ))}
+    <div className="bg-blue-600 text-white rounded-lg shadow-lg">
+      {/* Legend Header - Always Visible */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-4 hover:bg-blue-700 transition-colors rounded-lg"
+      >
+        <div className="flex items-center gap-3">
+          <MapPin className="w-5 h-5" />
+          <span className="font-bold text-lg">MAP LEGEND</span>
         </div>
-        
-        {/* Interactive Tips */}
-        <div className="mt-6 p-4 rounded-lg bg-gradient-to-r from-route66-background to-route66-background-alt border border-route66-border">
-          <h5 className="font-semibold text-sm text-route66-text-primary mb-2 flex items-center gap-2">
-            <span>💡</span>
-            Interactive Tips
-          </h5>
-          <div className="space-y-2 text-xs text-route66-text-secondary">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-route66-primary rounded-full"></span>
-              <span>Click markers to discover stories and visit websites</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-route66-accent-orange rounded-full"></span>
-              <span>Use mouse wheel or touch gestures to zoom</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-route66-accent-red rounded-full"></span>
-              <span>Drag to explore different sections of Route 66</span>
+        {isExpanded ? (
+          <ChevronDown className="w-5 h-5" />
+        ) : (
+          <ChevronUp className="w-5 h-5" />
+        )}
+      </button>
+
+      {/* Expanded Legend Content */}
+      {isExpanded && (
+        <div className="px-4 pb-4 border-t border-blue-500">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            {legendItems.map((item, index) => (
+              <div 
+                key={index}
+                className="flex items-center gap-3 p-3 rounded-lg bg-blue-700/50 hover:bg-blue-700/70 transition-all duration-200"
+              >
+                <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/20">
+                  {item.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm mb-1 text-white">
+                    {item.label}
+                  </h4>
+                  <p className="text-xs text-blue-100 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Interactive Tips */}
+          <div className="mt-4 p-3 rounded-lg bg-blue-700/30 border border-blue-400/30">
+            <h5 className="font-semibold text-sm text-white mb-2 flex items-center gap-2">
+              <span>💡</span>
+              Interactive Tips
+            </h5>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-blue-100">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-white rounded-full"></span>
+                <span>Click markers to discover stories</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-white rounded-full"></span>
+                <span>Use mouse wheel to zoom</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-white rounded-full"></span>
+                <span>Drag to explore Route 66</span>
+              </div>
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 };
 
