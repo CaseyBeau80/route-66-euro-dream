@@ -57,18 +57,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="relative z-10 container mx-auto px-4 pt-24 pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left Column - Pain Points Content */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               {/* Title - Bold, uppercase, bright blue */}
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
                 {content.title}
               </h1>
 
               {/* Pain Points - Tightly stacked with blue text */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {content.painPoints.map((point, index) => <div key={index}>
                     {index < 3 ? <p className="text-lg lg:text-xl leading-relaxed text-route66-primary-light">
                         {point}
-                      </p> : <div className="py-4">
+                      </p> : <div className="py-2">
                         <p className="text-2xl lg:text-3xl font-highway font-bold text-route66-accent-red">
                           {point}
                         </p>
@@ -76,13 +76,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
-              {/* Three Benefits - Now positioned before the CTA button */}
-              <div className="pt-6">
+              {/* Three Benefits - Moved up with reduced spacing */}
+              <div className="pt-2">
                 <CompactCountdown />
               </div>
 
-              {/* Enhanced CTA Button - Now positioned after the benefits */}
-              <div className="pt-6 flex justify-center">
+              {/* Enhanced CTA Button - Moved up with reduced spacing */}
+              <div className="pt-2 flex justify-center">
                 <Button onClick={scrollToInteractiveMap} size="lg" className="
                     font-bold py-6 px-12 text-xl rounded-xl shadow-lg
                     hover:shadow-2xl transform hover:scale-105 transition-all duration-300
