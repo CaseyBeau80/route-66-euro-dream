@@ -1,6 +1,6 @@
 
 
-import { MapPin, Star, Eye } from 'lucide-react';
+import { MapPin, Pin, Gem } from 'lucide-react';
 
 export const mapContent = {
   en: {
@@ -15,13 +15,13 @@ export const mapContent = {
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Star, 
+        icon: Pin, 
         title: "Attractions", 
         description: "Find must-see landmarks and roadside attractions",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Eye, 
+        icon: Gem, 
         title: "Hidden Gems", 
         description: "Uncover secret spots and local favorites",
         bgColor: "bg-orange-100"
@@ -40,13 +40,13 @@ export const mapContent = {
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Star, 
+        icon: Pin, 
         title: "Attraktionen", 
         description: "Finde sehenswerte Wahrzeichen und Straßenattraktionen",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Eye, 
+        icon: Gem, 
         title: "Versteckte Perlen", 
         description: "Entdecke geheime Orte und lokale Favoriten",
         bgColor: "bg-orange-100"
@@ -65,13 +65,13 @@ export const mapContent = {
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Star, 
+        icon: Pin, 
         title: "Attractions", 
         description: "Trouvez des monuments incontournables et des attractions routières",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Eye, 
+        icon: Gem, 
         title: "Joyaux Cachés", 
         description: "Découvrez des endroits secrets et des favoris locaux",
         bgColor: "bg-orange-100"
@@ -90,13 +90,13 @@ export const mapContent = {
         bgColor: "bg-blue-100"
       },
       { 
-        icon: Star, 
+        icon: Pin, 
         title: "Atrações", 
         description: "Encontre marcos imperdíveis e atrações rodoviárias",
         bgColor: "bg-purple-100"
       },
       { 
-        icon: Eye, 
+        icon: Gem, 
         title: "Joias Escondidas", 
         description: "Descubra locais secretos e favoritos locais",
         bgColor: "bg-orange-100"
