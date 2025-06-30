@@ -4,6 +4,8 @@ import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapLoadingStates from './components/MapLoadingStates';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
+import InteractiveMapLegend from '../InteractiveMap/components/InteractiveMapLegend';
+import GoogleMapsZoomControls from '../InteractiveMap/components/GoogleMapsZoomControls';
 import NuclearRouteManager from './components/NuclearRouteManager';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
 import AttractionsContainer from './components/AttractionsContainer';
@@ -73,6 +75,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         center={{ lat: 35.0, lng: -98.0 }}
         zoom={isMobile ? 4 : 5}
         className="w-full h-full"
+        showDefaultZoomControls={false} // Disable default controls to use custom ones
       >
         {/* Route 66 Content - Only render when both map and content are ready */}
         {mapRef.current && isMapReady && contentRendered && (
@@ -117,6 +120,15 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
           </>
         )}
       </InteractiveGoogleMap>
+
+      {/* Map Legend - positioned to avoid conflicts */}
+      <InteractiveMapLegend />
+
+      {/* Custom Zoom Controls - positioned bottom-right */}
+      <GoogleMapsZoomControls 
+        map={mapRef.current} 
+        isMapReady={isMapReady} 
+      />
     </div>
   );
 };

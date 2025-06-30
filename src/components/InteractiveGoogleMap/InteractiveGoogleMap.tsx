@@ -11,6 +11,7 @@ interface InteractiveGoogleMapProps {
   center?: google.maps.LatLngLiteral;
   zoom?: number;
   className?: string;
+  showDefaultZoomControls?: boolean;
 }
 
 const mapContainerStyle = {
@@ -23,7 +24,7 @@ const defaultCenter = {
   lng: -98.5
 };
 
-// Expanded Route 66 corridor bounds - now includes Chicago fully
+// Expanded Route 66 corridor bounds - now includes Chicago fully  
 const route66Bounds = {
   north: 42.5, // Expanded north to fully include Chicago
   south: 32.0,
@@ -37,7 +38,8 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   children,
   center = defaultCenter,
   zoom = 5,
-  className = ''
+  className = '',
+  showDefaultZoomControls = false
 }) => {
   const mapRef = useRef<google.maps.Map | null>(null);
   const isMobile = useIsMobile();
@@ -53,8 +55,12 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       scrollwheel: true,
       gestureHandling: isMobile ? 'greedy' : 'cooperative',
       
-      // Map controls - ensure zoom control is enabled
-      zoomControl: true,
+      // Map controls configuration
+      zoomControl: showDefaultZoomControls, // Enable/disable based on prop
+      zoomControlOptions: showDefaultZoomControls ? {
+        position: google.maps.ControlPosition.RIGHT_BOTTOM,
+        style: google.maps.ZoomControlStyle.DEFAULT
+      } : undefined,
       mapTypeControl: false,
       scaleControl: true,
       streetViewControl: false,
@@ -89,7 +95,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         }
       ]
     };
-  }, [isMobile]);
+  }, [isMobile, showDefaultZoomControls]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -99,7 +105,11 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     map.setOptions({ 
       scrollwheel: true,
       gestureHandling: isMobile ? 'greedy' : 'cooperative',
-      zoomControl: true,
+      zoomControl: showDefaultZoomControls,
+      zoomControlOptions: showDefaultZoomControls ? {
+        position: google.maps.ControlPosition.RIGHT_BOTTOM,
+        style: google.maps.ZoomControlStyle.DEFAULT
+      } : undefined,
       restriction: {
         latLngBounds: route66Bounds,
         strictBounds: true
@@ -109,7 +119,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [onMapLoad, isMobile]);
+  }, [onMapLoad, isMobile, showDefaultZoomControls]);
 
   const handleMapClick = useCallback(() => {
     if (onMapClick) {
