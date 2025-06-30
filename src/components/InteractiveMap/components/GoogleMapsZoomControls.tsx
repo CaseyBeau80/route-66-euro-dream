@@ -64,12 +64,11 @@ const GoogleMapsZoomControls: React.FC<GoogleMapsZoomControlsProps> = ({
     try {
       const newZoom = Math.min(currentMapZoom + 1, 12);
       
-      // Use Google Maps setZoom method for programmatic zoom change
+      // Force zoom change directly through Google Maps API
       map.setZoom(newZoom);
-      console.log('✅ Programmatic zoom set successfully to:', newZoom);
+      console.log('✅ Zoom set successfully to:', newZoom);
       
-      // Reset zooming state after animation completes
-      setTimeout(() => setIsZooming(false), 500);
+      setTimeout(() => setIsZooming(false), 300);
     } catch (error) {
       console.error('❌ Error setting zoom:', error);
       setIsZooming(false);
@@ -97,12 +96,11 @@ const GoogleMapsZoomControls: React.FC<GoogleMapsZoomControlsProps> = ({
     try {
       const newZoom = Math.max(currentMapZoom - 1, 4);
       
-      // Use Google Maps setZoom method for programmatic zoom change
+      // Force zoom change directly through Google Maps API
       map.setZoom(newZoom);
-      console.log('✅ Programmatic zoom set successfully to:', newZoom);
+      console.log('✅ Zoom set successfully to:', newZoom);
       
-      // Reset zooming state after animation completes
-      setTimeout(() => setIsZooming(false), 500);
+      setTimeout(() => setIsZooming(false), 300);
     } catch (error) {
       console.error('❌ Error setting zoom:', error);
       setIsZooming(false);
