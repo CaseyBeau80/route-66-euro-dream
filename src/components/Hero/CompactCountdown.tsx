@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 const CompactCountdown: React.FC = () => {
   const [daysLeft, setDaysLeft] = useState(0);
@@ -28,7 +28,7 @@ const CompactCountdown: React.FC = () => {
   return (
     <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
       <div className="flex items-center gap-3">
-        <Calendar className="w-5 h-5 text-route66-primary" />
+        <Clock className="w-5 h-5 text-route66-primary" />
         <div>
           <div className="text-2xl font-bold text-route66-primary">
             {daysLeft}
