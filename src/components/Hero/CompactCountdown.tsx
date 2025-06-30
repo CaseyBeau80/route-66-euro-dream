@@ -35,37 +35,70 @@ const CompactCountdown: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-gradient-to-r from-route66-primary/90 to-route66-accent-red/90 rounded-xl p-4 shadow-lg border-2 border-route66-accent-gold/30 backdrop-blur-sm">
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <Calendar className="w-4 h-4 text-route66-accent-gold" />
-        <h3 className="font-route66 text-white text-sm uppercase tracking-wide">
+    <div className="nostalgic-card bg-route66-background border-2 border-route66-accent-gold rounded-lg p-6 shadow-vintage">
+      {/* Nostalgic Header with Route 66 Styling */}
+      <div className="text-center mb-4">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="w-8 h-6 bg-route66-primary rounded-sm flex items-center justify-center">
+            <span className="text-white font-route66 text-sm font-bold">66</span>
+          </div>
+          <Calendar className="w-5 h-5 text-route66-accent-gold" />
+        </div>
+        <h3 className="font-route66 text-route66-primary text-lg uppercase tracking-wide font-bold">
           Route 66 Centennial
         </h3>
-        <Clock className="w-4 h-4 text-route66-accent-gold" />
+        <div className="w-12 h-1 bg-route66-accent-red mx-auto mt-1 rounded-full"></div>
       </div>
       
-      <div className="grid grid-cols-4 gap-2 text-center">
-        <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
-          <div className="font-bold text-lg text-white">{timeLeft.days}</div>
-          <div className="text-xs text-route66-accent-gold uppercase tracking-wide">Days</div>
+      {/* Countdown Grid with Vintage Styling */}
+      <div className="grid grid-cols-4 gap-3 mb-4">
+        <div className="text-center">
+          <div className="bg-route66-primary text-white rounded-lg p-3 border-2 border-route66-primary-dark shadow-sm">
+            <div className="font-highway text-2xl font-bold">{timeLeft.days}</div>
+          </div>
+          <div className="text-xs text-route66-text-secondary uppercase tracking-wide font-highway font-semibold mt-1">
+            Days
+          </div>
         </div>
-        <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
-          <div className="font-bold text-lg text-white">{timeLeft.hours}</div>
-          <div className="text-xs text-route66-accent-gold uppercase tracking-wide">Hrs</div>
+        
+        <div className="text-center">
+          <div className="bg-route66-accent-red text-white rounded-lg p-3 border-2 border-red-700 shadow-sm">
+            <div className="font-highway text-2xl font-bold">{timeLeft.hours}</div>
+          </div>
+          <div className="text-xs text-route66-text-secondary uppercase tracking-wide font-highway font-semibold mt-1">
+            Hours
+          </div>
         </div>
-        <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
-          <div className="font-bold text-lg text-white">{timeLeft.minutes}</div>
-          <div className="text-xs text-route66-accent-gold uppercase tracking-wide">Min</div>
+        
+        <div className="text-center">
+          <div className="bg-route66-accent-gold text-white rounded-lg p-3 border-2 border-yellow-600 shadow-sm">
+            <div className="font-highway text-2xl font-bold">{timeLeft.minutes}</div>
+          </div>
+          <div className="text-xs text-route66-text-secondary uppercase tracking-wide font-highway font-semibold mt-1">
+            Min
+          </div>
         </div>
-        <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
-          <div className="font-bold text-lg text-white">{timeLeft.seconds}</div>
-          <div className="text-xs text-route66-accent-gold uppercase tracking-wide">Sec</div>
+        
+        <div className="text-center">
+          <div className="bg-route66-charcoal text-white rounded-lg p-3 border-2 border-gray-700 shadow-sm">
+            <div className="font-highway text-2xl font-bold">{timeLeft.seconds}</div>
+          </div>
+          <div className="text-xs text-route66-text-secondary uppercase tracking-wide font-highway font-semibold mt-1">
+            Sec
+          </div>
         </div>
       </div>
       
-      <div className="text-center mt-3">
-        <div className="text-xs text-white/80 uppercase tracking-wide">
-          November 11, 2026
+      {/* Vintage Footer */}
+      <div className="text-center border-t border-route66-border-vintage pt-3">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Clock className="w-4 h-4 text-route66-accent-gold" />
+          <span className="text-route66-text-primary font-highway font-semibold text-sm">
+            November 11, 2026
+          </span>
+        </div>
+        <div className="text-xs text-route66-text-muted font-americana uppercase tracking-wide">
+          The Mother Road Turns 100
         </div>
       </div>
     </div>
