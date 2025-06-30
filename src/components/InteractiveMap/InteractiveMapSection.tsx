@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { mapContent } from './data/mapContent';
-import MapSectionHeader from './components/MapSectionHeader';
 import FeatureCardsGrid from './components/FeatureCardsGrid';
 import InteractiveMapDisplay from './components/InteractiveMapDisplay';
 
@@ -23,12 +22,6 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({ language 
   return (
     <section className="py-20 bg-route66-background-section">
       <div className="container mx-auto px-4">
-        {/* Header Section */}
-        <MapSectionHeader 
-          title={content.title}
-          subtitle={content.subtitle}
-        />
-
         {/* Feature Cards Grid */}
         <FeatureCardsGrid features={content.features} />
 
