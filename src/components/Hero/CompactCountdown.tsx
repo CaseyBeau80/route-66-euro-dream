@@ -1,43 +1,48 @@
 
-import React, { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
+import React from 'react';
+import { Check } from 'lucide-react';
 
 const CompactCountdown: React.FC = () => {
-  const [daysLeft, setDaysLeft] = useState(0);
-
-  useEffect(() => {
-    // Route 66 was established on November 11, 1926
-    // 100th anniversary will be November 11, 2026
-    const targetDate = new Date('November 11, 2026 00:00:00').getTime();
-
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const difference = targetDate - now;
-
-      if (difference > 0) {
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        setDaysLeft(days);
-      } else {
-        setDaysLeft(0);
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  const benefits = [
+    {
+      title: "Interactive Route 66 Google Map",
+      subtitle: "Explore attractions, destinations, and hidden gems with interactive filtering"
+    },
+    {
+      title: "Shareable Travel Planner", 
+      subtitle: "Build custom Route 66 trips and share them with friends"
+    },
+    {
+      title: "Social Media & More",
+      subtitle: "Instagram integration and community features for travelers"
+    }
+  ];
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-      <div className="flex items-center gap-3">
-        <Clock className="w-5 h-5 text-route66-primary" />
-        <div>
-          <div className="text-2xl font-bold text-route66-primary">
-            {daysLeft}
-          </div>
-          <div className="text-sm text-gray-600">
-            days until Route 66 turns 100
+    <div className="space-y-4">
+      {benefits.map((benefit, index) => (
+        <div 
+          key={index}
+          className="bg-white/95 backdrop-blur-sm rounded-xl border border-route66-primary/20 p-4 shadow-lg hover:shadow-xl transition-all duration-300 group"
+        >
+          <div className="flex items-start gap-3">
+            {/* Blue Checkmark Icon */}
+            <div className="flex-shrink-0 w-6 h-6 bg-route66-primary rounded-full flex items-center justify-center shadow-md group-hover:bg-route66-primary-dark transition-colors duration-300">
+              <Check className="w-4 h-4 text-white" strokeWidth={3} />
+            </div>
+            
+            {/* Content */}
+            <div className="flex-1">
+              <h3 className="font-highway font-bold text-base text-route66-primary mb-1">
+                {benefit.title}
+              </h3>
+              <p className="text-sm text-route66-text-secondary leading-relaxed">
+                {benefit.subtitle}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 };
