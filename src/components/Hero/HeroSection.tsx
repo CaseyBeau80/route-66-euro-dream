@@ -68,9 +68,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 {content.painPoints.map((point, index) => <div key={index}>
                     {index < 3 ? <p className="text-lg lg:text-xl leading-relaxed text-route66-primary-light">
                         {point}
-                      </p> : <p className="text-2xl lg:text-3xl font-highway font-bold text-route66-accent-red">
-                        {point}
-                      </p>}
+                      </p> : <div className="py-4">
+                        <p className="text-2xl lg:text-3xl font-highway font-bold text-route66-accent-red">
+                          {point}
+                        </p>
+                      </div>}
                   </div>)}
               </div>
 
