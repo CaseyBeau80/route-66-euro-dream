@@ -3,11 +3,6 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useGoogleMaps } from '@/components/Route66Map/hooks/useGoogleMaps';
-import NuclearRouteManager from '@/components/Route66Map/components/NuclearRouteManager';
-import DestinationCitiesContainer from '@/components/Route66Map/components/DestinationCitiesContainer';
-import AttractionsContainer from '@/components/Route66Map/components/AttractionsContainer';
-import HiddenGemsContainer from '@/components/Route66Map/components/HiddenGemsContainer';
-import DriveInsContainer from '@/components/Route66Map/components/DriveIns/DriveInsContainer';
 
 interface InteractiveGoogleMapProps {
   onMapLoad?: (map: google.maps.Map) => void;
@@ -86,7 +81,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   }, [isMobile]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ InteractiveGoogleMap loaded successfully with Route 66 content and zoom enabled');
+    console.log('🗺️ InteractiveGoogleMap loaded successfully - Route 66 content will be handled by GoogleMapsRoute66');
     mapRef.current = map;
     setIsMapReady(true);
     
@@ -166,21 +161,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         onLoad={handleMapLoad}
         onClick={handleMapClick}
       >
-        {/* Route 66 Content - Only render when map is ready */}
-        {mapRef.current && isMapReady && (
-          <>
-            {/* Route Rendering - SINGLE route system */}
-            <NuclearRouteManager map={mapRef.current} isMapReady={isMapReady} />
-            
-            {/* Markers and Interactive Elements */}
-            <DestinationCitiesContainer map={mapRef.current} />
-            <AttractionsContainer map={mapRef.current} />
-            <HiddenGemsContainer map={mapRef.current} />
-            <DriveInsContainer map={mapRef.current} />
-          </>
-        )}
-        
-        {/* Any additional children passed from parent */}
+        {/* Only render children passed from parent - Route 66 content handled by GoogleMapsRoute66 */}
         {children}
       </GoogleMap>
       
@@ -190,7 +171,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
           <div>{isMobile ? '📱 Mobile' : '🖥️ Desktop'}</div>
           <div>Scroll Zoom: <span className="text-green-300 font-bold">ENABLED</span></div>
           <div>Gesture: {isMobile ? 'Greedy' : 'Cooperative'}</div>
-          <div>Route 66: <span className="text-green-300 font-bold">LOADED</span></div>
+          <div>Route 66: <span className="text-blue-300 font-bold">HANDLED BY PARENT</span></div>
         </div>
       )}
     </div>
