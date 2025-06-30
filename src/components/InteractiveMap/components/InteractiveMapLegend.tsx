@@ -75,9 +75,74 @@ const InteractiveMapLegend: React.FC = () => {
     {
       icon: (
         <div className="w-6 h-6 flex items-center justify-center">
-          <div className="w-5 h-5 bg-orange-500 rounded-full border-2 border-white shadow-md flex items-center justify-center">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-          </div>
+          <svg width="24" height="20" viewBox="0 0 24 20" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="screenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor:'#f0f0f0', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor:'#d0d0d0', stopOpacity:1}} />
+              </linearGradient>
+              <linearGradient id="signGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor:'#ff6b6b', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor:'#d63031', stopOpacity:1}} />
+              </linearGradient>
+            </defs>
+            
+            {/* Movie screen */}
+            <rect x="4" y="2" width="16" height="10" rx="1" 
+                  fill="url(#screenGradient)" 
+                  stroke="#333" 
+                  strokeWidth="0.8"/>
+            
+            {/* Movie screen frame */}
+            <rect x="5" y="3" width="14" height="8" 
+                  fill="#1a1a1a" 
+                  stroke="#666" 
+                  strokeWidth="0.3"/>
+            
+            {/* Screen glow effect */}
+            <rect x="6" y="4" width="12" height="6" 
+                  fill="#87ceeb" 
+                  opacity="0.3"/>
+            
+            {/* Cars in front */}
+            <ellipse cx="8" cy="15" rx="2.5" ry="1.2" 
+                     fill="#2d3436" 
+                     opacity="0.8"/>
+            <ellipse cx="16" cy="15" rx="2.5" ry="1.2" 
+                     fill="#636e72" 
+                     opacity="0.8"/>
+            
+            {/* Car windshields */}
+            <ellipse cx="8" cy="14.5" rx="1.5" ry="0.8" 
+                     fill="#74b9ff" 
+                     opacity="0.6"/>
+            <ellipse cx="16" cy="14.5" rx="1.5" ry="0.8" 
+                     fill="#74b9ff" 
+                     opacity="0.6"/>
+            
+            {/* Support posts */}
+            <rect x="3.5" y="12" width="0.8" height="6" 
+                  fill="#8b4513"/>
+            <rect x="19.7" y="12" width="0.8" height="6" 
+                  fill="#8b4513"/>
+            
+            {/* Drive-in sign */}
+            <rect x="1" y="12" width="6" height="3" rx="0.5" 
+                  fill="url(#signGradient)" 
+                  stroke="#fff" 
+                  strokeWidth="0.3"/>
+            
+            {/* Sign text */}
+            <text x="4" y="13.8" textAnchor="middle" 
+                  fill="#fff" 
+                  fontSize="1.8" 
+                  fontWeight="bold">🎬</text>
+            
+            {/* Stars in sky */}
+            <circle cx="2" cy="3" r="0.3" fill="#ffeaa7" opacity="0.8"/>
+            <circle cx="22" cy="4" r="0.3" fill="#ffeaa7" opacity="0.8"/>
+            <circle cx="21" cy="2" r="0.2" fill="#ffeaa7" opacity="0.6"/>
+          </svg>
         </div>
       ),
       label: "Drive-In Theaters",
