@@ -17,15 +17,31 @@ export const useFormValidation = (formData: TripFormData) => {
     let dayAdjustmentInfo = null;
     let recommendedDays = null;
 
+    console.log('🔍 DEBUGGING useFormValidation inputs:', {
+      startLocation: formData.startLocation,
+      endLocation: formData.endLocation,
+      travelDays: formData.travelDays,
+      tripStyle: formData.tripStyle,
+      hasStartLocation,
+      hasEndLocation,
+      hasValidTravelDays
+    });
+
     // Check if route requires day adjustment
     if (hasStartLocation && hasEndLocation && hasValidTravelDays) {
+      console.log('🔍 DEBUGGING: Checking day adjustment logic...');
+      
       const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
+      console.log('🔍 DEBUGGING: Style config:', styleConfig);
+      
       const validation = TravelDayValidator.validateTravelDays(
         formData.startLocation,
         formData.endLocation,
         formData.travelDays,
         styleConfig
       );
+
+      console.log('🔍 DEBUGGING: Travel day validation result:', validation);
 
       if (!validation.isValid && validation.minDaysRequired > formData.travelDays) {
         dayAdjustmentInfo = {
@@ -34,12 +50,18 @@ export const useFormValidation = (formData: TripFormData) => {
           reason: validation.issues[0] || 'Route requires more days for safe driving limits'
         };
         recommendedDays = validation.minDaysRequired;
+        
+        console.log('🔍 DEBUGGING: Day adjustment info created:', dayAdjustmentInfo);
+      } else {
+        console.log('🔍 DEBUGGING: No day adjustment needed - validation passed or no minimum required');
       }
+    } else {
+      console.log('🔍 DEBUGGING: Skipping day adjustment check - missing required fields');
     }
 
     const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate;
 
-    console.log('🔍 FIXED: Form validation with day adjustment check:', {
+    console.log('🔍 DEBUGGING: Final validation result:', {
       hasStartLocation,
       hasEndLocation,
       hasValidTravelDays,

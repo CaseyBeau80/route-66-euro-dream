@@ -20,12 +20,17 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
   const hasBlockingError = isOverLimit || isUnderLimit;
 
-  console.log('🔍 FIXED: FormValidationHelper with day adjustment:', {
+  // DEBUGGING: Log everything to understand what's happening
+  console.log('🔍 DEBUGGING FormValidationHelper:', {
     travelDays: formData.travelDays,
+    startLocation: formData.startLocation,
+    endLocation: formData.endLocation,
     dayAdjustmentInfo,
     recommendedDays,
     hasBlockingError,
-    isFormValid
+    isFormValid,
+    'dayAdjustmentInfo exists': !!dayAdjustmentInfo,
+    'should show adjustment notice': !!(dayAdjustmentInfo && formData.startLocation && formData.endLocation)
   });
 
   // Show blocking error for over/under limit - this takes precedence over everything
@@ -119,6 +124,13 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
           </div>
         </div>
       )}
+
+      {/* DEBUGGING: Show what we know about day adjustment */}
+      <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs">
+        <strong>DEBUG:</strong> DayAdjustmentInfo = {dayAdjustmentInfo ? 'EXISTS' : 'NULL'} | 
+        RecommendedDays = {recommendedDays || 'NULL'} | 
+        Both locations = {formData.startLocation && formData.endLocation ? 'YES' : 'NO'}
+      </div>
 
       {/* Form Validation Status - Always show regardless of day adjustment */}
       {isFormValid ? (
