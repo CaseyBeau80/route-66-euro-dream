@@ -7,7 +7,7 @@ import DestinationCitiesContainer from '../../Route66Map/components/DestinationC
 import AttractionsContainer from '../../Route66Map/components/AttractionsContainer';
 import HiddenGemsContainer from '../../Route66Map/components/HiddenGemsContainer';
 import NuclearRouteManager from '../../Route66Map/components/NuclearRouteManager';
-import { useRoute66Waypoints } from '@/components/ComprehensiveListings/hooks/useRoute66Waypoints';
+import { useSupabaseRoute66 } from '../../Route66Map/hooks/useSupabaseRoute66';
 
 interface InteractiveMapDisplayProps {
   isMapExpanded: boolean;
@@ -19,7 +19,7 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
   onToggleExpanded
 }) => {
   const [map, setMap] = React.useState<google.maps.Map | null>(null);
-  const { waypoints } = useRoute66Waypoints();
+  const { waypoints } = useSupabaseRoute66();
 
   // Route 66 path center point
   const route66Center = {
@@ -34,6 +34,10 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
 
   const handleDestinationClick = (destination: any) => {
     console.log('🏛️ Destination clicked:', destination.name);
+  };
+
+  const handleAttractionClick = (attraction: any) => {
+    console.log('🎯 Attraction clicked:', attraction.name);
   };
 
   return (
@@ -69,7 +73,11 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
                 />
                 
                 {/* Attractions */}
-                <AttractionsContainer map={map} />
+                <AttractionsContainer 
+                  map={map} 
+                  waypoints={waypoints}
+                  onAttractionClick={handleAttractionClick}
+                />
                 
                 {/* Hidden gems */}
                 <HiddenGemsContainer map={map} />
