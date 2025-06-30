@@ -1,5 +1,6 @@
 
 
+
 // Map configuration constants
 
 // Styling for the Google Map
@@ -15,9 +16,9 @@ export const center = {
   lng: -98.5, // Adjusted to better center the route
 };
 
-// Define map bounds to focus on Route 66 corridor (expanded east for Chicago)
+// Define map bounds to focus on Route 66 corridor (expanded north for Chicago)
 export const mapBounds = {
-  north: 42.0, // Northern boundary (reduced to focus on route corridor)
+  north: 42.5, // Northern boundary (expanded to fully include Chicago)
   south: 32.0, // Southern boundary (focused on Route 66 area)
   east: -85.0, // Eastern boundary (expanded to better include Chicago area)
   west: -122.0, // Western boundary (expanded to better include California coast)
