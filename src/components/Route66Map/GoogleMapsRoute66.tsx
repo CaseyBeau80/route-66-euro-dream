@@ -29,42 +29,26 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const [contentRendered, setContentRendered] = useState(false);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ GoogleMapsRoute66: Map loaded successfully');
     mapRef.current = map;
     
     // Ensure map is fully ready before setting state
     setTimeout(() => {
-      console.log('🗺️ GoogleMapsRoute66: Setting map ready state');
       setIsMapReady(true);
       
       // Force content rendering after a short delay
       setTimeout(() => {
-        console.log('🗺️ GoogleMapsRoute66: Triggering content render');
         setContentRendered(true);
       }, 500);
     }, 100);
   }, []);
 
   const handleMapClick = useCallback(() => {
-    console.log('🗺️ GoogleMapsRoute66: Map clicked - clearing selection');
     onClearSelection();
   }, [onClearSelection]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('🗺️ GoogleMapsRoute66: Component state:', {
-      isLoaded,
-      loadError: !!loadError,
-      isMapReady,
-      contentRendered,
-      hasMapRef: !!mapRef.current
-    });
-  }, [isLoaded, loadError, isMapReady, contentRendered]);
 
   // Force re-render of content if map is ready but content isn't showing
   useEffect(() => {
     if (isMapReady && mapRef.current && !contentRendered) {
-      console.log('🔄 Forcing content render...');
       const timer = setTimeout(() => {
         setContentRendered(true);
       }, 1000);
@@ -133,16 +117,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
           </>
         )}
       </InteractiveGoogleMap>
-      
-      {/* Enhanced debug info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-4 left-4 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
-          <div>Map Ready: {isMapReady ? '✅' : '❌'}</div>
-          <div>Content Ready: {contentRendered ? '✅' : '❌'}</div>
-          <div>Map Ref: {mapRef.current ? '✅' : '❌'}</div>
-          <div>All Systems: {mapRef.current && isMapReady && contentRendered ? '🟢 GO' : '🔴 WAIT'}</div>
-        </div>
-      )}
     </div>
   );
 };

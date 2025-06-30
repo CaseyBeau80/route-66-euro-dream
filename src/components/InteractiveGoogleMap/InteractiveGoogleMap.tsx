@@ -23,12 +23,12 @@ const defaultCenter = {
   lng: -98.5
 };
 
-// Route 66 corridor bounds for viewport restriction
+// Expanded Route 66 corridor bounds for viewport restriction
 const route66Bounds = {
   north: 42.0,
   south: 32.0,
   east: -87.0,
-  west: -118.0
+  west: -122.0 // Expanded west to better include California
 };
 
 const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
@@ -48,8 +48,6 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 
   // Map options optimized for Route 66 experience
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
-    console.log('🗺️ Creating Route 66 focused map options for device:', isMobile ? 'mobile' : 'desktop');
-    
     return {
       // Enable scroll wheel zoom with controlled gesture handling
       scrollwheel: true,
@@ -64,7 +62,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       fullscreenControl: true,
       clickableIcons: false,
       
-      // Route 66 corridor restrictions
+      // Expanded Route 66 corridor restrictions
       restriction: {
         latLngBounds: route66Bounds,
         strictBounds: true
@@ -94,7 +92,6 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   }, [isMobile]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ InteractiveGoogleMap loaded with Route 66 focus');
     mapRef.current = map;
     setIsMapReady(true);
     
@@ -109,20 +106,12 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       }
     });
     
-    console.log('✅ Route 66 map configuration applied:', {
-      scrollwheel: true,
-      gestureHandling: isMobile ? 'greedy' : 'cooperative',
-      zoomControl: true,
-      boundsRestricted: true
-    });
-    
     if (onMapLoad) {
       onMapLoad(map);
     }
   }, [onMapLoad, isMobile]);
 
   const handleMapClick = useCallback(() => {
-    console.log('🗺️ Map clicked');
     if (onMapClick) {
       onMapClick();
     }
@@ -181,16 +170,6 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       >
         {children}
       </GoogleMap>
-      
-      {/* Enhanced device info display for debugging */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
-          <div>{isMobile ? '📱 Mobile' : '🖥️ Desktop'}</div>
-          <div>Scroll Zoom: <span className="text-green-300 font-bold">ENABLED</span></div>
-          <div>Route 66: <span className="text-orange-300 font-bold">FOCUSED</span></div>
-          <div>Bounds: <span className="text-blue-300 font-bold">RESTRICTED</span></div>
-        </div>
-      )}
     </div>
   );
 };
