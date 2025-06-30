@@ -3,7 +3,6 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useGoogleMaps } from '@/components/Route66Map/hooks/useGoogleMaps';
-import { mapOptions, mapRestrictions } from '@/components/Route66Map/config/MapConfig';
 
 interface InteractiveGoogleMapProps {
   onMapLoad?: (map: google.maps.Map) => void;
@@ -24,6 +23,14 @@ const defaultCenter = {
   lng: -96.0
 };
 
+// Route 66 focused bounds
+const mapBounds = {
+  north: 42.0,
+  south: 32.0,
+  east: -80.0,
+  west: -125.0,
+};
+
 const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   onMapLoad,
   onMapClick,
@@ -39,52 +46,87 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Route 66 focused map options with strict restrictions
+  // Clean Route 66 focused map options
   const route66MapOptions = React.useMemo((): google.maps.MapOptions => {
-    console.log('🗺️ Creating Route 66 restricted map options for device:', isMobile ? 'mobile' : 'desktop');
+    console.log('🗺️ Creating clean Route 66 map options for device:', isMobile ? 'mobile' : 'desktop');
     
     return {
-      // Enable scroll wheel zoom but with controlled gesture handling
+      // Enable scroll wheel zoom
       scrollwheel: true,
       gestureHandling: isMobile ? 'greedy' : 'cooperative',
       
-      // Map controls - minimal for Route 66 focus
+      // Map controls
       zoomControl: true,
       mapTypeControl: false,
       scaleControl: false,
       streetViewControl: false,
       rotateControl: false,
-      fullscreenControl: false, // Disabled to maintain Route 66 focus
+      fullscreenControl: false,
       clickableIcons: false,
       
-      // STRICT Route 66 corridor restrictions
-      restriction: mapRestrictions,
-      minZoom: 4, // Increased to focus on Route 66 corridor
-      maxZoom: 12, // Reduced to maintain overview
+      // Route 66 corridor restrictions
+      restriction: {
+        latLngBounds: mapBounds,
+        strictBounds: true
+      },
+      minZoom: 4,
+      maxZoom: 12,
       
-      // Route 66 focused styling
-      styles: mapOptions.styles
+      // Clean map styling - remove aggressive orange overlay
+      styles: [
+        {
+          // Simplify water styling
+          featureType: 'water',
+          elementType: 'geometry',
+          stylers: [{ color: '#a2d2ff' }]
+        },
+        {
+          // Make highways more visible
+          featureType: 'road.highway',
+          elementType: 'geometry',
+          stylers: [{ color: '#ffd60a' }, { weight: 2 }]
+        },
+        {
+          // Clean up administrative boundaries
+          featureType: 'administrative',
+          elementType: 'geometry.stroke',
+          stylers: [{ color: '#c9b2a6' }, { weight: 1 }]
+        },
+        {
+          // Subtle landscape styling
+          featureType: 'landscape',
+          elementType: 'geometry',
+          stylers: [{ color: '#f8f4f0' }]
+        },
+        {
+          // Clean road styling
+          featureType: 'road',
+          elementType: 'geometry',
+          stylers: [{ color: '#ffffff' }]
+        },
+        {
+          // Hide unnecessary POI labels
+          featureType: 'poi.business',
+          elementType: 'labels',
+          stylers: [{ visibility: 'off' }]
+        }
+      ]
     };
   }, [isMobile]);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ InteractiveGoogleMap loaded with Route 66 restrictions');
+    console.log('🗺️ InteractiveGoogleMap loaded with clean Route 66 styling');
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Apply Route 66 focused settings
+    // Apply clean Route 66 settings
     map.setOptions(route66MapOptions);
     
     // Set initial view optimized for Route 66 corridor
     map.setZoom(5);
     map.setCenter(defaultCenter);
     
-    console.log('✅ Route 66 restricted map loaded:', {
-      center: defaultCenter,
-      zoom: 5,
-      restrictions: 'Route 66 corridor only',
-      bounds: mapRestrictions.latLngBounds
-    });
+    console.log('✅ Clean Route 66 map loaded successfully');
     
     if (onMapLoad) {
       onMapLoad(map);
@@ -149,18 +191,16 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         onLoad={handleMapLoad}
         onClick={handleMapClick}
       >
-        {/* Route 66 content handled by parent GoogleMapsRoute66 component */}
         {children}
       </GoogleMap>
       
-      {/* Route 66 restriction info for debugging */}
+      {/* Clean debug info */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
-          <div className="text-orange-300 font-bold">🛣️ ROUTE 66 ONLY</div>
+          <div className="text-blue-300 font-bold">🛣️ ROUTE 66</div>
           <div>{isMobile ? '📱 Mobile' : '🖥️ Desktop'}</div>
           <div>Bounds: RESTRICTED</div>
           <div>Zoom: {4}-{12}</div>
-          <div>Focus: Historic US-66</div>
         </div>
       )}
     </div>

@@ -9,7 +9,7 @@ const StateStyling = ({ map }: StateStylingProps) => {
   useEffect(() => {
     if (!map) return;
     
-    console.log('🎨 StateStyling: Adding Route 66 state highlighting');
+    console.log('🎨 StateStyling: Adding subtle Route 66 state highlighting');
     
     // Create a new data layer for US states
     const statesLayer = new google.maps.Data();
@@ -23,7 +23,7 @@ const StateStyling = ({ map }: StateStylingProps) => {
         // Add GeoJSON to the data layer
         statesLayer.addGeoJson(statesData);
         
-        // Set style based on whether state is on Route 66
+        // Set subtle style for Route 66 states
         statesLayer.setStyle((feature) => {
           const stateProperty = feature.getProperty('name');
           const stateName = typeof stateProperty === 'string' ? stateProperty : '';
@@ -36,13 +36,11 @@ const StateStyling = ({ map }: StateStylingProps) => {
           
           const isRoute66State = route66States.includes(stateName);
           
-          console.log(`🎨 Styling state: ${stateName} - Route 66: ${isRoute66State}`);
-          
           return {
-            fillColor: isRoute66State ? '#f97316' : '#d1d5db',
-            fillOpacity: isRoute66State ? 0.15 : 0.05,
-            strokeColor: isRoute66State ? '#c2410c' : '#9ca3af',
-            strokeWeight: isRoute66State ? 2 : 0.5,
+            fillColor: isRoute66State ? '#ffd60a' : '#e5e7eb',
+            fillOpacity: isRoute66State ? 0.1 : 0.05, // Much more subtle
+            strokeColor: isRoute66State ? '#f59e0b' : '#9ca3af',
+            strokeWeight: isRoute66State ? 1.5 : 0.5,
             visible: true
           };
         });
@@ -56,7 +54,7 @@ const StateStyling = ({ map }: StateStylingProps) => {
         // Add the layer to the map
         statesLayer.setMap(map);
         
-        console.log('✅ StateStyling: Route 66 states highlighted successfully');
+        console.log('✅ StateStyling: Subtle Route 66 states highlighted successfully');
       } catch (error) {
         console.error('❌ StateStyling: Error loading states data:', error);
       }
