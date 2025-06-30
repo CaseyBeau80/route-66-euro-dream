@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Check } from 'lucide-react';
 
@@ -13,7 +14,7 @@ const CompactCountdown: React.FC = () => {
     },
     {
       title: "Social Media & More",
-      subtitle: "Discover iconic cities, quirky roadside attractions, and hidden gems"
+      subtitle: "Instagram integration and community features for travelers"
     }
   ];
 
