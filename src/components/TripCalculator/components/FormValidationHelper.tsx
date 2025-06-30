@@ -20,7 +20,6 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
   const hasBlockingError = isOverLimit || isUnderLimit;
 
-  // DEBUGGING: Log everything to understand what's happening
   console.log('🔍 DEBUGGING FormValidationHelper:', {
     travelDays: formData.travelDays,
     startLocation: formData.startLocation,
@@ -95,10 +94,9 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 
   const incompleteChecks = validationChecks.filter(check => !check.isValid);
 
-  // Always show both messages when applicable - no conditional replacement
   return (
     <div className="space-y-4">
-      {/* Day Adjustment Notice - Show when trip will be automatically adjusted */}
+      {/* Day Adjustment Notice - ALWAYS show when it exists, positioned at the top */}
       {dayAdjustmentInfo && formData.startLocation && formData.endLocation && (
         <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-4">
           <div className="flex items-start gap-2">
@@ -125,14 +123,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
         </div>
       )}
 
-      {/* DEBUGGING: Show what we know about day adjustment */}
-      <div className="bg-blue-50 border border-blue-200 rounded p-2 text-xs">
-        <strong>DEBUG:</strong> DayAdjustmentInfo = {dayAdjustmentInfo ? 'EXISTS' : 'NULL'} | 
-        RecommendedDays = {recommendedDays || 'NULL'} | 
-        Both locations = {formData.startLocation && formData.endLocation ? 'YES' : 'NO'}
-      </div>
-
-      {/* Form Validation Status - Always show regardless of day adjustment */}
+      {/* Form Validation Status - Show success or incomplete form messages */}
       {isFormValid ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-green-700">
@@ -142,11 +133,6 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
                 Ready to plan your Route 66 adventure! 
                 {formData.tripStyle === 'destination-focused' && 
                   ' Destination-focused style will prioritize canonical Route 66 heritage cities.'}
-                {dayAdjustmentInfo && (
-                  <span className="block text-sm mt-1 text-green-600">
-                    Your trip will be optimized to {dayAdjustmentInfo.minimum} days for the best experience.
-                  </span>
-                )}
               </span>
             </div>
           </div>
