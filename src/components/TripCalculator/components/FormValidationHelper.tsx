@@ -96,27 +96,46 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Day Adjustment Notice - ALWAYS show when it exists, positioned at the top */}
+      {/* PERSISTENT Day Adjustment Notice - Show for longer duration with animation */}
       {dayAdjustmentInfo && formData.startLocation && formData.endLocation && (
-        <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-4">
-          <div className="flex items-start gap-2">
-            <AlertCircle className="h-6 w-6 text-amber-600 mt-0.5" />
+        <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-6 animate-pulse">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-7 w-7 text-amber-600 mt-0.5 animate-bounce" />
             <div>
-              <h4 className="font-bold text-amber-800 mb-2">
-                ⚠️ Trip Duration Will Be Adjusted
+              <h4 className="font-bold text-amber-800 mb-3 text-lg">
+                ⚠️ Trip Duration Automatically Adjusted
               </h4>
-              <div className="text-amber-700 space-y-2">
-                <div className="flex items-center gap-2 text-lg font-semibold">
-                  <span className="bg-amber-200 px-2 py-1 rounded">{dayAdjustmentInfo.requested} days (your selection)</span>
-                  <ArrowRight className="h-4 w-4" />
-                  <span className="bg-green-200 text-green-800 px-2 py-1 rounded">{dayAdjustmentInfo.minimum} days (required)</span>
+              <div className="text-amber-700 space-y-3">
+                <div className="flex items-center gap-3 text-xl font-bold bg-white/50 p-3 rounded-lg">
+                  <span className="bg-red-200 text-red-800 px-3 py-2 rounded-lg shadow-sm">
+                    {dayAdjustmentInfo.requested} days (your selection)
+                  </span>
+                  <ArrowRight className="h-6 w-6 text-amber-600" />
+                  <span className="bg-green-200 text-green-800 px-3 py-2 rounded-lg shadow-sm">
+                    {dayAdjustmentInfo.minimum} days (required minimum)
+                  </span>
                 </div>
-                <p className="text-sm">
-                  <strong>Why the adjustment?</strong> {dayAdjustmentInfo.reason}
-                </p>
-                <p className="text-sm">
-                  Your trip will be automatically extended to {dayAdjustmentInfo.minimum} days to ensure safe daily driving limits (max 10 hours/day) and proper time at destinations.
-                </p>
+                <div className="bg-white/70 p-4 rounded-lg border border-amber-200">
+                  <p className="font-semibold mb-2 text-amber-800">
+                    📋 Why was this adjusted?
+                  </p>
+                  <p className="text-sm leading-relaxed">
+                    <strong>Safety Requirement:</strong> {dayAdjustmentInfo.reason}
+                  </p>
+                  <p className="text-sm leading-relaxed mt-2">
+                    Your trip will be automatically extended to <strong>{dayAdjustmentInfo.minimum} days</strong> to ensure:
+                  </p>
+                  <ul className="text-sm mt-2 ml-4 space-y-1">
+                    <li>• Maximum 10 hours of driving per day</li>
+                    <li>• Proper time to enjoy destinations</li>
+                    <li>• Safe and comfortable travel experience</li>
+                  </ul>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-amber-800 bg-yellow-100 px-3 py-2 rounded-full inline-block">
+                    ✅ This adjustment will happen automatically when you plan your trip
+                  </p>
+                </div>
               </div>
             </div>
           </div>
