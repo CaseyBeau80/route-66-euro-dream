@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { AlertCircle, CheckCircle, Calendar } from 'lucide-react';
+import { AlertCircle, CheckCircle, Calendar, ArrowRight } from 'lucide-react';
 import { TripFormData } from '../types/tripCalculator';
+import { useFormValidation } from '../hooks/useFormValidation';
 
 interface FormValidationHelperProps {
   formData: TripFormData;
@@ -12,21 +13,19 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   formData,
   isFormValid
 }) => {
-  const MAX_DAYS = 14;
-  const MIN_DAYS = 1; // FIXED: Changed from 2 to 1
+  const { dayAdjustmentInfo, recommendedDays, MAX_DAYS, MIN_DAYS } = useFormValidation(formData);
   
   // Check for critical blocking errors
   const isOverLimit = formData.travelDays > MAX_DAYS;
   const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
   const hasBlockingError = isOverLimit || isUnderLimit;
 
-  console.log('🔍 FIXED: FormValidationHelper check:', {
+  console.log('🔍 FIXED: FormValidationHelper with day adjustment:', {
     travelDays: formData.travelDays,
-    isOverLimit,
-    isUnderLimit,
+    dayAdjustmentInfo,
+    recommendedDays,
     hasBlockingError,
-    maxDays: MAX_DAYS,
-    minDays: MIN_DAYS
+    isFormValid
   });
 
   const validationChecks = [
@@ -45,7 +44,6 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     {
       id: 'travel-days',
       label: `Trip duration set (${MIN_DAYS}-${MAX_DAYS} days)`,
-      // FIXED: Updated validation to allow 1-14 range
       isValid: formData.travelDays > 0 && formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS,
       value: formData.travelDays > 0 ? `${formData.travelDays} days` : 'Not selected',
       isBlocking: hasBlockingError
@@ -86,6 +84,35 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
                 <p className="text-sm">Please select at least {MIN_DAYS} day for your trip.</p>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show day adjustment notice if trip will be automatically adjusted
+  if (dayAdjustmentInfo && formData.startLocation && formData.endLocation) {
+    return (
+      <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-4">
+        <div className="flex items-start gap-2">
+          <AlertCircle className="h-6 w-6 text-amber-600 mt-0.5" />
+          <div>
+            <h4 className="font-bold text-amber-800 mb-2">
+              ⚠️ Trip Duration Will Be Adjusted
+            </h4>
+            <div className="text-amber-700 space-y-2">
+              <div className="flex items-center gap-2 text-lg font-semibold">
+                <span className="bg-amber-200 px-2 py-1 rounded">{dayAdjustmentInfo.requested} days (your selection)</span>
+                <ArrowRight className="h-4 w-4" />
+                <span className="bg-green-200 text-green-800 px-2 py-1 rounded">{dayAdjustmentInfo.minimum} days (required)</span>
+              </div>
+              <p className="text-sm">
+                <strong>Why the adjustment?</strong> {dayAdjustmentInfo.reason}
+              </p>
+              <p className="text-sm">
+                Your trip will be automatically extended to {dayAdjustmentInfo.minimum} days to ensure safe daily driving limits (max 10 hours/day) and proper time at destinations.
+              </p>
+            </div>
           </div>
         </div>
       </div>
