@@ -26,11 +26,23 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [contentRendered, setContentRendered] = useState(false);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ GoogleMapsRoute66: Map loaded successfully - rendering all Route 66 content');
+    console.log('🗺️ GoogleMapsRoute66: Map loaded successfully');
     mapRef.current = map;
-    setIsMapReady(true);
+    
+    // Ensure map is fully ready before setting state
+    setTimeout(() => {
+      console.log('🗺️ GoogleMapsRoute66: Setting map ready state');
+      setIsMapReady(true);
+      
+      // Force content rendering after a short delay
+      setTimeout(() => {
+        console.log('🗺️ GoogleMapsRoute66: Triggering content render');
+        setContentRendered(true);
+      }, 500);
+    }, 100);
   }, []);
 
   const handleMapClick = useCallback(() => {
@@ -44,9 +56,22 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
       isLoaded,
       loadError: !!loadError,
       isMapReady,
+      contentRendered,
       hasMapRef: !!mapRef.current
     });
-  }, [isLoaded, loadError, isMapReady]);
+  }, [isLoaded, loadError, isMapReady, contentRendered]);
+
+  // Force re-render of content if map is ready but content isn't showing
+  useEffect(() => {
+    if (isMapReady && mapRef.current && !contentRendered) {
+      console.log('🔄 Forcing content render...');
+      const timer = setTimeout(() => {
+        setContentRendered(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isMapReady, contentRendered]);
 
   if (loadError) {
     return <MapLoadingStates loadError={loadError} isLoaded={false} />;
@@ -65,14 +90,14 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         zoom={isMobile ? 4 : 5}
         className="w-full h-full"
       >
-        {/* Route 66 Content - Render all components when map is ready */}
-        {mapRef.current && isMapReady && (
+        {/* Route 66 Content - Only render when both map and content are ready */}
+        {mapRef.current && isMapReady && contentRendered && (
           <>
             {/* State Styling - Highlight Route 66 states */}
             <StateStyling map={mapRef.current} />
             
             {/* Route Rendering - SINGLE route system */}
-            <NuclearRouteManager map={mapRef.current} isMapReady={isMapReady} />
+            <NuclearRouteManager map={mapRef.current} isMapReady={true} />
             
             {/* Destination Cities - Route 66 shield markers */}
             <DestinationCitiesContainer 
@@ -109,11 +134,13 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         )}
       </InteractiveGoogleMap>
       
-      {/* Debug info */}
+      {/* Enhanced debug info */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute top-4 left-4 bg-black/70 text-white text-xs px-3 py-2 rounded shadow-lg">
           <div>Map Ready: {isMapReady ? '✅' : '❌'}</div>
-          <div>Components: {mapRef.current && isMapReady ? '✅ ACTIVE' : '❌ WAITING'}</div>
+          <div>Content Ready: {contentRendered ? '✅' : '❌'}</div>
+          <div>Map Ref: {mapRef.current ? '✅' : '❌'}</div>
+          <div>All Systems: {mapRef.current && isMapReady && contentRendered ? '🟢 GO' : '🔴 WAIT'}</div>
         </div>
       )}
     </div>
