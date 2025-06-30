@@ -72,13 +72,20 @@ export class TravelDayValidator {
       minDaysForAbsoluteSafety,
       minDaysForStyle,
       minDaysRequired,
-      requestedDays
+      requestedDays,
+      'needsAdjustment': minDaysRequired > requestedDays
     });
     
     // Calculate maximum recommended days (capped at 14 days)
     const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(estimatedDistance / 100));
     
-    // Check STRICT 10-hour constraint first
+    // CRITICAL FIX: Check if minimum days required is greater than requested days
+    if (minDaysRequired > requestedDays) {
+      issues.push(`Route requires minimum ${minDaysRequired} days for safe daily driving limits`);
+      recommendations.push(`Increase trip duration to ${minDaysRequired} days to ensure safe daily drives`);
+    }
+    
+    // Check STRICT 10-hour constraint
     if (requestedDays >= this.ABSOLUTE_MIN_DAYS && requestedDays <= this.ABSOLUTE_MAX_DAYS) {
       const averageDailyHours = estimatedDistance / requestedDays / 50; // Assuming 50 mph average
       
@@ -101,12 +108,10 @@ export class TravelDayValidator {
       }
     }
     
-    // CRITICAL FIX: Trip is INVALID if requested days < minimum required
-    // This ensures day adjustment notices appear when needed
+    // CRITICAL FIX: Trip is INVALID if it needs adjustment OR has hard limit violations
     const isValid = requestedDays >= this.ABSOLUTE_MIN_DAYS && 
                    requestedDays <= this.ABSOLUTE_MAX_DAYS && 
-                   requestedDays >= minDaysRequired && // NEW: Must meet minimum requirement
-                   issues.length === 0;
+                   requestedDays >= minDaysRequired; // MUST meet minimum requirement
     
     const result = {
       isValid,
@@ -118,6 +123,7 @@ export class TravelDayValidator {
     };
     
     console.log('🔍 DEBUGGING: Final validation result:', result);
+    console.log('🔍 DEBUGGING: Will trigger day adjustment?', !isValid && minDaysRequired > requestedDays);
     
     return result;
   }
