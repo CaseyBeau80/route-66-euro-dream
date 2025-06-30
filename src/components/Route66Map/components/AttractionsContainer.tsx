@@ -19,13 +19,13 @@ interface Attraction {
 
 interface AttractionsContainerProps {
   map: google.maps.Map;
-  waypoints: any[]; // Keep for compatibility but won't use
-  onAttractionClick: (attraction: any) => void;
+  waypoints?: any[]; // Made optional since we fetch our own data
+  onAttractionClick?: (attraction: any) => void; // Made optional
 }
 
 const AttractionsContainer: React.FC<AttractionsContainerProps> = ({ 
   map, 
-  onAttractionClick 
+  onAttractionClick = () => {} // Default no-op function
 }) => {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
   const [loading, setLoading] = useState(true);

@@ -6,14 +6,14 @@ import type { Route66Waypoint } from '../types/supabaseTypes';
 
 interface DestinationCitiesContainerProps {
   map: google.maps.Map;
-  waypoints: Route66Waypoint[];
-  onDestinationClick: (destination: Route66Waypoint) => void;
+  waypoints?: Route66Waypoint[]; // Made optional since we fetch our own data
+  onDestinationClick?: (destination: Route66Waypoint) => void; // Made optional
 }
 
 const DestinationCitiesContainer: React.FC<DestinationCitiesContainerProps> = ({ 
   map, 
-  waypoints, 
-  onDestinationClick 
+  waypoints = [], // Default empty array
+  onDestinationClick = () => {} // Default no-op function
 }) => {
   // Use the actual destination cities data instead of filtering waypoints
   const { destinationCities, isLoading } = useDestinationCities();
