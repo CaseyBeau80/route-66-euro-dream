@@ -59,7 +59,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
     
     if (map) {
       const currentMapZoom = map.getZoom() || 4;
-      const newZoom = Math.min(currentMapZoom + 1, 18);
+      const newZoom = Math.min(currentMapZoom + 1, 12); // Route 66 focused max zoom
       console.log(`🔍 Setting Google Maps zoom from ${currentMapZoom} to ${newZoom}`);
       map.setZoom(newZoom);
     } else {
@@ -78,7 +78,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
     
     if (map) {
       const currentMapZoom = map.getZoom() || 4;
-      const newZoom = Math.max(currentMapZoom - 1, 3);
+      const newZoom = Math.max(currentMapZoom - 1, 4); // Route 66 focused min zoom
       console.log(`🔍 Setting Google Maps zoom from ${currentMapZoom} to ${newZoom}`);
       map.setZoom(newZoom);
     } else {
@@ -89,13 +89,13 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   }, [map, onZoomOut]);
 
   const displayZoom = map ? mapZoom : currentZoom;
-  const isZoomInDisabled = displayZoom >= (map ? 18 : maxZoom);
-  const isZoomOutDisabled = displayZoom <= (map ? 3 : minZoom);
+  const isZoomInDisabled = displayZoom >= (map ? 12 : maxZoom);
+  const isZoomOutDisabled = displayZoom <= (map ? 4 : minZoom);
 
-  console.log('🎮 ZoomControls: Rendering with zoom:', displayZoom, 'isGoogleMap:', !!map);
+  console.log('🎮 ZoomControls: Rendering with Route 66 focused zoom:', displayZoom, 'isGoogleMap:', !!map);
 
   return (
-    <div className="absolute bottom-20 left-6 z-[1000] flex flex-col gap-2 bg-white/95 p-3 rounded-lg shadow-xl border border-gray-200 backdrop-blur-sm">
+    <div className="absolute bottom-28 right-6 z-[1000] flex flex-col gap-2 bg-white/95 p-3 rounded-lg shadow-xl border border-gray-200 backdrop-blur-sm">
       {/* Zoom In Button */}
       <button
         onClick={handleZoomIn}

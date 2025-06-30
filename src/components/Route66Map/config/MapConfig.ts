@@ -1,5 +1,4 @@
 
-
 // Map configuration constants
 
 // Styling for the Google Map
@@ -9,24 +8,24 @@ export const mapContainerStyle = {
   borderRadius: '0.75rem',
 };
 
-// Center the map to show the full Route 66 corridor as shown in the image
+// Center the map to show the full Route 66 corridor
 export const center = {
-  lat: 36.0, // Slightly north to better center the route corridor
-  lng: -96.0, // Adjusted to center between Chicago and LA
+  lat: 35.2, // Centered on Route 66 corridor
+  lng: -98.5, // Adjusted to better center the route
 };
 
-// Define map bounds to show the continental United States
+// Define map bounds to focus on Route 66 corridor (narrower focus)
 export const mapBounds = {
-  north: 49.0, // Northern boundary (US-Canada border)
-  south: 25.0, // Southern boundary (covering southern Florida and Texas)
-  east: -66.0, // Eastern boundary (covering the East Coast)
-  west: -125.0, // Western boundary (covering the West Coast)
+  north: 42.0, // Northern boundary (reduced to focus on route corridor)
+  south: 32.0, // Southern boundary (focused on Route 66 area)
+  east: -87.0, // Eastern boundary (Chicago area)
+  west: -118.0, // Western boundary (Los Angeles area)
 };
 
-// Map restrictions with bounds to show continental US
+// Map restrictions with bounds to show Route 66 corridor only
 export const mapRestrictions = {
   latLngBounds: mapBounds,
-  strictBounds: true, // Enable strict bounds to prevent panning outside continental US
+  strictBounds: true, // Enable strict bounds to keep focus on Route 66
 };
 
 // Route 66 states to highlight (using full names now for more reliable matching)
@@ -35,13 +34,13 @@ export const route66StateIds = ['California', 'Arizona', 'New Mexico', 'Texas', 
 // Custom styling to focus on Route 66 and de-emphasize other areas
 export const mapOptions = {
   disableDefaultUI: false,
-  zoomControl: false,
+  zoomControl: true, // Enable zoom controls
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: true,
   restriction: mapRestrictions,
-  minZoom: 3, // Reduced minimum zoom to see the full continental US
-  maxZoom: 10, // Increased maximum zoom for more detail when needed
+  minZoom: 4, // Increased minimum zoom for Route 66 focus
+  maxZoom: 12, // Reasonable maximum zoom for route exploration
   gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
   styles: [
     {
@@ -96,4 +95,3 @@ export const polylineOptions = {
 };
 
 // Note: API key is now managed centrally in the useGoogleMaps hook
-

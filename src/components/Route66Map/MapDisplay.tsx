@@ -38,7 +38,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   if (!hasApiKey) {
     console.log('🔑 No API key available, showing input form');
     return (
-      <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
+      <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
         <ApiKeyInput onApiKeySet={handleApiKeySet} />
       </div>
     );
@@ -48,7 +48,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return (
-      <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
+      <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
         <ApiKeyInput 
           onApiKeySet={handleApiKeySet} 
           error={`Failed to load Google Maps: ${loadError.message}. Please check your API key and ensure it has the necessary permissions.`}
@@ -60,7 +60,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   // Show loading state while Google Maps API is loading
   if (!isLoaded) {
     return (
-      <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
+      <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
         <MapLoadingStates loadError={undefined} isLoaded={false} />
       </div>
     );
@@ -69,7 +69,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 successfully');
 
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden shadow-lg">
+    <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
       <GoogleMapsRoute66
         selectedState={selectedState}
         onStateClick={onStateClick}
