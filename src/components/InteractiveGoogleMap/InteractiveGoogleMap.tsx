@@ -48,13 +48,13 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options optimized for Route 66 experience with disabled zoom interactions
+  // Map options optimized for Route 66 experience with enabled zoom interactions
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
     return {
-      // Disable ALL zoom interactions except through custom controls
-      scrollwheel: false, // Disable scroll wheel zoom
-      disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'none', // Disable all gesture handling
+      // Enable zoom interactions
+      scrollwheel: true, // Enable scroll wheel zoom
+      disableDoubleClickZoom: false, // Enable double-click zoom
+      gestureHandling: 'greedy', // Enable all gesture handling
       
       // Map controls configuration
       zoomControl: showDefaultZoomControls, // Enable/disable based on prop
@@ -101,11 +101,11 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    // Set proper options on the map to ensure zoom is disabled
+    // Set proper options on the map to ensure zoom is enabled
     map.setOptions({ 
-      scrollwheel: false, // Disable scroll wheel zoom
-      disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'none', // Disable all gesture handling
+      scrollwheel: true, // Enable scroll wheel zoom
+      disableDoubleClickZoom: false, // Enable double-click zoom
+      gestureHandling: 'greedy', // Enable all gesture handling
       zoomControl: showDefaultZoomControls,
       zoomControlOptions: showDefaultZoomControls ? {
         position: google.maps.ControlPosition.RIGHT_BOTTOM

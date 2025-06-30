@@ -33,11 +33,6 @@ const InteractiveMapLegend: React.FC = () => {
       ),
       label: "Drive-In Theaters",
       description: "Classic American drive-ins"
-    },
-    {
-      icon: <div className="w-6 h-1 bg-red-600 rounded-sm shadow-sm"></div>,
-      label: "Route 66 Path",
-      description: "The historic Mother Road"
     }
   ];
 
@@ -67,12 +62,6 @@ const InteractiveMapLegend: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
-        
-        <div className="mt-4 pt-3 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500">
-            💡 Click markers for details
-          </p>
         </div>
       </div>
     </div>
