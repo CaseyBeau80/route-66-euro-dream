@@ -40,7 +40,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     resetConfirmation
   } = useBlockingDayValidation(formData);
 
-  console.log('📝 TripPlannerForm render (BLOCKING APPROACH):', {
+  console.log('📝 TripPlannerForm render (NO BLOCKING):', {
     formData,
     isPlanning,
     dayAdjustmentInfo: !!dayAdjustmentInfo,
@@ -50,29 +50,16 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   });
 
   const handlePlanTrip = async () => {
-    console.log('🚀 TripPlannerForm: Plan trip button clicked (BLOCKING APPROACH)');
+    console.log('🚀 TripPlannerForm: Plan trip button clicked (NO BLOCKING)');
     
-    if (isBlocked) {
-      console.log('🚫 Planning blocked - confirmation in progress');
-      return;
-    }
-
-    // Check if day adjustment is needed and get confirmation
-    const canProceed = await checkAndConfirmAdjustment();
-    
-    if (!canProceed) {
-      console.log('❌ User did not confirm day adjustment - planning cancelled');
-      return;
-    }
-
     try {
-      // Use adjusted data if there was an adjustment
+      // Use adjusted data if there was an adjustment, otherwise use original data
       const dataToUse = dayAdjustmentInfo ? {
         ...formData,
         travelDays: dayAdjustmentInfo.minimum
       } : formData;
 
-      console.log('🚀 Proceeding with planning:', dataToUse);
+      console.log('🚀 Proceeding with planning (no confirmation needed):', dataToUse);
       await onPlanTrip(dataToUse);
     } catch (error) {
       console.error('❌ TripPlannerForm: Planning failed:', error);
@@ -141,23 +128,11 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <div className="bg-white rounded-xl shadow-sm border border-route66-border p-4">
           <ActionButtonsSection 
             isFormValid={isFormValid} 
-            isPlanning={isPlanning || isBlocked} 
+            isPlanning={isPlanning} 
             onPlanTrip={handlePlanTrip} 
             onResetTrip={onResetTrip}
             needsAdjustmentAcknowledgment={false}
           />
-          
-          {/* Show blocking indicator */}
-          {isBlocked && (
-            <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-3">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-yellow-600 border-t-transparent"></div>
-                <p className="font-medium text-yellow-800">
-                  Please respond to the confirmation dialog...
-                </p>
-              </div>
-            </div>
-          )}
         </div>
 
       </div>
