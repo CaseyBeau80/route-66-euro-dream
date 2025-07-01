@@ -39,6 +39,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     planningState, 
     startPlanning, 
     acknowledgeAdjustment, 
+    proceedWithPlanning,
     resetPlanning,
     canProceedWithPlanning 
   } = useTwoPhasePlanning(formData);
@@ -69,11 +70,11 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     // Acknowledge the adjustment first
     acknowledgeAdjustment();
     
-    // Small delay to ensure state update, then proceed with planning
+    // Small delay to ensure state update, then proceed with planning using the new function
     setTimeout(async () => {
       console.log('🎯 TripPlannerForm: Proceeding with planning after acknowledgment');
       try {
-        await startPlanning(onPlanTrip);
+        await proceedWithPlanning(onPlanTrip);
       } catch (error) {
         console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
         resetPlanning();
