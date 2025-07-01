@@ -9,22 +9,22 @@ const TollRoads = ({ language }: TollRoadsProps) => {
   const content = tollRoadsContent[language as keyof typeof tollRoadsContent] || tollRoadsContent.en;
   
   return (
-    <section className="py-8 bg-route66-background">
+    <section className="py-4 bg-route66-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8 bg-route66-background-alt p-6 rounded-xl shadow-lg border-2 border-blue-500">
-          <h2 className="text-3xl font-route66 text-blue-500 mb-3 font-bold">{content.title}</h2>
-          <p className="text-route66-text-secondary max-w-2xl mx-auto text-lg font-medium">{content.subtitle}</p>
+        <div className="text-center mb-4 bg-route66-background-alt p-4 rounded-xl shadow-lg border-2 border-blue-500">
+          <h2 className="text-2xl font-route66 text-blue-500 mb-2 font-bold">{content.title}</h2>
+          <p className="text-route66-text-secondary max-w-2xl mx-auto text-base font-medium">{content.subtitle}</p>
         </div>
         
         {/* Main Information Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {content.sections.map((section, index) => (
             <TollRoadInfoCard key={index} section={section} />
           ))}
         </div>
         
         {/* Cost Breakdown Card */}
-        <div className="mb-8">
+        <div className="mb-4">
           <CostBreakdownCard estimatedCosts={content.estimatedCosts} />
         </div>
         
