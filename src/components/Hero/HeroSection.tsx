@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import cakeImage from "@/assets/route66-100th-cake.jpg";
 
 
 interface HeroSectionProps {
@@ -58,6 +59,23 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-6">
+              {/* Birthday Cake for 100th Anniversary */}
+              <div className="flex justify-center lg:justify-start mb-6">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/20 via-pink-400/20 to-pink-500/20 rounded-full blur-2xl animate-pulse"></div>
+                  <div className="relative bg-white rounded-xl p-3 shadow-lg border-2 border-pink-200/50">
+                    <img 
+                      src={cakeImage} 
+                      alt="Route 66 100th Anniversary Celebration Cake" 
+                      className="w-24 h-24 lg:w-32 lg:h-32 object-contain rounded-lg"
+                    />
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-bounce">
+                    100!
+                  </div>
+                </div>
+              </div>
+
               {/* Title - Bold, uppercase, bright blue */}
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
                 {content.title}
