@@ -1,79 +1,84 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, RotateCcw, Sparkles } from 'lucide-react';
+import { MapPin, RotateCcw, AlertCircle } from 'lucide-react';
 
 interface ActionButtonsSectionProps {
   isFormValid: boolean;
   isPlanning: boolean;
   onPlanTrip: () => void;
   onResetTrip: () => void;
+  needsAdjustmentAcknowledgment?: boolean;
 }
 
 const ActionButtonsSection: React.FC<ActionButtonsSectionProps> = ({
   isFormValid,
   isPlanning,
   onPlanTrip,
-  onResetTrip
+  onResetTrip,
+  needsAdjustmentAcknowledgment = false
 }) => {
+  console.log('🎯 ActionButtonsSection render:', {
+    isFormValid,
+    isPlanning,
+    needsAdjustmentAcknowledgment
+  });
+
+  const canPlan = isFormValid && !needsAdjustmentAcknowledgment;
+
   return (
     <div className="space-y-4">
-      {/* Primary Action Button */}
+      
+      {/* Trip Planning Button */}
       <div className="relative">
-        {/* Enhanced Plan Button */}
         <Button
           onClick={onPlanTrip}
-          disabled={!isFormValid || isPlanning}
-          className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-700 hover:via-blue-800 hover:to-blue-900 text-white py-6 text-xl font-bold rounded-xl flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none border-0"
+          disabled={!canPlan || isPlanning}
+          className={`w-full py-6 text-xl font-bold rounded-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+            canPlan && !isPlanning
+              ? 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white'
+              : 'bg-gray-300 text-gray-500'
+          }`}
         >
           {isPlanning ? (
             <>
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
               <span className="animate-pulse">Planning Your Route 66 Adventure...</span>
-              <Sparkles className="h-6 w-6 animate-pulse" />
             </>
           ) : (
             <>
               <MapPin className="h-6 w-6" />
-              <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent font-black tracking-wide">
-                Plan My Route 66 Adventure
-              </span>
-              <Sparkles className="h-6 w-6 text-yellow-300" />
+              <span>Plan My Route 66 Adventure</span>
             </>
           )}
         </Button>
-        
-        {/* Floating sparkle effects */}
-        {!isPlanning && isFormValid && (
-          <>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping opacity-75"></div>
-            <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }}></div>
-          </>
-        )}
       </div>
 
-      {/* Secondary Actions */}
-      <div className="flex justify-center">
-        <Button
-          onClick={onResetTrip}
-          variant="outline"
-          size="sm"
-          className="border-route66-border text-route66-text-secondary hover:bg-route66-background-alt"
-        >
-          <RotateCcw className="h-4 w-4 mr-2" />
-          Reset Form
-        </Button>
-      </div>
+      {/* Warning when acknowledgment is needed */}
+      {needsAdjustmentAcknowledgment && (
+        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-yellow-800">Please confirm the trip duration adjustment above</p>
+              <p className="text-sm text-yellow-700 mt-1">
+                You need to acknowledge the day adjustment before we can plan your trip
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Call-to-action text */}
-      <div className="text-center">
-        <p className="text-lg font-semibold text-blue-700">
-          ✨ Start Your Epic Journey on America's Most Famous Highway! ✨
-        </p>
-        <p className="text-sm text-route66-text-secondary mt-1">
-          Free planning • Instant results • Customizable itinerary
-        </p>
-      </div>
+      {/* Reset Button */}
+      <Button
+        onClick={onResetTrip}
+        variant="outline"
+        className="w-full py-3 text-lg font-medium border-2 border-route66-border hover:bg-route66-background-alt transition-colors duration-200"
+      >
+        <RotateCcw className="h-5 w-5 mr-2" />
+        Reset Trip
+      </Button>
+
     </div>
   );
 };

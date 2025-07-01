@@ -1,22 +1,28 @@
 
 import React from 'react';
-import { AlertTriangle, Clock, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Clock, ArrowRight, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 
 interface InlineDayAdjustmentNoticeProps {
   formData: TripFormData;
+  onAcknowledge: () => void;
+  isAcknowledged: boolean;
   className?: string;
 }
 
 const InlineDayAdjustmentNotice: React.FC<InlineDayAdjustmentNoticeProps> = ({
   formData,
+  onAcknowledge,
+  isAcknowledged,
   className = ""
 }) => {
   const { dayAdjustmentInfo } = useFormValidation(formData);
 
-  console.log('🎯 InlineDayAdjustmentNotice render:', {
+  console.log('🎯 InlineDayAdjustmentNotice render (SIMPLE APPROACH):', {
     dayAdjustmentInfo,
+    isAcknowledged,
     formData: {
       startLocation: formData.startLocation,
       endLocation: formData.endLocation,
@@ -29,18 +35,26 @@ const InlineDayAdjustmentNotice: React.FC<InlineDayAdjustmentNoticeProps> = ({
     return null;
   }
 
-  console.log('🚨 SHOWING INLINE DAY ADJUSTMENT NOTICE:', dayAdjustmentInfo);
+  console.log('🚨 SHOWING INLINE DAY ADJUSTMENT NOTICE (SIMPLE APPROACH):', dayAdjustmentInfo);
 
   return (
     <div className={`bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-6 shadow-lg ${className}`}>
       {/* Header with warning icon */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="bg-red-500 rounded-full p-2">
-          <AlertTriangle className="h-6 w-6 text-white" />
+        <div className={`rounded-full p-2 ${isAcknowledged ? 'bg-green-500' : 'bg-red-500'}`}>
+          {isAcknowledged ? (
+            <CheckCircle className="h-6 w-6 text-white" />
+          ) : (
+            <AlertTriangle className="h-6 w-6 text-white" />
+          )}
         </div>
         <div>
-          <h3 className="text-xl font-bold text-red-800">Trip Duration Adjusted</h3>
-          <p className="text-sm text-red-700">We had to change your trip length for safety</p>
+          <h3 className={`text-xl font-bold ${isAcknowledged ? 'text-green-800' : 'text-red-800'}`}>
+            {isAcknowledged ? 'Trip Duration Confirmed' : 'Trip Duration Adjusted'}
+          </h3>
+          <p className={`text-sm ${isAcknowledged ? 'text-green-700' : 'text-red-700'}`}>
+            {isAcknowledged ? 'Ready to plan your trip' : 'We had to change your trip length for safety'}
+          </p>
         </div>
       </div>
 
@@ -99,7 +113,7 @@ const InlineDayAdjustmentNotice: React.FC<InlineDayAdjustmentNoticeProps> = ({
       </div>
 
       {/* Benefits */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
         <h4 className="font-bold text-green-800 mb-3">Your {dayAdjustmentInfo.minimum}-Day Trip Will Be Better:</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="flex items-center gap-2 text-sm text-green-700">
@@ -120,6 +134,35 @@ const InlineDayAdjustmentNotice: React.FC<InlineDayAdjustmentNoticeProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Acknowledgment Button */}
+      {!isAcknowledged && (
+        <div className="text-center">
+          <Button
+            onClick={onAcknowledge}
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+          >
+            <CheckCircle className="h-5 w-5 mr-2" />
+            I Understand - Use {dayAdjustmentInfo.minimum} Days
+          </Button>
+          <p className="text-sm text-gray-600 mt-2">
+            Click to confirm and enable trip planning
+          </p>
+        </div>
+      )}
+
+      {/* Confirmed State */}
+      {isAcknowledged && (
+        <div className="text-center bg-green-100 border border-green-300 rounded-lg p-4">
+          <div className="flex items-center justify-center gap-2 text-green-800">
+            <CheckCircle className="h-5 w-5" />
+            <span className="font-bold">Confirmed: {dayAdjustmentInfo.minimum}-day trip</span>
+          </div>
+          <p className="text-sm text-green-700 mt-1">
+            You can now proceed to plan your Route 66 adventure
+          </p>
+        </div>
+      )}
     </div>
   );
 };
