@@ -37,8 +37,9 @@ const Route66TripCalculator: React.FC = () => {
     };
   }, []);
 
-  const handlePlanTrip = () => {
-    calculateTrip(formData);
+  const handlePlanTrip = async (data: TripFormData) => {
+    console.log('🚀 Route66TripCalculator: Planning trip with data:', data);
+    await calculateTrip(data);
   };
 
   const handleLocationChange = (type: 'start' | 'end', location: string) => {
