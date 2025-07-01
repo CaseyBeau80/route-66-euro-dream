@@ -127,21 +127,7 @@ const FunSection: React.FC<FunSectionProps> = ({
   return <section className="py-20 bg-gradient-to-br from-route66-background to-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-100 to-orange-100 text-orange-600 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-            <Gamepad2 className="w-4 h-4" />
-            {content.badge}
-          </div>
-          <h2 className="text-4xl md:text-5xl font-route66 font-bold text-route66-text-primary mb-6">
-            {content.title}
-          </h2>
-          <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto mb-8">
-            {content.subtitle}
-          </p>
-          <p className="text-lg text-route66-text-muted max-w-4xl mx-auto leading-relaxed">
-            {content.description}
-          </p>
-        </div>
+        
 
         {/* Activities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
