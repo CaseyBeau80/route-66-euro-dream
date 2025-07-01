@@ -9,11 +9,11 @@ type TollRoadLinksCardProps = {
 
 const TollRoadLinksCard = ({ tollRoadLinks }: TollRoadLinksCardProps) => {
   return (
-    <Card className="border-4 border-route66-red bg-white shadow-2xl hover:shadow-3xl transition-all duration-300">
-      <CardContent className="p-10">
-        <div className="text-center mb-8">
-          <h3 className="text-4xl font-route66 text-route66-red mb-4 font-bold">{tollRoadLinks.title}</h3>
-          <p className="text-gray-900 max-w-3xl mx-auto text-xl font-semibold leading-relaxed">{tollRoadLinks.subtitle}</p>
+    <Card className="border-2 border-red-500 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+      <CardContent className="p-8">
+        <div className="text-center mb-6">
+          <h3 className="text-3xl font-route66 text-red-500 mb-3 font-bold uppercase">{tollRoadLinks.title}</h3>
+          <p className="text-gray-700 max-w-3xl mx-auto text-lg leading-relaxed">{tollRoadLinks.subtitle}</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -23,17 +23,17 @@ const TollRoadLinksCard = ({ tollRoadLinks }: TollRoadLinksCardProps) => {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group block bg-route66-cream p-6 rounded-xl border-4 border-route66-vintage-brown hover:border-route66-orange hover:bg-white transition-all duration-300 transform hover:scale-105"
+              className="group block bg-gray-50 p-5 rounded-lg border-2 border-gray-300 hover:border-red-500 hover:bg-white transition-all duration-300"
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-1">
-                  <ExternalLink className="h-6 w-6 text-route66-red group-hover:text-route66-orange transition-colors duration-300" />
+                  <ExternalLink className="h-5 w-5 text-red-500 group-hover:text-red-600 transition-colors duration-300" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-route66 text-route66-red group-hover:text-route66-orange mb-2 transition-colors duration-300">
+                  <h4 className="text-lg font-route66 text-red-500 group-hover:text-red-600 mb-2 transition-colors duration-300 uppercase font-bold">
                     {link.name}
                   </h4>
-                  <p className="text-gray-800 font-travel leading-relaxed">
+                  <p className="text-gray-700 leading-relaxed">
                     {link.description}
                   </p>
                 </div>
@@ -42,8 +42,8 @@ const TollRoadLinksCard = ({ tollRoadLinks }: TollRoadLinksCardProps) => {
           ))}
         </div>
         
-        <div className="mt-8 p-6 bg-route66-vintage-yellow rounded-xl border-4 border-route66-red shadow-lg">
-          <p className="text-base text-route66-navy font-semibold leading-relaxed text-center">
+        <div className="mt-6 p-4 bg-red-50 rounded-lg border-2 border-red-200 shadow-sm">
+          <p className="text-sm text-gray-700 leading-relaxed text-center">
             💡 <strong>Pro Tip:</strong> Check these official websites for the most current toll rates, payment options, and any construction updates that might affect your Route 66 journey.
           </p>
         </div>
