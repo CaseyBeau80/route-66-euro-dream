@@ -3,12 +3,12 @@ import React from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
 import FormValidationHelper from '../../TripCalculator/components/FormValidationHelper';
+import TwoPhasePlanningModal from '../../TripCalculator/components/TwoPhasePlanningModal';
 import { useTwoPhasePlanning } from '../../TripCalculator/hooks/useTwoPhasePlanning';
 import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
 import ActionButtonsSection from './ActionButtonsSection';
-import InlineDayAdjustmentNotice from './InlineDayAdjustmentNotice';
 
 interface TripPlannerFormProps {
   formData: TripFormData;
@@ -37,27 +37,39 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   const { 
     planningState, 
     startPlanning, 
-    acknowledgeAdjustment, 
+    acknowledgeAdjustment,
+    proceedWithPlanning,
     resetPlanning,
+    closeModal,
     needsAdjustment,
     canProceedWithPlanning 
   } = useTwoPhasePlanning(formData);
 
-  console.log('📝 TripPlannerForm render (SIMPLE APPROACH):', {
+  console.log('📝 TripPlannerForm render:', {
     formData,
     isPlanning,
     planningPhase: planningState.phase,
     needsAdjustment,
     canProceedWithPlanning,
-    userAcknowledged: planningState.userAcknowledgedAdjustment,
-    isProcessing: planningState.isProcessing
+    showModal: planningState.showModal
   });
 
   const handlePlanTrip = async () => {
-    console.log('🚀 TripPlannerForm: Plan trip button clicked (SIMPLE APPROACH)');
+    console.log('🚀 TripPlannerForm: Plan trip button clicked');
     
     try {
       await startPlanning(onPlanTrip);
+    } catch (error) {
+      console.error('❌ TripPlannerForm: Planning failed:', error);
+      resetPlanning();
+    }
+  };
+
+  const handleProceedWithPlanning = async () => {
+    console.log('🚀 TripPlannerForm: Proceeding with planning after acknowledgment');
+    
+    try {
+      await proceedWithPlanning(onPlanTrip);
     } catch (error) {
       console.error('❌ TripPlannerForm: Planning failed:', error);
       resetPlanning();
@@ -68,6 +80,15 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Two-Phase Planning Modal */}
+      <TwoPhasePlanningModal
+        formData={formData}
+        planningState={planningState}
+        onAcknowledge={acknowledgeAdjustment}
+        onProceedWithPlanning={handleProceedWithPlanning}
+        onClose={closeModal}
+      />
+
       {/* Unified Header */}
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
@@ -100,16 +121,6 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <h3 className="text-lg font-semibold text-route66-text-primary">Trip Details</h3>
           </div>
-          
-          {/* Inline Day Adjustment Notice - Always show when needed */}
-          {dayAdjustmentInfo && (
-            <InlineDayAdjustmentNotice 
-              formData={formData} 
-              onAcknowledge={acknowledgeAdjustment}
-              isAcknowledged={planningState.userAcknowledgedAdjustment}
-              className="mb-4" 
-            />
-          )}
           
           <TripDetailsSection 
             tripStartDate={formData.tripStartDate} 
