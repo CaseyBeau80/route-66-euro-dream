@@ -1,16 +1,16 @@
-
 import React from 'react';
 import { Calendar, Users, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
+import ActionableDayAdjustmentMessage from '../../TripCalculator/components/ActionableDayAdjustmentMessage';
 
 interface TripDetailsSectionProps {
   tripStartDate?: Date;
   travelDays: number;
   onStartDateChange: (date: Date | undefined) => void;
   onTravelDaysChange: (days: number) => void;
-  formData?: TripFormData; // Add formData to access validation
+  formData?: TripFormData;
 }
 
 const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
@@ -23,9 +23,9 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
   const MIN_DAYS = 1;
   const MAX_DAYS = 14;
   
-  // Get day adjustment info if formData is provided
-  const validationResult = formData ? useFormValidation(formData) : { dayAdjustmentInfo: null };
-  const { dayAdjustmentInfo } = validationResult;
+  // Get validation result if formData is provided
+  const validationResult = formData ? useFormValidation(formData) : { dayAdjustmentInfo: null, isFormValid: true };
+  const { dayAdjustmentInfo, isFormValid } = validationResult;
   
   // Generate array of day options from 1 to 14
   const dayOptions = Array.from({ length: MAX_DAYS - MIN_DAYS + 1 }, (_, i) => MIN_DAYS + i);
@@ -42,6 +42,13 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
       console.log(`❌ FIXED: Invalid value rejected: ${numValue} (must be between ${MIN_DAYS}-${MAX_DAYS})`);
     }
   };
+
+  // Determine if we should show the actionable message
+  const shouldShowActionableMessage = !isFormValid && 
+    dayAdjustmentInfo && 
+    dayAdjustmentInfo.minimum > travelDays &&
+    formData?.startLocation && 
+    formData?.endLocation;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -92,7 +99,17 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
           </SelectContent>
         </Select>
         
-        {dayAdjustmentInfo && (
+        {/* New Actionable Message - Only show when form is invalid due to insufficient days */}
+        {shouldShowActionableMessage && (
+          <ActionableDayAdjustmentMessage 
+            currentDays={travelDays}
+            requiredDays={dayAdjustmentInfo.minimum}
+            className="mt-2"
+          />
+        )}
+        
+        {/* Keep existing informational message for when trip is already planned */}
+        {dayAdjustmentInfo && isFormValid && (
           <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
             💡 Days adjusted from {dayAdjustmentInfo.requested} to {dayAdjustmentInfo.minimum} for comfortable daily drives
           </p>
