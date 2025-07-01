@@ -19,19 +19,13 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
   const [showCostEstimator, setShowCostEstimator] = useState(false);
   
   const {
-    estimates,
-    loading,
-    error,
-    generateEstimates,
-    clearEstimates
-  } = useCostEstimator(formData, tripPlan);
+    costData,
+    setCostData,
+    costEstimate
+  } = useCostEstimator(tripPlan);
 
   const handleToggleCostEstimator = () => {
     setShowCostEstimator(!showCostEstimator);
-    
-    if (!showCostEstimator && !estimates) {
-      generateEstimates();
-    }
   };
 
   return (
@@ -55,8 +49,8 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
         </Button>
       </div>
 
-      {/* Cost Summary - Only show when we have estimates */}
-      {estimates && !showCostEstimator && (
+      {/* Cost Summary - Only show when we have cost estimate */}
+      {costEstimate && !showCostEstimator && (
         <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4 mb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -65,10 +59,10 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-green-700">
-                ${estimates.total.min.toLocaleString()} - ${estimates.total.max.toLocaleString()}
+                ${costEstimate.breakdown.totalCost.toLocaleString()}
               </div>
               <div className="text-sm text-gray-600">
-                For {formData.travelDays} days • {estimates.travelers} traveler{estimates.travelers > 1 ? 's' : ''}
+                For {formData.travelDays} days • {costData.groupSize} traveler{costData.groupSize > 1 ? 's' : ''}
               </div>
             </div>
           </div>
@@ -79,12 +73,8 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
       {showCostEstimator && (
         <div className="animate-in slide-in-from-top-2 duration-300">
           <CostEstimatorForm
-            formData={formData}
-            tripPlan={tripPlan}
-            onEstimatesGenerated={(newEstimates) => {
-              // Handle the estimates if needed
-              console.log('Cost estimates generated:', newEstimates);
-            }}
+            costData={costData}
+            setCostData={setCostData}
           />
         </div>
       )}
