@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from './useFormValidation';
@@ -65,8 +64,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'complete', 
-        isProcessing: false,
-        showModal: false // Close modal when complete
+        isProcessing: false
+        // Keep showModal: true - don't close it automatically
       }));
       
     } catch (error) {
@@ -85,8 +84,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     console.log('✅ User acknowledged day adjustment');
     setPlanningState(prev => ({ 
       ...prev, 
-      userAcknowledgedAdjustment: true,
-      phase: 'acknowledgment' // Keep in acknowledgment phase
+      userAcknowledgedAdjustment: true
+      // Keep showModal: true and phase: 'acknowledgment'
     }));
   }, []);
 
@@ -98,6 +97,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
         ...prev, 
         phase: 'planning', 
         isProcessing: true
+        // Keep showModal: true
       }));
       
       // Use adjusted data
@@ -112,8 +112,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'complete', 
-        isProcessing: false,
-        showModal: false
+        isProcessing: false
+        // Keep showModal: true - user must manually close
       }));
       
     } catch (error) {
@@ -139,10 +139,14 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   }, []);
 
   const closeModal = useCallback(() => {
-    console.log('🔄 Closing modal');
+    console.log('🔄 Closing modal - user manually closed');
     setPlanningState(prev => ({ 
       ...prev, 
-      showModal: false
+      showModal: false,
+      // Reset to form state when manually closed
+      phase: 'form',
+      userAcknowledgedAdjustment: false,
+      isProcessing: false
     }));
   }, []);
 

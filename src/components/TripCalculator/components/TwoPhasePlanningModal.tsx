@@ -23,7 +23,15 @@ const TwoPhasePlanningModal: React.FC<TwoPhasePlanningModalProps> = ({
 }) => {
   const { dayAdjustmentInfo } = useFormValidation(formData);
 
-  if (!planningState.showModal || !dayAdjustmentInfo) {
+  // Simplified visibility logic - just check if modal should be shown
+  if (!planningState.showModal) {
+    return null;
+  }
+
+  // If no day adjustment info but modal is showing, something is wrong - close it
+  if (!dayAdjustmentInfo) {
+    console.log('⚠️ Modal showing but no day adjustment info - closing');
+    onClose();
     return null;
   }
 
