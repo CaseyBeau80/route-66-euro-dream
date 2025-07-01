@@ -113,11 +113,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                       className="w-20 h-20 lg:w-28 lg:h-28 object-contain rounded-lg flex-shrink-0"
                     />
                     <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
-                      <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none">
-                        {mounted ? timeLeft.days : '---'}
-                      </div>
-                      <div className="text-lg lg:text-xl font-semibold text-route66-primary mt-1">
-                        Days Until Centennial
+                      <div className="flex items-baseline gap-3">
+                        <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none">
+                          {mounted ? timeLeft.days : '---'}
+                        </div>
+                        <div className="text-lg lg:text-xl font-semibold text-route66-primary">
+                          Days Until Centennial
+                        </div>
                       </div>
                       <div className="text-sm lg:text-base text-route66-text-secondary mt-1">
                         November 11, 2026
