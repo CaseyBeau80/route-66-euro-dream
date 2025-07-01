@@ -24,7 +24,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     'both should show': !!dayAdjustmentInfo && isFormValid
   });
 
-  // Show day adjustment notice when available (independent of form validity)
+  // Show day adjustment notice when available (always show if present)
   const showDayAdjustment = !!dayAdjustmentInfo;
   
   // Show form validation issues when form is invalid
@@ -37,7 +37,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     showDayAdjustment,
     showValidationIssues,
     showSuccessMessage,
-    'all conditions': { isFormValid, dayAdjustmentInfo: !!dayAdjustmentInfo, validationIssues: validationIssues.length }
+    'will show both day adjustment and success': showDayAdjustment && isFormValid
   });
 
   // Don't render anything if no messages to show
@@ -47,7 +47,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* Day Adjustment Notice - Shows independently */}
+      {/* Day Adjustment Notice - Always shows when present */}
       {showDayAdjustment && dayAdjustmentInfo && (
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-xl p-4 shadow-md animate-in slide-in-from-top-2 duration-300">
           <div className="flex items-start gap-3">
@@ -111,7 +111,24 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
         </div>
       )}
 
-      {/* Form Validation Issues */}
+      {/* Success Message - Shows when form is valid (can show with day adjustment) */}
+      {isFormValid && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 shadow-md">
+          <div className="flex items-start gap-3">
+            <div className="bg-green-500 rounded-full p-2">
+              <CheckCircle className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-green-800 mb-1">Ready to Plan!</h3>
+              <p className="text-sm text-green-700">
+                All trip details are complete. Click the plan button to generate your Route 66 adventure!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form Validation Issues - Shows when form is invalid */}
       {showValidationIssues && (
         <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-xl p-4 shadow-md">
           <div className="flex items-start gap-3">
@@ -128,23 +145,6 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Success Message */}
-      {showSuccessMessage && (
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 shadow-md">
-          <div className="flex items-start gap-3">
-            <div className="bg-green-500 rounded-full p-2">
-              <CheckCircle className="h-5 w-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-green-800 mb-1">Ready to Plan!</h3>
-              <p className="text-sm text-green-700">
-                All trip details are complete. Click the plan button to generate your Route 66 adventure!
-              </p>
             </div>
           </div>
         </div>
