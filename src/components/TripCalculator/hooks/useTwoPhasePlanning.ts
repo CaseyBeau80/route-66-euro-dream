@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from './useFormValidation';
@@ -62,8 +61,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'planning', 
-        isProcessing: true,
-        showModal: false // Only hide modal when actually starting to plan
+        isProcessing: true
+        // KEEP showModal true during planning so user can see the message
       }));
       
       const dataToUse = planningState.adjustedFormData || formData;
@@ -76,7 +75,12 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       await onPlanTrip(dataToUse);
       
       console.log('✅ TWO-PHASE: Planning completed successfully');
-      setPlanningState(prev => ({ ...prev, phase: 'complete', isProcessing: false }));
+      setPlanningState(prev => ({ 
+        ...prev, 
+        phase: 'complete', 
+        isProcessing: false,
+        showModal: false // Only hide modal when planning is completely done
+      }));
       
     } catch (error) {
       console.error('❌ TWO-PHASE: Planning failed:', error);
@@ -95,7 +99,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     setPlanningState(prev => ({ 
       ...prev, 
       adjustmentAcknowledged: true
-      // Keep showModal: true until planning actually starts
+      // Keep showModal: true so user can continue to see the modal during planning
     }));
   }, []);
 
@@ -107,15 +111,20 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'planning', 
-        isProcessing: true,
-        showModal: false // Hide modal now that we're planning
+        isProcessing: true
+        // KEEP showModal: true during planning so user can see the progress
       }));
       
       const dataToUse = planningState.adjustedFormData || formData;
       await onPlanTrip(dataToUse);
       
       console.log('✅ TWO-PHASE: Planning completed successfully after acknowledgment');
-      setPlanningState(prev => ({ ...prev, phase: 'complete', isProcessing: false }));
+      setPlanningState(prev => ({ 
+        ...prev, 
+        phase: 'complete', 
+        isProcessing: false,
+        showModal: false // Only hide modal when planning is completely done
+      }));
       
     } catch (error) {
       console.error('❌ TWO-PHASE: Planning failed after acknowledgment:', error);

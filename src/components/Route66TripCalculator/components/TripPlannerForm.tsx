@@ -4,7 +4,7 @@ import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
 import FormValidationHelper from '../../TripCalculator/components/FormValidationHelper';
 import TwoPhasePlanningModal from '../../TripCalculator/components/TwoPhasePlanningModal';
-import { useTwoPhasePlanning } from '../../TripCalculator/hooks/useTwoPhasePlanning';
+import { useTwoPhasePlanning } from '../../TripCalcululator/hooks/useTwoPhasePlanning';
 import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
@@ -50,7 +50,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     planningPhase: planningState.phase,
     needsAdjustment: !!dayAdjustmentInfo,
     showModal: planningState.showModal,
-    adjustmentAcknowledged: planningState.adjustmentAcknowledged
+    adjustmentAcknowledged: planningState.adjustmentAcknowledged,
+    isProcessing: planningState.isProcessing
   });
 
   const handlePlanTrip = async () => {
@@ -70,7 +71,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     // Acknowledge the adjustment first
     acknowledgeAdjustment();
     
-    // Small delay to ensure state update, then proceed with planning using the new function
+    // Longer delay to ensure state update, then proceed with planning using the new function
     setTimeout(async () => {
       console.log('🎯 TripPlannerForm: Proceeding with planning after acknowledgment');
       try {
@@ -79,7 +80,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
         resetPlanning();
       }
-    }, 100);
+    }, 500); // Increased delay to 500ms
   };
 
   const handleCancelAdjustment = () => {
@@ -96,7 +97,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
-      {/* Two-Phase Planning Modal - Show based on showModal flag */}
+      {/* Two-Phase Planning Modal - Show based on showModal flag and pass processing state */}
       {planningState.showModal && dayAdjustmentInfo && planningState.adjustedFormData && (
         <TwoPhasePlanningModal
           isOpen={true}
@@ -104,6 +105,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
           formData={planningState.adjustedFormData}
           onAcknowledge={handleAcknowledgeAdjustment}
           onCancel={handleCancelAdjustment}
+          isProcessing={planningState.isProcessing}
         />
       )}
 
