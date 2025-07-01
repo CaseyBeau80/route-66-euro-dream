@@ -27,9 +27,9 @@ export const useFormValidation = (formData: TripFormData) => {
       hasValidTravelDays
     });
 
-    // Check if route requires day adjustment
-    if (hasStartLocation && hasEndLocation && hasValidTravelDays) {
-      console.log('🔍 DEBUGGING: Checking day adjustment logic...');
+    // FIXED: Check if route requires day adjustment - only need locations and valid travel days
+    if (hasStartLocation && hasEndLocation && formData.travelDays > 0 && formData.travelDays <= MAX_DAYS) {
+      console.log('🔍 DEBUGGING: Checking day adjustment logic for valid travel days...');
       
       const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
       console.log('🔍 DEBUGGING: Style config:', styleConfig);
@@ -47,37 +47,52 @@ export const useFormValidation = (formData: TripFormData) => {
         'validation.minDaysRequired': validation.minDaysRequired,
         'formData.travelDays': formData.travelDays,
         'minDaysRequired > travelDays': validation.minDaysRequired > formData.travelDays,
-        'should create dayAdjustmentInfo': !validation.isValid && validation.minDaysRequired > formData.travelDays
+        'validation has issues': validation.issues?.length > 0
       });
 
-      // FIXED: Check if minimum days required is greater than requested days
-      if (validation.minDaysRequired > formData.travelDays) {
+      // ENHANCED: Create day adjustment info when minimum days required exceeds requested days
+      if (validation.minDaysRequired && validation.minDaysRequired > formData.travelDays) {
         dayAdjustmentInfo = {
           requested: formData.travelDays,
           minimum: validation.minDaysRequired,
-          reason: validation.issues[0] || 'Route requires more days for safe driving limits'
+          reason: validation.issues && validation.issues.length > 0 
+            ? validation.issues[0] 
+            : `Route requires ${validation.minDaysRequired} days minimum for safe driving limits (max 10 hours/day)`
         };
         recommendedDays = validation.minDaysRequired;
         
-        console.log('🔍 DEBUGGING: Day adjustment info created:', dayAdjustmentInfo);
+        console.log('🎯 DEBUGGING: Day adjustment info created:', dayAdjustmentInfo);
       } else {
-        console.log('🔍 DEBUGGING: No day adjustment needed - validation passed or no minimum required');
+        console.log('🔍 DEBUGGING: No day adjustment needed - either validation passed or no minimum required');
+        console.log('🔍 DEBUGGING: Reasons:', {
+          'validation.minDaysRequired': validation.minDaysRequired,
+          'formData.travelDays': formData.travelDays,
+          'comparison': validation.minDaysRequired <= formData.travelDays ? 'sufficient days' : 'insufficient days'
+        });
       }
     } else {
-      console.log('🔍 DEBUGGING: Skipping day adjustment check - missing required fields');
+      console.log('🔍 DEBUGGING: Skipping day adjustment check - missing required fields or invalid travel days:', {
+        hasStartLocation,
+        hasEndLocation,
+        travelDays: formData.travelDays,
+        isValidTravelDays: formData.travelDays > 0 && formData.travelDays <= MAX_DAYS
+      });
     }
 
+    // IMPORTANT: Form validity is independent of day adjustment
     const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate;
 
-    console.log('🔍 DEBUGGING: Final validation result:', {
+    console.log('🎯 DEBUGGING: Final validation result:', {
       hasStartLocation,
       hasEndLocation,
       hasValidTravelDays,
       travelDays: formData.travelDays,
       hasStartDate,
-      dayAdjustmentInfo,
+      dayAdjustmentInfo: !!dayAdjustmentInfo,
+      dayAdjustmentDetails: dayAdjustmentInfo,
       recommendedDays,
-      isFormValid
+      isFormValid,
+      'both can show': !!dayAdjustmentInfo && isFormValid
     });
 
     return {

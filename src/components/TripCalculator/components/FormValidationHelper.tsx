@@ -20,7 +20,11 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
   const hasBlockingError = isOverLimit || isUnderLimit;
 
-  console.log('🔍 DEBUGGING FormValidationHelper render:', {
+  // ENHANCED DEBUGGING: Show when both sections should display
+  const shouldShowDayAdjustment = !!(dayAdjustmentInfo && formData.startLocation && formData.endLocation);
+  const shouldShowFormValidation = !hasBlockingError;
+  
+  console.log('🔍 ENHANCED DEBUGGING FormValidationHelper render:', {
     travelDays: formData.travelDays,
     startLocation: formData.startLocation,
     endLocation: formData.endLocation,
@@ -28,12 +32,16 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     recommendedDays,
     hasBlockingError,
     isFormValid,
+    shouldShowDayAdjustment,
+    shouldShowFormValidation,
+    'BOTH SECTIONS SHOULD SHOW': shouldShowDayAdjustment && shouldShowFormValidation,
     'dayAdjustmentInfo exists': !!dayAdjustmentInfo,
-    'should show adjustment notice': !!(dayAdjustmentInfo && formData.startLocation && formData.endLocation)
+    'dayAdjustmentInfo details': dayAdjustmentInfo
   });
 
   // Show blocking error for over/under limit - this takes precedence over everything
   if (hasBlockingError) {
+    console.log('🚫 SHOWING BLOCKING ERROR - no other sections will display');
     return (
       <div className="bg-red-100 border-2 border-red-500 rounded-lg p-4">
         <div className="flex items-start gap-2">
@@ -94,8 +102,8 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 
   const incompleteChecks = validationChecks.filter(check => !check.isValid);
 
-  // SEPARATE RENDERING: Show day adjustment notice when applicable
-  const dayAdjustmentSection = dayAdjustmentInfo && formData.startLocation && formData.endLocation ? (
+  // ENHANCED: Day adjustment notice - show when we have adjustment info
+  const dayAdjustmentSection = shouldShowDayAdjustment ? (
     <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-6 animate-pulse">
       <div className="flex items-start gap-3">
         <AlertCircle className="h-7 w-7 text-amber-600 mt-0.5 animate-bounce" />
@@ -140,7 +148,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     </div>
   ) : null;
 
-  // SEPARATE RENDERING: Show form validation status
+  // ENHANCED: Form validation status - always show unless there's a blocking error
   const formValidationSection = isFormValid ? (
     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
       <div className="flex items-center gap-2 text-green-700">
@@ -184,14 +192,48 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     </div>
   );
 
-  // ALWAYS RENDER BOTH SECTIONS INDEPENDENTLY
+  // ENHANCED: Log what we're about to render
+  console.log('🎯 RENDERING SECTIONS:', {
+    dayAdjustmentSection: !!dayAdjustmentSection,
+    formValidationSection: !!formValidationSection,
+    bothSections: !!dayAdjustmentSection && !!formValidationSection
+  });
+
+  // CRITICAL: Always render both sections when conditions are met
   return (
     <div className="space-y-6">
-      {/* Day Adjustment Notice - Independent rendering */}
-      {dayAdjustmentSection}
+      {/* Day Adjustment Notice - Show when adjustment is needed */}
+      {dayAdjustmentSection && (
+        <div>
+          {console.log('🟢 RENDERING DAY ADJUSTMENT SECTION')}
+          {dayAdjustmentSection}
+        </div>
+      )}
       
-      {/* Form Validation Status - Independent rendering */}
-      {formValidationSection}
+      {/* Form Validation Status - Show unless there's a blocking error */}
+      {formValidationSection && (
+        <div>
+          {console.log('🟢 RENDERING FORM VALIDATION SECTION')}
+          {formValidationSection}
+        </div>
+      )}
+
+      {/* Debug info when both should show but one is missing */}
+      {shouldShowDayAdjustment && !shouldShowFormValidation && (
+        <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
+          DEBUG: Day adjustment showing, form validation hidden due to blocking error
+        </div>
+      )}
+      {!shouldShowDayAdjustment && shouldShowFormValidation && (
+        <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
+          DEBUG: Form validation showing, no day adjustment needed
+        </div>
+      )}
+      {shouldShowDayAdjustment && shouldShowFormValidation && (
+        <div className="text-xs text-green-600 p-2 bg-green-50 rounded font-semibold">
+          ✅ DEBUG: BOTH SECTIONS ARE RENDERING SIMULTANEOUSLY
+        </div>
+      )}
     </div>
   );
 };
