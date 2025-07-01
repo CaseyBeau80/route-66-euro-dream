@@ -10,20 +10,54 @@ export class TableMigrationService {
     
     try {
       // Update attractions table - populate missing fields
-      const { error: attractionsError } = await supabase.rpc('migrate_attractions_data');
-      if (attractionsError) {
-        console.error('❌ Error migrating attractions data:', attractionsError);
-      } else {
-        console.log('✅ Attractions data migration completed');
+      console.log('🎯 Migrating attractions data...');
+      
+      // Populate title from name where missing
+      const { error: attractionsTitleError } = await supabase
+        .from('attractions')
+        .update({ title: supabase.raw('name') })
+        .or('title.is.null,title.eq.');
+
+      if (attractionsTitleError) {
+        console.error('❌ Error updating attractions titles:', attractionsTitleError);
       }
 
-      // Update hidden_gems table - populate missing fields
-      const { error: hiddenGemsError } = await supabase.rpc('migrate_hidden_gems_data');
-      if (hiddenGemsError) {
-        console.error('❌ Error migrating hidden gems data:', hiddenGemsError);
-      } else {
-        console.log('✅ Hidden gems data migration completed');
+      // Set default category
+      const { error: attractionsCategoryError } = await supabase
+        .from('attractions')
+        .update({ category: 'attraction' })
+        .or('category.is.null,category.eq.');
+
+      if (attractionsCategoryError) {
+        console.error('❌ Error updating attractions categories:', attractionsCategoryError);
       }
+
+      console.log('✅ Attractions data migration completed');
+
+      // Update hidden_gems table - populate missing fields
+      console.log('💎 Migrating hidden gems data...');
+      
+      // Populate name from title where missing
+      const { error: gemsNameError } = await supabase
+        .from('hidden_gems')
+        .update({ name: supabase.raw('title') })
+        .or('name.is.null,name.eq.');
+
+      if (gemsNameError) {
+        console.error('❌ Error updating hidden gems names:', gemsNameError);
+      }
+
+      // Set default category
+      const { error: gemsCategoryError } = await supabase
+        .from('hidden_gems')
+        .update({ category: 'hidden_gems' })
+        .or('category.is.null,category.eq.');
+
+      if (gemsCategoryError) {
+        console.error('❌ Error updating hidden gems categories:', gemsCategoryError);
+      }
+
+      console.log('✅ Hidden gems data migration completed');
 
       return { success: true };
     } catch (error) {

@@ -12,80 +12,126 @@ export class DataMigrationRunner {
     try {
       // Step 1: Populate missing state values for hidden_gems
       console.log('📍 Step 1: Populating missing state values...');
-      const { error: stateError } = await supabase.rpc('sql', {
-        query: `
-          UPDATE hidden_gems 
-          SET state = CASE 
-            WHEN city_name ILIKE '%chicago%' THEN 'IL'
-            WHEN city_name ILIKE '%springfield%' AND city_name NOT ILIKE '%missouri%' THEN 'IL'
-            WHEN city_name ILIKE '%st. louis%' OR city_name ILIKE '%saint louis%' THEN 'MO'
-            WHEN city_name ILIKE '%tulsa%' OR city_name ILIKE '%oklahoma%' THEN 'OK'
-            WHEN city_name ILIKE '%amarillo%' OR city_name ILIKE '%texas%' THEN 'TX'
-            WHEN city_name ILIKE '%albuquerque%' OR city_name ILIKE '%santa fe%' THEN 'NM'
-            WHEN city_name ILIKE '%flagstaff%' OR city_name ILIKE '%arizona%' THEN 'AZ'
-            WHEN city_name ILIKE '%los angeles%' OR city_name ILIKE '%santa monica%' THEN 'CA'
-            ELSE state
-          END
-          WHERE state IS NULL OR state = '';
-        `
-      });
+      
+      // Get all hidden_gems with missing states
+      const { data: gemsWithoutState, error: fetchError } = await supabase
+        .from('hidden_gems')
+        .select('id, city_name, state')
+        .or('state.is.null,state.eq.');
 
-      if (stateError) {
-        console.warn('⚠️ State population had issues:', stateError);
+      if (fetchError) {
+        console.warn('⚠️ Error fetching gems without state:', fetchError);
+      } else if (gemsWithoutState) {
+        // Update states based on city patterns
+        for (const gem of gemsWithoutState) {
+          let newState = null;
+          const cityLower = gem.city_name?.toLowerCase() || '';
+          
+          if (cityLower.includes('chicago')) newState = 'IL';
+          else if (cityLower.includes('springfield') && !cityLower.includes('missouri')) newState = 'IL';
+          else if (cityLower.includes('st. louis') || cityLower.includes('saint louis')) newState = 'MO';
+          else if (cityLower.includes('tulsa') || cityLower.includes('oklahoma')) newState = 'OK';
+          else if (cityLower.includes('amarillo') || cityLower.includes('texas')) newState = 'TX';
+          else if (cityLower.includes('albuquerque') || cityLower.includes('santa fe')) newState = 'NM';
+          else if (cityLower.includes('flagstaff') || cityLower.includes('arizona')) newState = 'AZ';
+          else if (cityLower.includes('los angeles') || cityLower.includes('santa monica')) newState = 'CA';
+          
+          if (newState) {
+            await supabase
+              .from('hidden_gems')
+              .update({ state: newState })
+              .eq('id', gem.id);
+          }
+        }
       }
 
       // Step 2: Populate name field for hidden_gems where missing
       console.log('📝 Step 2: Populating name fields...');
-      const { error: nameError } = await supabase.rpc('sql', {
-        query: `
-          UPDATE hidden_gems 
-          SET name = title 
-          WHERE name IS NULL OR name = '';
-          
-          UPDATE attractions 
-          SET title = name 
-          WHERE title IS NULL OR title = '';
-        `
-      });
+      
+      // Update hidden_gems name from title
+      const { error: gemsNameError } = await supabase
+        .from('hidden_gems')
+        .update({ name: supabase.raw('title') })
+        .or('name.is.null,name.eq.');
 
-      if (nameError) {
-        console.warn('⚠️ Name field population had issues:', nameError);
+      if (gemsNameError) {
+        console.warn('⚠️ Hidden gems name population had issues:', gemsNameError);
+      }
+
+      // Update attractions title from name
+      const { error: attractionsTitleError } = await supabase
+        .from('attractions')
+        .update({ title: supabase.raw('name') })
+        .or('title.is.null,title.eq.');
+
+      if (attractionsTitleError) {
+        console.warn('⚠️ Attractions title population had issues:', attractionsTitleError);
       }
 
       // Step 3: Generate slugs for all records
       console.log('🔗 Step 3: Generating slugs...');
-      const { error: slugError } = await supabase.rpc('sql', {
-        query: `
-          UPDATE attractions 
-          SET slug = generate_slug(name) 
-          WHERE slug IS NULL OR slug = '';
-          
-          UPDATE hidden_gems 
-          SET slug = generate_slug(title) 
-          WHERE slug IS NULL OR slug = '';
-        `
-      });
+      
+      // Get attractions without slugs and generate them
+      const { data: attractionsWithoutSlugs, error: attractionsSlugFetchError } = await supabase
+        .from('attractions')
+        .select('id, name')
+        .or('slug.is.null,slug.eq.');
 
-      if (slugError) {
-        console.warn('⚠️ Slug generation had issues:', slugError);
+      if (!attractionsSlugFetchError && attractionsWithoutSlugs) {
+        for (const attraction of attractionsWithoutSlugs) {
+          if (attraction.name) {
+            const { error: slugError } = await supabase.rpc('generate_slug', { 
+              input_text: attraction.name 
+            });
+            
+            if (!slugError) {
+              const slug = attraction.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+              await supabase
+                .from('attractions')
+                .update({ slug })
+                .eq('id', attraction.id);
+            }
+          }
+        }
+      }
+
+      // Get hidden_gems without slugs and generate them
+      const { data: gemsWithoutSlugs, error: gemsSlugFetchError } = await supabase
+        .from('hidden_gems')
+        .select('id, title')
+        .or('slug.is.null,slug.eq.');
+
+      if (!gemsSlugFetchError && gemsWithoutSlugs) {
+        for (const gem of gemsWithoutSlugs) {
+          if (gem.title) {
+            const slug = gem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            await supabase
+              .from('hidden_gems')
+              .update({ slug })
+              .eq('id', gem.id);
+          }
+        }
       }
 
       // Step 4: Set default categories
       console.log('🏷️ Step 4: Setting default categories...');
-      const { error: categoryError } = await supabase.rpc('sql', {
-        query: `
-          UPDATE attractions 
-          SET category = 'attraction' 
-          WHERE category IS NULL OR category = '';
-          
-          UPDATE hidden_gems 
-          SET category = 'hidden_gems' 
-          WHERE category IS NULL OR category = '';
-        `
-      });
+      
+      const { error: attractionsCategoryError } = await supabase
+        .from('attractions')
+        .update({ category: 'attraction' })
+        .or('category.is.null,category.eq.');
 
-      if (categoryError) {
-        console.warn('⚠️ Category setting had issues:', categoryError);
+      if (attractionsCategoryError) {
+        console.warn('⚠️ Attractions category setting had issues:', attractionsCategoryError);
+      }
+
+      const { error: gemsCategoryError } = await supabase
+        .from('hidden_gems')
+        .update({ category: 'hidden_gems' })
+        .or('category.is.null,category.eq.');
+
+      if (gemsCategoryError) {
+        console.warn('⚠️ Hidden gems category setting had issues:', gemsCategoryError);
       }
 
       console.log('✅ Complete data migration finished successfully');
