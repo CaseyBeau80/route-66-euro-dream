@@ -1,7 +1,15 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface TrailblazerLeader {
+export interface TrailblazerAchievement {
+  id: string;
+  stop_id: string;
+  user_session_id: string | null;
+  achieved_at: string;
+  photo_challenge_id: string;
+}
+
+export interface TrailblazerLeaderboard {
   user_session_id: string;
   trailblazer_count: number;
   latest_achievement: string;
@@ -10,93 +18,135 @@ export interface TrailblazerLeader {
 
 export interface LocationTrailblazer {
   has_trailblazer: boolean;
-  user_session_id?: string;
-  achieved_at?: string;
-  photo_url?: string;
+  user_session_id: string;
+  achieved_at: string;
+  photo_url: string;
 }
 
-// Add alias for TrailblazerLeaderboard (same as TrailblazerLeader)
-export type TrailblazerLeaderboard = TrailblazerLeader;
-
 export class TrailblazerService {
-  static async getLeaderboard(limit: number = 10): Promise<TrailblazerLeader[]> {
-    try {
-      const { data, error } = await supabase.rpc('get_trailblazer_leaderboard');
-      
-      if (error) {
-        console.error('Error fetching trailblazer leaderboard:', error);
-        return [];
-      }
-
-      return (data || []).slice(0, limit);
-    } catch (error) {
-      console.error('Error in getLeaderboard:', error);
-      return [];
-    }
-  }
-
-  // Add alias method for getTrailblazerLeaderboard
-  static async getTrailblazerLeaderboard(limit: number = 10): Promise<TrailblazerLeader[]> {
-    return this.getLeaderboard(limit);
-  }
-
+  /**
+   * Check if a location has a trailblazer
+   */
   static async getLocationTrailblazer(stopId: string): Promise<LocationTrailblazer | null> {
+    console.log('🏆 Checking trailblazer status for stop:', stopId);
+    
     try {
-      const { data, error } = await supabase.rpc('get_location_trailblazer', {
-        location_stop_id: stopId
-      });
-      
+      const { data, error } = await supabase
+        .rpc('get_location_trailblazer', { location_stop_id: stopId });
+
       if (error) {
-        console.error('Error fetching location trailblazer:', error);
+        console.error('❌ Error fetching location trailblazer:', error);
         return null;
       }
 
-      return data?.[0] || { has_trailblazer: false };
+      if (!data || data.length === 0) {
+        console.log('📍 No trailblazer found for location:', stopId);
+        return null;
+      }
+
+      const trailblazer = data[0];
+      console.log('🎯 Found trailblazer:', trailblazer);
+      return trailblazer;
     } catch (error) {
-      console.error('Error in getLocationTrailblazer:', error);
+      console.error('❌ Failed to fetch location trailblazer:', error);
       return null;
     }
   }
 
-  static async getTrailblazerStats(): Promise<{
-    totalTrailblazers: number;
-    totalLocations: number;
-    recentAchievements: number;
-  }> {
+  /**
+   * Get the trailblazer leaderboard
+   */
+  static async getTrailblazerLeaderboard(limit: number = 10): Promise<TrailblazerLeaderboard[]> {
+    console.log('🏆 Fetching trailblazer leaderboard');
+    
     try {
-      const { data: achievements, error } = await supabase
-        .from('trailblazer_achievements')
-        .select('*');
+      const { data, error } = await supabase.rpc('get_trailblazer_leaderboard');
 
       if (error) {
-        console.error('Error fetching trailblazer stats:', error);
-        return { totalTrailblazers: 0, totalLocations: 0, recentAchievements: 0 };
+        console.error('❌ Error fetching trailblazer leaderboard:', error);
+        return [];
       }
 
-      const uniqueTrailblazers = new Set(achievements.map(a => a.user_session_id)).size;
-      const uniqueLocations = new Set(achievements.map(a => a.stop_id)).size;
-      
-      // Recent achievements (last 24 hours)
-      const oneDayAgo = new Date();
-      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-      const recentAchievements = achievements.filter(
-        a => new Date(a.achieved_at) > oneDayAgo
-      ).length;
+      if (!data) {
+        console.log('📊 No trailblazer data found');
+        return [];
+      }
 
-      return {
-        totalTrailblazers: uniqueTrailblazers,
-        totalLocations: uniqueLocations,
-        recentAchievements
-      };
+      // Limit results and format data
+      const leaderboard = data.slice(0, limit).map((entry: any) => ({
+        user_session_id: entry.user_session_id,
+        trailblazer_count: Number(entry.trailblazer_count),
+        latest_achievement: entry.latest_achievement,
+        locations: entry.locations || []
+      }));
+
+      console.log(`✅ Retrieved ${leaderboard.length} trailblazer entries`);
+      return leaderboard;
     } catch (error) {
-      console.error('Error in getTrailblazerStats:', error);
-      return { totalTrailblazers: 0, totalLocations: 0, recentAchievements: 0 };
+      console.error('❌ Failed to fetch trailblazer leaderboard:', error);
+      return [];
     }
   }
 
-  // Add the missing formatSessionId method
-  static formatSessionId(sessionId?: string): string {
+  /**
+   * Get user's trailblazer achievements
+   */
+  static async getUserTrailblazerAchievements(userSessionId: string): Promise<TrailblazerAchievement[]> {
+    console.log('🏆 Fetching user trailblazer achievements for:', userSessionId);
+    
+    try {
+      const { data, error } = await supabase
+        .from('trailblazer_achievements')
+        .select('*')
+        .eq('user_session_id', userSessionId)
+        .order('achieved_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Error fetching user achievements:', error);
+        return [];
+      }
+
+      console.log(`✅ Retrieved ${data?.length || 0} achievements for user`);
+      return data || [];
+    } catch (error) {
+      console.error('❌ Failed to fetch user achievements:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Check if user has any trailblazer achievements
+   */
+  static async hasTrailblazerAchievements(userSessionId: string): Promise<boolean> {
+    const achievements = await this.getUserTrailblazerAchievements(userSessionId);
+    return achievements.length > 0;
+  }
+
+  /**
+   * Generate a user-friendly session ID display
+   */
+  static formatSessionId(sessionId: string): string {
     if (!sessionId) return 'Anonymous';
-    return `Traveler #${sessionId.slice(-4)}`;
+    
+    // Extract meaningful part from session ID
+    if (sessionId.includes('challenge-session-')) {
+      const timestamp = sessionId.replace('challenge-session-', '');
+      const date = new Date(Number(timestamp));
+      if (!isNaN(date.getTime())) {
+        return `Traveler ${date.toLocaleDateString()}`;
+      }
+    }
+    
+    // Use first 8 characters for display
+    return `Traveler ${sessionId.substring(0, 8)}`;
+  }
+
+  /**
+   * Get trailblazer rank for a user
+   */
+  static async getUserTrailblazerRank(userSessionId: string): Promise<number | null> {
+    const leaderboard = await this.getTrailblazerLeaderboard(100);
+    const userIndex = leaderboard.findIndex(entry => entry.user_session_id === userSessionId);
+    return userIndex >= 0 ? userIndex + 1 : null;
   }
 }
