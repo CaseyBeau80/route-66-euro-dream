@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from './useFormValidation';
@@ -27,11 +26,9 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   const startPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
     console.log('🚀 TWO-PHASE: Starting planning process');
     
-    setPlanningState(prev => ({ ...prev, isProcessing: true }));
-
-    // Phase 1: Check if day adjustment is needed
+    // Phase 1: Check if day adjustment is needed and we're not already in adjustment phase
     if (dayAdjustmentInfo && planningState.phase === 'form') {
-      console.log('📋 TWO-PHASE: Phase 1 - Day adjustment needed, showing adjustment message');
+      console.log('📋 TWO-PHASE: Phase 1 - Day adjustment needed, showing adjustment modal');
       
       // Create adjusted form data
       const adjustedData: TripFormData = {
@@ -45,14 +42,15 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
         isProcessing: false
       });
       
-      return; // Stop here to show adjustment message
+      // CRITICAL: Return here without proceeding - wait for user acknowledgment
+      return;
     }
 
     // Phase 2: Proceed with planning (either no adjustment needed, or user acknowledged adjustment)
     try {
       console.log('🎯 TWO-PHASE: Phase 2 - Proceeding with trip planning');
       
-      setPlanningState(prev => ({ ...prev, phase: 'planning' }));
+      setPlanningState(prev => ({ ...prev, phase: 'planning', isProcessing: true }));
       
       const dataToUse = planningState.adjustedFormData || formData;
       await onPlanTrip(dataToUse);
@@ -68,8 +66,12 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   }, [formData, dayAdjustmentInfo, planningState.phase, planningState.adjustedFormData]);
 
   const acknowledgeAdjustment = useCallback(() => {
-    console.log('✅ TWO-PHASE: User acknowledged day adjustment, proceeding to planning');
-    setPlanningState(prev => ({ ...prev, phase: 'form' })); // Reset to allow planning to proceed
+    console.log('✅ TWO-PHASE: User acknowledged day adjustment');
+    // Keep the adjusted data but change phase to allow planning to proceed
+    setPlanningState(prev => ({ 
+      ...prev, 
+      phase: 'form' // This allows startPlanning to proceed to phase 2
+    }));
   }, []);
 
   const resetPlanning = useCallback(() => {

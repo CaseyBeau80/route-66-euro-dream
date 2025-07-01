@@ -47,7 +47,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     formData,
     isPlanning,
     planningPhase: planningState.phase,
-    needsAdjustment: !!dayAdjustmentInfo
+    needsAdjustment: !!dayAdjustmentInfo,
+    showModal: planningState.phase === 'adjustment'
   });
 
   const handlePlanTrip = async () => {
@@ -62,10 +63,12 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   };
 
   const handleAcknowledgeAdjustment = async () => {
-    console.log('✅ TripPlannerForm: User acknowledged adjustment');
+    console.log('✅ TripPlannerForm: User acknowledged adjustment, proceeding with planning');
+    
+    // First acknowledge the adjustment
     acknowledgeAdjustment();
     
-    // Proceed with planning using adjusted data
+    // Then immediately proceed with planning using the adjusted data
     try {
       await startPlanning(onPlanTrip);
     } catch (error) {
@@ -88,12 +91,12 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
-      {/* Two-Phase Planning Modal */}
-      {dayAdjustmentInfo && planningState.phase === 'adjustment' && (
+      {/* Two-Phase Planning Modal - CRITICAL: Show when phase is 'adjustment' */}
+      {planningState.phase === 'adjustment' && dayAdjustmentInfo && planningState.adjustedFormData && (
         <TwoPhasePlanningModal
           isOpen={true}
           dayAdjustmentInfo={dayAdjustmentInfo}
-          formData={formData}
+          formData={planningState.adjustedFormData}
           onAcknowledge={handleAcknowledgeAdjustment}
           onCancel={handleCancelAdjustment}
         />
