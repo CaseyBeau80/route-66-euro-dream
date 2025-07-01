@@ -4,7 +4,7 @@ import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
 import FormValidationHelper from '../../TripCalculator/components/FormValidationHelper';
 import TwoPhasePlanningModal from '../../TripCalculator/components/TwoPhasePlanningModal';
-import { useTwoPhasePlanning } from '../../TripCalcululator/hooks/useTwoPhasePlanning';
+import { useTwoPhasePlanning } from '../../TripCalculator/hooks/useTwoPhasePlanning';
 import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
