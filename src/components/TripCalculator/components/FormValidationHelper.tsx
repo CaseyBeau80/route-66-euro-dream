@@ -15,49 +15,49 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 }) => {
   const { isFormValid, validationIssues, dayAdjustmentInfo } = useFormValidation(formData);
 
-  // Show day adjustment notice if present
+  // Show day adjustment notice if present - NOW WITH RED BACKGROUND
   if (dayAdjustmentInfo) {
     return (
-      <div className={`rounded-lg border-2 border-amber-400 bg-amber-50 p-6 ${className}`}>
+      <div className={`rounded-lg border-4 border-red-600 bg-red-100 p-8 shadow-xl ${className}`}>
         <div className="flex items-start gap-4">
           <div className="flex-shrink-0 mt-1">
-            <AlertCircle className="h-8 w-8 text-amber-600" />
+            <AlertCircle className="h-10 w-10 text-red-700" />
           </div>
           <div className="flex-1">
-            <h3 className="text-xl font-bold text-amber-800 mb-3">
-              🚨 Important: Trip Duration Adjusted
+            <h3 className="text-2xl font-black text-red-900 mb-4">
+              🚨 ATTENTION: Trip Duration Changed!
             </h3>
-            <div className="space-y-3">
-              <div className="bg-white/70 p-4 rounded-lg border border-amber-200">
-                <p className="text-lg font-semibold text-amber-800 mb-2">
+            <div className="space-y-4">
+              <div className="bg-red-200 p-6 rounded-lg border-2 border-red-400 shadow-md">
+                <p className="text-xl font-bold text-red-900 mb-3">
                   Your trip has been automatically extended:
                 </p>
-                <div className="flex items-center gap-4 text-base">
-                  <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full font-medium">
-                    Requested: {dayAdjustmentInfo.requested} days
+                <div className="flex items-center gap-6 text-lg">
+                  <span className="px-4 py-2 bg-red-600 text-white rounded-full font-bold text-xl">
+                    You requested: {dayAdjustmentInfo.requested} days
                   </span>
-                  <span className="text-amber-600 font-bold">→</span>
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                  <span className="text-red-700 font-black text-2xl">→</span>
+                  <span className="px-4 py-2 bg-green-600 text-white rounded-full font-bold text-xl">
                     Adjusted to: {dayAdjustmentInfo.minimum} days
                   </span>
                 </div>
               </div>
               
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="flex items-start gap-2">
-                  <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="bg-red-50 p-6 rounded-lg border-2 border-red-300">
+                <div className="flex items-start gap-3">
+                  <Info className="h-6 w-6 text-red-700 mt-1 flex-shrink-0" />
                   <div>
-                    <p className="font-semibold text-blue-800 mb-1">Why was this changed?</p>
-                    <p className="text-blue-700 text-sm leading-relaxed">
+                    <p className="font-bold text-red-900 mb-2 text-lg">Why was this changed?</p>
+                    <p className="text-red-800 text-base leading-relaxed font-medium">
                       {dayAdjustmentInfo.reason}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-600 flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
+              <div className="bg-red-600 text-white p-4 rounded-lg border-2 border-red-700">
+                <p className="text-lg font-bold flex items-center gap-3">
+                  <MapPin className="h-5 w-5" />
                   Your trip itinerary will be planned for {dayAdjustmentInfo.minimum} days to ensure safe and enjoyable travel.
                 </p>
               </div>
