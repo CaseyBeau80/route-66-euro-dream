@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Check } from 'lucide-react';
 
@@ -9,7 +10,7 @@ const CompactCountdown: React.FC = () => {
     },
     {
       title: "Shareable Travel Planner", 
-      subtitle: "Build custom Route 66 trips and share them with friends"
+      subtitle: "Build custom Route 66 trips and share them with friends and family"
     },
     {
       title: "Social Media & More",
