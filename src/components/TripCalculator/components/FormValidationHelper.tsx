@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertCircle, CheckCircle, AlertTriangle, ArrowRight } from 'lucide-react';
+import { AlertCircle, CheckCircle, AlertTriangle, ArrowRight, Clock, Shield, Info } from 'lucide-react';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from '../hooks/useFormValidation';
 
@@ -22,13 +22,13 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     validationIssues: validationIssues.length
   });
 
-  // Show day adjustment notice when available (always show if present)
+  // PRIORITY 1: Day Adjustment Notice - Always show when available (MOST IMPORTANT)
   const showDayAdjustment = !!dayAdjustmentInfo;
   
-  // Show form validation issues when form is invalid
+  // PRIORITY 2: Form validation issues when form is invalid and no day adjustment
   const showValidationIssues = !isFormValid && validationIssues.length > 0 && !showDayAdjustment;
   
-  // Show success message when form is valid and no day adjustment
+  // PRIORITY 3: Success message when form is valid and no day adjustment
   const showSuccessMessage = isFormValid && !showDayAdjustment;
 
   // Don't render anything if no messages to show
@@ -37,54 +37,83 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Day Adjustment Notice - Clear and Simple */}
+    <div className="space-y-4">
+      {/* DAY ADJUSTMENT NOTICE - LARGE, IMPOSSIBLE TO MISS */}
       {showDayAdjustment && dayAdjustmentInfo && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-xl p-6 shadow-lg">
-          <div className="flex items-start gap-4">
-            <div className="bg-amber-500 rounded-full p-3 flex-shrink-0">
-              <AlertTriangle className="h-6 w-6 text-white" />
+        <div className="bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 border-4 border-red-400 rounded-2xl p-8 shadow-2xl animate-pulse">
+          <div className="flex items-start gap-6">
+            <div className="bg-red-500 rounded-full p-4 animate-bounce">
+              <AlertTriangle className="h-10 w-10 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-amber-800 mb-3">
-                ⚠️ Trip Duration Adjusted
-              </h3>
+              <h2 className="text-3xl font-black text-red-800 mb-6 flex items-center gap-3">
+                <Shield className="h-8 w-8" />
+                🚨 TRIP DAYS AUTOMATICALLY ADJUSTED 🚨
+              </h2>
               
-              {/* Clear Before/After Display */}
-              <div className="bg-white/90 rounded-lg p-4 mb-4 border border-amber-200">
-                <div className="flex items-center justify-center gap-4 text-lg">
+              {/* GIANT BEFORE/AFTER DISPLAY */}
+              <div className="bg-white rounded-2xl p-6 mb-6 border-4 border-red-200 shadow-lg">
+                <div className="flex items-center justify-center gap-8 mb-4">
                   <div className="text-center">
-                    <div className="bg-red-100 text-red-800 px-4 py-2 rounded-lg font-bold">
-                      {dayAdjustmentInfo.requested} days
+                    <div className="bg-red-500 text-white px-8 py-6 rounded-2xl shadow-lg">
+                      <div className="text-4xl font-black">{dayAdjustmentInfo.requested}</div>
+                      <div className="text-lg font-bold">DAYS</div>
+                      <div className="text-sm">You Selected</div>
                     </div>
-                    <div className="text-sm text-gray-600 mt-1">You selected</div>
                   </div>
-                  <ArrowRight className="text-amber-600 h-6 w-6" />
+                  <ArrowRight className="h-12 w-12 text-red-600 animate-bounce" />
                   <div className="text-center">
-                    <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-bold">
-                      {dayAdjustmentInfo.minimum} days
+                    <div className="bg-green-500 text-white px-8 py-6 rounded-2xl shadow-lg">
+                      <div className="text-4xl font-black">{dayAdjustmentInfo.minimum}</div>
+                      <div className="text-lg font-bold">DAYS</div>
+                      <div className="text-sm">Required Minimum</div>
                     </div>
-                    <div className="text-sm text-gray-600 mt-1">Minimum required</div>
                   </div>
                 </div>
               </div>
 
-              {/* Simple Explanation */}
-              <div className="space-y-3">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-blue-800 font-semibold mb-2">Why was this adjusted?</p>
-                  <p className="text-blue-700 text-sm">
-                    Your route is too long for safe {dayAdjustmentInfo.requested}-day travel. 
-                    With {dayAdjustmentInfo.minimum} days, you'll have comfortable driving days (8-10 hours max) 
-                    and time to enjoy Route 66 attractions.
-                  </p>
+              {/* DETAILED EXPLANATION */}
+              <div className="space-y-4">
+                <div className="bg-blue-100 border-l-8 border-blue-500 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-xl font-bold text-blue-800 mb-2">
+                        🛡️ WHY WAS THIS CHANGED?
+                      </h3>
+                      <p className="text-lg text-blue-800 leading-relaxed font-semibold">
+                        Your selected <strong>{dayAdjustmentInfo.requested} days</strong> would require 
+                        driving <strong>more than 10 hours per day</strong>, which is unsafe and exhausting. 
+                        We automatically increased it to <strong>{dayAdjustmentInfo.minimum} days</strong> 
+                        to keep daily driving under 10 hours maximum.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="text-center">
-                  <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-                    <CheckCircle className="h-4 w-4" />
-                    Your trip planning will use {dayAdjustmentInfo.minimum} days for the best experience
+                <div className="bg-green-100 border-l-8 border-green-500 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-6 w-6 text-green-600 mt-1 flex-shrink-0" />
+                    <div>
+                      <h3 className="text-xl font-bold text-green-800 mb-2">
+                        ✅ YOUR TRIP NOW INCLUDES:
+                      </h3>
+                      <ul className="text-lg text-green-800 space-y-2 font-semibold">
+                        <li>• Safe daily driving (maximum 8-10 hours per day)</li>
+                        <li>• Comfortable time at each destination</li>
+                        <li>• All major Route 66 heritage cities</li>
+                        <li>• Enjoyable, not exhausting, travel experience</li>
+                      </ul>
+                    </div>
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <div className="inline-flex items-center gap-3 bg-green-600 text-white px-8 py-4 rounded-full text-xl font-black shadow-lg">
+                  <Shield className="h-6 w-6" />
+                  TRIP OPTIMIZED FOR SAFETY & ENJOYMENT
+                  <Shield className="h-6 w-6" />
                 </div>
               </div>
             </div>
