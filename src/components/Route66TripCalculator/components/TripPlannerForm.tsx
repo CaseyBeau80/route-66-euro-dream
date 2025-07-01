@@ -2,9 +2,11 @@
 import React from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
+import FormValidationHelper from '../../TripCalculator/components/FormValidationHelper';
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
 import ActionButtonsSection from './ActionButtonsSection';
+import InlineDayAdjustmentNotice from './InlineDayAdjustmentNotice';
 
 interface TripPlannerFormProps {
   formData: TripFormData;
@@ -43,6 +45,9 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
+      {/* Form Validation Helper - Critical for day adjustment messages */}
+      <FormValidationHelper formData={formData} className="mb-4" />
+
       {/* Main Form Container - Unified styling */}
       <div className="space-y-4">
         
@@ -65,11 +70,16 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <h3 className="text-lg font-semibold text-route66-text-primary">Trip Details</h3>
           </div>
+          
+          {/* Inline Day Adjustment Notice - Placed prominently */}
+          <InlineDayAdjustmentNotice formData={formData} className="mb-4" />
+          
           <TripDetailsSection 
             tripStartDate={formData.tripStartDate} 
             travelDays={formData.travelDays} 
             onStartDateChange={onStartDateChange} 
-            onTravelDaysChange={onTravelDaysChange} 
+            onTravelDaysChange={onTravelDaysChange}
+            formData={formData}
           />
         </div>
 

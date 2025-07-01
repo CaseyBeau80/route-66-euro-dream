@@ -1,23 +1,31 @@
 
 import React from 'react';
-import { Calendar, Users } from 'lucide-react';
+import { Calendar, Users, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
+import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 
 interface TripDetailsSectionProps {
   tripStartDate?: Date;
   travelDays: number;
   onStartDateChange: (date: Date | undefined) => void;
   onTravelDaysChange: (days: number) => void;
+  formData?: TripFormData; // Add formData to access validation
 }
 
 const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
   tripStartDate,
   travelDays,
   onStartDateChange,
-  onTravelDaysChange
+  onTravelDaysChange,
+  formData
 }) => {
   const MIN_DAYS = 1;
   const MAX_DAYS = 14;
+  
+  // Get day adjustment info if formData is provided
+  const validationResult = formData ? useFormValidation(formData) : { dayAdjustmentInfo: null };
+  const { dayAdjustmentInfo } = validationResult;
   
   // Generate array of day options from 1 to 14
   const dayOptions = Array.from({ length: MAX_DAYS - MIN_DAYS + 1 }, (_, i) => MIN_DAYS + i);
@@ -55,12 +63,20 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
         <label className="block text-sm font-medium text-route66-text-primary">
           <Users className="inline w-4 h-4 mr-1" />
           Travel Days ({MIN_DAYS}-{MAX_DAYS} days)
+          {dayAdjustmentInfo && (
+            <span className="ml-2 inline-flex items-center gap-1 text-amber-600">
+              <Info className="h-3 w-3" />
+              <span className="text-xs">(Adjusted for safety)</span>
+            </span>
+          )}
         </label>
         <Select
           value={travelDays > 0 ? travelDays.toString() : ""}
           onValueChange={handleDaysChange}
         >
-          <SelectTrigger className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent bg-white">
+          <SelectTrigger className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent bg-white ${
+            dayAdjustmentInfo ? 'border-amber-400 bg-amber-50' : 'border-route66-border'
+          }`}>
             <SelectValue placeholder={`Select ${MIN_DAYS}-${MAX_DAYS} days`} />
           </SelectTrigger>
           <SelectContent className="bg-white border border-gray-200 shadow-lg z-[9999] max-h-60 overflow-y-auto">
@@ -75,6 +91,12 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
             ))}
           </SelectContent>
         </Select>
+        
+        {dayAdjustmentInfo && (
+          <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+            💡 Days adjusted from {dayAdjustmentInfo.requested} to {dayAdjustmentInfo.minimum} for comfortable daily drives
+          </p>
+        )}
       </div>
     </div>
   );
