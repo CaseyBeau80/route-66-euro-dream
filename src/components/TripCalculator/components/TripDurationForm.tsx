@@ -27,9 +27,8 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   // Generate dropdown options
   const durationOptions = Array.from({ length: 14 }, (_, i) => i + 1);
 
-  // Determine if we should show the actionable message
-  const shouldShowActionableMessage = !isFormValid && 
-    dayAdjustmentInfo && 
+  // FIXED: Show actionable message when day adjustment is needed, regardless of form validity
+  const shouldShowActionableMessage = dayAdjustmentInfo && 
     dayAdjustmentInfo.minimum > formData.travelDays &&
     formData.startLocation && 
     formData.endLocation;
@@ -68,7 +67,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           </SelectContent>
         </Select>
         
-        {/* New Actionable Message - Only show when form is invalid due to insufficient days */}
+        {/* Actionable Message - Show when day adjustment is needed */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
             currentDays={formData.travelDays}

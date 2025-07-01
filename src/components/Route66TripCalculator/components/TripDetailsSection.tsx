@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar, Users, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -43,9 +44,8 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
     }
   };
 
-  // Determine if we should show the actionable message
-  const shouldShowActionableMessage = !isFormValid && 
-    dayAdjustmentInfo && 
+  // FIXED: Show actionable message when day adjustment is needed, regardless of form validity
+  const shouldShowActionableMessage = dayAdjustmentInfo && 
     dayAdjustmentInfo.minimum > travelDays &&
     formData?.startLocation && 
     formData?.endLocation;
@@ -99,7 +99,7 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
           </SelectContent>
         </Select>
         
-        {/* New Actionable Message - Only show when form is invalid due to insufficient days */}
+        {/* Actionable Message - Show when day adjustment is needed */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
             currentDays={travelDays}
