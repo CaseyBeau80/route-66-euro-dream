@@ -8,7 +8,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
-import TripCalculator from "./pages/TripCalculator";
 import TripDetailsPage from "./pages/TripDetailsPage";
 import SharedTripPage from "./pages/SharedTripPage";
 import CountdownPage from "./pages/CountdownPage";
@@ -40,7 +39,6 @@ function App() {
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/trip-calculator" element={<TripCalculator />} />
                   <Route path="/shared-trip" element={<SharedTripPage />} />
                   <Route path="/countdown" element={<CountdownPage />} />
                   <Route path="/timeline" element={<TimelinePage />} />
