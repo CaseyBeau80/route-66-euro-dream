@@ -27,11 +27,18 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   // Generate dropdown options
   const durationOptions = Array.from({ length: 14 }, (_, i) => i + 1);
 
-  // FIXED: Show actionable message when day adjustment is needed, regardless of form validity
+  // FIXED: Show actionable message when day adjustment is needed based on original vs required
   const shouldShowActionableMessage = dayAdjustmentInfo && 
-    dayAdjustmentInfo.minimum > formData.travelDays &&
+    dayAdjustmentInfo.minimum > dayAdjustmentInfo.requested &&
     formData.startLocation && 
     formData.endLocation;
+
+  console.log('🔍 TripDurationForm: Actionable message check:', {
+    dayAdjustmentInfo: !!dayAdjustmentInfo,
+    minimumRequired: dayAdjustmentInfo?.minimum,
+    requestedDays: dayAdjustmentInfo?.requested,
+    shouldShow: shouldShowActionableMessage
+  });
 
   // Determine what to display based on day adjustment
   const getDisplayText = () => {
@@ -70,7 +77,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         {/* Actionable Message - Show when day adjustment is needed */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
-            currentDays={formData.travelDays}
+            currentDays={dayAdjustmentInfo.requested}
             requiredDays={dayAdjustmentInfo.minimum}
             className="mt-2"
           />

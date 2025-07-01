@@ -33,22 +33,32 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
 
   const handleDaysChange = (value: string) => {
     const numValue = parseInt(value, 10);
-    console.log('📅 FIXED: Travel days dropdown selection:', { value, numValue, range: `${MIN_DAYS}-${MAX_DAYS}` });
+    console.log('📅 Travel days dropdown selection:', { value, numValue, range: `${MIN_DAYS}-${MAX_DAYS}` });
     
     // Only allow values within the 1-14 range
     if (!isNaN(numValue) && numValue >= MIN_DAYS && numValue <= MAX_DAYS) {
       onTravelDaysChange(numValue);
-      console.log(`✅ FIXED: Successfully set travel days to: ${numValue}`);
+      console.log(`✅ Successfully set travel days to: ${numValue}`);
     } else {
-      console.log(`❌ FIXED: Invalid value rejected: ${numValue} (must be between ${MIN_DAYS}-${MAX_DAYS})`);
+      console.log(`❌ Invalid value rejected: ${numValue} (must be between ${MIN_DAYS}-${MAX_DAYS})`);
     }
   };
 
-  // Show actionable message when day adjustment is needed (but don't block form submission)
+  // FIXED: Show actionable message when day adjustment is needed AND we have complete route info
   const shouldShowActionableMessage = dayAdjustmentInfo && 
-    dayAdjustmentInfo.minimum > travelDays &&
+    dayAdjustmentInfo.minimum > dayAdjustmentInfo.requested &&
     formData?.startLocation && 
     formData?.endLocation;
+
+  console.log('🔍 TripDetailsSection: Actionable message check:', {
+    dayAdjustmentInfo: !!dayAdjustmentInfo,
+    minimumRequired: dayAdjustmentInfo?.minimum,
+    requestedDays: dayAdjustmentInfo?.requested,
+    currentTravelDays: travelDays,
+    shouldShow: shouldShowActionableMessage,
+    hasStartLocation: !!formData?.startLocation,
+    hasEndLocation: !!formData?.endLocation
+  });
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -102,7 +112,7 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
         {/* Actionable Message - Show when day adjustment is needed for immediate feedback */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
-            currentDays={travelDays}
+            currentDays={dayAdjustmentInfo.requested}
             requiredDays={dayAdjustmentInfo.minimum}
             className="mt-2"
           />
