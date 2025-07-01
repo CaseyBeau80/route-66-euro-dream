@@ -9,7 +9,7 @@ interface SingleRouteRendererProps {
 
 const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapReady }) => {
   const { waypoints, isLoading, error } = useSupabaseRoute66();
-  const polylineRef = useRef<google.maps.Polyline | null>(null);
+  const polylinesRef = useRef<google.maps.Polyline[]>([]);
   const hasRendered = useRef(false);
 
   console.log('🛣️ SingleRouteRenderer: Starting with waypoints:', waypoints.length);
@@ -28,13 +28,15 @@ const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapRea
       return;
     }
 
-    console.log('🛣️ SingleRouteRenderer: Creating Route 66 polyline');
+    console.log('🛣️ SingleRouteRenderer: Creating Route 66 road with yellow striping');
 
-    // Clean up any existing polyline
-    if (polylineRef.current) {
-      polylineRef.current.setMap(null);
-      polylineRef.current = null;
-    }
+    // Clean up any existing polylines
+    polylinesRef.current.forEach(polyline => {
+      if (polyline) {
+        polyline.setMap(null);
+      }
+    });
+    polylinesRef.current = [];
 
     // Use major stops only for clean route
     const majorStops = waypoints
@@ -73,21 +75,61 @@ const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapRea
       ];
     }
 
-    console.log('🛣️ Creating polyline with', routePoints.length, 'points');
+    console.log('🛣️ Creating road with yellow striping using', routePoints.length, 'points');
 
-    // Create the Route 66 polyline
-    const polyline = new google.maps.Polyline({
+    // Create realistic road appearance with multiple layers
+    
+    // 1. Base road (dark asphalt)
+    const baseRoad = new google.maps.Polyline({
       path: routePoints,
       geodesic: true,
-      strokeColor: '#DC2626', // Route 66 red
-      strokeOpacity: 0.8,
-      strokeWeight: 6,
+      strokeColor: '#2C2C2C', // Dark asphalt gray
+      strokeOpacity: 1.0,
+      strokeWeight: 16,
+      clickable: false,
       zIndex: 1000
     });
+    
+    // 2. Road surface (lighter gray)
+    const roadSurface = new google.maps.Polyline({
+      path: routePoints,
+      geodesic: true,
+      strokeColor: '#4A4A4A', // Medium gray
+      strokeOpacity: 1.0,
+      strokeWeight: 12,
+      clickable: false,
+      zIndex: 1001
+    });
+    
+    // 3. Yellow striped center line with dashed pattern
+    const centerLine = new google.maps.Polyline({
+      path: routePoints,
+      geodesic: true,
+      strokeColor: '#FFD700', // Golden yellow
+      strokeOpacity: 0, // Make main stroke invisible
+      strokeWeight: 0, // No base stroke
+      clickable: false,
+      zIndex: 1002,
+      icons: [{
+        icon: {
+          path: 'M 0,-2 0,2', // Vertical dash line
+          strokeOpacity: 1.0,
+          strokeColor: '#FFD700', // Bright yellow
+          strokeWeight: 4, // Thick dashes for visibility
+          scale: 1
+        },
+        offset: '0',
+        repeat: '40px' // Spacing between dashes for striped effect
+      }]
+    });
 
-    // Add to map
-    polyline.setMap(map);
-    polylineRef.current = polyline;
+    // Add all polylines to map
+    baseRoad.setMap(map);
+    roadSurface.setMap(map);
+    centerLine.setMap(map);
+    
+    // Store references for cleanup
+    polylinesRef.current = [baseRoad, roadSurface, centerLine];
     hasRendered.current = true;
 
     // Fit map to route bounds
@@ -101,17 +143,19 @@ const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapRea
       map.setZoom(Math.max(4, currentZoom - 1));
     }, 1000);
 
-    console.log('✅ Route 66 polyline created successfully');
+    console.log('✅ Route 66 road with yellow striping created successfully');
 
   }, [map, isMapReady, waypoints, isLoading, error]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (polylineRef.current) {
-        console.log('🧹 Cleaning up SingleRouteRenderer polyline');
-        polylineRef.current.setMap(null);
-      }
+      polylinesRef.current.forEach(polyline => {
+        if (polyline) {
+          console.log('🧹 Cleaning up road polyline');
+          polyline.setMap(null);
+        }
+      });
     };
   }, []);
 
