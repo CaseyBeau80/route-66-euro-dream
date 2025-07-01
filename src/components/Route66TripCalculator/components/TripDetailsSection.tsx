@@ -44,18 +44,19 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
     }
   };
 
-  // FIXED: Show actionable message when day adjustment is needed AND we have complete route info
+  // FIXED: Compare minimum required against CURRENT travel days value, not the originally requested value
   const shouldShowActionableMessage = dayAdjustmentInfo && 
-    dayAdjustmentInfo.minimum > dayAdjustmentInfo.requested &&
+    dayAdjustmentInfo.minimum > travelDays &&
     formData?.startLocation && 
     formData?.endLocation;
 
   console.log('🔍 TripDetailsSection: Actionable message check:', {
     dayAdjustmentInfo: !!dayAdjustmentInfo,
     minimumRequired: dayAdjustmentInfo?.minimum,
-    requestedDays: dayAdjustmentInfo?.requested,
     currentTravelDays: travelDays,
+    originalRequestedDays: dayAdjustmentInfo?.requested,
     shouldShow: shouldShowActionableMessage,
+    comparison: `${dayAdjustmentInfo?.minimum} > ${travelDays} = ${dayAdjustmentInfo?.minimum > travelDays}`,
     hasStartLocation: !!formData?.startLocation,
     hasEndLocation: !!formData?.endLocation
   });
@@ -112,7 +113,7 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
         {/* Actionable Message - Show when day adjustment is needed for immediate feedback */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
-            currentDays={dayAdjustmentInfo.requested}
+            currentDays={travelDays}
             requiredDays={dayAdjustmentInfo.minimum}
             className="mt-2"
           />
