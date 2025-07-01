@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MapPin, Sparkles, Info } from 'lucide-react';
@@ -166,7 +167,6 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       {/* Form Validation Helper */}
       <FormValidationHelper 
         formData={formData}
-        isFormValid={isFormValid}
       />
 
       {/* Enhanced Plan Button */}
