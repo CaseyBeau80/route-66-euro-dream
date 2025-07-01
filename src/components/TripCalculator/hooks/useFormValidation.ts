@@ -84,10 +84,10 @@ export const useFormValidation = (formData: TripFormData) => {
       });
     }
 
-    // CRITICAL: Form is NOT valid when day adjustment is needed
-    const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate && !dayAdjustmentInfo;
+    // TWO-PHASE PLANNING: Form is valid even when day adjustment is needed (will be handled in phases)
+    const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate;
 
-    console.log('🔥 FULL DEBUG: Final validation result:', {
+    console.log('🔥 FULL DEBUG: Final validation result (TWO-PHASE):', {
       isFormValid,
       dayAdjustmentInfo,
       recommendedDays,
@@ -95,7 +95,8 @@ export const useFormValidation = (formData: TripFormData) => {
       hasEndLocation,
       hasValidTravelDays,
       hasStartDate,
-      dayAdjustmentPresent: !!dayAdjustmentInfo
+      dayAdjustmentPresent: !!dayAdjustmentInfo,
+      twoPhaseMode: 'Form valid even with day adjustment - will handle in phases'
     });
 
     return {

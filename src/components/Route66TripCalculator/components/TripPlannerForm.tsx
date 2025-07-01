@@ -3,6 +3,9 @@ import React from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
 import FormValidationHelper from '../../TripCalculator/components/FormValidationHelper';
+import TwoPhasePlanningModal from '../../TripCalculator/components/TwoPhasePlanningModal';
+import { useTwoPhasePlanning } from '../../TripCalculator/hooks/useTwoPhasePlanning';
+import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
 import ActionButtonsSection from './ActionButtonsSection';
@@ -14,7 +17,7 @@ interface TripPlannerFormProps {
   onLocationChange: (type: 'start' | 'end', location: string) => void;
   onTravelDaysChange: (days: number) => void;
   onTripStyleChange: (style: 'balanced' | 'destination-focused') => void;
-  onPlanTrip: () => void;
+  onPlanTrip: (data: TripFormData) => Promise<void>;
   onResetTrip: () => void;
   isPlanning: boolean;
   tripPlan?: any;
@@ -31,10 +34,50 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   isPlanning,
   tripPlan
 }) => {
+  const { dayAdjustmentInfo } = useFormValidation(formData);
+  const { 
+    planningState, 
+    startPlanning, 
+    acknowledgeAdjustment, 
+    resetPlanning,
+    canProceedWithPlanning 
+  } = useTwoPhasePlanning(formData);
+
   console.log('📝 TripPlannerForm render:', {
     formData,
-    isPlanning
+    isPlanning,
+    planningPhase: planningState.phase,
+    needsAdjustment: !!dayAdjustmentInfo
   });
+
+  const handlePlanTrip = async () => {
+    console.log('🚀 TripPlannerForm: Plan trip button clicked');
+    
+    try {
+      await startPlanning(onPlanTrip);
+    } catch (error) {
+      console.error('❌ TripPlannerForm: Planning failed:', error);
+      resetPlanning();
+    }
+  };
+
+  const handleAcknowledgeAdjustment = async () => {
+    console.log('✅ TripPlannerForm: User acknowledged adjustment');
+    acknowledgeAdjustment();
+    
+    // Proceed with planning using adjusted data
+    try {
+      await startPlanning(onPlanTrip);
+    } catch (error) {
+      console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
+      resetPlanning();
+    }
+  };
+
+  const handleCancelAdjustment = () => {
+    console.log('❌ TripPlannerForm: User cancelled adjustment');
+    resetPlanning();
+  };
 
   const isFormValid = formData.startLocation && formData.endLocation && formData.travelDays > 0;
 
@@ -45,10 +88,23 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
-      {/* Form Validation Helper - Critical for day adjustment messages */}
-      <FormValidationHelper formData={formData} className="mb-4" />
+      {/* Two-Phase Planning Modal */}
+      {dayAdjustmentInfo && planningState.phase === 'adjustment' && (
+        <TwoPhasePlanningModal
+          isOpen={true}
+          dayAdjustmentInfo={dayAdjustmentInfo}
+          formData={formData}
+          onAcknowledge={handleAcknowledgeAdjustment}
+          onCancel={handleCancelAdjustment}
+        />
+      )}
 
-      {/* Main Form Container - Unified styling */}
+      {/* Form Validation Helper - Only show for basic validation, not day adjustments */}
+      {!dayAdjustmentInfo && (
+        <FormValidationHelper formData={formData} className="mb-4" />
+      )}
+
+      {/* Main Form Container */}
       <div className="space-y-4">
         
         {/* Location Selection Card */}
@@ -71,8 +127,10 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
             <h3 className="text-lg font-semibold text-route66-text-primary">Trip Details</h3>
           </div>
           
-          {/* Inline Day Adjustment Notice - Placed prominently */}
-          <InlineDayAdjustmentNotice formData={formData} className="mb-4" />
+          {/* Inline Day Adjustment Notice - Only show when not in modal mode */}
+          {dayAdjustmentInfo && planningState.phase !== 'adjustment' && (
+            <InlineDayAdjustmentNotice formData={formData} className="mb-4" />
+          )}
           
           <TripDetailsSection 
             tripStartDate={formData.tripStartDate} 
@@ -83,7 +141,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
           />
         </div>
 
-        {/* Cost Estimator Card - Unified with other cards */}
+        {/* Cost Estimator Card */}
         <div className="bg-white rounded-xl shadow-sm border border-route66-border overflow-hidden">
           <div className="flex items-center gap-2 p-4 pb-0">
             <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -98,8 +156,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <div className="bg-white rounded-xl shadow-sm border border-route66-border p-4">
           <ActionButtonsSection 
             isFormValid={isFormValid} 
-            isPlanning={isPlanning} 
-            onPlanTrip={onPlanTrip} 
+            isPlanning={isPlanning || planningState.isProcessing} 
+            onPlanTrip={handlePlanTrip} 
             onResetTrip={onResetTrip} 
           />
         </div>
