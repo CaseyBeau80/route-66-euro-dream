@@ -20,7 +20,7 @@ export const tollRoadsContent: TollRoadsContentMap = {
       },
       {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Tips for International Travelers",
+        title: "Auto Rentals",
         content: "Rental cars may be charged administrative fees for toll violations. Consider getting a rental car with a transponder or ask about toll packages. Keep receipts for expense tracking. Some rental companies offer prepaid toll plans."
       }
     ],
@@ -77,7 +77,7 @@ export const tollRoadsContent: TollRoadsContentMap = {
       },
       {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Tipps für internationale Reisende",
+        title: "Auto Rentals",
         content: "Mietwagen können Verwaltungsgebühren für Mautverstöße berechnet bekommen. Erwägen Sie einen Mietwagen mit Transponder oder fragen Sie nach Mautpaketen. Bewahren Sie Quittungen für die Kostenabrechnung auf. Einige Mietwagenfirmen bieten Prepaid-Mautpläne an."
       }
     ],
@@ -134,7 +134,7 @@ export const tollRoadsContent: TollRoadsContentMap = {
       },
       {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Conseils pour les voyageurs internationaux",
+        title: "Auto Rentals",
         content: "Les voitures de location peuvent être facturées des frais administratifs pour les violations de péage. Envisagez une voiture de location avec un transpondeur ou demandez des forfaits péage. Gardez les reçus pour le suivi des dépenses. Certaines entreprises de location offrent des plans de péage prépayés."
       }
     ],
@@ -191,7 +191,7 @@ export const tollRoadsContent: TollRoadsContentMap = {
       },
       {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Tips voor internationale reizigers",
+        title: "Auto Rentals",
         content: "Huurauto's kunnen administratieve kosten in rekening brengen voor tolovertredingen. Overweeg een huurauto met een transponder of vraag naar tolpakketten. Bewaar bonnetjes voor kostenbeheer. Sommige autoverhuurbedrijven bieden prepaid tolplannen aan."
       }
     ],
