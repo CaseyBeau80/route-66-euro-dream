@@ -2,6 +2,9 @@ import { useState, useCallback } from 'react';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from './useFormValidation';
 
+// DEPRECATED: This hook is no longer used in favor of simple inline approach
+// Keeping for reference but should be removed once migration is confirmed working
+
 export interface TwoPhasePlanningState {
   phase: 'form' | 'acknowledgment' | 'planning' | 'complete';
   isProcessing: boolean;
@@ -16,42 +19,21 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     showModal: false
   });
 
-  console.log('🔄 useTwoPhasePlanning state:', {
-    phase: planningState.phase,
-    dayAdjustmentInfo: !!dayAdjustmentInfo,
-    isFormValid,
-    isProcessing: planningState.isProcessing,
-    showModal: planningState.showModal
-  });
+  console.warn('⚠️ DEPRECATED: useTwoPhasePlanning hook is deprecated. Use simple inline approach instead.');
 
   const startPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
-    console.log('🚀 Starting two-phase planning process');
-    
-    // If day adjustment is needed, show modal for acknowledgment
-    if (dayAdjustmentInfo) {
-      console.log('⚠️ Day adjustment needed - showing modal for acknowledgment');
-      setPlanningState(prev => ({ 
-        ...prev, 
-        phase: 'acknowledgment',
-        showModal: true
-      }));
-      return; // Don't proceed until user acknowledges
-    }
-
-    // No adjustment needed - proceed directly with planning
-    console.log('🎯 No adjustment needed - proceeding directly with planning');
+    console.log('🚀 DEPRECATED: useTwoPhasePlanning.startPlanning called');
     
     try {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'planning', 
         isProcessing: true,
-        showModal: false // No modal needed for direct planning
+        showModal: false
       }));
       
       await onPlanTrip(formData);
       
-      console.log('✅ Direct planning completed successfully');
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'form', 
@@ -60,7 +42,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       }));
       
     } catch (error) {
-      console.error('❌ Direct planning failed:', error);
+      console.error('❌ DEPRECATED: Planning failed:', error);
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'form', 
@@ -69,49 +51,15 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       }));
       throw error;
     }
-  }, [formData, dayAdjustmentInfo]);
+  }, [formData]);
 
   const acknowledgeAndProceed = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
-    console.log('✅ User acknowledged adjustment - proceeding immediately to planning');
-    
-    try {
-      setPlanningState(prev => ({ 
-        ...prev, 
-        phase: 'planning', 
-        isProcessing: true
-        // Keep showModal: true
-      }));
-      
-      // Use adjusted data
-      const dataToUse = dayAdjustmentInfo ? {
-        ...formData,
-        travelDays: dayAdjustmentInfo.minimum
-      } : formData;
-      
-      await onPlanTrip(dataToUse);
-      
-      console.log('✅ Planning completed successfully after acknowledgment');
-      setPlanningState(prev => ({ 
-        ...prev, 
-        phase: 'complete', 
-        isProcessing: false
-        // Keep showModal: true - user must manually close
-      }));
-      
-    } catch (error) {
-      console.error('❌ Planning failed after acknowledgment:', error);
-      setPlanningState(prev => ({ 
-        ...prev, 
-        phase: 'form', 
-        isProcessing: false,
-        showModal: false
-      }));
-      throw error;
-    }
-  }, [formData, dayAdjustmentInfo]);
+    console.log('✅ DEPRECATED: acknowledgeAndProceed called');
+    return startPlanning(onPlanTrip);
+  }, [startPlanning]);
 
   const resetPlanning = useCallback(() => {
-    console.log('🔄 Resetting planning state');
+    console.log('🔄 DEPRECATED: Resetting planning state');
     setPlanningState({
       phase: 'form',
       isProcessing: false,
@@ -120,7 +68,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   }, []);
 
   const closeModal = useCallback(() => {
-    console.log('🔄 Closing modal - user manually closed');
+    console.log('🔄 DEPRECATED: Closing modal');
     setPlanningState(prev => ({ 
       ...prev, 
       showModal: false,
