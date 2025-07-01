@@ -17,7 +17,7 @@ const TollRoads = ({ language }: TollRoadsProps) => {
         </div>
         
         {/* Main Information Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {content.sections.map((section, index) => (
             <TollRoadInfoCard key={index} section={section} />
           ))}

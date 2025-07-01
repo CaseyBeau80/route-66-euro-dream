@@ -19,11 +19,6 @@ export const tollRoadsContent: TollRoadsContentMap = {
         content: "Most toll roads accept cash, credit cards, and electronic transponders like E-ZPass, SunPass, or state-specific tags. Many newer toll plazas are cashless and use license plate recognition for billing."
       },
       {
-        icon: React.createElement(MapPin, { className: "h-6 w-6 text-route66-red" }),
-        title: "State-by-State Breakdown",
-        content: "Illinois: Chicago Skyway and some bridges. Missouri: Generally toll-free. Oklahoma: Portions of I-44 Turner Turnpike. Texas, New Mexico, Arizona: Mostly toll-free. California: Some bridges and express lanes may charge tolls."
-      },
-      {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
         title: "Tips for International Travelers",
         content: "Rental cars may be charged administrative fees for toll violations. Consider getting a rental car with a transponder or ask about toll packages. Keep receipts for expense tracking. Some rental companies offer prepaid toll plans."
@@ -79,11 +74,6 @@ export const tollRoadsContent: TollRoadsContentMap = {
         icon: React.createElement(CreditCard, { className: "h-6 w-6 text-route66-blue" }),
         title: "Zahlungsmethoden",
         content: "Die meisten Mautstraßen akzeptieren Bargeld, Kreditkarten und elektronische Transponder wie E-ZPass, SunPass oder staatsspezifische Tags. Viele neuere Mautstellen sind bargeldlos und verwenden Kennzeichenerkennung für die Abrechnung."
-      },
-      {
-        icon: React.createElement(MapPin, { className: "h-6 w-6 text-route66-red" }),
-        title: "Aufschlüsselung nach Bundesstaaten",
-        content: "Illinois: Chicago Skyway und einige Brücken. Missouri: Generell mautfrei. Oklahoma: Teile der I-44 Turner Turnpike. Texas, New Mexico, Arizona: Meist mautfrei. Kalifornien: Einige Brücken und Expressspuren können Maut erheben."
       },
       {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
@@ -143,11 +133,6 @@ export const tollRoadsContent: TollRoadsContentMap = {
         content: "La plupart des routes à péage acceptent l'argent liquide, les cartes de crédit et les transpondeurs électroniques comme E-ZPass, SunPass ou les étiquettes spécifiques à l'état. Beaucoup de nouvelles stations de péage sont sans espèces et utilisent la reconnaissance de plaque d'immatriculation pour la facturation."
       },
       {
-        icon: React.createElement(MapPin, { className: "h-6 w-6 text-route66-red" }),
-        title: "Répartition par état",
-        content: "Illinois : Chicago Skyway et certains ponts. Missouri : Généralement sans péage. Oklahoma : Portions de l'I-44 Turner Turnpike. Texas, Nouveau-Mexique, Arizona : Principalement sans péage. Californie : Certains ponts et voies express peuvent facturer des péages."
-      },
-      {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
         title: "Conseils pour les voyageurs internationaux",
         content: "Les voitures de location peuvent être facturées des frais administratifs pour les violations de péage. Envisagez une voiture de location avec un transpondeur ou demandez des forfaits péage. Gardez les reçus pour le suivi des dépenses. Certaines entreprises de location offrent des plans de péage prépayés."
@@ -203,11 +188,6 @@ export const tollRoadsContent: TollRoadsContentMap = {
         icon: React.createElement(CreditCard, { className: "h-6 w-6 text-route66-blue" }),
         title: "Betaalmethoden",
         content: "De meeste tolwegen accepteren contant geld, creditcards en elektronische transponders zoals E-ZPass, SunPass of staatsspecifieke tags. Veel nieuwere tolpoorten zijn contantloos en gebruiken nummerplaatherkenning voor facturering."
-      },
-      {
-        icon: React.createElement(MapPin, { className: "h-6 w-6 text-route66-red" }),
-        title: "Uitsplitsing per staat",
-        content: "Illinois: Chicago Skyway en enkele bruggen. Missouri: Over het algemeen tolvrij. Oklahoma: Delen van I-44 Turner Turnpike. Texas, New Mexico, Arizona: Meestal tolvrij. Californië: Enkele bruggen en express lanes kunnen tol heffen."
       },
       {
         icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
