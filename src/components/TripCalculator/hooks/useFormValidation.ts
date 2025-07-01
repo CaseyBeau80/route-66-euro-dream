@@ -9,30 +9,39 @@ export const useFormValidation = (formData: TripFormData) => {
   const MIN_DAYS = 1;
 
   const validationResult = useMemo(() => {
+    console.log('🔍 FULL DEBUG useFormValidation START:', {
+      timestamp: new Date().toISOString(),
+      formData: {
+        startLocation: formData.startLocation,
+        endLocation: formData.endLocation,
+        travelDays: formData.travelDays,
+        tripStyle: formData.tripStyle,
+        tripStartDate: formData.tripStartDate?.toISOString()
+      }
+    });
+
     const hasStartLocation = !!formData.startLocation;
     const hasEndLocation = !!formData.endLocation;
     const hasValidTravelDays = formData.travelDays > 0 && formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS;
     const hasStartDate = !!formData.tripStartDate;
 
+    console.log('🔍 FULL DEBUG initial checks:', {
+      hasStartLocation,
+      hasEndLocation,
+      hasValidTravelDays,
+      hasStartDate,
+      travelDays: formData.travelDays
+    });
+
     let dayAdjustmentInfo = null;
     let recommendedDays = null;
 
-    console.log('🔍 DEBUGGING useFormValidation inputs:', {
-      startLocation: formData.startLocation,
-      endLocation: formData.endLocation,
-      travelDays: formData.travelDays,
-      tripStyle: formData.tripStyle,
-      hasStartLocation,
-      hasEndLocation,
-      hasValidTravelDays
-    });
-
     // CRITICAL: Always check day adjustment when we have the required data
     if (hasStartLocation && hasEndLocation && formData.travelDays > 0) {
-      console.log('🔍 DEBUGGING: Checking day adjustment - ALWAYS when locations + days present');
+      console.log('🔍 FULL DEBUG: Starting day adjustment check');
       
       const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
-      console.log('🔍 DEBUGGING: Style config:', styleConfig);
+      console.log('🔍 FULL DEBUG: Style config:', styleConfig);
       
       const validation = TravelDayValidator.validateTravelDays(
         formData.startLocation,
@@ -41,7 +50,14 @@ export const useFormValidation = (formData: TripFormData) => {
         styleConfig
       );
 
-      console.log('🔍 DEBUGGING: Travel day validation result:', validation);
+      console.log('🔍 FULL DEBUG: Validation result:', {
+        isValid: validation.isValid,
+        minDaysRequired: validation.minDaysRequired,
+        maxDaysRecommended: validation.maxDaysRecommended,
+        currentDays: validation.currentDays,
+        issues: validation.issues,
+        recommendations: validation.recommendations
+      });
 
       // CRITICAL: Show day adjustment if minimum required is greater than requested
       if (validation.minDaysRequired && validation.minDaysRequired > formData.travelDays) {
@@ -52,24 +68,34 @@ export const useFormValidation = (formData: TripFormData) => {
         };
         recommendedDays = validation.minDaysRequired;
         
-        console.log('🎯 DEBUGGING: Day adjustment info created:', dayAdjustmentInfo);
+        console.log('🔥 FULL DEBUG: DAY ADJUSTMENT CREATED:', dayAdjustmentInfo);
+      } else {
+        console.log('🔍 FULL DEBUG: No day adjustment needed:', {
+          minDaysRequired: validation.minDaysRequired,
+          requestedDays: formData.travelDays,
+          condition: `${validation.minDaysRequired} > ${formData.travelDays} = ${validation.minDaysRequired > formData.travelDays}`
+        });
       }
+    } else {
+      console.log('🔍 FULL DEBUG: Skipping day adjustment check - missing required data:', {
+        hasStartLocation,
+        hasEndLocation,
+        hasTravelDays: formData.travelDays > 0
+      });
     }
 
     // CRITICAL: Form is NOT valid when day adjustment is needed
-    // This forces the user to acknowledge the change before proceeding
     const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate && !dayAdjustmentInfo;
 
-    console.log('🎯 DEBUGGING: Final validation result:', {
+    console.log('🔥 FULL DEBUG: Final validation result:', {
+      isFormValid,
+      dayAdjustmentInfo,
+      recommendedDays,
       hasStartLocation,
       hasEndLocation,
       hasValidTravelDays,
-      travelDays: formData.travelDays,
       hasStartDate,
-      dayAdjustmentPresent: !!dayAdjustmentInfo,
-      dayAdjustmentDetails: dayAdjustmentInfo,
-      recommendedDays,
-      isFormValid
+      dayAdjustmentPresent: !!dayAdjustmentInfo
     });
 
     return {

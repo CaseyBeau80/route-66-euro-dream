@@ -28,20 +28,23 @@ export class TravelDayValidator {
     const issues: string[] = [];
     const recommendations: string[] = [];
     
-    console.log('🔍 DEBUGGING TravelDayValidator.validateTravelDays called with:', {
+    console.log('🔍 FULL DEBUG TravelDayValidator.validateTravelDays START:', {
       startLocation,
       endLocation,
       requestedDays,
-      styleConfig
+      styleConfig,
+      timestamp: new Date().toISOString()
     });
     
     // CRITICAL: Hard enforcement of absolute bounds
     if (requestedDays < this.ABSOLUTE_MIN_DAYS) {
       issues.push(`Minimum ${this.ABSOLUTE_MIN_DAYS} day required for any Route 66 trip`);
+      console.log('🔍 FULL DEBUG: Below minimum days');
     }
     
     if (requestedDays > this.ABSOLUTE_MAX_DAYS) {
       issues.push(`Maximum ${this.ABSOLUTE_MAX_DAYS} days supported by the planner - please reduce your trip duration`);
+      console.log('🔍 FULL DEBUG: Above maximum days');
     }
 
     // Get estimated distance
@@ -50,9 +53,13 @@ export class TravelDayValidator {
       endLocation
     );
     
-    console.log('🔍 DEBUGGING: Estimated distance:', estimatedDistance);
+    console.log('🔍 FULL DEBUG: Distance estimation:', {
+      estimatedDistance,
+      hasDistance: !!estimatedDistance
+    });
     
     if (!estimatedDistance) {
+      console.log('🔍 FULL DEBUG: No distance - returning error result');
       return {
         isValid: false,
         minDaysRequired: this.ABSOLUTE_MIN_DAYS,
@@ -68,12 +75,14 @@ export class TravelDayValidator {
     const minDaysForStyle = Math.ceil(estimatedDistance / (styleConfig.maxDailyDriveHours * 50));
     const minDaysRequired = Math.max(this.ABSOLUTE_MIN_DAYS, minDaysForAbsoluteSafety, minDaysForStyle);
     
-    console.log('🔍 DEBUGGING: Calculated minimum days:', {
+    console.log('🔍 FULL DEBUG: Day calculations:', {
+      estimatedDistance,
       minDaysForAbsoluteSafety,
       minDaysForStyle,
       minDaysRequired,
       requestedDays,
-      'needsAdjustment': minDaysRequired > requestedDays
+      needsAdjustment: minDaysRequired > requestedDays,
+      calculation: `${estimatedDistance} miles / (${this.MAX_DAILY_DRIVE_HOURS} hours * 50 mph) = ${minDaysForAbsoluteSafety} days`
     });
     
     // Calculate maximum recommended days (capped at 14 days)
@@ -81,6 +90,7 @@ export class TravelDayValidator {
     
     // CRITICAL FIX: Check if minimum days required is greater than requested days
     if (minDaysRequired > requestedDays) {
+      console.log('🔥 FULL DEBUG: DAY ADJUSTMENT TRIGGERED!');
       issues.push(`Route requires minimum ${minDaysRequired} days for safe daily driving limits`);
       recommendations.push(`Increase trip duration to ${minDaysRequired} days to ensure safe daily drives`);
     }
@@ -89,7 +99,10 @@ export class TravelDayValidator {
     if (requestedDays >= this.ABSOLUTE_MIN_DAYS && requestedDays <= this.ABSOLUTE_MAX_DAYS) {
       const averageDailyHours = estimatedDistance / requestedDays / 50; // Assuming 50 mph average
       
-      console.log('🔍 DEBUGGING: Average daily hours:', averageDailyHours);
+      console.log('🔍 FULL DEBUG: Daily driving hours:', {
+        averageDailyHours,
+        exceedsLimit: averageDailyHours > this.MAX_DAILY_DRIVE_HOURS
+      });
       
       if (averageDailyHours > this.MAX_DAILY_DRIVE_HOURS) {
         issues.push(`CRITICAL: Average ${averageDailyHours.toFixed(1)}h/day exceeds 10-hour absolute maximum`);
@@ -122,8 +135,10 @@ export class TravelDayValidator {
       recommendations
     };
     
-    console.log('🔍 DEBUGGING: Final validation result:', result);
-    console.log('🔍 DEBUGGING: Will trigger day adjustment?', !isValid && minDaysRequired > requestedDays);
+    console.log('🔥 FULL DEBUG: TravelDayValidator final result:', {
+      ...result,
+      willTriggerAdjustment: !isValid && minDaysRequired > requestedDays
+    });
     
     return result;
   }

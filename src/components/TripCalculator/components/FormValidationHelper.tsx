@@ -15,21 +15,23 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 }) => {
   const { isFormValid, validationIssues, dayAdjustmentInfo } = useFormValidation(formData);
 
-  console.log('🎯 FormValidationHelper render:', {
+  console.log('🔥 FULL DEBUG FormValidationHelper render:', {
     dayAdjustmentInfo,
+    dayAdjustmentExists: !!dayAdjustmentInfo,
     isFormValid,
     validationIssues,
     formData: {
       startLocation: formData.startLocation,
       endLocation: formData.endLocation,
       travelDays: formData.travelDays,
-      tripStartDate: formData.tripStartDate
-    }
+      tripStartDate: formData.tripStartDate?.toISOString()
+    },
+    timestamp: new Date().toISOString()
   });
 
   // CRITICAL: Day adjustment message ALWAYS takes priority and is UNMISSABLE
   if (dayAdjustmentInfo) {
-    console.log('🚨 SHOWING UNMISSABLE DAY ADJUSTMENT MESSAGE:', dayAdjustmentInfo);
+    console.log('🔥 FULL DEBUG: SHOWING UNMISSABLE DAY ADJUSTMENT MESSAGE:', dayAdjustmentInfo);
     
     return (
       <div className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4">
@@ -150,10 +152,13 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
         </div>
       </div>
     );
+  } else {
+    console.log('🔍 FULL DEBUG: No day adjustment info - showing regular validation or nothing');
   }
 
   // Show regular validation issues ONLY if there's no day adjustment
   if (!isFormValid && validationIssues.length > 0) {
+    console.log('🔍 FULL DEBUG: Showing regular validation issues:', validationIssues);
     return (
       <div className={`rounded-lg border border-red-200 bg-red-50 p-4 ${className}`}>
         <div className="flex items-start gap-3">
@@ -175,6 +180,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
     );
   }
 
+  console.log('🔍 FULL DEBUG: Not showing anything - form is valid');
   return null;
 };
 
