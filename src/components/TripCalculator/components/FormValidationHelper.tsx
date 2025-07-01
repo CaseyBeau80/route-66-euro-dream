@@ -18,73 +18,102 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   // CRITICAL: Show day adjustment notice PROMINENTLY when days are changed
   if (dayAdjustmentInfo) {
     return (
-      <div className={`rounded-xl border-4 border-orange-500 bg-gradient-to-r from-orange-50 to-yellow-50 p-6 shadow-xl ${className}`}>
-        <div className="flex items-start gap-4">
+      <div className={`rounded-xl border-4 border-red-500 bg-gradient-to-r from-red-50 to-orange-50 p-8 shadow-2xl ${className}`}>
+        <div className="flex items-start gap-6">
           <div className="flex-shrink-0">
-            <AlertCircle className="h-12 w-12 text-orange-600" />
+            <AlertCircle className="h-16 w-16 text-red-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-2xl font-bold text-orange-900 mb-4">
-              ⚠️ Your Trip Duration Was Automatically Changed
+            <h3 className="text-3xl font-black text-red-900 mb-6">
+              🚨 IMPORTANT: Your Trip Duration Was Changed!
             </h3>
             
             {/* MASSIVE, CLEAR COMPARISON */}
-            <div className="bg-white rounded-lg border-2 border-orange-300 p-6 mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center text-center">
+            <div className="bg-white rounded-xl border-4 border-red-400 p-8 mb-6 shadow-lg">
+              <div className="text-center mb-6">
+                <h4 className="text-2xl font-bold text-gray-800 mb-4">Here's What Happened:</h4>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center text-center">
                 {/* What you entered */}
-                <div className="bg-red-100 rounded-lg p-4 border-2 border-red-300">
-                  <p className="text-sm font-semibold text-red-700 mb-1">YOU ENTERED:</p>
-                  <div className="text-4xl font-black text-red-600">{dayAdjustmentInfo.requested}</div>
-                  <p className="text-lg font-bold text-red-700">DAYS</p>
+                <div className="bg-red-100 rounded-xl p-6 border-4 border-red-400 shadow-md">
+                  <p className="text-lg font-bold text-red-700 mb-2">YOU ENTERED:</p>
+                  <div className="text-6xl font-black text-red-600 mb-2">{dayAdjustmentInfo.requested}</div>
+                  <p className="text-2xl font-bold text-red-700">DAYS</p>
                 </div>
                 
                 {/* Arrow */}
                 <div className="flex justify-center">
-                  <ArrowRight className="h-8 w-8 text-orange-500" />
+                  <div className="bg-orange-100 rounded-full p-4">
+                    <ArrowRight className="h-12 w-12 text-orange-600" />
+                  </div>
                 </div>
                 
                 {/* What we changed it to */}
-                <div className="bg-green-100 rounded-lg p-4 border-2 border-green-300">
-                  <p className="text-sm font-semibold text-green-700 mb-1">CHANGED TO:</p>
-                  <div className="text-4xl font-black text-green-600">{dayAdjustmentInfo.minimum}</div>
-                  <p className="text-lg font-bold text-green-700">DAYS</p>
+                <div className="bg-green-100 rounded-xl p-6 border-4 border-green-400 shadow-md">
+                  <p className="text-lg font-bold text-green-700 mb-2">WE CHANGED IT TO:</p>
+                  <div className="text-6xl font-black text-green-600 mb-2">{dayAdjustmentInfo.minimum}</div>
+                  <p className="text-2xl font-bold text-green-700">DAYS</p>
                 </div>
               </div>
             </div>
 
             {/* SIMPLE, CLEAR EXPLANATION */}
-            <div className="bg-blue-50 rounded-lg border-2 border-blue-200 p-4">
-              <div className="flex items-start gap-3">
-                <Clock className="h-6 w-6 text-blue-600 mt-1 flex-shrink-0" />
+            <div className="bg-blue-50 rounded-xl border-4 border-blue-300 p-6 mb-6 shadow-lg">
+              <div className="flex items-start gap-4">
+                <Clock className="h-8 w-8 text-blue-600 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-lg font-semibold text-blue-900 mb-2">
-                    Why did we change your trip from {dayAdjustmentInfo.requested} to {dayAdjustmentInfo.minimum} days?
-                  </p>
-                  <p className="text-blue-800 leading-relaxed">
-                    Your route from <strong>{formData.startLocation}</strong> to <strong>{formData.endLocation}</strong> is approximately <strong>{Math.round(dayAdjustmentInfo.minimum * 300)} miles</strong>. 
-                    With {dayAdjustmentInfo.requested} days, you'd need to drive <strong>{Math.round((dayAdjustmentInfo.minimum * 300) / dayAdjustmentInfo.requested)} miles per day</strong>.
-                  </p>
-                  <p className="text-blue-800 mt-2 font-semibold">
-                    ✅ Our safety limit is 300 miles per day (about 10 hours of driving)
-                  </p>
-                  <p className="text-blue-800">
-                    ✅ With {dayAdjustmentInfo.minimum} days, you'll drive a comfortable {Math.round((dayAdjustmentInfo.minimum * 300) / dayAdjustmentInfo.minimum)} miles per day
-                  </p>
+                  <h4 className="text-2xl font-bold text-blue-900 mb-4">
+                    Why We Changed Your {dayAdjustmentInfo.requested}-Day Trip to {dayAdjustmentInfo.minimum} Days:
+                  </h4>
+                  <div className="text-lg text-blue-800 space-y-3">
+                    <p className="leading-relaxed">
+                      <strong>Your route from {formData.startLocation} to {formData.endLocation}</strong> is approximately <strong>{Math.round(dayAdjustmentInfo.minimum * 300)} miles long</strong>.
+                    </p>
+                    <p className="leading-relaxed">
+                      With only {dayAdjustmentInfo.requested} days, you would need to drive <strong>{Math.round((dayAdjustmentInfo.minimum * 300) / dayAdjustmentInfo.requested)} miles per day</strong> - that's more than 10 hours of driving each day!
+                    </p>
+                    <p className="leading-relaxed font-semibold text-blue-900">
+                      🛡️ For your safety and enjoyment, we limit daily driving to 300 miles (about 10 hours).
+                    </p>
+                    <p className="leading-relaxed font-semibold text-green-800">
+                      ✅ With {dayAdjustmentInfo.minimum} days, you'll drive a comfortable 300 miles per day.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Benefits */}
-            <div className="mt-4 bg-green-50 rounded-lg border-2 border-green-200 p-4">
-              <p className="text-green-800 font-semibold mb-2">
-                🎉 Your {dayAdjustmentInfo.minimum}-day trip will be better because:
-              </p>
-              <ul className="text-green-700 space-y-1">
-                <li>• Safe daily driving times (under 10 hours per day)</li>
-                <li>• More time to enjoy Route 66 attractions</li>
-                <li>• Less rushing, more relaxing</li>
-                <li>• Better photo opportunities at each stop</li>
+            <div className="bg-green-50 rounded-xl border-4 border-green-300 p-6 shadow-lg">
+              <h4 className="text-xl font-bold text-green-800 mb-4">
+                🎉 Your {dayAdjustmentInfo.minimum}-Day Trip Will Be BETTER Because:
+              </h4>
+              <ul className="text-lg text-green-700 space-y-2">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600">✅</span>
+                  <span>Safe daily driving times (under 10 hours per day)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600">✅</span>
+                  <span>More time to enjoy Route 66 attractions and stops</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600">✅</span>
+                  <span>Less rushing, more relaxing and memorable experiences</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600">✅</span>
+                  <span>Better photo opportunities and time to explore each city</span>
+                </li>
               </ul>
+            </div>
+
+            {/* Call to Action */}
+            <div className="mt-6 text-center">
+              <p className="text-xl font-bold text-gray-800">
+                Continue below to see your optimized {dayAdjustmentInfo.minimum}-day Route 66 adventure! 🚗
+              </p>
             </div>
           </div>
         </div>
