@@ -32,7 +32,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   const startPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
     console.log('🚀 TWO-PHASE: Starting planning process');
     
-    // Phase 1: Check if day adjustment is needed
+    // Phase 1: Check if day adjustment is needed AND not yet acknowledged
     if (dayAdjustmentInfo && !planningState.adjustmentAcknowledged) {
       console.log('📋 TWO-PHASE: Phase 1 - Day adjustment needed, showing adjustment modal');
       
@@ -50,31 +50,24 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
         showModal: true
       });
       
-      // Return here - wait for user acknowledgment
+      // CRITICAL: Return here - wait for user acknowledgment, do NOT proceed
       return;
     }
 
-    // Phase 2: Proceed with planning (no adjustment needed OR already acknowledged)
-    console.log('🎯 TWO-PHASE: Phase 2 - Proceeding with trip planning');
+    // Phase 2: Direct planning (no adjustment needed)
+    console.log('🎯 TWO-PHASE: Phase 2 - Direct planning (no adjustment needed)');
     
     try {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'planning', 
         isProcessing: true,
-        showModal: dayAdjustmentInfo ? true : false // Only show modal if there was an adjustment
+        showModal: false // No modal needed for direct planning
       }));
       
-      const dataToUse = planningState.adjustedFormData || formData;
-      console.log('🎯 TWO-PHASE: Using data for planning:', {
-        hasAdjustedData: !!planningState.adjustedFormData,
-        travelDays: dataToUse.travelDays,
-        originalDays: formData.travelDays
-      });
+      await onPlanTrip(formData);
       
-      await onPlanTrip(dataToUse);
-      
-      console.log('✅ TWO-PHASE: Planning completed successfully');
+      console.log('✅ TWO-PHASE: Direct planning completed successfully');
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'complete', 
@@ -83,7 +76,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       }));
       
     } catch (error) {
-      console.error('❌ TWO-PHASE: Planning failed:', error);
+      console.error('❌ TWO-PHASE: Direct planning failed:', error);
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'form', 
@@ -92,28 +85,37 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       }));
       throw error;
     }
-  }, [formData, dayAdjustmentInfo, planningState.adjustedFormData, planningState.adjustmentAcknowledged]);
+  }, [formData, dayAdjustmentInfo, planningState.adjustmentAcknowledged]);
 
   const acknowledgeAdjustment = useCallback(() => {
     console.log('✅ TWO-PHASE: User acknowledged day adjustment');
     setPlanningState(prev => ({ 
       ...prev, 
       adjustmentAcknowledged: true
+      // Keep showModal: true - modal stays open for proceedWithPlanning
     }));
   }, []);
 
   const proceedWithPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
     console.log('🎯 TWO-PHASE: Proceeding with planning after acknowledgment');
     
+    // CRITICAL: This function is called ONLY after acknowledgment
+    // It should NEVER re-evaluate dayAdjustmentInfo or call startPlanning
     try {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'planning', 
         isProcessing: true
-        // Keep showModal: true during planning
+        // Keep showModal: true - modal shows planning progress
       }));
       
       const dataToUse = planningState.adjustedFormData || formData;
+      console.log('🎯 TWO-PHASE: Using adjusted data for planning:', {
+        hasAdjustedData: !!planningState.adjustedFormData,
+        travelDays: dataToUse.travelDays,
+        originalDays: formData.travelDays
+      });
+      
       await onPlanTrip(dataToUse);
       
       console.log('✅ TWO-PHASE: Planning completed successfully after acknowledgment');
@@ -121,7 +123,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
         ...prev, 
         phase: 'complete', 
         isProcessing: false,
-        showModal: false
+        showModal: false // Only hide modal when planning is complete
       }));
       
     } catch (error) {

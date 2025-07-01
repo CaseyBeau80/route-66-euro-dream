@@ -68,19 +68,18 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   const handleAcknowledgeAdjustment = async () => {
     console.log('✅ TripPlannerForm: User acknowledged adjustment');
     
-    // First acknowledge the adjustment
+    // CRITICAL FIX: No setTimeout, no recursive startPlanning calls
+    // Step 1: Acknowledge the adjustment
     acknowledgeAdjustment();
     
-    // Then proceed with planning after a short delay to ensure state update
-    setTimeout(async () => {
-      console.log('🎯 TripPlannerForm: Proceeding with planning after acknowledgment');
-      try {
-        await proceedWithPlanning(onPlanTrip);
-      } catch (error) {
-        console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
-        resetPlanning();
-      }
-    }, 100); // Shorter delay should be sufficient
+    // Step 2: Immediately proceed with planning using proceedWithPlanning
+    // This avoids re-triggering startPlanning and prevents modal flash
+    try {
+      await proceedWithPlanning(onPlanTrip);
+    } catch (error) {
+      console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
+      resetPlanning();
+    }
   };
 
   const handleCancelAdjustment = () => {
