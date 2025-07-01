@@ -40,7 +40,7 @@ const Index = () => {
         {/* Comprehensive Listings */}
         <ComprehensiveListings />
         
-        {/* Story Journey */}
+        {/* Story Journey - Remove language prop since component doesn't accept it */}
         <StoryJourney />
         
         {/* Interactive Map */}
