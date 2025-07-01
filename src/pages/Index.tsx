@@ -1,61 +1,67 @@
 
-import { useState } from 'react';
-import MainLayout from "../components/MainLayout";
-import FadeInSection from "../components/FadeInSection";
-import BackToTopButton from "../components/BackToTopButton";
-import HeroSection from "../components/Hero/HeroSection";
-import InteractiveMapSection from "../components/InteractiveMap/InteractiveMapSection";
-import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
-import TripPlannerSection from "../components/TripPlannerSection";
-import SocialSection from "../components/SocialSection/SocialSection";
-import TollRoads from "../components/TollRoads";
-import FunSection from "../components/FunSection/FunSection";
+import React, { useState } from "react";
+import { Helmet } from "react-helmet-async";
+import NavigationBar from "@/components/NavigationBar";
+import EnhancedHeroSection from "@/components/Hero/EnhancedHeroSection";
+import CentennialSection from "@/components/CentennialSection";
+import ComprehensiveListings from "@/components/ComprehensiveListings";
+import StoryJourney from "@/components/StoryJourney";
+import InteractiveMapSection from "@/components/InteractiveMap/InteractiveMapSection";
+import FunFactsOfTheDay from "@/components/FunFactsOfTheDay";
+import InstagramCarousel from "@/components/InstagramCarousel";
+import TravelResources from "@/components/TravelResources";
+import BackToTopButton from "@/components/BackToTopButton";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
-  
-  console.log("🏠 Index page: Rendering with restored directory view");
 
   return (
-    <MainLayout language={language} setLanguage={setLanguage}>
-      {/* Hero Section - Full viewport height with two-column layout */}
-      <section id="hero">
-        <HeroSection language={language} />
-      </section>
-
-      {/* Interactive Map Section with fade-in */}
-      <FadeInSection id="interactive-map" delay={200}>
-        <InteractiveMapSection language={language} />
-      </FadeInSection>
-
-      {/* Trip Planner Section with fade-in */}
-      <FadeInSection id="trip-planner" delay={300}>
-        <TripPlannerSection />
-      </FadeInSection>
-
-      {/* Unified Route 66 Directory - Restored comprehensive directory view */}
-      <FadeInSection id="route66-directory" delay={350}>
-        <UnifiedRoute66Carousel className="bg-route66-background-section" />
-      </FadeInSection>
-
-      {/* Social Section with fade-in */}
-      <FadeInSection id="social" delay={400}>
-        <SocialSection language={language} />
-      </FadeInSection>
-
-      {/* Toll Roads Advisory Section with fade-in */}
-      <FadeInSection id="toll-roads" delay={450}>
-        <TollRoads language={language} />
-      </FadeInSection>
-
-      {/* Fun Section with fade-in */}
-      <FadeInSection id="fun" delay={500}>
-        <FunSection language={language} />
-      </FadeInSection>
-
-      {/* Back to Top Button */}
-      <BackToTopButton />
-    </MainLayout>
+    <>
+      <Helmet>
+        <title>RAMBLE 66 - Your Ultimate Route 66 Adventure Guide</title>
+        <meta name="description" content="Discover America's Main Street with RAMBLE 66. Plan your Route 66 journey, explore hidden gems, share photos, and join the community of travelers." />
+        <meta name="keywords" content="Route 66, road trip, travel, America, highway, adventure, Chicago, Santa Monica, photo challenge" />
+        <meta property="og:title" content="RAMBLE 66 - Your Ultimate Route 66 Adventure Guide" />
+        <meta property="og:description" content="Plan your Route 66 journey, share photos, and join the community of travelers on America's Main Street." />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href="https://ramble66.com" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-route66-background">
+        <NavigationBar language={language} setLanguage={setLanguage} />
+        
+        {/* Enhanced Hero Section with Photo Upload */}
+        <EnhancedHeroSection language={language} />
+        
+        {/* Centennial Section */}
+        <CentennialSection language={language} />
+        
+        {/* Comprehensive Listings */}
+        <ComprehensiveListings />
+        
+        {/* Story Journey */}
+        <StoryJourney />
+        
+        {/* Interactive Map */}
+        <InteractiveMapSection />
+        
+        {/* Fun Facts */}
+        <FunFactsOfTheDay />
+        
+        {/* Instagram Carousel */}
+        <InstagramCarousel />
+        
+        {/* Travel Resources */}
+        <TravelResources />
+        
+        {/* Footer */}
+        <Footer />
+        
+        {/* Back to Top */}
+        <BackToTopButton />
+      </div>
+    </>
   );
 };
 

@@ -1,8 +1,10 @@
 
-import { Home } from "lucide-react";
+import { Home, MapPin, Camera } from "lucide-react";
 
 export const navigationItems = [
   { name: "Home", href: "/", icon: Home },
+  { name: "Trip Planner", href: "/trip-calculator", icon: MapPin },
+  { name: "Photo Challenge", href: "/test-upload", icon: Camera },
 ];
 
 export const languageOptions = [
