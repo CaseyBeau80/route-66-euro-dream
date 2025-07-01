@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
@@ -37,8 +36,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   const { 
     planningState, 
     startPlanning, 
-    acknowledgeAdjustment,
-    proceedWithPlanning,
+    acknowledgeAndProceed,
     resetPlanning,
     closeModal,
     needsAdjustment,
@@ -65,13 +63,13 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     }
   };
 
-  const handleProceedWithPlanning = async () => {
-    console.log('🚀 TripPlannerForm: Proceeding with planning after acknowledgment');
+  const handleAcknowledgeAndProceed = async () => {
+    console.log('🚀 TripPlannerForm: User acknowledged and proceeding with planning');
     
     try {
-      await proceedWithPlanning(onPlanTrip);
+      await acknowledgeAndProceed(onPlanTrip);
     } catch (error) {
-      console.error('❌ TripPlannerForm: Planning failed:', error);
+      console.error('❌ TripPlannerForm: Planning failed after acknowledgment:', error);
       resetPlanning();
     }
   };
@@ -84,8 +82,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
       <TwoPhasePlanningModal
         formData={formData}
         planningState={planningState}
-        onAcknowledge={acknowledgeAdjustment}
-        onProceedWithPlanning={handleProceedWithPlanning}
+        onAcknowledgeAndProceed={handleAcknowledgeAndProceed}
         onClose={closeModal}
       />
 

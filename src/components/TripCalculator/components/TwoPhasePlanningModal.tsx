@@ -9,26 +9,24 @@ import { TwoPhasePlanningState } from '../hooks/useTwoPhasePlanning';
 interface TwoPhasePlanningModalProps {
   formData: TripFormData;
   planningState: TwoPhasePlanningState;
-  onAcknowledge: () => void;
-  onProceedWithPlanning: () => void;
+  onAcknowledgeAndProceed: () => void; // Combined action
   onClose: () => void;
 }
 
 const TwoPhasePlanningModal: React.FC<TwoPhasePlanningModalProps> = ({
   formData,
   planningState,
-  onAcknowledge,
-  onProceedWithPlanning,
+  onAcknowledgeAndProceed,
   onClose
 }) => {
   const { dayAdjustmentInfo } = useFormValidation(formData);
 
-  // Simplified visibility logic - just check if modal should be shown
+  // Only show modal when showModal is true
   if (!planningState.showModal) {
     return null;
   }
 
-  // If no day adjustment info but modal is showing, something is wrong - close it
+  // If no day adjustment info but modal is showing, close it
   if (!dayAdjustmentInfo) {
     console.log('⚠️ Modal showing but no day adjustment info - closing');
     onClose();
@@ -110,27 +108,15 @@ const TwoPhasePlanningModal: React.FC<TwoPhasePlanningModalProps> = ({
                 </div>
               </div>
 
-              {/* ACTION BUTTONS */}
-              <div className="text-center space-y-4">
-                {!planningState.userAcknowledgedAdjustment && (
-                  <Button
-                    onClick={onAcknowledge}
-                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-xl font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                  >
-                    <CheckCircle className="h-6 w-6 mr-2" />
-                    I Understand - Use {dayAdjustmentInfo.minimum} Days
-                  </Button>
-                )}
-                
-                {planningState.userAcknowledgedAdjustment && (
-                  <Button
-                    onClick={onProceedWithPlanning}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-xl font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                  >
-                    <MapPin className="h-6 w-6 mr-2" />
-                    Plan My {dayAdjustmentInfo.minimum}-Day Trip
-                  </Button>
-                )}
+              {/* SINGLE ACTION BUTTON */}
+              <div className="text-center">
+                <Button
+                  onClick={onAcknowledgeAndProceed}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-xl font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                >
+                  <CheckCircle className="h-6 w-6 mr-2" />
+                  I Understand - Plan My {dayAdjustmentInfo.minimum}-Day Trip
+                </Button>
               </div>
             </>
           )}

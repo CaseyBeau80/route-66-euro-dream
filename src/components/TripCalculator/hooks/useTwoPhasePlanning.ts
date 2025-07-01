@@ -5,7 +5,6 @@ import { useFormValidation } from './useFormValidation';
 export interface TwoPhasePlanningState {
   phase: 'form' | 'acknowledgment' | 'planning' | 'complete';
   isProcessing: boolean;
-  userAcknowledgedAdjustment: boolean;
   showModal: boolean;
 }
 
@@ -14,7 +13,6 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   const [planningState, setPlanningState] = useState<TwoPhasePlanningState>({
     phase: 'form',
     isProcessing: false,
-    userAcknowledgedAdjustment: false,
     showModal: false
   });
 
@@ -22,7 +20,6 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     phase: planningState.phase,
     dayAdjustmentInfo: !!dayAdjustmentInfo,
     isFormValid,
-    userAcknowledgedAdjustment: planningState.userAcknowledgedAdjustment,
     isProcessing: planningState.isProcessing,
     showModal: planningState.showModal
   });
@@ -30,8 +27,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   const startPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
     console.log('🚀 Starting two-phase planning process');
     
-    // If day adjustment is needed and user hasn't acknowledged, show modal
-    if (dayAdjustmentInfo && !planningState.userAcknowledgedAdjustment) {
+    // If day adjustment is needed, show modal for acknowledgment
+    if (dayAdjustmentInfo) {
       console.log('⚠️ Day adjustment needed - showing modal for acknowledgment');
       setPlanningState(prev => ({ 
         ...prev, 
@@ -41,35 +38,29 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       return; // Don't proceed until user acknowledges
     }
 
-    // Proceed with planning
-    console.log('🎯 Proceeding with planning');
+    // No adjustment needed - proceed directly with planning
+    console.log('🎯 No adjustment needed - proceeding directly with planning');
     
     try {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'planning', 
         isProcessing: true,
-        showModal: true // Keep modal open during planning
+        showModal: false // No modal needed for direct planning
       }));
       
-      // Use adjusted data if available
-      const dataToUse = dayAdjustmentInfo ? {
-        ...formData,
-        travelDays: dayAdjustmentInfo.minimum
-      } : formData;
+      await onPlanTrip(formData);
       
-      await onPlanTrip(dataToUse);
-      
-      console.log('✅ Planning completed successfully');
+      console.log('✅ Direct planning completed successfully');
       setPlanningState(prev => ({ 
         ...prev, 
-        phase: 'complete', 
-        isProcessing: false
-        // Keep showModal: true - don't close it automatically
+        phase: 'form', 
+        isProcessing: false,
+        showModal: false
       }));
       
     } catch (error) {
-      console.error('❌ Planning failed:', error);
+      console.error('❌ Direct planning failed:', error);
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'form', 
@@ -78,19 +69,10 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       }));
       throw error;
     }
-  }, [formData, dayAdjustmentInfo, planningState.userAcknowledgedAdjustment]);
+  }, [formData, dayAdjustmentInfo]);
 
-  const acknowledgeAdjustment = useCallback(() => {
-    console.log('✅ User acknowledged day adjustment');
-    setPlanningState(prev => ({ 
-      ...prev, 
-      userAcknowledgedAdjustment: true
-      // Keep showModal: true and phase: 'acknowledgment'
-    }));
-  }, []);
-
-  const proceedWithPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
-    console.log('🚀 Proceeding with planning after acknowledgment');
+  const acknowledgeAndProceed = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
+    console.log('✅ User acknowledged adjustment - proceeding immediately to planning');
     
     try {
       setPlanningState(prev => ({ 
@@ -108,7 +90,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       
       await onPlanTrip(dataToUse);
       
-      console.log('✅ Planning completed successfully');
+      console.log('✅ Planning completed successfully after acknowledgment');
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'complete', 
@@ -117,7 +99,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       }));
       
     } catch (error) {
-      console.error('❌ Planning failed:', error);
+      console.error('❌ Planning failed after acknowledgment:', error);
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'form', 
@@ -133,7 +115,6 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     setPlanningState({
       phase: 'form',
       isProcessing: false,
-      userAcknowledgedAdjustment: false,
       showModal: false
     });
   }, []);
@@ -143,9 +124,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     setPlanningState(prev => ({ 
       ...prev, 
       showModal: false,
-      // Reset to form state when manually closed
       phase: 'form',
-      userAcknowledgedAdjustment: false,
       isProcessing: false
     }));
   }, []);
@@ -153,11 +132,10 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
   return {
     planningState,
     startPlanning,
-    acknowledgeAdjustment,
-    proceedWithPlanning,
+    acknowledgeAndProceed,
     resetPlanning,
     closeModal,
-    needsAdjustment: !!dayAdjustmentInfo && !planningState.userAcknowledgedAdjustment,
-    canProceedWithPlanning: isFormValid && (!dayAdjustmentInfo || planningState.userAcknowledgedAdjustment)
+    needsAdjustment: !!dayAdjustmentInfo,
+    canProceedWithPlanning: isFormValid
   };
 };
