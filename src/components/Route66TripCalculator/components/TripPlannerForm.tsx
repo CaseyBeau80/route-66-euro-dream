@@ -1,13 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { TripFormData } from '../../TripCalculator/types/tripCalculator';
 import CostEstimatorSection from '../../TripCalculator/components/CostEstimatorSection';
 import FormValidationHelper from '../../TripCalculator/components/FormValidationHelper';
-import { useFormValidation } from '../../TripCalculator/hooks/useFormValidation';
+import { useBlockingDayValidation } from '../../TripCalculator/hooks/useBlockingDayValidation';
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
 import ActionButtonsSection from './ActionButtonsSection';
-import InlineDayAdjustmentNotice from './InlineDayAdjustmentNotice';
 
 interface TripPlannerFormProps {
   formData: TripFormData;
@@ -32,23 +31,36 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   isPlanning,
   tripPlan
 }) => {
-  const { dayAdjustmentInfo, isFormValid } = useFormValidation(formData);
-  const [hasAcknowledgedAdjustment, setHasAcknowledgedAdjustment] = useState(false);
+  const { 
+    dayAdjustmentInfo, 
+    isFormValid, 
+    canProceedWithPlanning, 
+    isBlocked,
+    checkAndConfirmAdjustment,
+    resetConfirmation
+  } = useBlockingDayValidation(formData);
 
-  console.log('📝 TripPlannerForm render (SIMPLE APPROACH):', {
+  console.log('📝 TripPlannerForm render (BLOCKING APPROACH):', {
     formData,
     isPlanning,
     dayAdjustmentInfo: !!dayAdjustmentInfo,
-    hasAcknowledgedAdjustment,
-    canPlan: isFormValid && (!dayAdjustmentInfo || hasAcknowledgedAdjustment)
+    canProceedWithPlanning,
+    isBlocked
   });
 
   const handlePlanTrip = async () => {
-    console.log('🚀 TripPlannerForm: Plan trip button clicked (SIMPLE APPROACH)');
+    console.log('🚀 TripPlannerForm: Plan trip button clicked (BLOCKING APPROACH)');
     
-    // If day adjustment is needed but not acknowledged, do nothing
-    if (dayAdjustmentInfo && !hasAcknowledgedAdjustment) {
-      console.log('⚠️ Day adjustment needed but not acknowledged - blocking planning');
+    if (isBlocked) {
+      console.log('🚫 Planning blocked - confirmation in progress');
+      return;
+    }
+
+    // Check if day adjustment is needed and get confirmation
+    const canProceed = await checkAndConfirmAdjustment();
+    
+    if (!canProceed) {
+      console.log('❌ User did not confirm day adjustment - planning cancelled');
       return;
     }
 
@@ -59,18 +71,17 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         travelDays: dayAdjustmentInfo.minimum
       } : formData;
 
+      console.log('🚀 Proceeding with planning:', dataToUse);
       await onPlanTrip(dataToUse);
     } catch (error) {
       console.error('❌ TripPlannerForm: Planning failed:', error);
     }
   };
 
-  const handleAcknowledgeAdjustment = () => {
-    console.log('✅ User acknowledged day adjustment (SIMPLE APPROACH)');
-    setHasAcknowledgedAdjustment(true);
-  };
-
-  const canProceedWithPlanning = isFormValid && (!dayAdjustmentInfo || hasAcknowledgedAdjustment);
+  // Reset confirmation when locations change
+  React.useEffect(() => {
+    resetConfirmation();
+  }, [formData.startLocation, formData.endLocation, formData.travelDays, resetConfirmation]);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -79,20 +90,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
-      {/* Form Validation Helper - Only show for basic validation, not day adjustments */}
-      {!dayAdjustmentInfo && (
-        <FormValidationHelper formData={formData} className="mb-4" />
-      )}
-
-      {/* Day Adjustment Notice - Show inline when needed */}
-      {dayAdjustmentInfo && (
-        <InlineDayAdjustmentNotice
-          formData={formData}
-          onAcknowledge={handleAcknowledgeAdjustment}
-          isAcknowledged={hasAcknowledgedAdjustment}
-          className="mb-6"
-        />
-      )}
+      {/* Form Validation Helper - Show basic validation only */}
+      <FormValidationHelper formData={formData} className="mb-4" />
 
       {/* Main Form Container */}
       <div className="space-y-4">
@@ -141,11 +140,23 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <div className="bg-white rounded-xl shadow-sm border border-route66-border p-4">
           <ActionButtonsSection 
             isFormValid={canProceedWithPlanning} 
-            isPlanning={isPlanning} 
+            isPlanning={isPlanning || isBlocked} 
             onPlanTrip={handlePlanTrip} 
             onResetTrip={onResetTrip}
-            needsAdjustmentAcknowledgment={dayAdjustmentInfo && !hasAcknowledgedAdjustment}
+            needsAdjustmentAcknowledgment={false}
           />
+          
+          {/* Show blocking indicator */}
+          {isBlocked && (
+            <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+              <div className="flex items-center justify-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-yellow-600 border-t-transparent"></div>
+                <p className="font-medium text-yellow-800">
+                  Please respond to the confirmation dialog...
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
