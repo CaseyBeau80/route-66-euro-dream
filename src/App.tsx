@@ -42,7 +42,6 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/trip-calculator" element={<TripCalculator />} />
-                  <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
                   <Route path="/shared-trip" element={<SharedTripPage />} />
                   <Route path="/countdown" element={<CountdownPage />} />
                   <Route path="/timeline" element={<TimelinePage />} />
