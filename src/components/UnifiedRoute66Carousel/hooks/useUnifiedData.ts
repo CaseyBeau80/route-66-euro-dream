@@ -33,6 +33,7 @@ export const useUnifiedData = () => {
 
       // Process attractions - use available fields only
       if (attractionsResult.data) {
+        console.log(`🎯 Processing ${attractionsResult.data.length} attractions`);
         attractionsResult.data.forEach(attraction => {
           unifiedItems.push({
             id: `attraction-${attraction.id}`,
@@ -57,6 +58,7 @@ export const useUnifiedData = () => {
 
       // Process drive-ins - use available fields only
       if (driveInsResult.data) {
+        console.log(`🎬 Processing ${driveInsResult.data.length} drive-ins`);
         driveInsResult.data.forEach(driveIn => {
           unifiedItems.push({
             id: `drive-in-${driveIn.id}`,
@@ -80,6 +82,7 @@ export const useUnifiedData = () => {
 
       // Process hidden gems
       if (hiddenGemsResult.data) {
+        console.log(`💎 Processing ${hiddenGemsResult.data.length} hidden gems`);
         hiddenGemsResult.data.forEach(gem => {
           unifiedItems.push({
             id: `hidden-gem-${gem.id}`,
@@ -99,6 +102,34 @@ export const useUnifiedData = () => {
       }
 
       console.log(`✅ Loaded ${unifiedItems.length} unified Route 66 items`);
+      
+      // Debug: Look for Church Studio specifically
+      const churchStudio = unifiedItems.find(item => 
+        item.name.toLowerCase().includes('church') && 
+        item.name.toLowerCase().includes('studio')
+      );
+      
+      if (churchStudio) {
+        console.log('🎵 Found Church Studio:', {
+          name: churchStudio.name,
+          state: churchStudio.state,
+          city: churchStudio.city_name,
+          category: churchStudio.category
+        });
+      } else {
+        console.log('❌ Church Studio not found in results');
+        // Log all OK items to see what we have
+        const okItems = unifiedItems.filter(item => 
+          item.state === 'OK' || 
+          (item.state && item.state.toUpperCase() === 'OK')
+        );
+        console.log(`🔍 Found ${okItems.length} items in OK:`, okItems.map(item => ({
+          name: item.name,
+          state: item.state,
+          city: item.city_name
+        })));
+      }
+      
       setItems(unifiedItems);
     } catch (error) {
       console.error('❌ Error fetching unified data:', error);
@@ -123,49 +154,97 @@ export const useUnifiedData = () => {
     };
   }, [items]);
 
-  // Filter items based on current filters
+  // Enhanced filter logic to catch more variations
   const filteredItems = useMemo(() => {
     let filtered = items;
+
+    console.log(`🔍 Starting filter with ${filtered.length} items, filters:`, filters);
 
     // Filter by type
     if (filters.type !== 'all') {
       filtered = filtered.filter(item => item.category === filters.type);
+      console.log(`🎯 After type filter (${filters.type}): ${filtered.length} items`);
     }
 
-    // Filter by state
+    // Enhanced state filter - more flexible matching
     if (filters.state) {
-      filtered = filtered.filter(item => item.state === filters.state);
+      const stateFilter = filters.state.toUpperCase().trim();
+      filtered = filtered.filter(item => {
+        if (!item.state) return false;
+        
+        const itemState = item.state.toUpperCase().trim();
+        
+        // Exact match
+        if (itemState === stateFilter) return true;
+        
+        // Handle common variations
+        if (stateFilter === 'OK' && (itemState === 'OKLAHOMA' || itemState === 'OK')) return true;
+        if (stateFilter === 'OKLAHOMA' && (itemState === 'OK' || itemState === 'OKLAHOMA')) return true;
+        
+        // Partial match for other cases
+        return itemState.includes(stateFilter) || stateFilter.includes(itemState);
+      });
+      console.log(`🏛️ After state filter (${filters.state}): ${filtered.length} items`);
     }
 
     // Filter by city
     if (filters.city) {
-      filtered = filtered.filter(item => item.city_name === filters.city);
+      const cityFilter = filters.city.toLowerCase().trim();
+      filtered = filtered.filter(item => {
+        if (!item.city_name) return false;
+        return item.city_name.toLowerCase().includes(cityFilter);
+      });
+      console.log(`🏙️ After city filter (${filters.city}): ${filtered.length} items`);
     }
 
-    // Filter by search
+    // Enhanced search filter
     if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(searchLower) ||
-        item.description?.toLowerCase().includes(searchLower) ||
-        item.city_name.toLowerCase().includes(searchLower) ||
-        item.tags.some(tag => tag.toLowerCase().includes(searchLower))
-      );
+      const searchLower = filters.search.toLowerCase().trim();
+      filtered = filtered.filter(item => {
+        // Search in name (primary field)
+        if (item.name.toLowerCase().includes(searchLower)) return true;
+        
+        // Search in title if it exists
+        if (item.title && item.title.toLowerCase().includes(searchLower)) return true;
+        
+        // Search in description
+        if (item.description && item.description.toLowerCase().includes(searchLower)) return true;
+        
+        // Search in city name
+        if (item.city_name.toLowerCase().includes(searchLower)) return true;
+        
+        // Search in tags
+        if (item.tags.some(tag => tag.toLowerCase().includes(searchLower))) return true;
+        
+        return false;
+      });
+      console.log(`🔍 After search filter ("${filters.search}"): ${filtered.length} items`);
     }
 
     // Sort: featured first, then alphabetically
-    return filtered.sort((a, b) => {
+    const sorted = filtered.sort((a, b) => {
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
       return a.name.localeCompare(b.name);
     });
+
+    console.log(`✅ Final filtered results: ${sorted.length} items`);
+    
+    // Debug filtered results if searching for Church Studio
+    if (filters.search && filters.search.toLowerCase().includes('church')) {
+      console.log('🎵 Church Studio search results:', sorted.map(item => item.name));
+    }
+
+    return sorted;
   }, [items, filters]);
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
+    console.log('🔄 Updating filters:', newFilters);
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
   const resetFilters = () => {
+    console.log('🔄 Resetting all filters');
     setFilters({
       type: 'all',
       state: '',
