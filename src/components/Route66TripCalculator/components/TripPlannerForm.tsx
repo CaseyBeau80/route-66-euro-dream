@@ -45,7 +45,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     isPlanning,
     dayAdjustmentInfo: !!dayAdjustmentInfo,
     canProceedWithPlanning,
-    isBlocked
+    isBlocked,
+    isFormValid
   });
 
   const handlePlanTrip = async () => {
@@ -90,7 +91,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
-      {/* Form Validation Helper - Show basic validation only */}
+      {/* Form Validation Helper - Show validation issues */}
       <FormValidationHelper formData={formData} className="mb-4" />
 
       {/* Main Form Container */}
@@ -139,7 +140,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         {/* Action Buttons Card */}
         <div className="bg-white rounded-xl shadow-sm border border-route66-border p-4">
           <ActionButtonsSection 
-            isFormValid={canProceedWithPlanning} 
+            isFormValid={isFormValid} 
             isPlanning={isPlanning || isBlocked} 
             onPlanTrip={handlePlanTrip} 
             onResetTrip={onResetTrip}

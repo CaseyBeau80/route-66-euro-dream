@@ -15,17 +15,16 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
 }) => {
   const { isFormValid, validationIssues, dayAdjustmentInfo } = useFormValidation(formData);
 
-  console.log('🔍 FormValidationHelper render (BLOCKING APPROACH):', {
+  console.log('🔍 FormValidationHelper render:', {
     dayAdjustmentInfo: !!dayAdjustmentInfo,
     isFormValid,
     validationIssues,
     timestamp: new Date().toISOString()
   });
 
-  // NEVER show day adjustment here - it's handled by blocking confirmation
-  // Only show basic validation issues
-  if (!isFormValid && validationIssues.length > 0) {
-    console.log('🔍 Showing basic validation issues:', validationIssues);
+  // FIXED: Always show validation issues when form is not complete, regardless of day adjustment
+  if (validationIssues.length > 0) {
+    console.log('🚨 Showing validation issues:', validationIssues);
     return (
       <div className={`rounded-lg border border-red-200 bg-red-50 p-4 ${className}`}>
         <div className="flex items-start gap-3">

@@ -24,7 +24,8 @@ const ActionButtonsSection: React.FC<ActionButtonsSectionProps> = ({
     needsAdjustmentAcknowledgment
   });
 
-  const canPlan = isFormValid && !needsAdjustmentAcknowledgment;
+  // FIXED: Button should be enabled when form is valid, regardless of day adjustment (blocking approach handles that)
+  const canPlan = isFormValid && !isPlanning;
 
   return (
     <div className="space-y-4">
@@ -33,9 +34,9 @@ const ActionButtonsSection: React.FC<ActionButtonsSectionProps> = ({
       <div className="relative">
         <Button
           onClick={onPlanTrip}
-          disabled={!canPlan || isPlanning}
+          disabled={!canPlan}
           className={`w-full py-6 text-xl font-bold rounded-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
-            canPlan && !isPlanning
+            canPlan
               ? 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white'
               : 'bg-gray-300 text-gray-500'
           }`}
