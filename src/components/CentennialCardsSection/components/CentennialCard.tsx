@@ -33,23 +33,20 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
   const navigate = useNavigate();
 
   const handleCardClick = (route: string) => {
-    // Make countdown card and facts card non-clickable for navigation
-    if (id !== 'countdown' && id !== 'facts') {
+    // Make facts card non-clickable for navigation
+    if (id !== 'facts') {
       navigate(route);
     }
   };
 
   const getAriaLabel = () => {
-    if (id === 'countdown') {
-      return `Birthday countdown card - ${title} with cake celebration theme`;
-    }
     if (id === 'facts') {
       return `Fun facts card - ${title} with daily Route 66 stories`;
     }
     return `Navigate to ${title} - ${description}`;
   };
 
-  const isClickable = id !== 'countdown' && id !== 'facts';
+  const isClickable = id !== 'facts';
 
   return (
     <Card
@@ -83,25 +80,6 @@ const CentennialCard: React.FC<CentennialCardProps> = ({
           />
         ))}
         
-        {/* Special cake sparkles for countdown card */}
-        {id === 'countdown' && (
-          <div className="absolute inset-0">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={`cake-sparkle-${i}`}
-                className="absolute text-yellow-400 text-sm motion-safe:animate-ping motion-reduce:hidden"
-                style={{
-                  left: `${30 + Math.random() * 40}%`,
-                  top: `${30 + Math.random() * 40}%`,
-                  animationDelay: `${i * 0.5}s`,
-                  animationDuration: '2s'
-                }}
-              >
-                ✨
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Header with Icon - Centered */}

@@ -39,14 +39,6 @@ const funContent = {
         route: "/timeline",
         color: "from-purple-500 to-purple-600"
       },
-      {
-        icon: Gamepad2,
-        title: "Countdown to Adventure",
-        description: "Count down the days until your Route 66 journey begins",
-        buttonText: "Start Countdown",
-        route: "/countdown",
-        color: "from-red-500 to-red-600"
-      }
     ]
   },
   de: {
@@ -79,14 +71,6 @@ const funContent = {
         route: "/timeline",
         color: "from-purple-500 to-purple-600"
       },
-      {
-        icon: Gamepad2,
-        title: "Countdown zum Abenteuer",
-        description: "Zähle die Tage bis deine Route 66-Reise beginnt",
-        buttonText: "Countdown Starten",
-        route: "/countdown",
-        color: "from-red-500 to-red-600"
-      }
     ]
   },
   fr: {
@@ -119,14 +103,6 @@ const funContent = {
         route: "/timeline",
         color: "from-purple-500 to-purple-600"
       },
-      {
-        icon: Gamepad2,
-        title: "Compte à Rebours vers l'Aventure",
-        description: "Comptez les jours jusqu'au début de votre voyage Route 66",
-        buttonText: "Démarrer le Compte à Rebours",
-        route: "/countdown",
-        color: "from-red-500 to-red-600"
-      }
     ]
   },
   "pt-BR": {
@@ -159,14 +135,6 @@ const funContent = {
         route: "/timeline",
         color: "from-purple-500 to-purple-600"
       },
-      {
-        icon: Gamepad2,
-        title: "Contagem Regressiva para Aventura",
-        description: "Conte os dias até sua jornada na Rota 66 começar",
-        buttonText: "Iniciar Contagem",
-        route: "/countdown",
-        color: "from-red-500 to-red-600"
-      }
     ]
   }
 };
@@ -196,7 +164,7 @@ const FunSection: React.FC<FunSectionProps> = ({ language }) => {
         </div>
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {content.activities.map((activity, index) => (
             <div 
               key={index}

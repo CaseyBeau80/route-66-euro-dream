@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 interface TimeLeft {
@@ -8,7 +7,7 @@ interface TimeLeft {
   seconds: number;
 }
 
-export const useCentennialTimer = () => {
+export const useTimer = () => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
 

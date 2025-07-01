@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
-import CompactCountdown from "./CompactCountdown";
+
 
 interface HeroSectionProps {
   language: string;
@@ -76,10 +76,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
-              {/* Three Benefits - Moved up with reduced spacing */}
-              <div className="pt-2">
-                <CompactCountdown />
-              </div>
 
               {/* Enhanced CTA Button - Moved up with reduced spacing */}
               <div className="pt-2 flex justify-center">

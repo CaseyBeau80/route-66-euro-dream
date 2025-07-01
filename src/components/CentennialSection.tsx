@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import CountdownDisplay from "./Route66Countdown/CountdownDisplay";
+
 import HorizontalTimeline from "./Route66Countdown/HorizontalTimeline";
 import NostalgicBadge from "./Route66Countdown/NostalgicBadge";
 import WavingFlag from "./Route66Countdown/WavingFlag";
@@ -132,15 +132,6 @@ const CentennialSection = () => {
           </p>
         </div>
 
-        {/* Countdown Display - Enhanced */}
-        <div className="mb-20">
-          <div className="relative">
-            <div className="absolute -inset-8 bg-gradient-to-r from-red-500/20 via-white/30 to-blue-500/20 rounded-3xl blur-3xl"></div>
-            <div className="relative bg-black/60 backdrop-blur-lg rounded-2xl border-2 border-white/30 shadow-2xl p-8">
-              <CountdownDisplay timeLeft={timeLeft} />
-            </div>
-          </div>
-        </div>
 
         {/* Horizontal Timeline - Replacing tabbed content */}
         <div className="relative">

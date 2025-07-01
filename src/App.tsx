@@ -10,7 +10,7 @@ import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
 import TripDetailsPage from "./pages/TripDetailsPage";
 import SharedTripPage from "./pages/SharedTripPage";
-import CountdownPage from "./pages/CountdownPage";
+
 import TimelinePage from "./pages/TimelinePage";
 import FunFactsPage from "./pages/FunFactsPage";
 import TriviaPage from "./pages/TriviaPage";
@@ -40,7 +40,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/shared-trip" element={<SharedTripPage />} />
-                  <Route path="/countdown" element={<CountdownPage />} />
+                  
                   <Route path="/timeline" element={<TimelinePage />} />
                   <Route path="/fun-facts" element={<FunFactsPage />} />
                   <Route path="/trivia" element={<TriviaPage />} />

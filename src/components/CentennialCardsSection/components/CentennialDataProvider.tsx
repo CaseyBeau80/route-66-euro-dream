@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext } from 'react';
-import { useCentennialTimer } from '../hooks/useCentennialTimer';
+import { useTimer } from '../hooks/useTimer';
 import { useKonamiCode } from '../hooks/useKonamiCode';
 import { useRotatingFacts } from '../hooks/useRotatingFacts';
 import { createCentennialCardsData } from '../data/centennialCardsData';
@@ -29,7 +29,7 @@ interface CentennialDataProviderProps {
 }
 
 const CentennialDataProvider: React.FC<CentennialDataProviderProps> = ({ children }) => {
-  const { timeLeft, mounted } = useCentennialTimer();
+  const { timeLeft, mounted } = useTimer();
   const { easterEggActive } = useKonamiCode();
   const { currentFact } = useRotatingFacts();
 
