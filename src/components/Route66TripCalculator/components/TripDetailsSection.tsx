@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, Users, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -44,25 +43,12 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
     }
   };
 
-  // Debug logging to understand the state
-  console.log('🔍 TripDetailsSection DEBUG:', {
-    dayAdjustmentInfo,
-    hasAdjustment: !!dayAdjustmentInfo,
-    minimumDays: dayAdjustmentInfo?.minimum,
-    currentDays: travelDays,
-    needsMoreDays: dayAdjustmentInfo ? dayAdjustmentInfo.minimum > travelDays : false,
-    hasLocations: !!(formData?.startLocation && formData?.endLocation),
-    startLocation: formData?.startLocation,
-    endLocation: formData?.endLocation
-  });
-
-  // Show actionable message when day adjustment is needed
-  const shouldShowActionableMessage = dayAdjustmentInfo && 
+  // Determine if we should show the actionable message
+  const shouldShowActionableMessage = !isFormValid && 
+    dayAdjustmentInfo && 
     dayAdjustmentInfo.minimum > travelDays &&
     formData?.startLocation && 
     formData?.endLocation;
-
-  console.log('🔍 TripDetailsSection: shouldShowActionableMessage =', shouldShowActionableMessage);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -113,20 +99,13 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
           </SelectContent>
         </Select>
         
-        {/* Actionable Message - Show when day adjustment is needed */}
+        {/* New Actionable Message - Only show when form is invalid due to insufficient days */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
             currentDays={travelDays}
             requiredDays={dayAdjustmentInfo.minimum}
             className="mt-2"
           />
-        )}
-        
-        {/* DEBUG: Always show message for testing */}
-        {dayAdjustmentInfo && (
-          <div className="bg-yellow-100 border border-yellow-400 p-2 rounded text-sm">
-            <strong>DEBUG:</strong> Day adjustment detected - Current: {travelDays}, Required: {dayAdjustmentInfo.minimum}
-          </div>
         )}
         
         {/* Keep existing informational message for when trip is already planned */}

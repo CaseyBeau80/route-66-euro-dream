@@ -27,25 +27,12 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   // Generate dropdown options
   const durationOptions = Array.from({ length: 14 }, (_, i) => i + 1);
 
-  // Debug logging to understand why message isn't showing
-  console.log('🔍 TripDurationForm DEBUG:', {
-    dayAdjustmentInfo,
-    hasAdjustment: !!dayAdjustmentInfo,
-    minimumDays: dayAdjustmentInfo?.minimum,
-    currentDays: formData.travelDays,
-    needsMoreDays: dayAdjustmentInfo ? dayAdjustmentInfo.minimum > formData.travelDays : false,
-    hasLocations: !!(formData.startLocation && formData.endLocation),
-    startLocation: formData.startLocation,
-    endLocation: formData.endLocation
-  });
-
-  // Show actionable message when day adjustment is needed
-  const shouldShowActionableMessage = dayAdjustmentInfo && 
+  // Determine if we should show the actionable message
+  const shouldShowActionableMessage = !isFormValid && 
+    dayAdjustmentInfo && 
     dayAdjustmentInfo.minimum > formData.travelDays &&
     formData.startLocation && 
     formData.endLocation;
-
-  console.log('🔍 TripDurationForm: shouldShowActionableMessage =', shouldShowActionableMessage);
 
   // Determine what to display based on day adjustment
   const getDisplayText = () => {
@@ -81,20 +68,13 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
           </SelectContent>
         </Select>
         
-        {/* Actionable Message - Show when day adjustment is needed */}
+        {/* New Actionable Message - Only show when form is invalid due to insufficient days */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
             currentDays={formData.travelDays}
             requiredDays={dayAdjustmentInfo.minimum}
             className="mt-2"
           />
-        )}
-        
-        {/* DEBUG: Always show message for testing */}
-        {dayAdjustmentInfo && (
-          <div className="bg-yellow-100 border border-yellow-400 p-2 rounded text-sm">
-            <strong>DEBUG:</strong> Day adjustment detected - Current: {formData.travelDays}, Required: {dayAdjustmentInfo.minimum}
-          </div>
         )}
         
         <p className="text-sm text-route66-text-secondary">
