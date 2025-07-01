@@ -30,9 +30,9 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
 
   return (
     <div className="w-full">
-      {/* Simplified Toggle Button */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
+      {/* Header with inline button */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
           <p className="text-sm text-route66-text-secondary">
             Get an estimated budget for your Route 66 adventure
           </p>
@@ -41,7 +41,7 @@ const CostEstimatorSection: React.FC<CostEstimatorSectionProps> = ({
           type="button"
           onClick={handleToggleCostEstimator}
           variant="outline"
-          className="border-orange-300 hover:bg-orange-50 hover:border-orange-400 text-orange-700 font-medium"
+          className="border-orange-300 hover:bg-orange-50 hover:border-orange-400 text-orange-700 font-medium ml-4"
         >
           <Calculator className="mr-2 h-4 w-4" />
           {showCostEstimator ? 'Hide' : 'Show'} Calculator
