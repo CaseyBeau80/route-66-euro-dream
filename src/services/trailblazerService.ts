@@ -15,6 +15,9 @@ export interface LocationTrailblazer {
   photo_url?: string;
 }
 
+// Add alias for TrailblazerLeaderboard (same as TrailblazerLeader)
+export type TrailblazerLeaderboard = TrailblazerLeader;
+
 export class TrailblazerService {
   static async getLeaderboard(limit: number = 10): Promise<TrailblazerLeader[]> {
     try {
@@ -30,6 +33,11 @@ export class TrailblazerService {
       console.error('Error in getLeaderboard:', error);
       return [];
     }
+  }
+
+  // Add alias method for getTrailblazerLeaderboard
+  static async getTrailblazerLeaderboard(limit: number = 10): Promise<TrailblazerLeader[]> {
+    return this.getLeaderboard(limit);
   }
 
   static async getLocationTrailblazer(stopId: string): Promise<LocationTrailblazer | null> {
@@ -84,5 +92,11 @@ export class TrailblazerService {
       console.error('Error in getTrailblazerStats:', error);
       return { totalTrailblazers: 0, totalLocations: 0, recentAchievements: 0 };
     }
+  }
+
+  // Add the missing formatSessionId method
+  static formatSessionId(sessionId?: string): string {
+    if (!sessionId) return 'Anonymous';
+    return `Traveler #${sessionId.slice(-4)}`;
   }
 }

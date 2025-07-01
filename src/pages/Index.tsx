@@ -5,10 +5,10 @@ import NavigationBar from "@/components/NavigationBar";
 import EnhancedHeroSection from "@/components/Hero/EnhancedHeroSection";
 import CentennialSection from "@/components/CentennialSection";
 import ComprehensiveListings from "@/components/ComprehensiveListings";
-import StoryJourney from "@/components/StoryJourney";
+import { StoryJourney } from "@/components/StoryJourney";
 import InteractiveMapSection from "@/components/InteractiveMap/InteractiveMapSection";
 import FunFactsOfTheDay from "@/components/FunFactsOfTheDay";
-import InstagramCarousel from "@/components/InstagramCarousel";
+import { InstagramCarousel } from "@/components/InstagramCarousel";
 import TravelResources from "@/components/TravelResources";
 import BackToTopButton from "@/components/BackToTopButton";
 import Footer from "@/components/Footer";
@@ -44,7 +44,7 @@ const Index = () => {
         <StoryJourney />
         
         {/* Interactive Map */}
-        <InteractiveMapSection />
+        <InteractiveMapSection language={language} />
         
         {/* Fun Facts */}
         <FunFactsOfTheDay />
@@ -53,10 +53,10 @@ const Index = () => {
         <InstagramCarousel />
         
         {/* Travel Resources */}
-        <TravelResources />
+        <TravelResources language={language} />
         
         {/* Footer */}
-        <Footer />
+        <Footer language={language} />
         
         {/* Back to Top */}
         <BackToTopButton />
