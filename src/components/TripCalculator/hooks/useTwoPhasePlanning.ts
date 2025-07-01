@@ -26,7 +26,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     isFormValid,
     adjustedFormData: !!planningState.adjustedFormData,
     adjustmentAcknowledged: planningState.adjustmentAcknowledged,
-    showModal: planningState.showModal
+    showModal: planningState.showModal,
+    isProcessing: planningState.isProcessing
   });
 
   const startPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
@@ -100,13 +101,13 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     console.log('🎯 TWO-PHASE: Proceeding with planning after acknowledgment');
     
     // CRITICAL: This function is called ONLY after acknowledgment
-    // It should NEVER re-evaluate dayAdjustmentInfo or call startPlanning
+    // Keep modal open and show planning progress
     try {
       setPlanningState(prev => ({ 
         ...prev, 
         phase: 'planning', 
-        isProcessing: true
-        // Keep showModal: true - modal shows planning progress
+        isProcessing: true,
+        showModal: true // KEEP MODAL OPEN to show planning progress
       }));
       
       const dataToUse = planningState.adjustedFormData || formData;
@@ -123,7 +124,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
         ...prev, 
         phase: 'complete', 
         isProcessing: false,
-        showModal: false // Only hide modal when planning is complete
+        showModal: false // NOW close modal when planning is complete
       }));
       
     } catch (error) {

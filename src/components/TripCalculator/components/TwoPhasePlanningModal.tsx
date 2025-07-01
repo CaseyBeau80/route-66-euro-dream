@@ -28,19 +28,27 @@ const TwoPhasePlanningModal: React.FC<TwoPhasePlanningModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  console.log('🎭 TwoPhasePlanningModal: Showing day adjustment modal:', dayAdjustmentInfo);
+  console.log('🎭 TwoPhasePlanningModal: Rendering with processing state:', isProcessing);
 
   return (
     <div className="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto shadow-2xl border-4 border-amber-500">
         {/* Header */}
-        <div className="bg-amber-600 text-white p-6 text-center">
+        <div className={`${isProcessing ? 'bg-green-600' : 'bg-amber-600'} text-white p-6 text-center`}>
           <div className="flex items-center justify-center gap-4 mb-4">
-            <AlertTriangle className="h-12 w-12" />
+            {isProcessing ? (
+              <Loader2 className="h-12 w-12 animate-spin" />
+            ) : (
+              <AlertTriangle className="h-12 w-12" />
+            )}
             <h1 className="text-4xl font-black">
               {isProcessing ? 'PLANNING YOUR TRIP' : 'TRIP ADJUSTMENT NEEDED'}
             </h1>
-            <AlertTriangle className="h-12 w-12" />
+            {isProcessing ? (
+              <Loader2 className="h-12 w-12 animate-spin" />
+            ) : (
+              <AlertTriangle className="h-12 w-12" />
+            )}
           </div>
           <p className="text-2xl font-bold">
             {isProcessing 
@@ -50,22 +58,51 @@ const TwoPhasePlanningModal: React.FC<TwoPhasePlanningModalProps> = ({
           </p>
         </div>
 
-        {/* Show planning spinner when processing */}
+        {/* Show planning content when processing */}
         {isProcessing && (
           <div className="p-8 text-center">
             <div className="flex items-center justify-center gap-4 mb-6">
-              <Loader2 className="h-12 w-12 animate-spin text-amber-600" />
-              <div className="text-2xl font-bold text-gray-800">
+              <Loader2 className="h-16 w-16 animate-spin text-green-600" />
+              <div className="text-3xl font-bold text-gray-800">
                 Creating your {dayAdjustmentInfo.minimum}-day Route 66 itinerary...
               </div>
             </div>
-            <div className="bg-green-50 border-4 border-green-300 rounded-xl p-6">
-              <p className="text-lg text-green-800">
-                ✅ Your trip has been adjusted to <strong>{dayAdjustmentInfo.minimum} days</strong> for the perfect Route 66 experience!
+            
+            <div className="bg-green-50 border-4 border-green-300 rounded-xl p-8 mb-6">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+                <p className="text-2xl font-bold text-green-800">
+                  Trip Successfully Adjusted!
+                </p>
+              </div>
+              <p className="text-xl text-green-700 mb-4">
+                ✅ Your trip has been optimized to <strong>{dayAdjustmentInfo.minimum} days</strong> for the perfect Route 66 experience!
               </p>
-              <p className="text-md text-green-700 mt-2">
-                Please wait while we plan your journey...
+              <p className="text-lg text-green-600">
+                🗺️ Now calculating your route with comfortable driving distances...
               </p>
+            </div>
+
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-6">
+              <h3 className="text-xl font-bold text-blue-800 mb-3">What We're Planning:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <div className="flex items-center gap-3 text-blue-700">
+                  <span className="text-2xl">🛣️</span>
+                  <span><strong>Safe 300-mile daily drives</strong></span>
+                </div>
+                <div className="flex items-center gap-3 text-blue-700">
+                  <span className="text-2xl">🏛️</span>
+                  <span><strong>Heritage city stops</strong></span>
+                </div>
+                <div className="flex items-center gap-3 text-blue-700">
+                  <span className="text-2xl">⛽</span>
+                  <span><strong>Strategic gas & rest stops</strong></span>
+                </div>
+                <div className="flex items-center gap-3 text-blue-700">
+                  <span className="text-2xl">📸</span>
+                  <span><strong>Photo-worthy attractions</strong></span>
+                </div>
+              </div>
             </div>
           </div>
         )}
