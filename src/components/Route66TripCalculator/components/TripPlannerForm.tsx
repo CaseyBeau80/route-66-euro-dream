@@ -68,10 +68,10 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
   const handleAcknowledgeAdjustment = async () => {
     console.log('✅ TripPlannerForm: User acknowledged adjustment');
     
-    // Acknowledge the adjustment first
+    // First acknowledge the adjustment
     acknowledgeAdjustment();
     
-    // Longer delay to ensure state update, then proceed with planning using the new function
+    // Then proceed with planning after a short delay to ensure state update
     setTimeout(async () => {
       console.log('🎯 TripPlannerForm: Proceeding with planning after acknowledgment');
       try {
@@ -80,7 +80,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
         resetPlanning();
       }
-    }, 500); // Increased delay to 500ms
+    }, 100); // Shorter delay should be sufficient
   };
 
   const handleCancelAdjustment = () => {
