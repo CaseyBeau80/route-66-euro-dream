@@ -48,24 +48,38 @@ export class DataMigrationRunner {
       // Step 2: Populate name field for hidden_gems where missing
       console.log('📝 Step 2: Populating name fields...');
       
-      // Update hidden_gems name from title
-      const { error: gemsNameError } = await supabase
+      // Get hidden_gems without names and populate from title
+      const { data: gemsWithoutNames, error: gemsNameFetchError } = await supabase
         .from('hidden_gems')
-        .update({ name: supabase.raw('title') })
+        .select('id, title, name')
         .or('name.is.null,name.eq.');
 
-      if (gemsNameError) {
-        console.warn('⚠️ Hidden gems name population had issues:', gemsNameError);
+      if (!gemsNameFetchError && gemsWithoutNames) {
+        for (const gem of gemsWithoutNames) {
+          if (gem.title && !gem.name) {
+            await supabase
+              .from('hidden_gems')
+              .update({ name: gem.title })
+              .eq('id', gem.id);
+          }
+        }
       }
 
-      // Update attractions title from name
-      const { error: attractionsTitleError } = await supabase
+      // Get attractions without titles and populate from name
+      const { data: attractionsWithoutTitles, error: attractionsTitleFetchError } = await supabase
         .from('attractions')
-        .update({ title: supabase.raw('name') })
+        .select('id, name, title')
         .or('title.is.null,title.eq.');
 
-      if (attractionsTitleError) {
-        console.warn('⚠️ Attractions title population had issues:', attractionsTitleError);
+      if (!attractionsTitleFetchError && attractionsWithoutTitles) {
+        for (const attraction of attractionsWithoutTitles) {
+          if (attraction.name && !attraction.title) {
+            await supabase
+              .from('attractions')
+              .update({ title: attraction.name })
+              .eq('id', attraction.id);
+          }
+        }
       }
 
       // Step 3: Generate slugs for all records
@@ -80,17 +94,11 @@ export class DataMigrationRunner {
       if (!attractionsSlugFetchError && attractionsWithoutSlugs) {
         for (const attraction of attractionsWithoutSlugs) {
           if (attraction.name) {
-            const { error: slugError } = await supabase.rpc('generate_slug', { 
-              input_text: attraction.name 
-            });
-            
-            if (!slugError) {
-              const slug = attraction.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-              await supabase
-                .from('attractions')
-                .update({ slug })
-                .eq('id', attraction.id);
-            }
+            const slug = attraction.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            await supabase
+              .from('attractions')
+              .update({ slug })
+              .eq('id', attraction.id);
           }
         }
       }

@@ -12,17 +12,28 @@ export class TableMigrationService {
       // Update attractions table - populate missing fields
       console.log('🎯 Migrating attractions data...');
       
-      // Populate title from name where missing
-      const { error: attractionsTitleError } = await supabase
+      // Get attractions without titles and populate from name
+      const { data: attractionsWithoutTitles, error: attractionsTitleFetchError } = await supabase
         .from('attractions')
-        .update({ title: supabase.raw('name') })
+        .select('id, name, title')
         .or('title.is.null,title.eq.');
 
-      if (attractionsTitleError) {
-        console.error('❌ Error updating attractions titles:', attractionsTitleError);
+      if (!attractionsTitleFetchError && attractionsWithoutTitles) {
+        for (const attraction of attractionsWithoutTitles) {
+          if (attraction.name && !attraction.title) {
+            const { error } = await supabase
+              .from('attractions')
+              .update({ title: attraction.name })
+              .eq('id', attraction.id);
+            
+            if (error) {
+              console.error('❌ Error updating attraction title:', error);
+            }
+          }
+        }
       }
 
-      // Set default category
+      // Set default category for attractions
       const { error: attractionsCategoryError } = await supabase
         .from('attractions')
         .update({ category: 'attraction' })
@@ -37,17 +48,28 @@ export class TableMigrationService {
       // Update hidden_gems table - populate missing fields
       console.log('💎 Migrating hidden gems data...');
       
-      // Populate name from title where missing
-      const { error: gemsNameError } = await supabase
+      // Get hidden_gems without names and populate from title
+      const { data: gemsWithoutNames, error: gemsNameFetchError } = await supabase
         .from('hidden_gems')
-        .update({ name: supabase.raw('title') })
+        .select('id, title, name')
         .or('name.is.null,name.eq.');
 
-      if (gemsNameError) {
-        console.error('❌ Error updating hidden gems names:', gemsNameError);
+      if (!gemsNameFetchError && gemsWithoutNames) {
+        for (const gem of gemsWithoutNames) {
+          if (gem.title && !gem.name) {
+            const { error } = await supabase
+              .from('hidden_gems')
+              .update({ name: gem.title })
+              .eq('id', gem.id);
+            
+            if (error) {
+              console.error('❌ Error updating hidden gem name:', error);
+            }
+          }
+        }
       }
 
-      // Set default category
+      // Set default category for hidden gems
       const { error: gemsCategoryError } = await supabase
         .from('hidden_gems')
         .update({ category: 'hidden_gems' })
