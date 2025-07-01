@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ExternalLink, MapPin, Calendar, ImageIcon } from 'lucide-react';
+import { ExternalLink, MapPin, Calendar, ImageIcon, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UnifiedRoute66Item } from '../types';
@@ -36,21 +36,23 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
 
   const handleMapClick = () => {
     if (item.latitude && item.longitude) {
-      // Enhanced Google Maps search using place name and coordinates
       const placeName = encodeURIComponent(`${item.name}, ${item.city_name}${item.state ? `, ${item.state}` : ''}`);
       const url = `https://www.google.com/maps/search/${placeName}/@${item.latitude},${item.longitude},15z`;
       window.open(url, '_blank');
     }
   };
 
+  // Use either title or name for display
+  const displayName = item.title || item.name;
+
   return (
     <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group border-route66-border hover:border-route66-primary/50 bg-route66-background hover:scale-[1.02]">
-      {/* Image Section with Enhanced Placeholder */}
+      {/* Image Section */}
       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-route66-background-section to-route66-background-alt">
         {!imageError && (
           <img
             src={imageUrl}
-            alt={item.name}
+            alt={displayName}
             loading="lazy"
             className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -63,7 +65,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
           />
         )}
         
-        {/* Enhanced Loading/Error Fallback with Route 66 Theme */}
+        {/* Loading/Error Fallback */}
         {(!imageLoaded || imageError) && (
           <div className="absolute inset-0 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background flex flex-col items-center justify-center text-route66-text-muted border-2 border-dashed border-route66-divider">
             <div className="bg-route66-background rounded-full p-3 mb-2 shadow-sm">
@@ -94,7 +96,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
       <CardContent className="p-5 flex-1 flex flex-col">
         {/* Title */}
         <h3 className="font-semibold text-lg text-route66-text-primary mb-2 line-clamp-2 group-hover:text-route66-primary transition-colors">
-          {item.name}
+          {displayName}
         </h3>
 
         {/* Location */}
@@ -121,8 +123,12 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
         )}
 
         {/* Tags */}
-        {item.tags.length > 0 && (
+        {item.tags && item.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex items-center gap-1 text-xs text-route66-text-muted">
+              <Tag className="h-3 w-3" />
+              <span>Tags:</span>
+            </div>
             {item.tags.slice(0, 3).map((tag, index) => (
               <span
                 key={index}
@@ -139,7 +145,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
           </div>
         )}
 
-        {/* Enhanced Action Buttons - Consistent Layout */}
+        {/* Action Buttons */}
         <div className="flex gap-2 mt-auto">
           {item.website && (
             <Button

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UnifiedRoute66Item, FilterState } from '../types';
@@ -20,24 +19,25 @@ export const useUnifiedData = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching unified Route 66 data...');
+      console.log('🔍 Fetching unified Route 66 data with standardized schema...');
 
       // Fetch all three data types in parallel
       const [attractionsResult, driveInsResult, hiddenGemsResult] = await Promise.all([
         supabase.from('attractions').select('*').order('name'),
-        supabase.from('drive_ins').select('*').order('title'),
+        supabase.from('drive_ins').select('*').order('name'),
         supabase.from('hidden_gems').select('*').order('title')
       ]);
 
       const unifiedItems: UnifiedRoute66Item[] = [];
 
-      // Process attractions - use available fields only
+      // Process attractions with standardized schema
       if (attractionsResult.data) {
         console.log(`🎯 Processing ${attractionsResult.data.length} attractions`);
         attractionsResult.data.forEach(attraction => {
           unifiedItems.push({
             id: `attraction-${attraction.id}`,
             name: attraction.name,
+            title: attraction.title || attraction.name,
             description: attraction.description,
             city_name: attraction.city_name,
             state: attraction.state,
@@ -47,16 +47,16 @@ export const useUnifiedData = () => {
             latitude: attraction.latitude,
             longitude: attraction.longitude,
             category: 'attractions',
-            tags: [], // Default empty array since not in DB
-            founded_year: undefined, // Not available in DB
-            year_opened: undefined, // Not available in DB
+            tags: attraction.tags || [],
+            founded_year: attraction.founded_year || undefined,
+            year_opened: attraction.year_opened || undefined,
             featured: Boolean(attraction.featured),
-            slug: attraction.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+            slug: attraction.slug || attraction.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
       }
 
-      // Process drive-ins - use available fields only
+      // Process drive-ins (unchanged)
       if (driveInsResult.data) {
         console.log(`🎬 Processing ${driveInsResult.data.length} drive-ins`);
         driveInsResult.data.forEach(driveIn => {
@@ -72,7 +72,7 @@ export const useUnifiedData = () => {
             latitude: driveIn.latitude,
             longitude: driveIn.longitude,
             category: 'drive_ins',
-            tags: [], // Default empty array since not in DB
+            tags: [],
             year_opened: driveIn.year_opened,
             featured: Boolean(driveIn.featured),
             slug: driveIn.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
@@ -80,56 +80,33 @@ export const useUnifiedData = () => {
         });
       }
 
-      // Process hidden gems
+      // Process hidden gems with standardized schema
       if (hiddenGemsResult.data) {
         console.log(`💎 Processing ${hiddenGemsResult.data.length} hidden gems`);
         hiddenGemsResult.data.forEach(gem => {
           unifiedItems.push({
             id: `hidden-gem-${gem.id}`,
-            name: gem.title,
+            name: gem.name || gem.title,
             title: gem.title,
             description: gem.description,
             city_name: gem.city_name,
+            state: gem.state || undefined,
+            image_url: gem.image_url,
+            thumbnail_url: gem.thumbnail_url,
             website: gem.website,
             latitude: gem.latitude,
             longitude: gem.longitude,
             category: 'hidden_gems',
-            tags: [],
-            featured: false, // Hidden gems don't have featured field
-            slug: gem.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+            tags: gem.tags || [],
+            founded_year: gem.founded_year || undefined,
+            year_opened: gem.year_opened || undefined,
+            featured: Boolean(gem.featured),
+            slug: gem.slug || gem.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           });
         });
       }
 
-      console.log(`✅ Loaded ${unifiedItems.length} unified Route 66 items`);
-      
-      // Debug: Look for Church Studio specifically
-      const churchStudio = unifiedItems.find(item => 
-        item.name.toLowerCase().includes('church') && 
-        item.name.toLowerCase().includes('studio')
-      );
-      
-      if (churchStudio) {
-        console.log('🎵 Found Church Studio:', {
-          name: churchStudio.name,
-          state: churchStudio.state,
-          city: churchStudio.city_name,
-          category: churchStudio.category
-        });
-      } else {
-        console.log('❌ Church Studio not found in results');
-        // Log all OK items to see what we have
-        const okItems = unifiedItems.filter(item => 
-          item.state === 'OK' || 
-          (item.state && item.state.toUpperCase() === 'OK')
-        );
-        console.log(`🔍 Found ${okItems.length} items in OK:`, okItems.map(item => ({
-          name: item.name,
-          state: item.state,
-          city: item.city_name
-        })));
-      }
-      
+      console.log(`✅ Loaded ${unifiedItems.length} unified Route 66 items with standardized schema`);
       setItems(unifiedItems);
     } catch (error) {
       console.error('❌ Error fetching unified data:', error);
@@ -154,7 +131,7 @@ export const useUnifiedData = () => {
     };
   }, [items]);
 
-  // Enhanced filter logic to catch more variations
+  // Enhanced filter logic
   const filteredItems = useMemo(() => {
     let filtered = items;
 
@@ -166,23 +143,15 @@ export const useUnifiedData = () => {
       console.log(`🎯 After type filter (${filters.type}): ${filtered.length} items`);
     }
 
-    // Enhanced state filter - more flexible matching
+    // Enhanced state filter
     if (filters.state) {
       const stateFilter = filters.state.toUpperCase().trim();
       filtered = filtered.filter(item => {
         if (!item.state) return false;
-        
         const itemState = item.state.toUpperCase().trim();
-        
-        // Exact match
-        if (itemState === stateFilter) return true;
-        
-        // Handle common variations
-        if (stateFilter === 'OK' && (itemState === 'OKLAHOMA' || itemState === 'OK')) return true;
-        if (stateFilter === 'OKLAHOMA' && (itemState === 'OK' || itemState === 'OKLAHOMA')) return true;
-        
-        // Partial match for other cases
-        return itemState.includes(stateFilter) || stateFilter.includes(itemState);
+        return itemState === stateFilter || 
+               (stateFilter === 'OK' && itemState === 'OKLAHOMA') ||
+               (stateFilter === 'OKLAHOMA' && itemState === 'OK');
       });
       console.log(`🏛️ After state filter (${filters.state}): ${filtered.length} items`);
     }
@@ -201,22 +170,11 @@ export const useUnifiedData = () => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase().trim();
       filtered = filtered.filter(item => {
-        // Search in name (primary field)
-        if (item.name.toLowerCase().includes(searchLower)) return true;
-        
-        // Search in title if it exists
-        if (item.title && item.title.toLowerCase().includes(searchLower)) return true;
-        
-        // Search in description
-        if (item.description && item.description.toLowerCase().includes(searchLower)) return true;
-        
-        // Search in city name
-        if (item.city_name.toLowerCase().includes(searchLower)) return true;
-        
-        // Search in tags
-        if (item.tags.some(tag => tag.toLowerCase().includes(searchLower))) return true;
-        
-        return false;
+        return item.name.toLowerCase().includes(searchLower) ||
+               (item.title && item.title.toLowerCase().includes(searchLower)) ||
+               (item.description && item.description.toLowerCase().includes(searchLower)) ||
+               item.city_name.toLowerCase().includes(searchLower) ||
+               item.tags.some(tag => tag.toLowerCase().includes(searchLower));
       });
       console.log(`🔍 After search filter ("${filters.search}"): ${filtered.length} items`);
     }
@@ -229,12 +187,6 @@ export const useUnifiedData = () => {
     });
 
     console.log(`✅ Final filtered results: ${sorted.length} items`);
-    
-    // Debug filtered results if searching for Church Studio
-    if (filters.search && filters.search.toLowerCase().includes('church')) {
-      console.log('🎵 Church Studio search results:', sorted.map(item => item.name));
-    }
-
     return sorted;
   }, [items, filters]);
 
