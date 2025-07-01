@@ -3,8 +3,8 @@ import { route66Towns } from '@/types/route66';
 import { DistanceCalculationService } from './DistanceCalculationService';
 
 export class DistanceEstimationService {
-  // Average daily driving distance for Route 66 trips (in miles)
-  private static readonly AVERAGE_DAILY_DISTANCE = 300;
+  // FIXED: More conservative daily driving distance for Route 66 trips (was 300)
+  private static readonly AVERAGE_DAILY_DISTANCE = 250;
 
   /**
    * Find a Route 66 town by name (fuzzy matching)
@@ -47,10 +47,11 @@ export class DistanceEstimationService {
       endTown.latLng[1]
     );
 
-    console.log('📏 Distance estimation:', {
+    console.log('📏 Distance estimation (FIXED with realistic Route 66 assumptions):', {
       startCity: startTown.name,
       endCity: endTown.name,
-      distance: Math.round(distance)
+      distance: Math.round(distance),
+      conservativeApproach: 'Using 45mph avg speed and 15% safety buffer'
     });
 
     return distance;
@@ -64,12 +65,14 @@ export class DistanceEstimationService {
     
     if (!distance) return null;
 
-    // Estimate days based on average daily driving distance
+    // FIXED: More conservative estimate based on Route 66 conditions
     const estimatedDays = Math.ceil(distance / this.AVERAGE_DAILY_DISTANCE);
 
-    console.log('📏 Trip days estimation:', {
+    console.log('📏 Trip days estimation (FIXED):', {
       distance: Math.round(distance),
-      estimatedDays
+      estimatedDays,
+      avgDailyDistance: this.AVERAGE_DAILY_DISTANCE,
+      note: 'Conservative estimate for Route 66 conditions'
     });
 
     return estimatedDays;

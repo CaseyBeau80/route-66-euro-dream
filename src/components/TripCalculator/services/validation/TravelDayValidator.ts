@@ -15,6 +15,8 @@ export class TravelDayValidator {
   private static readonly ABSOLUTE_MIN_DAYS = 1;
   private static readonly ABSOLUTE_MAX_DAYS = 14;
   private static readonly MAX_DAILY_DRIVE_HOURS = 10; // STRICT 10-hour limit
+  private static readonly ROUTE66_AVERAGE_SPEED = 45; // More realistic Route 66 speed (was 50)
+  private static readonly SAFETY_BUFFER = 1.15; // 15% safety buffer for Route 66 conditions
   
   /**
    * Validate travel days against route requirements with STRICT 10h enforcement
@@ -70,23 +72,27 @@ export class TravelDayValidator {
       };
     }
     
-    // Calculate minimum days based on STRICT 10-hour limit
-    const minDaysForAbsoluteSafety = Math.ceil(estimatedDistance / (this.MAX_DAILY_DRIVE_HOURS * 50));
-    const minDaysForStyle = Math.ceil(estimatedDistance / (styleConfig.maxDailyDriveHours * 50));
+    // FIXED: More conservative calculation with safety buffer for Route 66
+    const adjustedDistance = estimatedDistance * this.SAFETY_BUFFER;
+    const minDaysForAbsoluteSafety = Math.ceil(adjustedDistance / (this.MAX_DAILY_DRIVE_HOURS * this.ROUTE66_AVERAGE_SPEED));
+    const minDaysForStyle = Math.ceil(adjustedDistance / (styleConfig.maxDailyDriveHours * this.ROUTE66_AVERAGE_SPEED));
     const minDaysRequired = Math.max(this.ABSOLUTE_MIN_DAYS, minDaysForAbsoluteSafety, minDaysForStyle);
     
-    console.log('🔍 FULL DEBUG: Day calculations:', {
+    console.log('🔍 FULL DEBUG: FIXED Day calculations:', {
       estimatedDistance,
+      adjustedDistance,
+      route66Speed: this.ROUTE66_AVERAGE_SPEED,
+      safetyBuffer: this.SAFETY_BUFFER,
       minDaysForAbsoluteSafety,
       minDaysForStyle,
       minDaysRequired,
       requestedDays,
       needsAdjustment: minDaysRequired > requestedDays,
-      calculation: `${estimatedDistance} miles / (${this.MAX_DAILY_DRIVE_HOURS} hours * 50 mph) = ${minDaysForAbsoluteSafety} days`
+      calculation: `${adjustedDistance.toFixed(0)} miles / (${this.MAX_DAILY_DRIVE_HOURS} hours * ${this.ROUTE66_AVERAGE_SPEED} mph) = ${minDaysForAbsoluteSafety} days`
     });
     
     // Calculate maximum recommended days (capped at 14 days)
-    const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(estimatedDistance / 100));
+    const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(adjustedDistance / 100));
     
     // CRITICAL FIX: Check if minimum days required is greater than requested days
     if (minDaysRequired > requestedDays) {
@@ -95,11 +101,11 @@ export class TravelDayValidator {
       recommendations.push(`Increase trip duration to ${minDaysRequired} days to ensure safe daily drives`);
     }
     
-    // Check STRICT 10-hour constraint
+    // Check STRICT 10-hour constraint with new speed
     if (requestedDays >= this.ABSOLUTE_MIN_DAYS && requestedDays <= this.ABSOLUTE_MAX_DAYS) {
-      const averageDailyHours = estimatedDistance / requestedDays / 50; // Assuming 50 mph average
+      const averageDailyHours = adjustedDistance / requestedDays / this.ROUTE66_AVERAGE_SPEED;
       
-      console.log('🔍 FULL DEBUG: Daily driving hours:', {
+      console.log('🔍 FULL DEBUG: Daily driving hours with new calculation:', {
         averageDailyHours,
         exceedsLimit: averageDailyHours > this.MAX_DAILY_DRIVE_HOURS
       });
@@ -135,9 +141,10 @@ export class TravelDayValidator {
       recommendations
     };
     
-    console.log('🔥 FULL DEBUG: TravelDayValidator final result:', {
+    console.log('🔥 FULL DEBUG: TravelDayValidator final result (FIXED):', {
       ...result,
-      willTriggerAdjustment: !isValid && minDaysRequired > requestedDays
+      willTriggerAdjustment: !isValid && minDaysRequired > requestedDays,
+      improvedCalculation: `${this.ROUTE66_AVERAGE_SPEED}mph avg speed, ${this.SAFETY_BUFFER}x safety buffer`
     });
     
     return result;
