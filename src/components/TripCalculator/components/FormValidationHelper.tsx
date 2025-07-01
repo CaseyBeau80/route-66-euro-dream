@@ -95,8 +95,8 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   const incompleteChecks = validationChecks.filter(check => !check.isValid);
 
   return (
-    <div className="space-y-4">
-      {/* PERSISTENT Day Adjustment Notice - Show for longer duration with animation */}
+    <div className="space-y-6">
+      {/* DUAL DISPLAY: Day Adjustment Notice - Always show when applicable */}
       {dayAdjustmentInfo && formData.startLocation && formData.endLocation && (
         <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-6 animate-pulse">
           <div className="flex items-start gap-3">
@@ -142,7 +142,7 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
         </div>
       )}
 
-      {/* Form Validation Status - Show success or incomplete form messages */}
+      {/* DUAL DISPLAY: Form Validation Status - Always show alongside adjustment notice */}
       {isFormValid ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center gap-2 text-green-700">
