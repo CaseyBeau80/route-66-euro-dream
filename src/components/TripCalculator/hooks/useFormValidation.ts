@@ -27,10 +27,9 @@ export const useFormValidation = (formData: TripFormData) => {
       hasValidTravelDays
     });
 
-    // SIMPLIFIED LOGIC: Check day adjustment as soon as we have locations and travel days
-    // This ensures the message appears immediately when the user makes selections
-    if (hasStartLocation && hasEndLocation && formData.travelDays > 0 && formData.travelDays <= MAX_DAYS) {
-      console.log('🔍 DEBUGGING: Checking day adjustment with simplified logic...');
+    // CRITICAL FIX: Always check day adjustment when we have the required data
+    if (hasStartLocation && hasEndLocation && formData.travelDays > 0) {
+      console.log('🔍 DEBUGGING: Checking day adjustment - ALWAYS when locations + days present');
       
       const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
       console.log('🔍 DEBUGGING: Style config:', styleConfig);
@@ -44,14 +43,12 @@ export const useFormValidation = (formData: TripFormData) => {
 
       console.log('🔍 DEBUGGING: Travel day validation result:', validation);
 
-      // Create day adjustment info when minimum days required exceeds requested days
+      // CRITICAL: Show day adjustment if minimum required is greater than requested
       if (validation.minDaysRequired && validation.minDaysRequired > formData.travelDays) {
         dayAdjustmentInfo = {
           requested: formData.travelDays,
           minimum: validation.minDaysRequired,
-          reason: validation.issues && validation.issues.length > 0 
-            ? validation.issues[0] 
-            : `Route requires ${validation.minDaysRequired} days minimum for safe driving limits (max 10 hours/day)`
+          reason: `Your route from ${formData.startLocation} to ${formData.endLocation} covers approximately ${Math.round(validation.minDaysRequired * 300)} miles. To keep daily driving under our 10-hour safety limit (maximum 300 miles per day), we need ${validation.minDaysRequired} days instead of ${formData.travelDays} days.`
         };
         recommendedDays = validation.minDaysRequired;
         
@@ -59,8 +56,7 @@ export const useFormValidation = (formData: TripFormData) => {
       }
     }
 
-    // IMPORTANT: Form can be valid even with day adjustment (the system will use adjusted days)
-    // Only mark as invalid if required fields are missing
+    // Form is valid when all required fields are present - day adjustment doesn't invalidate the form
     const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate;
 
     console.log('🎯 DEBUGGING: Final validation result:', {
