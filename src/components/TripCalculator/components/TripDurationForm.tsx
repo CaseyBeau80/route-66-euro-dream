@@ -27,11 +27,25 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   // Generate dropdown options
   const durationOptions = Array.from({ length: 14 }, (_, i) => i + 1);
 
-  // FIXED: Show actionable message when day adjustment is needed, regardless of form validity
+  // Debug logging to understand why message isn't showing
+  console.log('🔍 TripDurationForm DEBUG:', {
+    dayAdjustmentInfo,
+    hasAdjustment: !!dayAdjustmentInfo,
+    minimumDays: dayAdjustmentInfo?.minimum,
+    currentDays: formData.travelDays,
+    needsMoreDays: dayAdjustmentInfo ? dayAdjustmentInfo.minimum > formData.travelDays : false,
+    hasLocations: !!(formData.startLocation && formData.endLocation),
+    startLocation: formData.startLocation,
+    endLocation: formData.endLocation
+  });
+
+  // Show actionable message when day adjustment is needed
   const shouldShowActionableMessage = dayAdjustmentInfo && 
     dayAdjustmentInfo.minimum > formData.travelDays &&
     formData.startLocation && 
     formData.endLocation;
+
+  console.log('🔍 TripDurationForm: shouldShowActionableMessage =', shouldShowActionableMessage);
 
   // Determine what to display based on day adjustment
   const getDisplayText = () => {
@@ -74,6 +88,13 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
             requiredDays={dayAdjustmentInfo.minimum}
             className="mt-2"
           />
+        )}
+        
+        {/* DEBUG: Always show message for testing */}
+        {dayAdjustmentInfo && (
+          <div className="bg-yellow-100 border border-yellow-400 p-2 rounded text-sm">
+            <strong>DEBUG:</strong> Day adjustment detected - Current: {formData.travelDays}, Required: {dayAdjustmentInfo.minimum}
+          </div>
         )}
         
         <p className="text-sm text-route66-text-secondary">
