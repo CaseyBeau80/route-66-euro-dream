@@ -56,8 +56,9 @@ export const useFormValidation = (formData: TripFormData) => {
       }
     }
 
-    // Form is valid when all required fields are present - day adjustment doesn't invalidate the form
-    const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate;
+    // CRITICAL: Form is NOT valid when day adjustment is needed
+    // This forces the user to acknowledge the change before proceeding
+    const isFormValid = hasStartLocation && hasEndLocation && hasValidTravelDays && hasStartDate && !dayAdjustmentInfo;
 
     console.log('🎯 DEBUGGING: Final validation result:', {
       hasStartLocation,
