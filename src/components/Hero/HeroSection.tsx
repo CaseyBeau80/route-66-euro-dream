@@ -72,7 +72,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     {index < 3 ? <p className="text-lg lg:text-xl leading-relaxed text-route66-primary-light">
                         {point}
                       </p> : <div className="py-2">
-                        <p className="text-2xl lg:text-3xl font-highway font-bold text-route66-accent-red">
+                        <p className="text-2xl lg:text-3xl font-highway font-bold text-pink-600">
                           {point}
                         </p>
                       </div>}
