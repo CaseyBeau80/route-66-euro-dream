@@ -27,7 +27,7 @@ export const useFormValidation = (formData: TripFormData) => {
       hasValidTravelDays
     });
 
-    // CRITICAL FIX: Always check day adjustment when we have the required data
+    // CRITICAL: Always check day adjustment when we have the required data
     if (hasStartLocation && hasEndLocation && formData.travelDays > 0) {
       console.log('🔍 DEBUGGING: Checking day adjustment - ALWAYS when locations + days present');
       
@@ -48,7 +48,7 @@ export const useFormValidation = (formData: TripFormData) => {
         dayAdjustmentInfo = {
           requested: formData.travelDays,
           minimum: validation.minDaysRequired,
-          reason: `Your route from ${formData.startLocation} to ${formData.endLocation} covers approximately ${Math.round(validation.minDaysRequired * 300)} miles. To keep daily driving under our 10-hour safety limit (maximum 300 miles per day), we need ${validation.minDaysRequired} days instead of ${formData.travelDays} days.`
+          reason: `Safety limit: Your ${formData.travelDays}-day trip would require ${Math.round((validation.minDaysRequired * 300) / formData.travelDays)} miles per day, which exceeds our 300-mile daily safety limit. We've adjusted it to ${validation.minDaysRequired} days for comfortable ${Math.round((validation.minDaysRequired * 300) / validation.minDaysRequired)} miles per day.`
         };
         recommendedDays = validation.minDaysRequired;
         
