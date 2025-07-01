@@ -1,58 +1,57 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { TableMigrationService } from './TableMigrationService';
 
 export class HiddenGemsToAttractionsService {
   /**
-   * List of entries to move from hidden_gems to attractions
+   * List of specific entries to move
    */
   private static readonly ENTRIES_TO_MOVE = [
-    'Blue Swallow Motel',
-    'Cozy Dog Drive In',
-    'Munger Moss Motel',
-    'Rock Cafe',
-    'The Big Texan Steak Ranch',
-    'Midpoint Cafe',
-    'El Rancho Hotel',
+    'Cadillac Ranch',
+    'Blue Whale of Catoosa',
+    'World\'s Largest Rocking Chair',
+    'Leaning Water Tower of Britten',
+    'Devil\'s Rope Museum',
+    'Big Texan Steak Ranch',
+    'Meteor Crater',
     'Wigwam Motel',
-    'Santa Monica Pier',
-    'End of the Trail Sign'
+    'World\'s Largest Thermometer',
+    'End of the Trail Monument'
   ];
 
   /**
    * Execute the complete migration plan
    */
   static async executeMigrationPlan() {
-    console.log('🚀 Starting Hidden Gems to Attractions migration plan...');
+    console.log('🚀 Starting Hidden Gems to Attractions migration...');
     
     try {
-      // Step 1: Handle El Rancho Hotel duplicate
-      console.log('🔧 Step 1: Handling El Rancho Hotel duplicate...');
-      await this.handleElRanchoHotelDuplicate();
-
-      // Step 2: Populate missing state values
-      console.log('📍 Step 2: Populating missing state values...');
-      await this.populateMissingStates();
-
-      // Step 3: Move entries from hidden_gems to attractions
-      console.log('📦 Step 3: Moving entries to attractions...');
-      const moveResults = await this.moveEntriesToAttractions();
-
+      // Step 1: Handle the duplicate "Cadillac Ranch" in both tables
+      console.log('🔍 Step 1: Checking for duplicates...');
+      const duplicateResult = await this.handleDuplicates();
+      
+      // Step 2: Move the 10 specific entries
+      console.log('📦 Step 2: Moving specific entries...');
+      const moveResults = await this.moveSpecificEntries();
+      
+      // Step 3: Populate missing state values in attractions
+      console.log('🏛️ Step 3: Populating missing states...');
+      const statesResult = await this.populateMissingStates();
+      
       // Step 4: Verify the migration
       console.log('✅ Step 4: Verifying migration...');
       const verificationResults = await this.verifyMigration();
-
-      console.log('🎉 Migration plan completed successfully!');
+      
+      console.log('🎉 Migration completed successfully!');
+      
       return {
         success: true,
-        duplicateHandled: true,
-        statesPopulated: true,
-        moveResults,
-        verificationResults
+        duplicateHandled: duplicateResult.success,
+        moveResults: moveResults,
+        statesPopulated: statesResult.success,
+        verificationResults: verificationResults
       };
-
+      
     } catch (error) {
-      console.error('❌ Migration plan failed:', error);
+      console.error('❌ Migration failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -61,152 +60,122 @@ export class HiddenGemsToAttractionsService {
   }
 
   /**
-   * Handle El Rancho Hotel duplicate by removing it from hidden_gems
+   * Handle duplicate entries between tables
    */
-  private static async handleElRanchoHotelDuplicate() {
+  private static async handleDuplicates() {
     try {
-      // Check if El Rancho Hotel exists in attractions
-      const { data: attractionExists, error: attractionError } = await supabase
-        .from('attractions')
-        .select('id, name')
-        .ilike('name', '%el rancho%')
-        .limit(1);
-
-      if (attractionError) {
-        throw new Error(`Failed to check attractions: ${attractionError.message}`);
-      }
-
-      // Check if El Rancho Hotel exists in hidden_gems
-      const { data: hiddenGemExists, error: hiddenGemError } = await supabase
-        .from('hidden_gems')
-        .select('id, title, name')
-        .or('title.ilike.%el rancho%,name.ilike.%el rancho%')
-        .limit(1);
-
-      if (hiddenGemError) {
-        throw new Error(`Failed to check hidden_gems: ${hiddenGemError.message}`);
-      }
-
-      if (attractionExists && attractionExists.length > 0 && hiddenGemExists && hiddenGemExists.length > 0) {
-        console.log('🔄 El Rancho Hotel found in both tables, removing from hidden_gems...');
-        
-        const { error: deleteError } = await supabase
+      console.log('🔍 Checking for "Cadillac Ranch" in both tables...');
+      
+      // Check if Cadillac Ranch exists in both tables
+      const [hiddenGemResult, attractionResult] = await Promise.all([
+        supabase
           .from('hidden_gems')
+          .select('id, title, name')
+          .ilike('title', '%cadillac ranch%'),
+        supabase
+          .from('attractions')
+          .select('id, name, title')
+          .ilike('name', '%cadillac ranch%')
+      ]);
+
+      console.log('Hidden Gems Cadillac Ranch:', hiddenGemResult.data?.length || 0);
+      console.log('Attractions Cadillac Ranch:', attractionResult.data?.length || 0);
+
+      if (hiddenGemResult.data && hiddenGemResult.data.length > 0 && 
+          attractionResult.data && attractionResult.data.length > 0) {
+        
+        console.log('🗑️ Removing duplicate from attractions table...');
+        
+        // Remove from attractions (keep the one in hidden_gems to be moved)
+        const { error: deleteError } = await supabase
+          .from('attractions')
           .delete()
-          .eq('id', hiddenGemExists[0].id);
+          .ilike('name', '%cadillac ranch%');
 
         if (deleteError) {
-          throw new Error(`Failed to delete duplicate: ${deleteError.message}`);
+          console.error('❌ Error removing duplicate:', deleteError);
+          return { success: false, error: deleteError.message };
         }
-
-        console.log('✅ El Rancho Hotel duplicate removed from hidden_gems');
-      } else {
-        console.log('ℹ️ No duplicate El Rancho Hotel found');
+        
+        console.log('✅ Duplicate removed from attractions');
       }
-
+      
+      return { success: true };
+      
     } catch (error) {
-      console.error('❌ Error handling El Rancho Hotel duplicate:', error);
-      throw error;
+      console.error('❌ Error handling duplicates:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
   /**
-   * Populate missing state values for entries to be moved
+   * Move specific entries from hidden_gems to attractions
    */
-  private static async populateMissingStates() {
-    try {
-      // Get all hidden_gems entries that need state updates
-      const { data: gemsWithoutState, error: fetchError } = await supabase
-        .from('hidden_gems')
-        .select('id, title, name, city_name, state')
-        .or('state.is.null,state.eq.');
-
-      if (fetchError) {
-        throw new Error(`Failed to fetch gems without state: ${fetchError.message}`);
-      }
-
-      if (!gemsWithoutState || gemsWithoutState.length === 0) {
-        console.log('ℹ️ No gems found without state values');
-        return;
-      }
-
-      // Update states based on known patterns
-      for (const gem of gemsWithoutState) {
-        let newState = null;
-        const title = gem.title?.toLowerCase() || '';
-        const name = gem.name?.toLowerCase() || '';
-        const city = gem.city_name?.toLowerCase() || '';
-        
-        // Determine state based on location patterns
-        if (title.includes('blue swallow') || city.includes('tucumcari')) newState = 'NM';
-        else if (title.includes('cozy dog') || city.includes('springfield')) newState = 'IL';
-        else if (title.includes('munger moss') || city.includes('lebanon')) newState = 'MO';
-        else if (title.includes('rock cafe') || city.includes('stroud')) newState = 'OK';
-        else if (title.includes('big texan') || city.includes('amarillo')) newState = 'TX';
-        else if (title.includes('midpoint') || city.includes('adrian')) newState = 'TX';
-        else if (title.includes('wigwam') || city.includes('holbrook')) newState = 'AZ';
-        else if (title.includes('santa monica') || city.includes('santa monica')) newState = 'CA';
-        else if (title.includes('end of the trail') || city.includes('santa monica')) newState = 'CA';
-        
-        if (newState) {
-          const { error: updateError } = await supabase
-            .from('hidden_gems')
-            .update({ state: newState })
-            .eq('id', gem.id);
-
-          if (updateError) {
-            console.warn(`⚠️ Failed to update state for ${gem.title || gem.name}:`, updateError);
-          } else {
-            console.log(`✅ Updated state for ${gem.title || gem.name} to ${newState}`);
-          }
-        }
-      }
-
-    } catch (error) {
-      console.error('❌ Error populating missing states:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Move entries from hidden_gems to attractions
-   */
-  private static async moveEntriesToAttractions() {
+  private static async moveSpecificEntries() {
     const results = [];
-
+    
     for (const entryName of this.ENTRIES_TO_MOVE) {
+      console.log(`🔄 Processing: ${entryName}`);
+      
       try {
-        console.log(`🔄 Processing: ${entryName}`);
-
         // Find the entry in hidden_gems
-        const { data: hiddenGem, error: findError } = await supabase
+        const { data: hiddenGem, error: fetchError } = await supabase
           .from('hidden_gems')
           .select('*')
           .or(`title.ilike.%${entryName}%,name.ilike.%${entryName}%`)
-          .limit(1);
+          .limit(1)
+          .single();
 
-        if (findError) {
-          console.warn(`⚠️ Error finding ${entryName}:`, findError);
-          results.push({ name: entryName, success: false, error: findError.message });
+        if (fetchError || !hiddenGem) {
+          console.log(`⚠️ Entry not found: ${entryName}`);
+          results.push({ name: entryName, success: false, error: 'Not found' });
           continue;
         }
 
-        if (!hiddenGem || hiddenGem.length === 0) {
-          console.warn(`⚠️ ${entryName} not found in hidden_gems`);
-          results.push({ name: entryName, success: false, error: 'Not found in hidden_gems' });
+        console.log(`📍 Found: ${hiddenGem.title || hiddenGem.name} in hidden_gems`);
+
+        // Insert into attractions
+        const { error: insertError } = await supabase
+          .from('attractions')
+          .insert({
+            name: hiddenGem.name || hiddenGem.title,
+            title: hiddenGem.title,
+            description: hiddenGem.description,
+            city_name: hiddenGem.city_name,
+            state: hiddenGem.state || '',
+            latitude: hiddenGem.latitude,
+            longitude: hiddenGem.longitude,
+            image_url: hiddenGem.image_url,
+            thumbnail_url: hiddenGem.thumbnail_url,
+            website: hiddenGem.website,
+            category: 'attraction',
+            featured: hiddenGem.featured || false,
+            founded_year: hiddenGem.founded_year,
+            year_opened: hiddenGem.year_opened,
+            tags: hiddenGem.tags || [],
+            slug: hiddenGem.slug
+          });
+
+        if (insertError) {
+          console.error(`❌ Error inserting ${entryName}:`, insertError);
+          results.push({ name: entryName, success: false, error: insertError.message });
           continue;
         }
 
-        // Use TableMigrationService to move the entry
-        const moveResult = await TableMigrationService.moveHiddenGemToAttraction(hiddenGem[0].id);
-        
-        if (moveResult.success) {
-          console.log(`✅ Successfully moved ${entryName}`);
-          results.push({ name: entryName, success: true });
-        } else {
-          console.warn(`⚠️ Failed to move ${entryName}:`, moveResult.error);
-          results.push({ name: entryName, success: false, error: moveResult.error });
+        // Delete from hidden_gems
+        const { error: deleteError } = await supabase
+          .from('hidden_gems')
+          .delete()
+          .eq('id', hiddenGem.id);
+
+        if (deleteError) {
+          console.error(`❌ Error deleting ${entryName} from hidden_gems:`, deleteError);
+          results.push({ name: entryName, success: false, error: deleteError.message });
+          continue;
         }
+
+        console.log(`✅ Successfully moved: ${entryName}`);
+        results.push({ name: entryName, success: true });
 
       } catch (error) {
         console.error(`❌ Error processing ${entryName}:`, error);
@@ -217,8 +186,66 @@ export class HiddenGemsToAttractionsService {
         });
       }
     }
-
+    
     return results;
+  }
+
+  /**
+   * Populate missing state values in attractions
+   */
+  private static async populateMissingStates() {
+    try {
+      console.log('🏛️ Populating missing state values...');
+      
+      const { data: attractionsWithoutState, error: fetchError } = await supabase
+        .from('attractions')
+        .select('id, city_name, state')
+        .or('state.is.null,state.eq.');
+
+      if (fetchError) {
+        console.error('❌ Error fetching attractions without state:', fetchError);
+        return { success: false, error: fetchError.message };
+      }
+
+      if (!attractionsWithoutState || attractionsWithoutState.length === 0) {
+        console.log('✅ No attractions missing state values');
+        return { success: true };
+      }
+
+      for (const attraction of attractionsWithoutState) {
+        let newState = null;
+        const cityLower = attraction.city_name?.toLowerCase() || '';
+        
+        // State mapping logic
+        if (cityLower.includes('chicago')) newState = 'IL';
+        else if (cityLower.includes('springfield') && !cityLower.includes('missouri')) newState = 'IL';
+        else if (cityLower.includes('st. louis') || cityLower.includes('saint louis')) newState = 'MO';
+        else if (cityLower.includes('tulsa') || cityLower.includes('oklahoma')) newState = 'OK';
+        else if (cityLower.includes('amarillo') || cityLower.includes('texas')) newState = 'TX';
+        else if (cityLower.includes('albuquerque') || cityLower.includes('santa fe')) newState = 'NM';
+        else if (cityLower.includes('flagstaff') || cityLower.includes('arizona')) newState = 'AZ';
+        else if (cityLower.includes('los angeles') || cityLower.includes('santa monica')) newState = 'CA';
+        
+        if (newState) {
+          const { error: updateError } = await supabase
+            .from('attractions')
+            .update({ state: newState })
+            .eq('id', attraction.id);
+
+          if (updateError) {
+            console.error('❌ Error updating state:', updateError);
+          } else {
+            console.log(`✅ Updated state for ${attraction.city_name}: ${newState}`);
+          }
+        }
+      }
+      
+      return { success: true };
+      
+    } catch (error) {
+      console.error('❌ Error populating states:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 
   /**
@@ -228,115 +255,98 @@ export class HiddenGemsToAttractionsService {
     try {
       const results = {
         movedEntries: [],
-        remainingInHiddenGems: [],
-        totalInAttractions: 0,
-        totalInHiddenGems: 0
+        totalInAttractions: 0
       };
 
-      // Check each entry in attractions
+      // Check how many of our target entries are now in attractions
       for (const entryName of this.ENTRIES_TO_MOVE) {
-        const { data: attractionData, error: attractionError } = await supabase
+        const { data: attraction } = await supabase
           .from('attractions')
-          .select('id, name, title')
+          .select('name, title')
           .or(`name.ilike.%${entryName}%,title.ilike.%${entryName}%`)
-          .limit(1);
+          .limit(1)
+          .single();
 
-        if (!attractionError && attractionData && attractionData.length > 0) {
+        if (attraction) {
           results.movedEntries.push({
-            name: entryName,
-            id: attractionData[0].id,
-            actualName: attractionData[0].name || attractionData[0].title
-          });
-        }
-
-        // Check if still in hidden_gems
-        const { data: hiddenGemData, error: hiddenGemError } = await supabase
-          .from('hidden_gems')
-          .select('id, title, name')
-          .or(`title.ilike.%${entryName}%,name.ilike.%${entryName}%`)
-          .limit(1);
-
-        if (!hiddenGemError && hiddenGemData && hiddenGemData.length > 0) {
-          results.remainingInHiddenGems.push({
-            name: entryName,
-            id: hiddenGemData[0].id,
-            actualName: hiddenGemData[0].title || hiddenGemData[0].name
+            targetName: entryName,
+            actualName: attraction.name || attraction.title
           });
         }
       }
 
-      // Get total counts
+      // Get total count in attractions
       const { count: attractionsCount } = await supabase
         .from('attractions')
         .select('*', { count: 'exact', head: true });
 
-      const { count: hiddenGemsCount } = await supabase
-        .from('hidden_gems')
-        .select('*', { count: 'exact', head: true });
-
       results.totalInAttractions = attractionsCount || 0;
-      results.totalInHiddenGems = hiddenGemsCount || 0;
 
-      console.log('📊 Migration Verification Results:');
-      console.log(`   Successfully moved: ${results.movedEntries.length}/${this.ENTRIES_TO_MOVE.length}`);
-      console.log(`   Still in hidden_gems: ${results.remainingInHiddenGems.length}`);
-      console.log(`   Total attractions: ${results.totalInAttractions}`);
-      console.log(`   Total hidden_gems: ${results.totalInHiddenGems}`);
-
+      console.log(`✅ Verification complete: ${results.movedEntries.length}/${this.ENTRIES_TO_MOVE.length} entries moved`);
+      
       return results;
-
+      
     } catch (error) {
-      console.error('❌ Error verifying migration:', error);
-      throw error;
+      console.error('❌ Verification error:', error);
+      return { movedEntries: [], totalInAttractions: 0 };
     }
   }
 
   /**
-   * Get migration status
+   * Get current migration status
    */
   static async getMigrationStatus() {
     try {
-      const statusResults = {
+      const status = {
         entriesInAttractions: [],
         entriesInHiddenGems: [],
         notFound: []
       };
 
       for (const entryName of this.ENTRIES_TO_MOVE) {
-        // Check attractions
-        const { data: attractionData } = await supabase
+        // Check attractions first
+        const { data: attraction } = await supabase
           .from('attractions')
-          .select('id, name, title')
+          .select('name, title')
           .or(`name.ilike.%${entryName}%,title.ilike.%${entryName}%`)
-          .limit(1);
+          .limit(1)
+          .single();
+
+        if (attraction) {
+          status.entriesInAttractions.push({
+            name: entryName,
+            actualName: attraction.name || attraction.title
+          });
+          continue;
+        }
 
         // Check hidden_gems
-        const { data: hiddenGemData } = await supabase
+        const { data: hiddenGem } = await supabase
           .from('hidden_gems')
-          .select('id, title, name')
+          .select('name, title')
           .or(`title.ilike.%${entryName}%,name.ilike.%${entryName}%`)
-          .limit(1);
+          .limit(1)
+          .single();
 
-        if (attractionData && attractionData.length > 0) {
-          statusResults.entriesInAttractions.push({
+        if (hiddenGem) {
+          status.entriesInHiddenGems.push({
             name: entryName,
-            actualName: attractionData[0].name || attractionData[0].title
-          });
-        } else if (hiddenGemData && hiddenGemData.length > 0) {
-          statusResults.entriesInHiddenGems.push({
-            name: entryName,
-            actualName: hiddenGemData[0].title || hiddenGemData[0].name
+            actualName: hiddenGem.title || hiddenGem.name
           });
         } else {
-          statusResults.notFound.push(entryName);
+          status.notFound.push(entryName);
         }
       }
 
-      return statusResults;
-
+      return status;
+      
     } catch (error) {
-      console.error('❌ Error getting migration status:', error);
-      return null;
+      console.error('❌ Status check error:', error);
+      return {
+        entriesInAttractions: [],
+        entriesInHiddenGems: [],
+        notFound: this.ENTRIES_TO_MOVE
+      };
     }
   }
 }
