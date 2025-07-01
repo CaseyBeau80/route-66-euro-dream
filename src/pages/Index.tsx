@@ -37,7 +37,7 @@ const Index = () => {
         {/* Centennial Section */}
         <CentennialSection language={language} />
         
-        {/* Comprehensive Listings */}
+        {/* Comprehensive Listings - Remove language prop since component doesn't accept it */}
         <ComprehensiveListings />
         
         {/* Story Journey - Remove language prop since component doesn't accept it */}
