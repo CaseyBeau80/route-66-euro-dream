@@ -17,16 +17,21 @@ export type Database = {
           created_at: string
           description: string | null
           featured: boolean | null
+          founded_year: number | null
           hours_of_operation: string | null
           id: string
           image_url: string | null
           latitude: number
           longitude: number
           name: string
+          slug: string | null
           state: string
+          tags: string[] | null
           thumbnail_url: string | null
+          title: string | null
           updated_at: string
           website: string | null
+          year_opened: number | null
         }
         Insert: {
           admission_fee?: string | null
@@ -35,16 +40,21 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean | null
+          founded_year?: number | null
           hours_of_operation?: string | null
           id?: string
           image_url?: string | null
           latitude: number
           longitude: number
           name: string
+          slug?: string | null
           state: string
+          tags?: string[] | null
           thumbnail_url?: string | null
+          title?: string | null
           updated_at?: string
           website?: string | null
+          year_opened?: number | null
         }
         Update: {
           admission_fee?: string | null
@@ -53,16 +63,21 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean | null
+          founded_year?: number | null
           hours_of_operation?: string | null
           id?: string
           image_url?: string | null
           latitude?: number
           longitude?: number
           name?: string
+          slug?: string | null
           state?: string
+          tags?: string[] | null
           thumbnail_url?: string | null
+          title?: string | null
           updated_at?: string
           website?: string | null
+          year_opened?: number | null
         }
         Relationships: []
       }
@@ -188,43 +203,67 @@ export type Database = {
       }
       hidden_gems: {
         Row: {
+          category: string | null
           city_name: string
           created_at: string
           description: string | null
+          featured: boolean | null
+          founded_year: number | null
           id: string
           image_url: string | null
           latitude: number
           longitude: number
+          name: string | null
+          slug: string | null
+          state: string | null
+          tags: string[] | null
           thumbnail_url: string | null
           title: string
           updated_at: string
           website: string | null
+          year_opened: number | null
         }
         Insert: {
+          category?: string | null
           city_name: string
           created_at?: string
           description?: string | null
+          featured?: boolean | null
+          founded_year?: number | null
           id?: string
           image_url?: string | null
           latitude: number
           longitude: number
+          name?: string | null
+          slug?: string | null
+          state?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
           website?: string | null
+          year_opened?: number | null
         }
         Update: {
+          category?: string | null
           city_name?: string
           created_at?: string
           description?: string | null
+          featured?: boolean | null
+          founded_year?: number | null
           id?: string
           image_url?: string | null
           latitude?: number
           longitude?: number
+          name?: string | null
+          slug?: string | null
+          state?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
           website?: string | null
+          year_opened?: number | null
         }
         Relationships: []
       }
@@ -495,6 +534,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_slug: {
+        Args: { input_text: string }
+        Returns: string
+      }
       get_location_trailblazer: {
         Args: { location_stop_id: string }
         Returns: {
