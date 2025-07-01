@@ -6,7 +6,7 @@ import MapLoadingStates from './components/MapLoadingStates';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
 import InteractiveMapLegend from '../InteractiveMap/components/InteractiveMapLegend';
 import GoogleMapsZoomControls from '../InteractiveMap/components/GoogleMapsZoomControls';
-import NuclearRouteManager from './components/NuclearRouteManager';
+import SingleRouteRenderer from './components/SingleRouteRenderer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
 import AttractionsContainer from './components/AttractionsContainer';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
@@ -28,7 +28,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
-  const [contentRendered, setContentRendered] = useState(false);
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -36,28 +35,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     // Ensure map is fully ready before setting state
     setTimeout(() => {
       setIsMapReady(true);
-      
-      // Force content rendering after a short delay
-      setTimeout(() => {
-        setContentRendered(true);
-      }, 500);
-    }, 100);
+    }, 500);
   }, []);
 
   const handleMapClick = useCallback(() => {
     onClearSelection();
   }, [onClearSelection]);
-
-  // Force re-render of content if map is ready but content isn't showing
-  useEffect(() => {
-    if (isMapReady && mapRef.current && !contentRendered) {
-      const timer = setTimeout(() => {
-        setContentRendered(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isMapReady, contentRendered]);
 
   if (loadError) {
     return <MapLoadingStates loadError={loadError} isLoaded={false} />;
@@ -75,16 +58,16 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         center={{ lat: 35.0, lng: -98.0 }}
         zoom={isMobile ? 4 : 5}
         className="w-full h-full"
-        showDefaultZoomControls={false} // Disable default controls to use custom ones
+        showDefaultZoomControls={false}
       >
-        {/* Route 66 Content - Only render when both map and content are ready */}
-        {mapRef.current && isMapReady && contentRendered && (
+        {/* Route 66 Content - Only render when map is ready */}
+        {mapRef.current && isMapReady && (
           <>
             {/* State Styling - Highlight Route 66 states */}
             <StateStyling map={mapRef.current} />
             
-            {/* Route Rendering - SINGLE route system */}
-            <NuclearRouteManager map={mapRef.current} isMapReady={true} />
+            {/* SINGLE Route Renderer - This replaces all other route systems */}
+            <SingleRouteRenderer map={mapRef.current} isMapReady={true} />
             
             {/* Destination Cities - Route 66 shield markers */}
             <DestinationCitiesContainer 
