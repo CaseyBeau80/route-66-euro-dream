@@ -4,6 +4,7 @@ import { Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from '../hooks/useFormValidation';
+import ActionableDayAdjustmentMessage from './ActionableDayAdjustmentMessage';
 
 interface TripDurationFormProps {
   formData: TripFormData;
@@ -14,7 +15,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   formData,
   setFormData
 }) => {
-  const { dayAdjustmentInfo } = useFormValidation(formData);
+  const { dayAdjustmentInfo, isFormValid } = useFormValidation(formData);
 
   const handleDurationChange = (value: string) => {
     setFormData({
@@ -25,6 +26,12 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
 
   // Generate dropdown options
   const durationOptions = Array.from({ length: 14 }, (_, i) => i + 1);
+
+  // FIXED: Show actionable message when day adjustment is needed, regardless of form validity
+  const shouldShowActionableMessage = dayAdjustmentInfo && 
+    dayAdjustmentInfo.minimum > formData.travelDays &&
+    formData.startLocation && 
+    formData.endLocation;
 
   // Determine what to display based on day adjustment
   const getDisplayText = () => {
@@ -59,6 +66,15 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
             ))}
           </SelectContent>
         </Select>
+        
+        {/* Actionable Message - Show when day adjustment is needed */}
+        {shouldShowActionableMessage && (
+          <ActionableDayAdjustmentMessage 
+            currentDays={formData.travelDays}
+            requiredDays={dayAdjustmentInfo.minimum}
+            className="mt-2"
+          />
+        )}
         
         <p className="text-sm text-route66-text-secondary">
           Choose how many days you want to spend on your Route 66 adventure
