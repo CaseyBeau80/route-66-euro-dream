@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import TripPlannerForm from './components/TripPlannerForm';
@@ -6,6 +5,7 @@ import TripCalculatorResults from '../TripCalculator/TripCalculatorResults';
 import CostEstimatorSection from '../TripCalculator/components/CostEstimatorSection';
 import { useTripCalculation } from './hooks/useTripCalculation';
 import CoordinateErrorBoundary from '../TripCalculator/components/CoordinateErrorBoundary';
+import { TripFormData } from '../TripCalculator/types/tripCalculator';
 
 const Route66TripCalculator: React.FC = () => {
   const { tripPlan, isCalculating, planningResult, calculateTrip, resetTrip, formData, setFormData } = useTripCalculation();
