@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
 import cakeImage from "@/assets/route66-100th-cake.jpg";
+import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 
 
 interface HeroSectionProps {
@@ -38,6 +39,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   language
 }) => {
   const content = heroContent[language as keyof typeof heroContent] || heroContent.en;
+  const { timeLeft, mounted } = useTimer();
   const scrollToInteractiveMap = () => {
     const mapSection = document.getElementById('interactive-map');
     if (mapSection) {
@@ -59,23 +61,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-6">
-              {/* Birthday Cake for 100th Anniversary */}
-              <div className="flex justify-center lg:justify-start mb-6">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/20 via-pink-400/20 to-pink-500/20 rounded-full blur-2xl animate-pulse"></div>
-                  <div className="relative bg-white rounded-xl p-3 shadow-lg border-2 border-pink-200/50">
-                    <img 
-                      src={cakeImage} 
-                      alt="Route 66 100th Anniversary Celebration Cake" 
-                      className="w-24 h-24 lg:w-32 lg:h-32 object-contain rounded-lg"
-                    />
-                  </div>
-                  <div className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-bounce">
-                    100!
-                  </div>
-                </div>
-              </div>
-
               {/* Title - Bold, uppercase, bright blue */}
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
                 {content.title}
@@ -115,6 +100,34 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   {content.ctaButton}
                   <ArrowDown className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:animate-bounce" />
                 </Button>
+              </div>
+
+              {/* Birthday Cake Countdown - Below CTA */}
+              <div className="pt-8 flex justify-center">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/20 via-pink-400/20 to-pink-500/20 rounded-full blur-2xl animate-pulse"></div>
+                  <div className="relative bg-white rounded-xl p-4 shadow-lg border-2 border-pink-200/50 text-center">
+                    <img 
+                      src={cakeImage} 
+                      alt="Route 66 100th Anniversary Celebration Cake" 
+                      className="w-16 h-16 lg:w-20 lg:h-20 object-contain rounded-lg mx-auto mb-3"
+                    />
+                    <div className="space-y-1">
+                      <div className="text-2xl lg:text-3xl font-bold text-pink-600">
+                        {mounted ? timeLeft.days : '---'}
+                      </div>
+                      <div className="text-sm lg:text-base font-medium text-gray-600">
+                        Days Until Centennial
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Nov 11, 2026
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg animate-bounce">
+                    100!
+                  </div>
+                </div>
               </div>
             </div>
 
