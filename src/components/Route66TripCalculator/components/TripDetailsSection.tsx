@@ -44,7 +44,7 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
     }
   };
 
-  // FIXED: Show actionable message when day adjustment is needed, regardless of form validity
+  // Show actionable message when day adjustment is needed (but don't block form submission)
   const shouldShowActionableMessage = dayAdjustmentInfo && 
     dayAdjustmentInfo.minimum > travelDays &&
     formData?.startLocation && 
@@ -73,7 +73,7 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
           {dayAdjustmentInfo && (
             <span className="ml-2 inline-flex items-center gap-1 text-amber-600">
               <Info className="h-3 w-3" />
-              <span className="text-xs">(Adjusted for safety)</span>
+              <span className="text-xs">(Will be adjusted for safety)</span>
             </span>
           )}
         </label>
@@ -99,20 +99,13 @@ const TripDetailsSection: React.FC<TripDetailsSectionProps> = ({
           </SelectContent>
         </Select>
         
-        {/* Actionable Message - Show when day adjustment is needed */}
+        {/* Actionable Message - Show when day adjustment is needed for immediate feedback */}
         {shouldShowActionableMessage && (
           <ActionableDayAdjustmentMessage 
             currentDays={travelDays}
             requiredDays={dayAdjustmentInfo.minimum}
             className="mt-2"
           />
-        )}
-        
-        {/* Keep existing informational message for when trip is already planned */}
-        {dayAdjustmentInfo && isFormValid && (
-          <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
-            💡 Days adjusted from {dayAdjustmentInfo.requested} to {dayAdjustmentInfo.minimum} for comfortable daily drives
-          </p>
         )}
       </div>
     </div>
