@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertCircle, CheckCircle, Calendar, ArrowRight } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Info, MapPin } from 'lucide-react';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from '../hooks/useFormValidation';
 
@@ -13,225 +13,140 @@ const FormValidationHelper: React.FC<FormValidationHelperProps> = ({
   formData,
   isFormValid
 }) => {
-  const { dayAdjustmentInfo, recommendedDays, MAX_DAYS, MIN_DAYS } = useFormValidation(formData);
-  
-  // Check for critical blocking errors
-  const isOverLimit = formData.travelDays > MAX_DAYS;
-  const isUnderLimit = formData.travelDays > 0 && formData.travelDays < MIN_DAYS;
-  const hasBlockingError = isOverLimit || isUnderLimit;
+  const { validationIssues, dayAdjustmentInfo, recommendedDays } = useFormValidation(formData);
 
-  // ENHANCED DEBUGGING: Show when both sections should display
-  const shouldShowDayAdjustment = !!(dayAdjustmentInfo && formData.startLocation && formData.endLocation);
-  const shouldShowFormValidation = !hasBlockingError;
-  
-  console.log('🔍 ENHANCED DEBUGGING FormValidationHelper render:', {
-    travelDays: formData.travelDays,
-    startLocation: formData.startLocation,
-    endLocation: formData.endLocation,
-    dayAdjustmentInfo,
-    recommendedDays,
-    hasBlockingError,
+  console.log('🔍 FormValidationHelper render:', {
     isFormValid,
-    shouldShowDayAdjustment,
-    shouldShowFormValidation,
-    'BOTH SECTIONS SHOULD SHOW': shouldShowDayAdjustment && shouldShowFormValidation,
-    'dayAdjustmentInfo exists': !!dayAdjustmentInfo,
-    'dayAdjustmentInfo details': dayAdjustmentInfo
+    dayAdjustmentInfo: !!dayAdjustmentInfo,
+    dayAdjustmentDetails: dayAdjustmentInfo,
+    recommendedDays,
+    validationIssues: validationIssues.length,
+    'both should show': !!dayAdjustmentInfo && isFormValid
   });
 
-  // Show blocking error for over/under limit - this takes precedence over everything
-  if (hasBlockingError) {
-    console.log('🚫 SHOWING BLOCKING ERROR - no other sections will display');
-    return (
-      <div className="bg-red-100 border-2 border-red-500 rounded-lg p-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="h-6 w-6 text-red-600 mt-0.5" />
-          <div>
-            <h4 className="font-bold text-red-800 mb-2">
-              🚫 Cannot Plan Trip - Invalid Duration
-            </h4>
-            {isOverLimit && (
-              <div className="text-red-700 space-y-1">
-                <p className="font-semibold">Trip duration exceeds maximum limit</p>
-                <p>You entered <strong>{formData.travelDays} days</strong>, but our planner supports a maximum of <strong>{MAX_DAYS} days</strong>.</p>
-                <p className="text-sm">Please reduce your trip duration to {MAX_DAYS} days or fewer to continue.</p>
-              </div>
-            )}
-            {isUnderLimit && (
-              <div className="text-red-700 space-y-1">
-                <p className="font-semibold">Trip duration below minimum requirement</p>
-                <p>You entered <strong>{formData.travelDays} days</strong>, but you must select at least <strong>{MIN_DAYS} day</strong>.</p>
-                <p className="text-sm">Please select at least {MIN_DAYS} day for your trip.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
+  // Show day adjustment notice when available (independent of form validity)
+  const showDayAdjustment = !!dayAdjustmentInfo;
+  
+  // Show form validation issues when form is invalid
+  const showValidationIssues = !isFormValid && validationIssues.length > 0;
+  
+  // Show success message when form is valid and no day adjustment
+  const showSuccessMessage = isFormValid && !showDayAdjustment;
+
+  console.log('🎯 FormValidationHelper display logic:', {
+    showDayAdjustment,
+    showValidationIssues,
+    showSuccessMessage,
+    'all conditions': { isFormValid, dayAdjustmentInfo: !!dayAdjustmentInfo, validationIssues: validationIssues.length }
+  });
+
+  // Don't render anything if no messages to show
+  if (!showDayAdjustment && !showValidationIssues && !showSuccessMessage) {
+    return null;
   }
 
-  const validationChecks = [
-    {
-      id: 'start-location',
-      label: 'Start location selected',
-      isValid: !!formData.startLocation,
-      value: formData.startLocation || 'Not selected'
-    },
-    {
-      id: 'end-location',
-      label: 'Destination selected',
-      isValid: !!formData.endLocation,
-      value: formData.endLocation || 'Not selected'
-    },
-    {
-      id: 'travel-days',
-      label: `Trip duration set (${MIN_DAYS}-${MAX_DAYS} days)`,
-      isValid: formData.travelDays > 0 && formData.travelDays >= MIN_DAYS && formData.travelDays <= MAX_DAYS,
-      value: formData.travelDays > 0 ? `${formData.travelDays} days` : 'Not selected',
-      isBlocking: hasBlockingError
-    },
-    {
-      id: 'start-date',
-      label: 'Start date selected (required for weather)',
-      isValid: !!formData.tripStartDate,
-      value: formData.tripStartDate 
-        ? formData.tripStartDate.toLocaleDateString()
-        : 'Not selected'
-    }
-  ];
-
-  const incompleteChecks = validationChecks.filter(check => !check.isValid);
-
-  // ENHANCED: Day adjustment notice - show when we have adjustment info
-  const dayAdjustmentSection = shouldShowDayAdjustment ? (
-    <div className="bg-amber-100 border-2 border-amber-500 rounded-lg p-6 animate-pulse">
-      <div className="flex items-start gap-3">
-        <AlertCircle className="h-7 w-7 text-amber-600 mt-0.5 animate-bounce" />
-        <div>
-          <h4 className="font-bold text-amber-800 mb-3 text-lg">
-            ⚠️ Trip Duration Automatically Adjusted
-          </h4>
-          <div className="text-amber-700 space-y-3">
-            <div className="flex items-center gap-3 text-xl font-bold bg-white/50 p-3 rounded-lg">
-              <span className="bg-red-200 text-red-800 px-3 py-2 rounded-lg shadow-sm">
-                {dayAdjustmentInfo.requested} days (your selection)
-              </span>
-              <ArrowRight className="h-6 w-6 text-amber-600" />
-              <span className="bg-green-200 text-green-800 px-3 py-2 rounded-lg shadow-sm">
-                {dayAdjustmentInfo.minimum} days (required minimum)
-              </span>
+  return (
+    <div className="space-y-3">
+      {/* Day Adjustment Notice - Shows independently */}
+      {showDayAdjustment && dayAdjustmentInfo && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-xl p-4 shadow-md animate-in slide-in-from-top-2 duration-300">
+          <div className="flex items-start gap-3">
+            <div className="bg-amber-500 rounded-full p-2 animate-pulse">
+              <Clock className="h-5 w-5 text-white" />
             </div>
-            <div className="bg-white/70 p-4 rounded-lg border border-amber-200">
-              <p className="font-semibold mb-2 text-amber-800">
-                📋 Why was this adjusted?
-              </p>
-              <p className="text-sm leading-relaxed">
-                <strong>Safety Requirement:</strong> {dayAdjustmentInfo.reason}
-              </p>
-              <p className="text-sm leading-relaxed mt-2">
-                Your trip will be automatically extended to <strong>{dayAdjustmentInfo.minimum} days</strong> to ensure:
-              </p>
-              <ul className="text-sm mt-2 ml-4 space-y-1">
-                <li>• Maximum 10 hours of driving per day</li>
-                <li>• Proper time to enjoy destinations</li>
-                <li>• Safe and comfortable travel experience</li>
-              </ul>
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-amber-800 bg-yellow-100 px-3 py-2 rounded-full inline-block">
-                ✅ This adjustment will happen automatically when you plan your trip
-              </p>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-amber-800 mb-2 flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Trip Duration Adjusted for Safety
+              </h3>
+              
+              <div className="bg-white/70 rounded-lg p-3 mb-3 border border-amber-200">
+                <div className="flex items-center justify-center gap-3 text-sm">
+                  <div className="text-center">
+                    <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg shadow-sm">
+                      <div className="text-xl font-bold">{dayAdjustmentInfo.requested}</div>
+                      <div className="text-xs">days requested</div>
+                    </div>
+                  </div>
+                  <div className="text-amber-600 font-bold">→</div>
+                  <div className="text-center">
+                    <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg shadow-sm">
+                      <div className="text-xl font-bold">{dayAdjustmentInfo.minimum}</div>
+                      <div className="text-xs">days required</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-amber-800">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-sm">Why was this adjusted?</p>
+                    <p className="text-xs text-amber-700 leading-relaxed">
+                      {dayAdjustmentInfo.reason}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                  <h4 className="font-semibold text-blue-800 mb-1 text-sm">✅ Your trip now includes:</h4>
+                  <ul className="text-xs text-blue-700 space-y-0.5">
+                    <li>• Maximum 10 hours of driving per day</li>
+                    <li>• Comfortable time at each destination</li>
+                    <li>• Safe and enjoyable travel experience</li>
+                    <li>• All major Route 66 heritage cities</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-3 text-center">
+                <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                  <CheckCircle className="h-3 w-3" />
+                  Trip automatically optimized for safety and enjoyment
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  ) : null;
+      )}
 
-  // ENHANCED: Form validation status - always show unless there's a blocking error
-  const formValidationSection = isFormValid ? (
-    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-      <div className="flex items-center gap-2 text-green-700">
-        <CheckCircle className="h-5 w-5" />
-        <div className="flex-1">
-          <span className="font-medium">
-            Ready to plan your Route 66 adventure! 
-            {formData.tripStyle === 'destination-focused' && 
-              ' Destination-focused style will prioritize canonical Route 66 heritage cities.'}
-          </span>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-      <div className="flex items-start gap-2 mb-3">
-        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-        <div>
-          <h4 className="font-medium text-amber-800 mb-1">
-            Complete these steps to plan your trip:
-          </h4>
-          <ul className="space-y-1 text-sm text-amber-700">
-            {incompleteChecks.map((check) => (
-              <li key={check.id} className="flex items-center gap-2">
-                {check.id === 'start-date' && <Calendar className="h-4 w-4" />}
-                <span>• {check.label}</span>
-                {check.isBlocking && (
-                  <span className="text-red-600 font-semibold">(REQUIRED)</span>
-                )}
-              </li>
-            ))}
-          </ul>
-          {formData.tripStyle === 'destination-focused' && (
-            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-              💡 <strong>Destination-Focused Mode:</strong> Your trip will prioritize major Route 66 heritage cities 
-              and canonical destinations for an authentic Mother Road experience. Maximum {MAX_DAYS} days for optimal planning.
+      {/* Form Validation Issues */}
+      {showValidationIssues && (
+        <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-xl p-4 shadow-md">
+          <div className="flex items-start gap-3">
+            <div className="bg-red-500 rounded-full p-2">
+              <AlertCircle className="h-5 w-5 text-white" />
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
-  // ENHANCED: Log what we're about to render
-  console.log('🎯 RENDERING SECTIONS:', {
-    dayAdjustmentSection: !!dayAdjustmentSection,
-    formValidationSection: !!formValidationSection,
-    bothSections: !!dayAdjustmentSection && !!formValidationSection
-  });
-
-  // CRITICAL: Always render both sections when conditions are met
-  return (
-    <div className="space-y-6">
-      {/* Day Adjustment Notice - Show when adjustment is needed */}
-      {dayAdjustmentSection && (
-        <div>
-          {console.log('🟢 RENDERING DAY ADJUSTMENT SECTION')}
-          {dayAdjustmentSection}
-        </div>
-      )}
-      
-      {/* Form Validation Status - Show unless there's a blocking error */}
-      {formValidationSection && (
-        <div>
-          {console.log('🟢 RENDERING FORM VALIDATION SECTION')}
-          {formValidationSection}
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-red-800 mb-2">Complete Your Trip Details</h3>
+              <div className="space-y-2">
+                {validationIssues.map((issue, index) => (
+                  <div key={index} className="flex items-center gap-2 text-sm text-red-700">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0"></div>
+                    <span>{issue}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Debug info when both should show but one is missing */}
-      {shouldShowDayAdjustment && !shouldShowFormValidation && (
-        <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
-          DEBUG: Day adjustment showing, form validation hidden due to blocking error
-        </div>
-      )}
-      {!shouldShowDayAdjustment && shouldShowFormValidation && (
-        <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
-          DEBUG: Form validation showing, no day adjustment needed
-        </div>
-      )}
-      {shouldShowDayAdjustment && shouldShowFormValidation && (
-        <div className="text-xs text-green-600 p-2 bg-green-50 rounded font-semibold">
-          ✅ DEBUG: BOTH SECTIONS ARE RENDERING SIMULTANEOUSLY
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4 shadow-md">
+          <div className="flex items-start gap-3">
+            <div className="bg-green-500 rounded-full p-2">
+              <CheckCircle className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-green-800 mb-1">Ready to Plan!</h3>
+              <p className="text-sm text-green-700">
+                All trip details are complete. Click the plan button to generate your Route 66 adventure!
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
