@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from './useFormValidation';
@@ -8,6 +7,7 @@ export interface TwoPhasePlanningState {
   adjustedFormData: TripFormData | null;
   isProcessing: boolean;
   adjustmentAcknowledged: boolean;
+  showModal: boolean; // Add explicit modal control
 }
 
 export const useTwoPhasePlanning = (formData: TripFormData) => {
@@ -16,7 +16,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     phase: 'form',
     adjustedFormData: null,
     isProcessing: false,
-    adjustmentAcknowledged: false
+    adjustmentAcknowledged: false,
+    showModal: false
   });
 
   console.log('🔄 useTwoPhasePlanning state:', {
@@ -24,7 +25,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     dayAdjustmentInfo: !!dayAdjustmentInfo,
     isFormValid,
     adjustedFormData: !!planningState.adjustedFormData,
-    adjustmentAcknowledged: planningState.adjustmentAcknowledged
+    adjustmentAcknowledged: planningState.adjustmentAcknowledged,
+    showModal: planningState.showModal
   });
 
   const startPlanning = useCallback(async (onPlanTrip: (data: TripFormData) => Promise<void>) => {
@@ -44,7 +46,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
         phase: 'adjustment',
         adjustedFormData: adjustedData,
         isProcessing: false,
-        adjustmentAcknowledged: false
+        adjustmentAcknowledged: false,
+        showModal: true // Explicitly show modal
       });
       
       // CRITICAL: Return here without proceeding - wait for user acknowledgment
@@ -55,7 +58,12 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     try {
       console.log('🎯 TWO-PHASE: Phase 2 - Proceeding with trip planning');
       
-      setPlanningState(prev => ({ ...prev, phase: 'planning', isProcessing: true }));
+      setPlanningState(prev => ({ 
+        ...prev, 
+        phase: 'planning', 
+        isProcessing: true,
+        showModal: false // Hide modal when planning starts
+      }));
       
       const dataToUse = planningState.adjustedFormData || formData;
       console.log('🎯 TWO-PHASE: Using data for planning:', {
@@ -71,7 +79,12 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       
     } catch (error) {
       console.error('❌ TWO-PHASE: Planning failed:', error);
-      setPlanningState(prev => ({ ...prev, phase: 'form', isProcessing: false }));
+      setPlanningState(prev => ({ 
+        ...prev, 
+        phase: 'form', 
+        isProcessing: false,
+        showModal: false 
+      }));
       throw error;
     }
   }, [formData, dayAdjustmentInfo, planningState.adjustedFormData, planningState.adjustmentAcknowledged]);
@@ -81,6 +94,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     setPlanningState(prev => ({ 
       ...prev, 
       adjustmentAcknowledged: true
+      // Keep showModal: true until planning actually starts
     }));
   }, []);
 
@@ -90,7 +104,8 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       phase: 'form',
       adjustedFormData: null,
       isProcessing: false,
-      adjustmentAcknowledged: false
+      adjustmentAcknowledged: false,
+      showModal: false
     });
   }, []);
 

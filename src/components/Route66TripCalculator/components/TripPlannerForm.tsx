@@ -48,7 +48,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     isPlanning,
     planningPhase: planningState.phase,
     needsAdjustment: !!dayAdjustmentInfo,
-    showModal: planningState.phase === 'adjustment',
+    showModal: planningState.showModal,
     adjustmentAcknowledged: planningState.adjustmentAcknowledged
   });
 
@@ -63,21 +63,22 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     }
   };
 
-  const handleAcknowledgeAdjustment = () => {
+  const handleAcknowledgeAdjustment = async () => {
     console.log('✅ TripPlannerForm: User acknowledged adjustment');
     
     // Acknowledge the adjustment first
     acknowledgeAdjustment();
     
-    // The planning will automatically proceed after acknowledgment
-    // because startPlanning will be called again with the acknowledged state
-    setTimeout(() => {
+    // Small delay to ensure state update, then proceed with planning
+    setTimeout(async () => {
       console.log('🎯 TripPlannerForm: Proceeding with planning after acknowledgment');
-      startPlanning(onPlanTrip).catch(error => {
+      try {
+        await startPlanning(onPlanTrip);
+      } catch (error) {
         console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
         resetPlanning();
-      });
-    }, 100); // Small delay to ensure state update
+      }
+    }, 100);
   };
 
   const handleCancelAdjustment = () => {
@@ -94,8 +95,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
-      {/* Two-Phase Planning Modal - Show when phase is 'adjustment' */}
-      {planningState.phase === 'adjustment' && dayAdjustmentInfo && planningState.adjustedFormData && (
+      {/* Two-Phase Planning Modal - Show based on showModal flag */}
+      {planningState.showModal && dayAdjustmentInfo && planningState.adjustedFormData && (
         <TwoPhasePlanningModal
           isOpen={true}
           dayAdjustmentInfo={dayAdjustmentInfo}
@@ -134,7 +135,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
           </div>
           
           {/* Inline Day Adjustment Notice - Only show when not in modal mode */}
-          {dayAdjustmentInfo && planningState.phase !== 'adjustment' && (
+          {dayAdjustmentInfo && !planningState.showModal && (
             <InlineDayAdjustmentNotice formData={formData} className="mb-4" />
           )}
           
