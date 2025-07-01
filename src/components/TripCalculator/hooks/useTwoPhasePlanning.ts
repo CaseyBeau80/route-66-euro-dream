@@ -7,7 +7,7 @@ export interface TwoPhasePlanningState {
   phase: 'form' | 'adjustment' | 'planning' | 'complete';
   adjustedFormData: TripFormData | null;
   isProcessing: boolean;
-  adjustmentAcknowledged: boolean; // NEW: Track if user acknowledged the adjustment
+  adjustmentAcknowledged: boolean;
 }
 
 export const useTwoPhasePlanning = (formData: TripFormData) => {
@@ -16,7 +16,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     phase: 'form',
     adjustedFormData: null,
     isProcessing: false,
-    adjustmentAcknowledged: false // NEW: Initialize as false
+    adjustmentAcknowledged: false
   });
 
   console.log('🔄 useTwoPhasePlanning state:', {
@@ -31,7 +31,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     console.log('🚀 TWO-PHASE: Starting planning process');
     
     // Phase 1: Check if day adjustment is needed AND not yet acknowledged
-    if (dayAdjustmentInfo && planningState.phase === 'form' && !planningState.adjustmentAcknowledged) {
+    if (dayAdjustmentInfo && !planningState.adjustmentAcknowledged) {
       console.log('📋 TWO-PHASE: Phase 1 - Day adjustment needed, showing adjustment modal');
       
       // Create adjusted form data
@@ -58,6 +58,12 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       setPlanningState(prev => ({ ...prev, phase: 'planning', isProcessing: true }));
       
       const dataToUse = planningState.adjustedFormData || formData;
+      console.log('🎯 TWO-PHASE: Using data for planning:', {
+        hasAdjustedData: !!planningState.adjustedFormData,
+        travelDays: dataToUse.travelDays,
+        originalDays: formData.travelDays
+      });
+      
       await onPlanTrip(dataToUse);
       
       console.log('✅ TWO-PHASE: Planning completed successfully');
@@ -68,15 +74,13 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       setPlanningState(prev => ({ ...prev, phase: 'form', isProcessing: false }));
       throw error;
     }
-  }, [formData, dayAdjustmentInfo, planningState.phase, planningState.adjustedFormData, planningState.adjustmentAcknowledged]);
+  }, [formData, dayAdjustmentInfo, planningState.adjustedFormData, planningState.adjustmentAcknowledged]);
 
   const acknowledgeAdjustment = useCallback(() => {
     console.log('✅ TWO-PHASE: User acknowledged day adjustment');
-    // Mark adjustment as acknowledged and change phase to allow planning to proceed
     setPlanningState(prev => ({ 
       ...prev, 
-      phase: 'form', // This allows startPlanning to proceed to phase 2
-      adjustmentAcknowledged: true // NEW: Mark as acknowledged
+      adjustmentAcknowledged: true
     }));
   }, []);
 
@@ -86,7 +90,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
       phase: 'form',
       adjustedFormData: null,
       isProcessing: false,
-      adjustmentAcknowledged: false // NEW: Reset acknowledgment flag
+      adjustmentAcknowledged: false
     });
   }, []);
 
@@ -95,7 +99,7 @@ export const useTwoPhasePlanning = (formData: TripFormData) => {
     startPlanning,
     acknowledgeAdjustment,
     resetPlanning,
-    needsAdjustment: !!dayAdjustmentInfo && planningState.phase === 'form' && !planningState.adjustmentAcknowledged,
+    needsAdjustment: !!dayAdjustmentInfo && !planningState.adjustmentAcknowledged,
     canProceedWithPlanning: isFormValid && (!dayAdjustmentInfo || planningState.adjustmentAcknowledged)
   };
 };

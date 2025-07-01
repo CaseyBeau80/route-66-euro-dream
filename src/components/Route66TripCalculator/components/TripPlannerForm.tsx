@@ -48,7 +48,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     isPlanning,
     planningPhase: planningState.phase,
     needsAdjustment: !!dayAdjustmentInfo,
-    showModal: planningState.phase === 'adjustment'
+    showModal: planningState.phase === 'adjustment',
+    adjustmentAcknowledged: planningState.adjustmentAcknowledged
   });
 
   const handlePlanTrip = async () => {
@@ -62,19 +63,21 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     }
   };
 
-  const handleAcknowledgeAdjustment = async () => {
-    console.log('✅ TripPlannerForm: User acknowledged adjustment, proceeding with planning');
+  const handleAcknowledgeAdjustment = () => {
+    console.log('✅ TripPlannerForm: User acknowledged adjustment');
     
-    // First acknowledge the adjustment
+    // Acknowledge the adjustment first
     acknowledgeAdjustment();
     
-    // Then immediately proceed with planning using the adjusted data
-    try {
-      await startPlanning(onPlanTrip);
-    } catch (error) {
-      console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
-      resetPlanning();
-    }
+    // The planning will automatically proceed after acknowledgment
+    // because startPlanning will be called again with the acknowledged state
+    setTimeout(() => {
+      console.log('🎯 TripPlannerForm: Proceeding with planning after acknowledgment');
+      startPlanning(onPlanTrip).catch(error => {
+        console.error('❌ TripPlannerForm: Planning after adjustment failed:', error);
+        resetPlanning();
+      });
+    }, 100); // Small delay to ensure state update
   };
 
   const handleCancelAdjustment = () => {
@@ -91,7 +94,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         <h2 className="text-3xl font-bold text-route66-primary mb-2">Trip Planner Tool</h2>
       </div>
 
-      {/* Two-Phase Planning Modal - CRITICAL: Show when phase is 'adjustment' */}
+      {/* Two-Phase Planning Modal - Show when phase is 'adjustment' */}
       {planningState.phase === 'adjustment' && dayAdjustmentInfo && planningState.adjustedFormData && (
         <TwoPhasePlanningModal
           isOpen={true}
