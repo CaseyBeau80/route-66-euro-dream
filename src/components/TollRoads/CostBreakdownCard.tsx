@@ -7,7 +7,7 @@ type CostBreakdownCardProps = {
 const CostBreakdownCard = ({
   estimatedCosts
 }: CostBreakdownCardProps) => {
-  return <Card className="border-2 border-red-500 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+  return <Card className="border-2 border-blue-500 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
       
     </Card>;
 };

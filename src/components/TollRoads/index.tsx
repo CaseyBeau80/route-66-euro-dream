@@ -11,8 +11,8 @@ const TollRoads = ({ language }: TollRoadsProps) => {
   return (
     <section className="py-8 bg-route66-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8 bg-route66-background-alt p-6 rounded-xl shadow-lg border-2 border-route66-primary">
-          <h2 className="text-3xl font-route66 text-route66-primary mb-3 font-bold">{content.title}</h2>
+        <div className="text-center mb-8 bg-route66-background-alt p-6 rounded-xl shadow-lg border-2 border-blue-500">
+          <h2 className="text-3xl font-route66 text-blue-500 mb-3 font-bold">{content.title}</h2>
           <p className="text-route66-text-secondary max-w-2xl mx-auto text-lg font-medium">{content.subtitle}</p>
         </div>
         
