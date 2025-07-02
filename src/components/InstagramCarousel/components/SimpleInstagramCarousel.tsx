@@ -72,7 +72,7 @@ const SimpleInstagramCarousel = () => {
   return <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header with blue color scheme */}
-        <div className="text-center mb-12 bg-white p-8 rounded-xl shadow-2xl border-4 border-route66-primary">
+        <div className="text-center mb-12 bg-white p-4 rounded-xl shadow-2xl border-4 border-route66-primary">
           <h2 className="text-4xl font-route66 text-route66-primary mb-4 font-bold">
             ROUTE 66 ADVENTURES
           </h2>
