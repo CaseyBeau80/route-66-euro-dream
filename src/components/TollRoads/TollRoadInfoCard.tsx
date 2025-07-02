@@ -17,7 +17,7 @@ const TollRoadInfoCard = ({ section }: TollRoadInfoCardProps) => {
             </div>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2 font-route66 uppercase">{section.title}</h3>
+            <h3 className="text-lg font-bold text-route66-primary mb-2 font-route66 uppercase">{section.title}</h3>
             <p className="text-gray-700 leading-relaxed text-sm">{section.content}</p>
           </div>
         </div>
