@@ -17,7 +17,7 @@ const socialContent = {
     hashtagTitle: "Use our hashtag",
     hashtag: "#Ramble66",
     stats: [
-      { icon: Users, number: "25K+", label: "Travelers" },
+      { icon: Users, number: "20K+", label: "Travelers" },
       { icon: Heart, number: "150K+", label: "Photos Shared" },
       { icon: MessageCircle, number: "5K+", label: "Trip Stories" }
     ]
@@ -30,7 +30,7 @@ const socialContent = {
     hashtagTitle: "Verwende unseren Hashtag",
     hashtag: "#Ramble66",
     stats: [
-      { icon: Users, number: "25K+", label: "Reisende" },
+      { icon: Users, number: "20K+", label: "Reisende" },
       { icon: Heart, number: "150K+", label: "Geteilte Fotos" },
       { icon: MessageCircle, number: "5K+", label: "Reisegeschichten" }
     ]
@@ -43,7 +43,7 @@ const socialContent = {
     hashtagTitle: "Utilisez notre hashtag",
     hashtag: "#Ramble66",
     stats: [
-      { icon: Users, number: "25K+", label: "Voyageurs" },
+      { icon: Users, number: "20K+", label: "Voyageurs" },
       { icon: Heart, number: "150K+", label: "Photos Partagées" },
       { icon: MessageCircle, number: "5K+", label: "Histoires de Voyage" }
     ]
@@ -56,7 +56,7 @@ const socialContent = {
     hashtagTitle: "Use nossa hashtag",
     hashtag: "#Ramble66",
     stats: [
-      { icon: Users, number: "25K+", label: "Viajantes" },
+      { icon: Users, number: "20K+", label: "Viajantes" },
       { icon: Heart, number: "150K+", label: "Fotos Compartilhadas" },
       { icon: MessageCircle, number: "5K+", label: "Histórias de Viagem" }
     ]
