@@ -1,10 +1,12 @@
 import React from 'react';
-import { Gamepad2, Trophy, Zap, Gift } from 'lucide-react';
+import { Gamepad2, Trophy, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+
 interface FunSectionProps {
   language: string;
 }
+
 const funContent = {
   en: {
     badge: "Games & Activities",
@@ -25,13 +27,6 @@ const funContent = {
       buttonText: "Explore Facts",
       route: "/fun-facts",
       color: "from-green-500 to-green-600"
-    }, {
-      icon: Gift,
-      title: "Timeline Explorer",
-      description: "Journey through Route 66's rich history and milestones",
-      buttonText: "View Timeline",
-      route: "/timeline",
-      color: "from-purple-500 to-purple-600"
     }]
   },
   de: {
@@ -53,13 +48,6 @@ const funContent = {
       buttonText: "Fakten Erkunden",
       route: "/fun-facts",
       color: "from-green-500 to-green-600"
-    }, {
-      icon: Gift,
-      title: "Timeline Explorer",
-      description: "Reise durch die reiche Geschichte und Meilensteine der Route 66",
-      buttonText: "Timeline Ansehen",
-      route: "/timeline",
-      color: "from-purple-500 to-purple-600"
     }]
   },
   fr: {
@@ -81,13 +69,6 @@ const funContent = {
       buttonText: "Explorer les Faits",
       route: "/fun-facts",
       color: "from-green-500 to-green-600"
-    }, {
-      icon: Gift,
-      title: "Explorateur de Timeline",
-      description: "Voyagez à travers la riche histoire et les jalons de la Route 66",
-      buttonText: "Voir la Timeline",
-      route: "/timeline",
-      color: "from-purple-500 to-purple-600"
     }]
   },
   "pt-BR": {
@@ -109,28 +90,24 @@ const funContent = {
       buttonText: "Explorar Fatos",
       route: "/fun-facts",
       color: "from-green-500 to-green-600"
-    }, {
-      icon: Gift,
-      title: "Explorador de Timeline",
-      description: "Viaje pela rica história e marcos da Rota 66",
-      buttonText: "Ver Timeline",
-      route: "/timeline",
-      color: "from-purple-500 to-purple-600"
     }]
   }
 };
+
 const FunSection: React.FC<FunSectionProps> = ({
   language
 }) => {
   const navigate = useNavigate();
   const content = funContent[language as keyof typeof funContent] || funContent.en;
-  return <section className="py-20 bg-gradient-to-br from-route66-background to-route66-background-alt">
+
+  return (
+    <section className="py-20 bg-gradient-to-br from-route66-background to-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header */}
         
 
         {/* Activities Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {content.activities.map((activity, index) => (
             <div 
               key={index} 
@@ -197,6 +174,8 @@ const FunSection: React.FC<FunSectionProps> = ({
         {/* Bottom CTA */}
         
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default FunSection;
