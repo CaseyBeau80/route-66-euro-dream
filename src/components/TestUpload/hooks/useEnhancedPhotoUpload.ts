@@ -12,10 +12,12 @@ interface ModerationResults {
 
 interface EnhancedUploadResult {
   success: boolean;
+  allowed?: boolean;
   photoUrl?: string;
   isTrailblazer?: boolean;
   moderationResults?: ModerationResults;
   error?: string;
+  message?: string;
 }
 
 export const useEnhancedPhotoUpload = () => {
@@ -55,9 +57,9 @@ export const useEnhancedPhotoUpload = () => {
       setIsTrailblazer(false);
       setShowTrailblazerCelebration(false);
 
-      console.log('🚀 Starting upload process for stopId:', stopId);
+      console.log('🚀 Starting enhanced upload process for stopId:', stopId);
 
-      // Check if location already has a trailblazer
+      // Check if location already has a trailblazer (for user info)
       let existingTrailblazer = null;
       let isLocationUnclaimed = true;
       
@@ -67,51 +69,58 @@ export const useEnhancedPhotoUpload = () => {
         console.log('✅ Trailblazer check completed. Unclaimed:', isLocationUnclaimed);
       } catch (trailblazerError) {
         console.warn('⚠️ Trailblazer check failed, continuing with upload:', trailblazerError);
-        // Continue with upload even if trailblazer check fails
       }
 
       if (isLocationUnclaimed) {
         setStatus('🔥 This location is unclaimed! You could be the first Trailblazer here...');
       }
 
-      // Create FormData for multipart/form-data request
+      setStatus('🔍 Moderating and uploading your photo...');
+
+      // Create FormData for the Edge Function
       const formData = new FormData();
       formData.append('image', file);
       formData.append('tripId', 'route66-challenge');
       formData.append('stopId', stopId);
       formData.append('userSessionId', 'challenge-session-' + Date.now());
 
-      console.log('Sending request to Edge Function...');
+      console.log('📡 Calling Edge Function...');
 
-      // Call the Supabase Edge Function
+      // Call the Edge Function with timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 60000); // 60 second timeout
+
       const response = await fetch('https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/moderate-and-upload', {
         method: 'POST',
         body: formData,
         headers: {
           'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo`
-        }
+        },
+        signal: controller.signal
       });
 
-      console.log('Edge Function response status:', response.status);
+      clearTimeout(timeoutId);
 
-      const result = await response.json();
-      console.log('Edge Function response:', result);
+      console.log('📊 Edge Function response:', response.status, response.statusText);
 
       if (!response.ok) {
-        throw new Error(result.error || `HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('❌ HTTP Error:', response.status, errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}${errorText ? ' - ' + errorText : ''}`);
       }
+
+      const result = await response.json();
+      console.log('📄 Edge Function response data:', result);
 
       if (result.success) {
         setModerationResults(result.moderationResults);
         
-        // Declare isNewTrailblazer at the top level so it's accessible in the return statement
-        let isNewTrailblazer = false;
-        
         if (result.allowed) {
           setPhotoUrl(result.photoUrl);
           
-          // Check if this upload made the user a trailblazer
-          isNewTrailblazer = result.isTrailblazer || false;
+          const isNewTrailblazer = result.isTrailblazer || false;
           setIsTrailblazer(isNewTrailblazer);
           
           if (isNewTrailblazer) {
@@ -128,25 +137,37 @@ export const useEnhancedPhotoUpload = () => {
         
         return {
           success: true,
+          allowed: result.allowed,
           photoUrl: result.photoUrl,
-          isTrailblazer: isNewTrailblazer,
-          moderationResults: result.moderationResults
+          isTrailblazer: result.isTrailblazer,
+          moderationResults: result.moderationResults,
+          message: result.message
         };
       } else {
-        setStatus(`❌ Upload failed: ${result.error}`);
+        const errorMessage = result.error || 'Upload failed';
+        setStatus(`❌ Upload failed: ${errorMessage}`);
         return {
           success: false,
-          error: result.error
+          error: errorMessage
         };
       }
 
     } catch (error: any) {
-      console.error('Upload error:', error);
-      const errorMessage = `❌ Upload failed: ${error.message}`;
-      setStatus(errorMessage);
+      console.error('💥 Upload error:', error);
+      
+      let errorMessage = 'Upload failed';
+      if (error.name === 'AbortError') {
+        errorMessage = 'Upload timed out. Please try again.';
+      } else if (error.message?.includes('Failed to fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else {
+        errorMessage = error.message || 'Unknown error occurred';
+      }
+      
+      setStatus(`❌ ${errorMessage}`);
       return {
         success: false,
-        error: error.message
+        error: errorMessage
       };
     } finally {
       setLoading(false);
