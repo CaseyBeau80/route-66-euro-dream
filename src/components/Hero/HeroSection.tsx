@@ -121,7 +121,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                           Days Until Centennial
                         </div>
                       </div>
-                      <div className="text-sm lg:text-base text-route66-text-secondary mt-1">
+                      <div className="text-sm lg:text-base text-route66-primary mt-1">
                         November 11, 2026
                       </div>
                     </div>
