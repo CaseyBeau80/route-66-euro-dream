@@ -57,57 +57,63 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         }}></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-24 pb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="relative z-10 container mx-auto px-4 pt-16 pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Column - Pain Points Content */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Title - Bold, uppercase, bright blue */}
-              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
+              <h1 className="text-3xl lg:text-4xl xl:text-5xl font-route66 font-bold uppercase leading-tight text-route66-primary">
                 Route 66 Starts Here — Plan Your Journey Now
               </h1>
 
               {/* Pain Points - Tightly stacked with blue text */}
-              <div className="space-y-4">
-                {content.painPoints.map((point, index) => <div key={index}>
-                    {index < 3 ? <p className="text-lg lg:text-xl leading-relaxed text-route66-primary-light">
+              <div className="space-y-3">
+                {content.painPoints.map((point, index) => (
+                  <div key={index}>
+                    {index < 3 ? (
+                      <p className="text-base lg:text-lg leading-relaxed text-route66-primary-light">
                         {point}
-                      </p> : <div className="py-2">
-                        <p className="text-2xl lg:text-3xl font-highway font-bold text-pink-600">
+                      </p>
+                    ) : (
+                      <div className="py-1">
+                        <p className="text-xl lg:text-2xl font-highway font-bold text-pink-600">
                           {point}
                         </p>
-                      </div>}
-                  </div>)}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
 
-              {/* Benefits Section - Vertical with Green Checkmarks - Larger font, less padding */}
-              <div className="space-y-0 py-2">
-                <div className="flex items-center gap-3">
-                  <Check className="w-6 h-6 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
+              {/* Benefits Section - Vertical with Green Checkmarks - Compact */}
+              <div className="space-y-1 py-1">
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Interactive Route 66 Google Map</div>
-                    <div className="text-route66-text-secondary text-lg">Explore iconic cities, quirky roadside attractions, and hidden gems</div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Interactive Route 66 Google Map</div>
+                    <div className="text-route66-text-secondary text-sm lg:text-base">Explore iconic cities, quirky roadside attractions, and hidden gems</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Check className="w-6 h-6 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Shareable Travel Planner</div>
-                    <div className="text-route66-text-secondary text-lg">Build custom Route 66 trips and share them with friends and family</div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Shareable Travel Planner</div>
+                    <div className="text-route66-text-secondary text-sm lg:text-base">Build custom Route 66 trips and share them with friends and family</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Check className="w-6 h-6 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
+                <div className="flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Social Media & More</div>
-                    <div className="text-route66-text-secondary text-lg">Instagram integration and community features for travelers</div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Social Media & More</div>
+                    <div className="text-route66-text-secondary text-sm lg:text-base">Instagram integration and community features for travelers</div>
                   </div>
                 </div>
               </div>
 
               {/* Enhanced CTA Button - Compact spacing */}
-              <div className="flex justify-center">
+              <div className="flex justify-center pt-2">
                 <Button onClick={scrollToInteractiveMap} size="lg" className="
-                    font-bold py-6 px-12 text-xl rounded-xl shadow-lg
+                    font-bold py-4 px-10 text-lg rounded-xl shadow-lg
                     hover:shadow-2xl transform hover:scale-105 transition-all duration-300
                     animate-pulse-slow
                     group relative overflow-hidden
