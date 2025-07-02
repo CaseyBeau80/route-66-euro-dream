@@ -43,14 +43,14 @@ const Index = () => {
         <SocialSection language={language} />
       </FadeInSection>
 
-      {/* Toll Roads Advisory Section with fade-in */}
-      <FadeInSection id="toll-roads" delay={450}>
-        <TollRoads language={language} />
+      {/* Fun Section with fade-in */}
+      <FadeInSection id="fun" delay={450}>
+        <FunSection language={language} />
       </FadeInSection>
 
-      {/* Fun Section with fade-in */}
-      <FadeInSection id="fun" delay={500}>
-        <FunSection language={language} />
+      {/* Toll Roads Advisory Section with fade-in */}
+      <FadeInSection id="toll-roads" delay={500}>
+        <TollRoads language={language} />
       </FadeInSection>
 
       {/* Back to Top Button */}
