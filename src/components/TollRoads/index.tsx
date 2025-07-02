@@ -10,7 +10,7 @@ const TollRoads = ({
   return <section className="py-4 bg-route66-background">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center mb-4 bg-white p-2 rounded-xl shadow-2xl border-4 border-route66-primary">
-          <h2 className="text-2xl font-route66 text-blue-500 font-bold">{content.title}</h2>
+          <h2 className="text-4xl font-route66 text-route66-primary font-bold">{content.title}</h2>
         </div>
         
         {/* Main Information Cards */}
