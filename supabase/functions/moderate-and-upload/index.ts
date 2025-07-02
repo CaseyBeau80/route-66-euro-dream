@@ -48,10 +48,24 @@ serve(async (req) => {
 
     // Check if this location already has a trailblazer
     console.log('🔍 Checking existing trailblazer status for:', stopId);
-    const { data: existingTrailblazer } = await supabase
-      .rpc('get_location_trailblazer', { location_stop_id: stopId });
+    let existingTrailblazer = null;
+    let isLocationUnclaimed = true;
     
-    const isLocationUnclaimed = !existingTrailblazer?.[0]?.has_trailblazer;
+    try {
+      const { data: trailblazerData, error: trailblazerError } = await supabase
+        .rpc('get_location_trailblazer', { location_stop_id: stopId });
+      
+      if (trailblazerError) {
+        console.warn('⚠️ Trailblazer check failed:', trailblazerError);
+      } else {
+        existingTrailblazer = trailblazerData;
+        isLocationUnclaimed = !trailblazerData?.[0]?.has_trailblazer;
+      }
+    } catch (error) {
+      console.warn('⚠️ Trailblazer check exception:', error);
+      // Continue with upload even if trailblazer check fails
+    }
+    
     console.log('🎯 Location unclaimed status:', isLocationUnclaimed);
 
     // Convert image to base64 for Vision API
