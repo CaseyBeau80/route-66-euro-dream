@@ -87,18 +87,34 @@ serve(async (req) => {
       });
     }
 
-    // Convert image to base64
-    console.log('🔄 Converting image to base64...');
-    const imageBuffer = await imageFile.arrayBuffer();
-    const uint8Array = new Uint8Array(imageBuffer);
-    
-    let base64Image = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.slice(i, i + chunkSize);
-      base64Image += btoa(String.fromCharCode.apply(null, Array.from(chunk)));
+    // Check file size (limit to 10MB for Vision API)
+    const maxSizeBytes = 10 * 1024 * 1024; // 10MB
+    if (imageFile.size > maxSizeBytes) {
+      console.log('❌ Image too large:', imageFile.size, 'bytes');
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Image too large. Maximum size is ${maxSizeBytes / (1024 * 1024)}MB, but received ${(imageFile.size / (1024 * 1024)).toFixed(2)}MB`
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
+    // Convert image to base64 using a more reliable method
+    console.log('🔄 Converting image to base64...');
+    const imageBuffer = await imageFile.arrayBuffer();
+    
+    // Convert ArrayBuffer to base64 using the proper method
+    const bytes = new Uint8Array(imageBuffer);
+    let binaryString = '';
+    const chunkSize = 1024; // Smaller chunks to avoid call stack issues
+    
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.slice(i, i + chunkSize);
+      binaryString += String.fromCharCode(...chunk);
+    }
+    
+    const base64Image = btoa(binaryString);
     console.log('✅ Image converted to base64, length:', base64Image.length);
 
     // Call Google Vision API for moderation
