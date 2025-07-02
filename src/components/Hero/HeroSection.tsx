@@ -149,25 +149,25 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Birthday Cake Countdown - Centered under CTA */}
-          <div className="pt-8 flex justify-center">
+          <div className="pt-6 flex justify-center">
             <div className="relative">
-              <div className="absolute -inset-6 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
-              <div className="relative flex flex-col items-center text-center gap-4 p-6">
+              <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
+              <div className="relative flex flex-col items-center text-center gap-3 p-4">
                 <img 
                   src={cakeImage} 
                   alt="Route 66 100th Anniversary Celebration Cake" 
-                  className="w-20 h-20 lg:w-24 lg:h-24 object-contain rounded-lg"
+                  className="w-16 h-16 lg:w-20 lg:h-20 object-contain rounded-lg"
                 />
                 <div className="flex flex-col items-center">
-                  <div className="flex items-baseline gap-3">
-                    <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none">
+                  <div className="flex items-baseline gap-2">
+                    <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
                       {mounted ? timeLeft.days : '---'}
                     </div>
-                    <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none">
+                    <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
                       Days
                     </div>
                   </div>
-                  <div className="text-sm lg:text-base text-route66-primary mt-1">
+                  <div className="text-xs lg:text-sm text-route66-primary mt-1">
                     Until the centennial birthday celebration of the Mother Road on November 11, 2026
                   </div>
                 </div>
