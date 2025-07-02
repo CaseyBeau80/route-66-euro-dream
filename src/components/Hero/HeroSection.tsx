@@ -131,6 +131,33 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   <ArrowDown className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:animate-bounce" />
                 </Button>
               </div>
+
+              {/* Birthday Cake Countdown - Directly below CTA */}
+              <div className="pt-4 flex justify-center">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
+                  <div className="relative flex flex-col items-center text-center gap-3 p-4">
+                    <img 
+                      src={cakeImage} 
+                      alt="Route 66 100th Anniversary Celebration Cake" 
+                      className="w-16 h-16 lg:w-20 lg:h-20 object-contain rounded-lg"
+                    />
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-baseline gap-2">
+                        <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
+                          {mounted ? timeLeft.days : '---'}
+                        </div>
+                        <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
+                          Days
+                        </div>
+                      </div>
+                      <div className="text-xs lg:text-sm text-route66-primary mt-1">
+                        Until the centennial birthday celebration of the Mother Road on November 11, 2026
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Right Column - Big Bo Ramble Image */}
@@ -143,33 +170,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 {/* Image Container - Now much larger */}
                 <div className="relative bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
                   <img src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png" alt={content.mascotAlt} className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Birthday Cake Countdown - Centered under CTA */}
-          <div className="pt-6 flex justify-center">
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
-              <div className="relative flex flex-col items-center text-center gap-3 p-4">
-                <img 
-                  src={cakeImage} 
-                  alt="Route 66 100th Anniversary Celebration Cake" 
-                  className="w-16 h-16 lg:w-20 lg:h-20 object-contain rounded-lg"
-                />
-                <div className="flex flex-col items-center">
-                  <div className="flex items-baseline gap-2">
-                    <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
-                      {mounted ? timeLeft.days : '---'}
-                    </div>
-                    <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
-                      Days
-                    </div>
-                  </div>
-                  <div className="text-xs lg:text-sm text-route66-primary mt-1">
-                    Until the centennial birthday celebration of the Mother Road on November 11, 2026
-                  </div>
                 </div>
               </div>
             </div>
