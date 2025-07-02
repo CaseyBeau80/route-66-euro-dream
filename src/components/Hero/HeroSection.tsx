@@ -79,27 +79,27 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
-              {/* Benefits Section - Vertical with Green Checkmarks - Compact */}
-              <div className="space-y-2 py-4">
+              {/* Benefits Section - Vertical with Green Checkmarks - Larger font, less padding */}
+              <div className="space-y-2 py-2">
                 <div className="flex items-center gap-3">
-                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-sm">Interactive Planning</div>
-                    <div className="text-route66-text-secondary text-xs">Complete trip calculator with real-time updates</div>
+                    <div className="text-route66-primary font-semibold text-base">Interactive Planning</div>
+                    <div className="text-route66-text-secondary text-sm">Complete trip calculator with real-time updates</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-sm">Hidden Gems</div>
-                    <div className="text-route66-text-secondary text-xs">Discover authentic stops off the beaten path</div>
+                    <div className="text-route66-primary font-semibold text-base">Hidden Gems</div>
+                    <div className="text-route66-text-secondary text-sm">Discover authentic stops off the beaten path</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-sm">100% Free</div>
-                    <div className="text-route66-text-secondary text-xs">No hidden fees, completely free to use</div>
+                    <div className="text-route66-primary font-semibold text-base">100% Free</div>
+                    <div className="text-route66-text-secondary text-sm">No hidden fees, completely free to use</div>
                   </div>
                 </div>
               </div>
