@@ -141,7 +141,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                         <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none">
                           {mounted ? timeLeft.days : '---'}
                         </div>
-                        <div className="text-lg lg:text-xl font-semibold text-pink-600">
+                        <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none">
                           Days
                         </div>
                       </div>
