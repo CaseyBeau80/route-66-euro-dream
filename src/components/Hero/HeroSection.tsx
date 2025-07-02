@@ -117,12 +117,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                         <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none">
                           {mounted ? timeLeft.days : '---'}
                         </div>
-                        <div className="text-lg lg:text-xl font-semibold text-route66-primary">
-                          Days Until Centennial
+                        <div className="text-lg lg:text-xl font-semibold text-pink-600">
+                          Days
                         </div>
                       </div>
                       <div className="text-sm lg:text-base text-route66-primary mt-1">
-                        November 11, 2026
+                        Until the centennial birthday celebration on November 11, 2026
                       </div>
                     </div>
                   </div>
