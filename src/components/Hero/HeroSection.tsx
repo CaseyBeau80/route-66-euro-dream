@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Check } from "lucide-react";
 import cakeImage from "@/assets/route66-100th-cake.jpg";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 
@@ -79,19 +79,28 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
-              {/* Benefits Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-route66-primary/20">
-                  <div className="text-route66-primary font-semibold text-sm mb-1">Interactive Planning</div>
-                  <div className="text-route66-text-secondary text-xs">Complete trip calculator with real-time updates</div>
+              {/* Benefits Section - Vertical with Green Checkmarks */}
+              <div className="space-y-3 py-6">
+                <div className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-route66-primary font-semibold text-base">Interactive Planning</div>
+                    <div className="text-route66-text-secondary text-sm">Complete trip calculator with real-time updates</div>
+                  </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-route66-primary/20">
-                  <div className="text-route66-primary font-semibold text-sm mb-1">Hidden Gems</div>
-                  <div className="text-route66-text-secondary text-xs">Discover authentic stops off the beaten path</div>
+                <div className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-route66-primary font-semibold text-base">Hidden Gems</div>
+                    <div className="text-route66-text-secondary text-sm">Discover authentic stops off the beaten path</div>
+                  </div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-route66-primary/20">
-                  <div className="text-route66-primary font-semibold text-sm mb-1">100% Free</div>
-                  <div className="text-route66-text-secondary text-xs">No hidden fees, completely free to use</div>
+                <div className="flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-route66-primary font-semibold text-base">100% Free</div>
+                    <div className="text-route66-text-secondary text-sm">No hidden fees, completely free to use</div>
+                  </div>
                 </div>
               </div>
 
