@@ -79,33 +79,33 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
-              {/* Benefits Section - Vertical with Green Checkmarks */}
-              <div className="space-y-3 py-6">
+              {/* Benefits Section - Vertical with Green Checkmarks - Compact */}
+              <div className="space-y-2 py-4">
                 <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-base">Interactive Planning</div>
-                    <div className="text-route66-text-secondary text-sm">Complete trip calculator with real-time updates</div>
+                    <div className="text-route66-primary font-semibold text-sm">Interactive Planning</div>
+                    <div className="text-route66-text-secondary text-xs">Complete trip calculator with real-time updates</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-base">Hidden Gems</div>
-                    <div className="text-route66-text-secondary text-sm">Discover authentic stops off the beaten path</div>
+                    <div className="text-route66-primary font-semibold text-sm">Hidden Gems</div>
+                    <div className="text-route66-text-secondary text-xs">Discover authentic stops off the beaten path</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-base">100% Free</div>
-                    <div className="text-route66-text-secondary text-sm">No hidden fees, completely free to use</div>
+                    <div className="text-route66-primary font-semibold text-sm">100% Free</div>
+                    <div className="text-route66-text-secondary text-xs">No hidden fees, completely free to use</div>
                   </div>
                 </div>
               </div>
 
-              {/* Enhanced CTA Button - Moved up with reduced spacing */}
-              <div className="pt-2 flex justify-center">
+              {/* Enhanced CTA Button - Compact spacing */}
+              <div className="flex justify-center">
                 <Button onClick={scrollToInteractiveMap} size="lg" className="
                     font-bold py-6 px-12 text-xl rounded-xl shadow-lg
                     hover:shadow-2xl transform hover:scale-105 transition-all duration-300
@@ -126,8 +126,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 </Button>
               </div>
 
-              {/* Birthday Cake Countdown - Below CTA - Horizontal Layout */}
-              <div className="pt-8">
+              {/* Birthday Cake Countdown - Below CTA - Compact */}
+              <div className="pt-4">
                 <div className="relative">
                   <div className="absolute -inset-6 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
                   <div className="relative flex items-center justify-center gap-6 lg:gap-8 p-6">
