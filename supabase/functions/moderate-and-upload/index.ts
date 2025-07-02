@@ -74,9 +74,18 @@ serve(async (req) => {
       
       console.log('🎯 Location unclaimed status:', isLocationUnclaimed);
 
-      // Convert image to base64 for Vision API
+      // Convert image to base64 for Vision API using chunk-based approach
       const imageBytes = await imageFile.arrayBuffer();
-      const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBytes)));
+      const uint8Array = new Uint8Array(imageBytes);
+      
+      // Convert to base64 in chunks to avoid stack overflow
+      let base64Image = '';
+      const chunkSize = 8192; // 8KB chunks
+      
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.slice(i, i + chunkSize);
+        base64Image += btoa(String.fromCharCode.apply(null, Array.from(chunk)));
+      }
 
       console.log('🔍 Sending image to Google Vision API for moderation...');
 
