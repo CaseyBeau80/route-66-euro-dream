@@ -12,7 +12,7 @@ const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({
   const [isMapExpanded, setIsMapExpanded] = useState(false);
 
   return (
-    <section className="py-20 bg-route66-background-section">
+    <section className="py-12 bg-route66-background-section">
       <div className="container mx-auto px-4">
         {/* Interactive Map Display */}
         <div className="relative">
