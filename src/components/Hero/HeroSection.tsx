@@ -80,7 +80,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
 
               {/* Benefits Section - Vertical with Green Checkmarks - Larger font, less padding */}
-              <div className="space-y-2 py-2">
+              <div className="space-y-1 py-2">
                 <div className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
