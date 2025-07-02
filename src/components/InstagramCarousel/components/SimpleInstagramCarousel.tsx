@@ -73,7 +73,7 @@ const SimpleInstagramCarousel = () => {
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header with blue color scheme */}
         <div className="flex items-center justify-center mb-12 bg-white p-2 rounded-xl shadow-2xl border-4 border-route66-primary">
-          <h2 className="text-4xl font-route66 text-route66-primary mb-4 font-bold">
+          <h2 className="text-4xl font-route66 text-route66-primary font-bold">
             ROUTE 66 ADVENTURES
           </h2>
           
