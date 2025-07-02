@@ -18,14 +18,22 @@ export const useSocialPhotoUpload = () => {
   } = useEnhancedPhotoUpload();
 
   const handleSocialUpload = async (file: File) => {
-    const result = await baseHandleUpload(file, 'social-photo-spot');
-    
-    // Track uploaded photos for the session
-    if (result.success && result.photoUrl) {
-      setUploadedPhotos(prev => [...prev, result.photoUrl!]);
+    try {
+      const result = await baseHandleUpload(file, 'social-photo-spot');
+      
+      // Track uploaded photos for the session
+      if (result.success && result.photoUrl) {
+        setUploadedPhotos(prev => [...prev, result.photoUrl!]);
+      }
+      
+      return result;
+    } catch (error: any) {
+      console.error('Social upload error:', error);
+      return {
+        success: false,
+        error: error.message || 'Upload failed'
+      };
     }
-    
-    return result;
   };
 
   const resetUpload = () => {

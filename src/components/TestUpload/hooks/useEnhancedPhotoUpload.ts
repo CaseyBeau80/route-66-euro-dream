@@ -55,9 +55,20 @@ export const useEnhancedPhotoUpload = () => {
       setIsTrailblazer(false);
       setShowTrailblazerCelebration(false);
 
+      console.log('🚀 Starting upload process for stopId:', stopId);
+
       // Check if location already has a trailblazer
-      const existingTrailblazer = await TrailblazerService.getLocationTrailblazer(stopId);
-      const isLocationUnclaimed = !existingTrailblazer?.has_trailblazer;
+      let existingTrailblazer = null;
+      let isLocationUnclaimed = true;
+      
+      try {
+        existingTrailblazer = await TrailblazerService.getLocationTrailblazer(stopId);
+        isLocationUnclaimed = !existingTrailblazer?.has_trailblazer;
+        console.log('✅ Trailblazer check completed. Unclaimed:', isLocationUnclaimed);
+      } catch (trailblazerError) {
+        console.warn('⚠️ Trailblazer check failed, continuing with upload:', trailblazerError);
+        // Continue with upload even if trailblazer check fails
+      }
 
       if (isLocationUnclaimed) {
         setStatus('🔥 This location is unclaimed! You could be the first Trailblazer here...');

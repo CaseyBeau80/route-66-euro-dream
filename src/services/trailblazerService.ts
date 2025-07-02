@@ -30,9 +30,16 @@ export class TrailblazerService {
   static async getLocationTrailblazer(stopId: string): Promise<LocationTrailblazer | null> {
     console.log('🏆 Checking trailblazer status for stop:', stopId);
     
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise<null>((_, reject) => {
+      setTimeout(() => reject(new Error('Trailblazer request timeout')), 10000); // 10 second timeout
+    });
+    
     try {
-      const { data, error } = await supabase
+      const dataPromise = supabase
         .rpc('get_location_trailblazer', { location_stop_id: stopId });
+
+      const { data, error } = await Promise.race([dataPromise, timeoutPromise]);
 
       if (error) {
         console.error('❌ Error fetching location trailblazer:', error);
