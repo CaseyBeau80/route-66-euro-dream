@@ -4,7 +4,7 @@ import { Share2 } from 'lucide-react';
 import Route66TripCalculator from './Route66TripCalculator';
 
 const TripPlannerSection = () => {
-  return <section className="py-16 bg-route66-background">
+  return <section className="py-10 bg-route66-background">
       <div className="container mx-auto px-4">
         {/* Trip Calculator - Exact copy from dedicated page */}
         <div className="max-w-4xl mx-auto">
