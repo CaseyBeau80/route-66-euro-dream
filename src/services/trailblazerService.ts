@@ -37,9 +37,9 @@ export class TrailblazerService {
     }
   }
 
-  static async getTrailblazerLeaderboard(): Promise<TrailblazerLeaderboard[]> {
+  static async getTrailblazerLeaderboard(limit: number = 10): Promise<TrailblazerLeaderboard[]> {
     try {
-      console.log('🏆 Fetching trailblazer leaderboard...');
+      console.log('🏆 Fetching trailblazer leaderboard with limit:', limit);
       
       const { data, error } = await supabase
         .rpc('get_trailblazer_leaderboard');
@@ -50,7 +50,8 @@ export class TrailblazerService {
       }
 
       console.log('✅ Trailblazer leaderboard data:', data);
-      return data || [];
+      // Apply limit to the results
+      return (data || []).slice(0, limit);
     } catch (error) {
       console.error('💥 TrailblazerService.getTrailblazerLeaderboard error:', error);
       throw error;
@@ -93,5 +94,24 @@ export class TrailblazerService {
       console.error('💥 TrailblazerService.getUserTrailblazerStats error:', error);
       throw error;
     }
+  }
+
+  static formatSessionId(sessionId: string | null): string {
+    if (!sessionId) {
+      return 'Anonymous Traveler';
+    }
+    
+    // Extract meaningful part from session ID
+    if (sessionId.includes('challenge-session-')) {
+      const timestamp = sessionId.replace('challenge-session-', '');
+      const date = new Date(parseInt(timestamp));
+      if (!isNaN(date.getTime())) {
+        return `Traveler ${date.toLocaleDateString()}`;
+      }
+    }
+    
+    // For other session formats, create a friendly name
+    const shortId = sessionId.substring(sessionId.length - 6).toUpperCase();
+    return `Traveler #${shortId}`;
   }
 }
