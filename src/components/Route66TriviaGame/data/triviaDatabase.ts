@@ -130,8 +130,8 @@ export const triviaDatabase: TriviaQuestion[] = [
       b: 'Cuba, Missouri',
       c: 'Eureka, Missouri'
     },
-    correctAnswer: 'b',
-    explanation: 'Awesome! Cuba, Missouri, is home to this giant roadside chair that\'s perfect for photos.',
+    correctAnswer: 'a',
+    explanation: 'Awesome! Fanning, Missouri, is home to this giant roadside chair that\'s perfect for photos.',
     category: 'quirky'
   },
   {
