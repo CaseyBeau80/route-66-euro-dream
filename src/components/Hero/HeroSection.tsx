@@ -110,7 +110,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     <img 
                       src={cakeImage} 
                       alt="Route 66 100th Anniversary Celebration Cake" 
-                      className="w-25 h-25 lg:w-35 lg:h-35 object-contain rounded-lg flex-shrink-0"
+                      className="w-18 h-18 lg:w-24 lg:h-24 object-contain rounded-lg flex-shrink-0"
                     />
                     <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
                       <div className="flex items-baseline gap-3">
