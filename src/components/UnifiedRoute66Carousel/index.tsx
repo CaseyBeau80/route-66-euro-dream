@@ -77,37 +77,38 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({ className = ''
           />
         ) : (
           <div className="relative">
-            <Carousel
-              opts={{
-                align: "start",
-                loop: false,
-              }}
-              className="w-full"
-            >
-              {/* Enhanced Navigation Controls with Route 66 Styling */}
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex gap-4">
-                  <CarouselPrevious className="relative translate-x-0 translate-y-0 h-14 w-14 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-3 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl" />
-                  <CarouselNext className="relative translate-x-0 translate-y-0 h-14 w-14 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-3 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl" />
-                </div>
+            <div className="relative">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                {/* Inline Navigation Arrows */}
+                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-2 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl -translate-x-6" />
                 
-                {/* Navigation Hint */}
-                <div className="hidden sm:block text-sm text-route66-text-muted font-medium">
-                  Use arrows to browse more locations →
-                </div>
-              </div>
+                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-2 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl translate-x-6" />
 
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {items.map((item) => (
-                  <CarouselItem
-                    key={item.id}
-                    className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-                  >
-                    <UnifiedItemCard item={item} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
+                {/* Navigation Hint */}
+                <div className="text-center mb-6">
+                  <div className="text-sm text-route66-text-muted font-medium">
+                    Use arrows to browse more locations →
+                  </div>
+                </div>
+
+                <CarouselContent className="-ml-2 md:-ml-4">
+                  {items.map((item) => (
+                    <CarouselItem
+                      key={item.id}
+                      className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                    >
+                      <UnifiedItemCard item={item} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            </div>
           </div>
         )}
       </div>
