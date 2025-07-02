@@ -84,22 +84,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 <div className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Interactive Planning</div>
-                    <div className="text-route66-text-secondary text-base">Complete trip calculator with real-time updates</div>
+                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Interactive Planning</div>
+                    <div className="text-route66-text-secondary text-lg">Complete trip calculator with real-time updates</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Hidden Gems</div>
-                    <div className="text-route66-text-secondary text-base">Discover authentic stops off the beaten path</div>
+                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Hidden Gems</div>
+                    <div className="text-route66-text-secondary text-lg">Discover authentic stops off the beaten path</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">100% Free</div>
-                    <div className="text-route66-text-secondary text-base">No hidden fees, completely free to use</div>
+                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">100% Free</div>
+                    <div className="text-route66-text-secondary text-lg">No hidden fees, completely free to use</div>
                   </div>
                 </div>
               </div>
