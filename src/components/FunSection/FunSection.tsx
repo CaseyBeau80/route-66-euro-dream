@@ -131,26 +131,67 @@ const FunSection: React.FC<FunSectionProps> = ({
 
         {/* Activities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {content.activities.map((activity, index) => <div key={index} className="bg-white rounded-xl shadow-lg border border-route66-border overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 group">
-              {/* Card Header */}
-              <div className={`h-32 bg-gradient-to-r ${activity.color} flex items-center justify-center relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-                <activity.icon className="w-12 h-12 text-white relative z-10 group-hover:scale-110 transition-transform duration-300" />
+          {content.activities.map((activity, index) => (
+            <div 
+              key={index} 
+              className="bg-white rounded-2xl shadow-2xl border border-route66-border overflow-hidden hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 group relative"
+            >
+              {/* Modern Card Header with Enhanced Graphics */}
+              <div className={`h-40 bg-gradient-to-br ${activity.color} flex items-center justify-center relative overflow-hidden`}>
+                {/* Animated Background Pattern */}
+                <div className="absolute inset-0 opacity-20">
+                  <div className="absolute top-0 left-0 w-full h-full">
+                    <div className="absolute top-4 left-4 w-6 h-6 border-2 border-white/30 rounded-full animate-pulse"></div>
+                    <div className="absolute top-8 right-8 w-4 h-4 bg-white/20 rounded-full animate-bounce delay-300"></div>
+                    <div className="absolute bottom-6 left-8 w-8 h-8 border border-white/25 rotate-45 animate-pulse delay-500"></div>
+                    <div className="absolute bottom-4 right-6 w-3 h-3 bg-white/30 rounded-full animate-bounce delay-700"></div>
+                  </div>
+                </div>
+                
+                {/* Gradient Overlay with Modern Glass Effect */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 backdrop-blur-sm"></div>
+                
+                {/* Enhanced Icon with Modern Styling */}
+                <div className="relative z-10 flex items-center justify-center w-20 h-20 bg-white/15 backdrop-blur-md rounded-2xl border border-white/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg">
+                  <activity.icon className="w-10 h-10 text-white drop-shadow-lg" />
+                </div>
+                
+                {/* Floating Elements */}
+                <div className="absolute inset-0 pointer-events-none group-hover:animate-pulse">
+                  <div className="absolute top-3 right-3 text-white/40 text-xs">✨</div>
+                  <div className="absolute bottom-3 left-3 text-white/40 text-xs">🌟</div>
+                </div>
               </div>
 
-              {/* Card Content */}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-route66-text-primary mb-3">
+              {/* Modern Card Content */}
+              <div className="p-8 relative">
+                {/* Subtle Top Border Accent */}
+                <div className={`absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r ${activity.color} rounded-full`}></div>
+                
+                <h3 className="text-2xl font-bold text-route66-text-primary mb-4 group-hover:text-route66-primary transition-colors duration-300">
                   {activity.title}
                 </h3>
-                <p className="text-route66-text-secondary mb-6 leading-relaxed">
+                <p className="text-route66-text-secondary mb-8 leading-relaxed text-base">
                   {activity.description}
                 </p>
-                <Button onClick={() => navigate(activity.route)} className={`w-full bg-gradient-to-r ${activity.color} hover:opacity-90 text-white font-bold py-3 rounded-lg shadow-md transition-all duration-300`}>
-                  {activity.buttonText}
+                
+                {/* Enhanced Button */}
+                <Button 
+                  onClick={() => navigate(activity.route)} 
+                  className={`w-full bg-gradient-to-r ${activity.color} hover:shadow-lg hover:shadow-current/25 text-white font-bold py-4 rounded-xl shadow-md transition-all duration-300 hover:scale-105 relative overflow-hidden group/btn`}
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {activity.buttonText}
+                    <span className="group-hover/btn:translate-x-1 transition-transform duration-300">→</span>
+                  </span>
+                  <div className="absolute inset-0 bg-white/10 translate-x-full group-hover/btn:translate-x-0 transition-transform duration-500"></div>
                 </Button>
               </div>
-            </div>)}
+              
+              {/* Subtle Side Accent */}
+              <div className={`absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-16 bg-gradient-to-b ${activity.color} rounded-r-full opacity-60 group-hover:opacity-100 transition-opacity duration-300`}></div>
+            </div>
+          ))}
         </div>
 
         {/* Bottom CTA */}
