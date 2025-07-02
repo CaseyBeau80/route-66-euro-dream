@@ -79,6 +79,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   </div>)}
               </div>
 
+              {/* Benefits Section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-route66-primary/20">
+                  <div className="text-route66-primary font-semibold text-sm mb-1">Interactive Planning</div>
+                  <div className="text-route66-text-secondary text-xs">Complete trip calculator with real-time updates</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-route66-primary/20">
+                  <div className="text-route66-primary font-semibold text-sm mb-1">Hidden Gems</div>
+                  <div className="text-route66-text-secondary text-xs">Discover authentic stops off the beaten path</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-route66-primary/20">
+                  <div className="text-route66-primary font-semibold text-sm mb-1">100% Free</div>
+                  <div className="text-route66-text-secondary text-xs">No hidden fees, completely free to use</div>
+                </div>
+              </div>
 
               {/* Enhanced CTA Button - Moved up with reduced spacing */}
               <div className="pt-2 flex justify-center">
