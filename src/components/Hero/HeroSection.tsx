@@ -84,22 +84,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 <div className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Interactive Planning</div>
-                    <div className="text-route66-text-secondary text-lg">Complete trip calculator with real-time updates</div>
+                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Interactive Route 66 Google Map</div>
+                    <div className="text-route66-text-secondary text-lg">Explore iconic cities, quirky roadside attractions, and hidden gems</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Hidden Gems</div>
-                    <div className="text-route66-text-secondary text-lg">Discover authentic stops off the beaten path</div>
+                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Shareable Travel Planner</div>
+                    <div className="text-route66-text-secondary text-lg">Build custom Route 66 trips and share them with friends and family</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <div>
-                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">100% Free</div>
-                    <div className="text-route66-text-secondary text-lg">No hidden fees, completely free to use</div>
+                    <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Social Media & More</div>
+                    <div className="text-route66-text-secondary text-lg">Instagram integration and community features for travelers</div>
                   </div>
                 </div>
               </div>
