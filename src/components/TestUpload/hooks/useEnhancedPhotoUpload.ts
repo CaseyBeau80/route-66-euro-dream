@@ -80,7 +80,7 @@ export const useEnhancedPhotoUpload = () => {
       // Create FormData for the Edge Function
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('tripId', 'route66-challenge');
+      formData.append('tripId', 'b3c134a9-d90a-4a13-b789-10206ddf90ec');
       formData.append('stopId', stopId);
       formData.append('userSessionId', 'challenge-session-' + Date.now());
 
