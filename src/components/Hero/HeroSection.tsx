@@ -63,7 +63,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="space-y-6">
               {/* Title - Bold, uppercase, bright blue */}
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
-                <span className="text-pink-600">👇</span> Plan <span className="underline">Your</span> Route 66 Vacation & More <span className="text-pink-600">👇</span>
+                Plan <span className="underline">Your</span> Route 66 Vacation & More
               </h1>
 
               {/* Pain Points - Tightly stacked with blue text */}
