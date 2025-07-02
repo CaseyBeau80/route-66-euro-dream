@@ -11,7 +11,7 @@ interface HeroSectionProps {
 }
 const heroContent = {
   en: {
-    title: "Plan Your Route 66 Vacation Without the Headache",
+    title: "Plan <span class='underline'>Your</span> Route 66 Vacation 👇",
     painPoints: ["Too much time spent spinning your Route 66 wheels?", "Are you bouncing between websites, still unsure where or how to start your Route 66 trip? Planning shouldn't feel like guesswork.", "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?", "Here. You come right here — and it's all free."],
     ctaButton: "Start Exploring",
     mascotAlt: "Big Bo Ramble - Route 66 Mascot"
@@ -63,7 +63,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="space-y-6">
               {/* Title - Bold, uppercase, bright blue */}
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase leading-tight text-route66-primary">
-                {content.title}
+                Plan <span className="underline">Your</span> Route 66 Vacation 👇
               </h1>
 
               {/* Pain Points - Tightly stacked with blue text */}
