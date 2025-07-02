@@ -82,21 +82,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               {/* Benefits Section - Vertical with Green Checkmarks - Larger font, less padding */}
               <div className="space-y-0 py-2">
                 <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <Check className="w-6 h-6 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
                     <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Interactive Route 66 Google Map</div>
                     <div className="text-route66-text-secondary text-lg">Explore iconic cities, quirky roadside attractions, and hidden gems</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <Check className="w-6 h-6 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
                     <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Shareable Travel Planner</div>
                     <div className="text-route66-text-secondary text-lg">Build custom Route 66 trips and share them with friends and family</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <Check className="w-6 h-6 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
                     <div className="text-route66-primary font-semibold text-xl lg:text-2xl">Social Media & More</div>
                     <div className="text-route66-text-secondary text-lg">Instagram integration and community features for travelers</div>
@@ -162,7 +162,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
                 
                 {/* Image Container - Now much larger */}
-                <div className="relative bg-white rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
+                <div className="relative bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
                   <img src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png" alt={content.mascotAlt} className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]" />
                 </div>
               </div>
