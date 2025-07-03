@@ -10,8 +10,6 @@ import { LoadingSpinner } from '@/components/TestUpload/components/LoadingSpinne
 import { UploadedImageDisplay } from '@/components/TestUpload/components/UploadedImageDisplay';
 import TrailblazerCelebration from '@/components/TestUpload/components/TrailblazerCelebration';
 import CommunityGallery from './CommunityGallery';
-import { PhotoCategoryDropdown } from './PhotoCategoryDropdown';
-import { PhotoStateDropdown } from './PhotoStateDropdown';
 
 interface PhotoUploadSectionProps {
   language: string;
@@ -52,8 +50,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
   const [showUpload, setShowUpload] = useState(false);
   const [selectedStopId] = useState('social-photo-spot');
   const [selectedLocationName] = useState('Route 66 Community');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedState, setSelectedState] = useState('');
   
   const {
     status,
@@ -100,23 +96,9 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
             ) : (
               <div className="space-y-6">
                 <DragDropFileUpload 
-                  onFileSelect={(file) => handleUpload(file, selectedCategory, selectedState)}
+                  onFileSelect={handleUpload}
                   disabled={loading}
                 />
-                
-                {/* Optional Dropdowns */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <PhotoCategoryDropdown 
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                    language={language}
-                  />
-                  <PhotoStateDropdown 
-                    value={selectedState}
-                    onValueChange={setSelectedState}
-                    language={language}
-                  />
-                </div>
                 
                 {loading && <LoadingSpinner loading={loading} />}
                 
@@ -152,8 +134,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
                   onClick={() => {
                     setShowUpload(false);
                     resetUpload();
-                    setSelectedCategory('');
-                    setSelectedState('');
                   }}
                   className="border-route66-border text-route66-text-secondary hover:bg-route66-background"
                 >

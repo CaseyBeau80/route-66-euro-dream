@@ -63,11 +63,9 @@ serve(async (req) => {
     const formData = await req.formData();
     
     const imageFile = formData.get('image') as File;
-  const tripId = formData.get('tripId') as string;
-  const stopId = formData.get('stopId') as string;
-  const userSessionId = formData.get('userSessionId') as string;
-  const category = formData.get('category') as string | null;
-  const state = formData.get('state') as string | null;
+    const tripId = formData.get('tripId') as string;
+    const stopId = formData.get('stopId') as string;
+    const userSessionId = formData.get('userSessionId') as string;
 
     console.log('📋 Form data received:', {
       hasImageFile: !!imageFile,
@@ -226,9 +224,7 @@ serve(async (req) => {
         trip_id: tripId,
         user_session_id: userSessionId,
         moderation_result: safeSearch,
-        is_trailblazer: isTrailblazer,
-        category: category || null,
-        state: state || null
+        is_trailblazer: isTrailblazer
       })
       .select()
       .single();
