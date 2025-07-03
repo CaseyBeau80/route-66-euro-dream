@@ -17,7 +17,7 @@ const SimpleInstagramCarousel = () => {
       if (window.innerWidth >= 768) {
         setPostsPerView(4); // Tablets and larger - 4 posts
       } else {
-        setPostsPerView(2); // Mobile - 2 posts
+        setPostsPerView(1); // Mobile - 1 post
       }
     };
     handleResize();
@@ -71,17 +71,16 @@ const SimpleInstagramCarousel = () => {
   const currentPage = Math.floor(currentIndex / postsPerView) + 1;
   return <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Header with blue color scheme */}
-        <div className="flex items-center justify-center mb-12 bg-white p-2 rounded-xl shadow-2xl border-4 border-route66-primary">
-          <h2 className="text-4xl font-route66 text-route66-primary font-bold">
+        {/* Header with matching styling */}
+        <div className="bg-white rounded-xl border-2 border-route66-primary p-4 text-center mb-8">
+          <h2 className="text-xl md:text-2xl font-bold uppercase text-route66-primary">
             #Ramble66 — Tag us on Instagram
           </h2>
-          
         </div>
         
         <div className="space-y-8">
           {/* Posts Grid - 4 larger photos per row with enhanced hover */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-8">
             {visiblePosts.map((post, index) => <div key={`${post.id}-${currentIndex + index}`} className="w-full">
                 <SimpleInstagramCard post={post} onLike={handleLike} />
               </div>)}
