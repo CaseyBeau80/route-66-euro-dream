@@ -107,6 +107,11 @@ const SocialSection: React.FC<SocialSectionProps> = ({
           </div>
         </div>
 
+        {/* Community Gallery */}
+        <div className="mb-4">
+          <CommunityGallery language={language} />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {content.stats.map((stat, index) => (
@@ -116,11 +121,6 @@ const SocialSection: React.FC<SocialSectionProps> = ({
               <div className="text-route66-text-secondary font-medium">{stat.label}</div>
             </div>
           ))}
-        </div>
-
-        {/* Community Gallery */}
-        <div className="mb-4">
-          <CommunityGallery language={language} />
         </div>
 
         {/* Photo Upload Section */}
