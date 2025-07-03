@@ -3,7 +3,7 @@ import { Camera, Users, Trophy, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSocialPhotoUpload } from '../hooks/useSocialPhotoUpload';
-import CommunityStats from './CommunityStats';
+
 import { DragDropFileUpload } from '@/components/TestUpload/components/DragDropFileUpload';
 import { StatusAlert } from '@/components/TestUpload/components/StatusAlert';
 import { LoadingSpinner } from '@/components/TestUpload/components/LoadingSpinner';
@@ -142,8 +142,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
         </CardContent>
       </Card>
 
-      {/* Community Stats */}
-      <CommunityStats language={language} />
 
     </div>
   );
