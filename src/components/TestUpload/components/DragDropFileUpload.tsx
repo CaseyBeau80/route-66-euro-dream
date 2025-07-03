@@ -164,7 +164,7 @@ export const DragDropFileUpload = ({ onFileSelect, disabled }: DragDropFileUploa
           <Button 
             onClick={handleButtonClick}
             disabled={disabled}
-            className="mb-4"
+            className="mb-4 bg-route66-primary hover:bg-route66-primary-dark text-white"
             variant={isDragOver ? "default" : "default"}
           >
             <Upload className="h-4 w-4 mr-2" />
