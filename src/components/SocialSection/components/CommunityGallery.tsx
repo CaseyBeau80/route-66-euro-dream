@@ -109,6 +109,8 @@ const CommunityGallery: React.FC<CommunityGalleryProps> = ({
         </CardContent>
       </Card>;
   }
-  return;
+  return <Card className="border-route66-border">
+      
+    </Card>;
 };
 export default CommunityGallery;
