@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Camera, Route, Trophy } from 'lucide-react';
 import { useEnhancedPhotoUpload } from './TestUpload/hooks/useEnhancedPhotoUpload';
-import { FileUploadInput } from './TestUpload/components/FileUploadInput';
+import { DragDropFileUpload } from './TestUpload/components/DragDropFileUpload';
 import { StatusAlert } from './TestUpload/components/StatusAlert';
 import { LoadingSpinner } from './TestUpload/components/LoadingSpinner';
 import { ModerationResults } from './TestUpload/components/ModerationResults';
@@ -113,7 +113,7 @@ export default function TestUpload() {
 
           {/* File Upload */}
           {!photoUrl && (
-            <FileUploadInput
+            <DragDropFileUpload
               onFileSelect={handleFileSelect}
               disabled={loading}
             />
