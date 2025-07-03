@@ -140,13 +140,13 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
   if (loading) {
     return (
       <Card className="border-route66-border">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="text-center">
-                <div className="w-8 h-8 bg-gray-200 rounded-full mx-auto mb-2 animate-pulse"></div>
-                <div className="h-6 bg-gray-200 rounded mx-auto mb-1 animate-pulse"></div>
-                <div className="h-4 bg-gray-200 rounded mx-auto animate-pulse"></div>
+                <div className="w-10 h-10 bg-gray-200 rounded-full mx-auto mb-2 animate-pulse"></div>
+                <div className="h-5 bg-gray-200 rounded mx-auto mb-1 animate-pulse"></div>
+                <div className="h-3 bg-gray-200 rounded mx-auto animate-pulse"></div>
               </div>
             ))}
           </div>
@@ -157,20 +157,20 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
 
   return (
     <Card className="border-route66-border bg-gradient-to-r from-route66-background to-route66-background-alt">
-      <CardContent className="p-6">
-        <h3 className="text-lg font-semibold text-route66-text-primary text-center mb-6">
+      <CardContent className="p-4">
+        <h3 className="text-lg font-semibold text-route66-text-primary text-center mb-4">
           {statsContent.title}
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {statItems.map((item, index) => (
             <div key={index} className="text-center">
-              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-sm mb-3 ${item.color}`}>
-                <item.icon className="h-6 w-6" />
+              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm mb-2 ${item.color}`}>
+                <item.icon className="h-5 w-5" />
               </div>
-              <div className="text-2xl font-bold text-route66-text-primary mb-1">
+              <div className="text-xl font-bold text-route66-text-primary mb-1">
                 {formatNumber(item.value)}
               </div>
-              <div className="text-sm text-route66-text-secondary">
+              <div className="text-xs text-route66-text-secondary">
                 {item.label}
               </div>
             </div>
