@@ -69,8 +69,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
 
   return (
     <div className="space-y-8">
-      {/* Community Stats */}
-      <CommunityStats language={language} />
       {/* Photo Upload Call to Action */}
       <Card className="bg-gradient-to-r from-route66-primary/5 to-route66-accent/5 border-route66-border">
         <CardContent className="p-8">
@@ -144,6 +142,9 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
           </div>
         </CardContent>
       </Card>
+
+      {/* Community Stats */}
+      <CommunityStats language={language} />
 
       {/* Community Gallery */}
       <CommunityGallery language={language} />
