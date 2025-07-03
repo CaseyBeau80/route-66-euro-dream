@@ -362,12 +362,14 @@ export type Database = {
       }
       photo_challenges: {
         Row: {
+          category: string | null
           completion_time: string | null
           created_at: string | null
           id: string
           is_trailblazer: boolean | null
           moderation_result: Json | null
           photo_url: string
+          state: string | null
           stop_id: string
           trailblazer_awarded_at: string | null
           trip_id: string | null
@@ -375,12 +377,14 @@ export type Database = {
           user_session_id: string | null
         }
         Insert: {
+          category?: string | null
           completion_time?: string | null
           created_at?: string | null
           id?: string
           is_trailblazer?: boolean | null
           moderation_result?: Json | null
           photo_url: string
+          state?: string | null
           stop_id: string
           trailblazer_awarded_at?: string | null
           trip_id?: string | null
@@ -388,12 +392,14 @@ export type Database = {
           user_session_id?: string | null
         }
         Update: {
+          category?: string | null
           completion_time?: string | null
           created_at?: string | null
           id?: string
           is_trailblazer?: boolean | null
           moderation_result?: Json | null
           photo_url?: string
+          state?: string | null
           stop_id?: string
           trailblazer_awarded_at?: string | null
           trip_id?: string | null
