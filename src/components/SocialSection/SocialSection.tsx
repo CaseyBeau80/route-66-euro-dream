@@ -69,28 +69,12 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
   return (
     <section className="py-20 bg-route66-background-alt">
       <div className="container mx-auto px-4">
-        {/* Header - Matching Trip Planner Format */}
+        {/* Header */}
         <div className="max-w-6xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl border-4 border-route66-primary p-8 text-center">
-            <div className="inline-flex items-center gap-2 bg-route66-primary text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              <Instagram className="w-4 h-4" />
-              {content.badge}
-            </div>
-            <h2 className="text-4xl md:text-5xl font-route66 font-bold uppercase text-route66-primary mb-6">
-              {content.title}
+          <div className="bg-white rounded-2xl border-4 border-route66-primary p-6 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold uppercase text-route66-primary">
+              #RAMBLE66 — TAG US ON INSTAGRAM
             </h2>
-            <p className="text-xl text-route66-text-secondary max-w-3xl mx-auto mb-8">
-              {content.subtitle}
-            </p>
-            <p className="text-lg text-route66-text-muted max-w-4xl mx-auto leading-relaxed mb-8">
-              {content.description}
-            </p>
-
-            {/* Hashtag */}
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-route66-primary to-route66-accent-red text-white px-6 py-3 rounded-full text-lg font-bold shadow-lg">
-              <span>{content.hashtagTitle}:</span>
-              <span className="bg-white/20 px-3 py-1 rounded-full">{content.hashtag}</span>
-            </div>
           </div>
         </div>
 
