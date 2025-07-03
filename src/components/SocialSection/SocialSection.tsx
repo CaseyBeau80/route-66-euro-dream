@@ -96,40 +96,40 @@ const SocialSection: React.FC<SocialSectionProps> = ({
   language
 }) => {
   const content = socialContent[language as keyof typeof socialContent] || socialContent.en;
-  return <section className="py-12 bg-route66-background-alt">
+  return <section className="py-6 bg-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="max-w-6xl mx-auto mb-8">
-          <div className="bg-white rounded-xl border-2 border-route66-primary p-4 text-center">
-            <h2 className="text-xl md:text-2xl font-bold uppercase text-route66-primary">
+        <div className="max-w-6xl mx-auto mb-4">
+          <div className="bg-white rounded-xl border-2 border-route66-primary p-2 text-center">
+            <h2 className="text-lg md:text-xl font-bold uppercase text-route66-primary">
               Join the Photo Wall
             </h2>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {content.stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl border-2 border-route66-border p-6 text-center shadow-lg">
-              <stat.icon className="w-8 h-8 text-route66-primary mx-auto mb-3" />
-              <div className="text-2xl font-bold text-route66-primary mb-1">{stat.number}</div>
+            <div key={index} className="bg-white rounded-xl border-2 border-route66-border p-4 text-center shadow-lg">
+              <stat.icon className="w-6 h-6 text-route66-primary mx-auto mb-2" />
+              <div className="text-xl font-bold text-route66-primary mb-1">{stat.number}</div>
               <div className="text-route66-text-secondary font-medium">{stat.label}</div>
             </div>
           ))}
         </div>
 
         {/* Community Gallery */}
-        <div className="mb-8">
+        <div className="mb-4">
           <CommunityGallery language={language} />
         </div>
 
         {/* Photo Upload Section */}
-        <div className="mb-8">
+        <div className="mb-4">
           <PhotoUploadSection language={language} />
         </div>
 
         {/* Instagram Carousel */}
-        <div className="bg-white p-6 rounded-xl border-2 border-route66-border shadow-lg">
+        <div className="bg-white p-4 rounded-xl border-2 border-route66-border shadow-lg">
           <SimpleInstagramCarousel />
         </div>
       </div>
