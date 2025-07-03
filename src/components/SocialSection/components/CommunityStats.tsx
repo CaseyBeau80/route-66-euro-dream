@@ -157,17 +157,17 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
 
   return (
     <Card className="border-route66-border bg-gradient-to-r from-route66-background to-route66-background-alt">
-      <CardContent className="p-4">
-        <h3 className="text-lg font-semibold text-route66-text-primary text-center mb-4">
+      <CardContent className="p-3">
+        <h3 className="text-base font-semibold text-route66-text-primary text-center mb-3">
           {statsContent.title}
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {statItems.map((item, index) => (
             <div key={index} className="text-center">
-              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm mb-2 ${item.color}`}>
-                <item.icon className="h-5 w-5" />
+              <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm mb-1 ${item.color}`}>
+                <item.icon className="h-4 w-4" />
               </div>
-              <div className="text-xl font-bold text-route66-text-primary mb-1">
+              <div className="text-lg font-bold text-route66-text-primary mb-1">
                 {formatNumber(item.value)}
               </div>
               <div className="text-xs text-route66-text-secondary">

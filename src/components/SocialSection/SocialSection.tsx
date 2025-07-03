@@ -67,19 +67,19 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
   const content = socialContent[language as keyof typeof socialContent] || socialContent.en;
 
   return (
-    <section className="py-20 bg-route66-background-alt">
+    <section className="py-12 bg-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <div className="bg-white rounded-2xl border-4 border-route66-primary p-6 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold uppercase text-route66-primary">
+        <div className="max-w-6xl mx-auto mb-8">
+          <div className="bg-white rounded-xl border-2 border-route66-primary p-4 text-center">
+            <h2 className="text-xl md:text-2xl font-bold uppercase text-route66-primary">
               Join the Photo Wall
             </h2>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {content.stats.map((stat, index) => (
             <div key={index} className="text-center p-6 bg-white rounded-xl border-2 border-route66-border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
               <div className="text-route66-primary mb-4 flex justify-center">
@@ -96,12 +96,12 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
         </div>
 
         {/* Photo Upload Section */}
-        <div className="mb-12">
+        <div className="mb-8">
           <PhotoUploadSection language={language} />
         </div>
 
         {/* Instagram Carousel */}
-        <div className="bg-white p-8 rounded-2xl border-2 border-route66-border shadow-lg">
+        <div className="bg-white p-6 rounded-xl border-2 border-route66-border shadow-lg">
           <SimpleInstagramCarousel />
         </div>
       </div>
