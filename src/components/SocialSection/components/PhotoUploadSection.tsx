@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSocialPhotoUpload } from '../hooks/useSocialPhotoUpload';
 import CommunityStats from './CommunityStats';
-import { FileUploadInput } from '@/components/TestUpload/components/FileUploadInput';
+import { DragDropFileUpload } from '@/components/TestUpload/components/DragDropFileUpload';
 import { StatusAlert } from '@/components/TestUpload/components/StatusAlert';
 import { LoadingSpinner } from '@/components/TestUpload/components/LoadingSpinner';
 import { UploadedImageDisplay } from '@/components/TestUpload/components/UploadedImageDisplay';
@@ -95,7 +95,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
               </Button>
             ) : (
               <div className="space-y-6">
-                <FileUploadInput 
+                <DragDropFileUpload 
                   onFileSelect={handleUpload}
                   disabled={loading}
                 />
