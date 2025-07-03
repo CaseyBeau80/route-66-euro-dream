@@ -118,14 +118,14 @@ const SocialSection: React.FC<SocialSectionProps> = ({
           ))}
         </div>
 
-        {/* Photo Upload Section */}
-        <div className="mb-8">
-          <PhotoUploadSection language={language} />
-        </div>
-
         {/* Community Gallery */}
         <div className="mb-8">
           <CommunityGallery language={language} />
+        </div>
+
+        {/* Photo Upload Section */}
+        <div className="mb-8">
+          <PhotoUploadSection language={language} />
         </div>
 
         {/* Instagram Carousel */}
