@@ -2,6 +2,7 @@ import React from 'react';
 import { Instagram, Users, Heart, MessageCircle } from 'lucide-react';
 import SimpleInstagramCarousel from '../InstagramCarousel/components/SimpleInstagramCarousel';
 import PhotoUploadSection from './components/PhotoUploadSection';
+import CommunityGallery from './components/CommunityGallery';
 interface SocialSectionProps {
   language: string;
 }
@@ -120,6 +121,11 @@ const SocialSection: React.FC<SocialSectionProps> = ({
         {/* Photo Upload Section */}
         <div className="mb-8">
           <PhotoUploadSection language={language} />
+        </div>
+
+        {/* Community Gallery */}
+        <div className="mb-8">
+          <CommunityGallery language={language} />
         </div>
 
         {/* Instagram Carousel */}

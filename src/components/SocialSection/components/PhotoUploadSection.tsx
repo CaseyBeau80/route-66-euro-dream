@@ -9,7 +9,6 @@ import { StatusAlert } from '@/components/TestUpload/components/StatusAlert';
 import { LoadingSpinner } from '@/components/TestUpload/components/LoadingSpinner';
 import { UploadedImageDisplay } from '@/components/TestUpload/components/UploadedImageDisplay';
 import TrailblazerCelebration from '@/components/TestUpload/components/TrailblazerCelebration';
-import CommunityGallery from './CommunityGallery';
 
 interface PhotoUploadSectionProps {
   language: string;
@@ -146,8 +145,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
       {/* Community Stats */}
       <CommunityStats language={language} />
 
-      {/* Community Gallery */}
-      <CommunityGallery language={language} />
     </div>
   );
 };
