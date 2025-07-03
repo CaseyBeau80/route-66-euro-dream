@@ -68,20 +68,20 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
   const sectionContent = content[language as keyof typeof content] || content.en;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Community Stats */}
       <CommunityStats language={language} />
       {/* Photo Upload Call to Action */}
       <Card className="bg-gradient-to-r from-route66-primary/5 to-route66-accent/5 border-route66-border">
-        <CardContent className="p-8">
+        <CardContent className="p-4">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-route66-primary/10 rounded-full mb-4">
-              <Camera className="h-8 w-8 text-route66-primary" />
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-route66-primary/10 rounded-full mb-3">
+              <Camera className="h-6 w-6 text-route66-primary" />
             </div>
-            <h3 className="text-2xl font-bold mb-2 text-route66-text-primary">
+            <h3 className="text-xl font-bold mb-2 text-route66-text-primary">
               {sectionContent.title}
             </h3>
-            <p className="text-route66-text-secondary mb-6 max-w-md mx-auto">
+            <p className="text-route66-text-secondary mb-4 max-w-md mx-auto text-sm">
               {sectionContent.subtitle}
             </p>
             
