@@ -158,7 +158,7 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
   return (
     <Card className="border-route66-border bg-gradient-to-r from-route66-background to-route66-background-alt">
       <CardContent className="p-3">
-        <h3 className="text-base font-semibold text-route66-text-primary text-center mb-3">
+        <h3 className="text-base font-semibold text-route66-text-primary text-center mb-1">
           {statsContent.title}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
