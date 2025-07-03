@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Calendar, Users } from 'lucide-react';
 import { TrailblazerService } from '@/services/trailblazerService';
+import CommunityStats from './CommunityStats';
 interface CommunityGalleryProps {
   language: string;
 }
@@ -109,44 +110,49 @@ const CommunityGallery: React.FC<CommunityGalleryProps> = ({
         </CardContent>
       </Card>;
   }
-  return <Card className="border-route66-border">
-      <CardContent className="p-8">
-        
+  return <div className="space-y-4">
+      <Card className="border-route66-border">
+        <CardContent className="p-8">
+          
 
-        {photos.length === 0 ? <div className="text-center py-8">
-            <p className="text-route66-text-secondary text-lg">
-              {galleryContent.noPhotos}
-            </p>
-          </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {photos.map(photo => <div key={photo.id} className="group relative">
-                <div className="aspect-square rounded-lg overflow-hidden bg-route66-background">
-                  <img src={photo.photo_url} alt={`Route 66 photo from ${photo.stop_id}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => {
-              e.currentTarget.src = '/placeholder-image.jpg';
-            }} />
-                </div>
-                
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 rounded-lg">
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-route66-text-primary">
-                          {formatUserSessionId(photo.user_session_id || '')}
-                        </span>
-                        {photo.is_trailblazer && <Badge className="bg-route66-accent text-white">
-                            <Trophy className="h-3 w-3 mr-1" />
-                            {galleryContent.trailblazer}
-                          </Badge>}
-                      </div>
-                      <div className="flex items-center text-xs text-route66-text-secondary">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(photo.created_at)}
+          {photos.length === 0 ? <div className="text-center py-8">
+              <p className="text-route66-text-secondary text-lg">
+                {galleryContent.noPhotos}
+              </p>
+            </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {photos.map(photo => <div key={photo.id} className="group relative">
+                  <div className="aspect-square rounded-lg overflow-hidden bg-route66-background">
+                    <img src={photo.photo_url} alt={`Route 66 photo from ${photo.stop_id}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => {
+                e.currentTarget.src = '/placeholder-image.jpg';
+              }} />
+                  </div>
+                  
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 rounded-lg">
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-route66-text-primary">
+                            {formatUserSessionId(photo.user_session_id || '')}
+                          </span>
+                          {photo.is_trailblazer && <Badge className="bg-route66-accent text-white">
+                              <Trophy className="h-3 w-3 mr-1" />
+                              {galleryContent.trailblazer}
+                            </Badge>}
+                        </div>
+                        <div className="flex items-center text-xs text-route66-text-secondary">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {formatDate(photo.created_at)}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>)}
-          </div>}
-      </CardContent>
-    </Card>;
+                </div>)}
+            </div>}
+        </CardContent>
+      </Card>
+      
+      {/* Community Stats */}
+      <CommunityStats language={language} />
+    </div>;
 };
 export default CommunityGallery;

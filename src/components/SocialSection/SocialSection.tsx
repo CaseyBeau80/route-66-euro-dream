@@ -112,17 +112,6 @@ const SocialSection: React.FC<SocialSectionProps> = ({
           <CommunityGallery language={language} />
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {content.stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl border-2 border-route66-border p-4 text-center shadow-lg">
-              <stat.icon className="w-6 h-6 text-route66-primary mx-auto mb-2" />
-              <div className="text-xl font-bold text-route66-primary mb-1">{stat.number}</div>
-              <div className="text-route66-text-secondary font-medium">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
         {/* Photo Upload Section */}
         <div className="mb-4">
           <PhotoUploadSection language={language} />
