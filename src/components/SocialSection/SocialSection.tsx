@@ -1,13 +1,10 @@
-
 import React from 'react';
 import { Instagram, Users, Heart, MessageCircle } from 'lucide-react';
 import SimpleInstagramCarousel from '../InstagramCarousel/components/SimpleInstagramCarousel';
 import PhotoUploadSection from './components/PhotoUploadSection';
-
 interface SocialSectionProps {
   language: string;
 }
-
 const socialContent = {
   en: {
     badge: "Join the Community",
@@ -16,11 +13,19 @@ const socialContent = {
     description: "Join thousands of Route 66 enthusiasts sharing their experiences, tips, and memorable moments from America's most famous highway.",
     hashtagTitle: "Use our hashtag",
     hashtag: "#Ramble66",
-    stats: [
-      { icon: Users, number: "20K+", label: "Travelers" },
-      { icon: Heart, number: "150K+", label: "Photos Shared" },
-      { icon: MessageCircle, number: "5K+", label: "Trip Stories" }
-    ]
+    stats: [{
+      icon: Users,
+      number: "20K+",
+      label: "Travelers"
+    }, {
+      icon: Heart,
+      number: "150K+",
+      label: "Photos Shared"
+    }, {
+      icon: MessageCircle,
+      number: "5K+",
+      label: "Trip Stories"
+    }]
   },
   de: {
     badge: "Tritt der Community bei",
@@ -29,11 +34,19 @@ const socialContent = {
     description: "Schließe dich Tausenden von Route 66-Enthusiasten an, die ihre Erfahrungen, Tipps und unvergesslichen Momente von Amerikas berühmtester Straße teilen.",
     hashtagTitle: "Verwende unseren Hashtag",
     hashtag: "#Ramble66",
-    stats: [
-      { icon: Users, number: "20K+", label: "Reisende" },
-      { icon: Heart, number: "150K+", label: "Geteilte Fotos" },
-      { icon: MessageCircle, number: "5K+", label: "Reisegeschichten" }
-    ]
+    stats: [{
+      icon: Users,
+      number: "20K+",
+      label: "Reisende"
+    }, {
+      icon: Heart,
+      number: "150K+",
+      label: "Geteilte Fotos"
+    }, {
+      icon: MessageCircle,
+      number: "5K+",
+      label: "Reisegeschichten"
+    }]
   },
   fr: {
     badge: "Rejoignez la Communauté",
@@ -42,11 +55,19 @@ const socialContent = {
     description: "Rejoignez des milliers d'enthousiastes de la Route 66 qui partagent leurs expériences, conseils et moments mémorables de la route la plus célèbre d'Amérique.",
     hashtagTitle: "Utilisez notre hashtag",
     hashtag: "#Ramble66",
-    stats: [
-      { icon: Users, number: "20K+", label: "Voyageurs" },
-      { icon: Heart, number: "150K+", label: "Photos Partagées" },
-      { icon: MessageCircle, number: "5K+", label: "Histoires de Voyage" }
-    ]
+    stats: [{
+      icon: Users,
+      number: "20K+",
+      label: "Voyageurs"
+    }, {
+      icon: Heart,
+      number: "150K+",
+      label: "Photos Partagées"
+    }, {
+      icon: MessageCircle,
+      number: "5K+",
+      label: "Histoires de Voyage"
+    }]
   },
   "pt-BR": {
     badge: "Junte-se à Comunidade",
@@ -55,19 +76,26 @@ const socialContent = {
     description: "Junte-se a milhares de entusiastas da Rota 66 compartilhando suas experiências, dicas e momentos memoráveis da rodovia mais famosa da América.",
     hashtagTitle: "Use nossa hashtag",
     hashtag: "#Ramble66",
-    stats: [
-      { icon: Users, number: "20K+", label: "Viajantes" },
-      { icon: Heart, number: "150K+", label: "Fotos Compartilhadas" },
-      { icon: MessageCircle, number: "5K+", label: "Histórias de Viagem" }
-    ]
+    stats: [{
+      icon: Users,
+      number: "20K+",
+      label: "Viajantes"
+    }, {
+      icon: Heart,
+      number: "150K+",
+      label: "Fotos Compartilhadas"
+    }, {
+      icon: MessageCircle,
+      number: "5K+",
+      label: "Histórias de Viagem"
+    }]
   }
 };
-
-const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
+const SocialSection: React.FC<SocialSectionProps> = ({
+  language
+}) => {
   const content = socialContent[language as keyof typeof socialContent] || socialContent.en;
-
-  return (
-    <section className="py-12 bg-route66-background-alt">
+  return <section className="py-12 bg-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="max-w-6xl mx-auto mb-8">
@@ -80,19 +108,7 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {content.stats.map((stat, index) => (
-            <div key={index} className="text-center p-6 bg-white rounded-xl border-2 border-route66-border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-              <div className="text-route66-primary mb-4 flex justify-center">
-                <stat.icon className="w-8 h-8" />
-              </div>
-              <div className="text-3xl font-route66 font-bold text-route66-text-primary mb-2">
-                {stat.number}
-              </div>
-              <div className="text-route66-text-secondary font-medium">
-                {stat.label}
-              </div>
-            </div>
-          ))}
+          {content.stats.map((stat, index) => {})}
         </div>
 
         {/* Photo Upload Section */}
@@ -105,8 +121,6 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
           <SimpleInstagramCarousel />
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default SocialSection;
