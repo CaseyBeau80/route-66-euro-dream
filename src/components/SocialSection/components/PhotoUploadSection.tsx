@@ -10,9 +10,11 @@ import { LoadingSpinner } from '@/components/TestUpload/components/LoadingSpinne
 import { UploadedImageDisplay } from '@/components/TestUpload/components/UploadedImageDisplay';
 import TrailblazerCelebration from '@/components/TestUpload/components/TrailblazerCelebration';
 import CommunityGallery from './CommunityGallery';
+
 interface PhotoUploadSectionProps {
   language: string;
 }
+
 const content = {
   en: {
     title: "Share Your Adventure",
@@ -43,12 +45,12 @@ const content = {
     trailblazerTitle: "Torne-se um desbravador"
   }
 };
-const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
-  language
-}) => {
+
+const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedStopId] = useState('social-photo-spot');
   const [selectedLocationName] = useState('Route 66 Community');
+  
   const {
     status,
     loading,
@@ -62,50 +64,91 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     closeTrailblazerCelebration,
     resultsRef
   } = useSocialPhotoUpload();
+
   const sectionContent = content[language as keyof typeof content] || content.en;
-  return <div className="space-y-4">
+
+  return (
+    <div className="space-y-8">
       {/* Community Stats */}
       <CommunityStats language={language} />
       {/* Photo Upload Call to Action */}
       <Card className="bg-gradient-to-r from-route66-primary/5 to-route66-accent/5 border-route66-border">
-        <CardContent className="p-4">
+        <CardContent className="p-8">
           <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-route66-primary/10 rounded-full mb-4">
+              <Camera className="h-8 w-8 text-route66-primary" />
+            </div>
+            <h3 className="text-2xl font-bold mb-2 text-route66-text-primary">
+              {sectionContent.title}
+            </h3>
+            <p className="text-route66-text-secondary mb-6 max-w-md mx-auto">
+              {sectionContent.subtitle}
+            </p>
             
-            
-            
-            
-            {!showUpload ? <Button onClick={() => setShowUpload(true)} className="bg-route66-primary hover:bg-route66-primary/90 text-white px-8 py-3 text-lg">
+            {!showUpload ? (
+              <Button 
+                onClick={() => setShowUpload(true)}
+                className="bg-route66-primary hover:bg-route66-primary/90 text-white px-8 py-3 text-lg"
+              >
                 <Upload className="h-5 w-5 mr-2" />
                 {sectionContent.uploadPrompt}
-              </Button> : <div className="space-y-6">
-                <DragDropFileUpload onFileSelect={handleUpload} disabled={loading} />
+              </Button>
+            ) : (
+              <div className="space-y-6">
+                <DragDropFileUpload 
+                  onFileSelect={handleUpload}
+                  disabled={loading}
+                />
                 
                 {loading && <LoadingSpinner loading={loading} />}
                 
-                {status && <StatusAlert status={status} />}
+                {status && (
+                  <StatusAlert 
+                    status={status}
+                  />
+                )}
                 
-                {photoUrl && <UploadedImageDisplay photoUrl={photoUrl} isTrailblazer={isTrailblazer} onReplacePhoto={() => {
-              setShowUpload(false);
-              resetUpload();
-            }} />}
+                {photoUrl && (
+                  <UploadedImageDisplay 
+                    photoUrl={photoUrl}
+                    isTrailblazer={isTrailblazer}
+                    onReplacePhoto={() => {
+                      setShowUpload(false);
+                      resetUpload();
+                    }}
+                  />
+                )}
 
                 <div ref={resultsRef} />
 
-                {showTrailblazerCelebration && <TrailblazerCelebration isVisible={showTrailblazerCelebration} onClose={closeTrailblazerCelebration} locationName={selectedLocationName} />}
+                {showTrailblazerCelebration && (
+                  <TrailblazerCelebration 
+                    isVisible={showTrailblazerCelebration}
+                    onClose={closeTrailblazerCelebration}
+                    locationName={selectedLocationName}
+                  />
+                )}
 
-                <Button variant="outline" onClick={() => {
-              setShowUpload(false);
-              resetUpload();
-            }} className="border-route66-border text-route66-text-secondary hover:bg-route66-background">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setShowUpload(false);
+                    resetUpload();
+                  }}
+                  className="border-route66-border text-route66-text-secondary hover:bg-route66-background"
+                >
                   Upload Another Photo
                 </Button>
-              </div>}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Community Gallery */}
       <CommunityGallery language={language} />
-    </div>;
+    </div>
+  );
 };
+
 export default PhotoUploadSection;

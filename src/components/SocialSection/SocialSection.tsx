@@ -67,28 +67,28 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
   const content = socialContent[language as keyof typeof socialContent] || socialContent.en;
 
   return (
-    <section className="py-6 bg-route66-background-alt">
+    <section className="py-12 bg-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="max-w-6xl mx-auto mb-4">
-          <div className="bg-white rounded-lg border-2 border-route66-primary p-3 text-center">
-            <h2 className="text-lg md:text-xl font-bold uppercase text-route66-primary">
+        <div className="max-w-6xl mx-auto mb-8">
+          <div className="bg-white rounded-xl border-2 border-route66-primary p-4 text-center">
+            <h2 className="text-xl md:text-2xl font-bold uppercase text-route66-primary">
               Join the Photo Wall
             </h2>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {content.stats.map((stat, index) => (
-            <div key={index} className="text-center p-4 bg-white rounded-lg border-2 border-route66-border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-              <div className="text-route66-primary mb-2 flex justify-center">
-                <stat.icon className="w-6 h-6" />
+            <div key={index} className="text-center p-6 bg-white rounded-xl border-2 border-route66-border shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+              <div className="text-route66-primary mb-4 flex justify-center">
+                <stat.icon className="w-8 h-8" />
               </div>
-              <div className="text-2xl font-route66 font-bold text-route66-text-primary mb-1">
+              <div className="text-3xl font-route66 font-bold text-route66-text-primary mb-2">
                 {stat.number}
               </div>
-              <div className="text-route66-text-secondary font-medium text-sm">
+              <div className="text-route66-text-secondary font-medium">
                 {stat.label}
               </div>
             </div>
@@ -96,12 +96,12 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
         </div>
 
         {/* Photo Upload Section */}
-        <div className="mb-4">
+        <div className="mb-8">
           <PhotoUploadSection language={language} />
         </div>
 
         {/* Instagram Carousel */}
-        <div className="bg-white p-4 rounded-lg border-2 border-route66-border shadow-lg">
+        <div className="bg-white p-6 rounded-xl border-2 border-route66-border shadow-lg">
           <SimpleInstagramCarousel />
         </div>
       </div>
