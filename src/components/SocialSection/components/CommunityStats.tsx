@@ -3,18 +3,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, Camera, Trophy, MapPin } from 'lucide-react';
 import { TrailblazerService } from '@/services/trailblazerService';
-
 interface CommunityStatsProps {
   language: string;
 }
-
 interface StatsData {
   totalPhotos: number;
   totalTrailblazers: number;
   uniqueLocations: number;
   todayUploads: number;
 }
-
 const content = {
   en: {
     title: "Community Impact",
@@ -45,8 +42,9 @@ const content = {
     todayUploads: "Enviadas hoje"
   }
 };
-
-const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
+const CommunityStats: React.FC<CommunityStatsProps> = ({
+  language
+}) => {
   const [stats, setStats] = useState<StatsData>({
     totalPhotos: 0,
     totalTrailblazers: 0,
@@ -54,42 +52,39 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
     todayUploads: 0
   });
   const [loading, setLoading] = useState(true);
-
   const statsContent = content[language as keyof typeof content] || content.en;
-
   useEffect(() => {
     fetchCommunityStats();
   }, []);
-
   const fetchCommunityStats = async () => {
     try {
       // Get total photos count
-      const { count: totalPhotos } = await supabase
-        .from('photo_challenges')
-        .select('*', { count: 'exact', head: true })
-        .not('moderation_result', 'is', null);
+      const {
+        count: totalPhotos
+      } = await supabase.from('photo_challenges').select('*', {
+        count: 'exact',
+        head: true
+      }).not('moderation_result', 'is', null);
 
       // Get trailblazers count
       const trailblazerLeaderboard = await TrailblazerService.getTrailblazerLeaderboard(1000);
       const totalTrailblazers = trailblazerLeaderboard.length;
 
       // Get unique locations count
-      const { data: uniqueLocationsData } = await supabase
-        .from('photo_challenges')
-        .select('stop_id')
-        .not('moderation_result', 'is', null);
-
+      const {
+        data: uniqueLocationsData
+      } = await supabase.from('photo_challenges').select('stop_id').not('moderation_result', 'is', null);
       const uniqueLocations = new Set(uniqueLocationsData?.map(item => item.stop_id) || []).size;
 
       // Get today's uploads
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const { count: todayUploads } = await supabase
-        .from('photo_challenges')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', today.toISOString())
-        .not('moderation_result', 'is', null);
-
+      const {
+        count: todayUploads
+      } = await supabase.from('photo_challenges').select('*', {
+        count: 'exact',
+        head: true
+      }).gte('created_at', today.toISOString()).not('moderation_result', 'is', null);
       setStats({
         totalPhotos: totalPhotos || 0,
         totalTrailblazers,
@@ -102,68 +97,51 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
       setLoading(false);
     }
   };
-
   const formatNumber = (num: number) => {
     if (num >= 1000) {
       return `${(num / 1000).toFixed(1)}K`;
     }
     return num.toString();
   };
-
-  const statItems = [
-    {
-      icon: Camera,
-      value: stats.totalPhotos,
-      label: statsContent.totalPhotos,
-      color: 'text-route66-primary'
-    },
-    {
-      icon: Trophy,
-      value: stats.totalTrailblazers,
-      label: statsContent.totalTrailblazers,
-      color: 'text-route66-accent'
-    },
-    {
-      icon: MapPin,
-      value: stats.uniqueLocations,
-      label: statsContent.uniqueLocations,
-      color: 'text-blue-600'
-    },
-    {
-      icon: Users,
-      value: stats.todayUploads,
-      label: statsContent.todayUploads,
-      color: 'text-green-600'
-    }
-  ];
-
+  const statItems = [{
+    icon: Camera,
+    value: stats.totalPhotos,
+    label: statsContent.totalPhotos,
+    color: 'text-route66-primary'
+  }, {
+    icon: Trophy,
+    value: stats.totalTrailblazers,
+    label: statsContent.totalTrailblazers,
+    color: 'text-route66-accent'
+  }, {
+    icon: MapPin,
+    value: stats.uniqueLocations,
+    label: statsContent.uniqueLocations,
+    color: 'text-blue-600'
+  }, {
+    icon: Users,
+    value: stats.todayUploads,
+    label: statsContent.todayUploads,
+    color: 'text-green-600'
+  }];
   if (loading) {
-    return (
-      <Card className="border-route66-border">
+    return <Card className="border-route66-border">
         <CardContent className="p-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="text-center">
+            {[...Array(4)].map((_, i) => <div key={i} className="text-center">
                 <div className="w-10 h-10 bg-gray-200 rounded-full mx-auto mb-2 animate-pulse"></div>
                 <div className="h-5 bg-gray-200 rounded mx-auto mb-1 animate-pulse"></div>
                 <div className="h-3 bg-gray-200 rounded mx-auto animate-pulse"></div>
-              </div>
-            ))}
+              </div>)}
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <Card className="border-route66-border bg-gradient-to-r from-route66-background to-route66-background-alt">
+  return <Card className="border-route66-border bg-gradient-to-r from-route66-background to-route66-background-alt">
       <CardContent className="p-3">
-        <h3 className="text-base font-semibold text-route66-text-primary text-center mb-3">
-          {statsContent.title}
-        </h3>
+        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {statItems.map((item, index) => (
-            <div key={index} className="text-center">
+          {statItems.map((item, index) => <div key={index} className="text-center">
               <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm mb-1 ${item.color}`}>
                 <item.icon className="h-4 w-4" />
               </div>
@@ -173,12 +151,9 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({ language }) => {
               <div className="text-xs text-route66-text-secondary">
                 {item.label}
               </div>
-            </div>
-          ))}
+            </div>)}
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default CommunityStats;
