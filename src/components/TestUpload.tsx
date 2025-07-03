@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Camera, Route, Trophy } from 'lucide-react';
 import { useEnhancedPhotoUpload } from './TestUpload/hooks/useEnhancedPhotoUpload';
 import { DragDropFileUpload } from './TestUpload/components/DragDropFileUpload';
+import { PhotoUploadCounter } from './TestUpload/components/PhotoUploadCounter';
 import { StatusAlert } from './TestUpload/components/StatusAlert';
 import { LoadingSpinner } from './TestUpload/components/LoadingSpinner';
 import { ModerationResults } from './TestUpload/components/ModerationResults';
@@ -28,7 +29,11 @@ export default function TestUpload() {
     showTrailblazerCelebration,
     handleUpload,
     resetUpload,
-    closeTrailblazerCelebration
+    closeTrailblazerCelebration,
+    uploadCount,
+    maxPhotos,
+    canUploadMore,
+    resetSession
   } = useEnhancedPhotoUpload();
 
   const handleFileSelect = (file: File) => {
@@ -111,12 +116,35 @@ export default function TestUpload() {
             showDetails={true}
           />
 
-          {/* File Upload */}
-          {!photoUrl && (
+          {/* Upload Counter */}
+          <PhotoUploadCounter 
+            uploadCount={uploadCount}
+            maxPhotos={maxPhotos}
+            className="mb-4"
+          />
+
+          {/* File Upload - Show only if can upload more and no current photo */}
+          {!photoUrl && canUploadMore && (
             <DragDropFileUpload
               onFileSelect={handleFileSelect}
-              disabled={loading}
+              disabled={loading || !canUploadMore}
             />
+          )}
+
+          {/* Upload limit reached message */}
+          {!photoUrl && !canUploadMore && (
+            <div className="text-center p-8 border-2 border-dashed border-red-300 rounded-lg bg-red-50">
+              <div className="flex justify-center mb-4">
+                <Camera className="h-8 w-8 text-red-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-red-800">Upload Limit Reached</h3>
+              <p className="text-red-700 mb-4">
+                You've reached the limit of {maxPhotos} photos. Please choose your best shots!
+              </p>
+              <p className="text-sm text-red-600">
+                Want to upload more? Refresh the page to start a new session.
+              </p>
+            </div>
           )}
 
           <StatusAlert status={status} />
@@ -130,6 +158,9 @@ export default function TestUpload() {
         photoUrl={photoUrl} 
         onReplacePhoto={handleReplacePhoto}
         isTrailblazer={isTrailblazer}
+        canUploadMore={canUploadMore}
+        uploadCount={uploadCount}
+        maxPhotos={maxPhotos}
       />
 
       {/* Trailblazer Leaderboard */}

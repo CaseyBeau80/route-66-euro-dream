@@ -9,12 +9,18 @@ interface UploadedImageDisplayProps {
   photoUrl: string;
   onReplacePhoto: () => void;
   isTrailblazer?: boolean;
+  canUploadMore?: boolean;
+  uploadCount?: number;
+  maxPhotos?: number;
 }
 
 export const UploadedImageDisplay: React.FC<UploadedImageDisplayProps> = ({
   photoUrl,
   onReplacePhoto,
-  isTrailblazer = false
+  isTrailblazer = false,
+  canUploadMore = true,
+  uploadCount = 0,
+  maxPhotos = 5
 }) => {
   if (!photoUrl) return null;
 
@@ -106,14 +112,25 @@ export const UploadedImageDisplay: React.FC<UploadedImageDisplayProps> = ({
 
           {/* Action Button */}
           <div className="flex justify-center pt-4">
-            <Button
-              onClick={onReplacePhoto}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <Upload className="w-4 h-4" />
-              Upload Another Photo
-            </Button>
+            {canUploadMore ? (
+              <Button
+                onClick={onReplacePhoto}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Upload Another Photo
+              </Button>
+            ) : (
+              <div className="text-center space-y-2">
+                <p className="text-sm text-red-600 font-medium">
+                  Upload limit reached ({uploadCount}/{maxPhotos} photos)
+                </p>
+                <p className="text-xs text-gray-500">
+                  Refresh the page to start a new session
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

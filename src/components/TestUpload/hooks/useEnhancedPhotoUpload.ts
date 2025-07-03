@@ -1,6 +1,7 @@
 
 import { useState, useRef } from 'react';
 import { TrailblazerService } from '@/services/trailblazerService';
+import { usePhotoUploadSession } from './usePhotoUploadSession';
 
 interface ModerationResults {
   adult: string;
@@ -28,6 +29,16 @@ export const useEnhancedPhotoUpload = () => {
   const [isTrailblazer, setIsTrailblazer] = useState(false);
   const [showTrailblazerCelebration, setShowTrailblazerCelebration] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
+  
+  // Session management for upload limits
+  const {
+    uploadCount,
+    maxPhotos,
+    remainingUploads,
+    canUploadMore,
+    addPhoto,
+    resetSession
+  } = usePhotoUploadSession();
 
   const scrollToResults = () => {
     setTimeout(() => {
@@ -50,6 +61,16 @@ export const useEnhancedPhotoUpload = () => {
 
   const handleUpload = async (file: File, stopId: string = 'photo-spot'): Promise<EnhancedUploadResult> => {
     try {
+      // Check upload limit before processing
+      if (!canUploadMore) {
+        const limitMessage = "You've reached the limit of 5 photos. Please choose your best shots!";
+        setStatus(`🚫 ${limitMessage}`);
+        return {
+          success: false,
+          error: limitMessage
+        };
+      }
+
       setLoading(true);
       setStatus('📸 Processing your Route 66 photo...');
       setModerationResults(null);
@@ -120,6 +141,9 @@ export const useEnhancedPhotoUpload = () => {
         if (result.allowed) {
           setPhotoUrl(result.photoUrl);
           
+          // Add photo to session tracking
+          addPhoto(result.photoUrl);
+          
           const isNewTrailblazer = result.isTrailblazer || false;
           setIsTrailblazer(isNewTrailblazer);
           
@@ -188,6 +212,12 @@ export const useEnhancedPhotoUpload = () => {
     handleUpload,
     resetUpload,
     closeTrailblazerCelebration,
-    resultsRef
+    resultsRef,
+    // Session data for upload limits
+    uploadCount,
+    maxPhotos,
+    remainingUploads,
+    canUploadMore,
+    resetSession
   };
 };
