@@ -73,7 +73,7 @@ const SocialSection: React.FC<SocialSectionProps> = ({ language }) => {
         <div className="max-w-6xl mx-auto mb-16">
           <div className="bg-white rounded-2xl border-4 border-route66-primary p-6 text-center">
             <h2 className="text-2xl md:text-3xl font-bold uppercase text-route66-primary">
-              #RAMBLE66 — TAG US ON INSTAGRAM
+              Join the Photo Wall
             </h2>
           </div>
         </div>
