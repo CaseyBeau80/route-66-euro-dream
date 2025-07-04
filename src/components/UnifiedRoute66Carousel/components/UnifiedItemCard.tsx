@@ -59,7 +59,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
   const displayName = item.title || item.name;
 
   return (
-    <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 group border-route66-border hover:border-route66-primary/50 bg-route66-background hover:scale-[1.02]">
+    <Card className="h-full overflow-hidden hover:shadow-xl transition-all duration-300 border-3 border-route66-primary bg-white shadow-lg hover:border-route66-primary-dark">
       {/* Image Section */}
       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-route66-background-section to-route66-background-alt">
         {!imageError && (
@@ -159,28 +159,24 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mt-auto">
+        <div className="flex gap-4 mt-auto">
           {item.website && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-9 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm"
+            <button 
               onClick={handleWebsiteClick}
+              className="inline-flex items-center gap-1 text-route66-blue hover:text-route66-blue/80 text-sm font-medium cursor-pointer"
             >
-              <ExternalLink className="h-4 w-4 mr-1" />
+              <ExternalLink size={14} />
               Visit Website
-            </Button>
+            </button>
           )}
           {item.latitude && item.longitude && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-9 border-route66-primary/30 text-route66-primary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm font-medium"
+            <button
               onClick={handleMapClick}
+              className="inline-flex items-center gap-1 text-route66-primary hover:text-route66-primary/80 text-sm font-medium cursor-pointer"
             >
-              <MapPin className="h-4 w-4 mr-1" />
-              Map
-            </Button>
+              <MapPin size={14} />
+              View on Map
+            </button>
           )}
         </div>
       </CardContent>
