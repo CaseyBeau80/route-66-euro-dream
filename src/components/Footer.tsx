@@ -158,6 +158,23 @@ const Footer = ({ language }: FooterProps) => {
             </ul>
           </div>
           
+          {/* Contact */}
+          <div className="col-span-12 md:col-span-2">
+            <h3 className="font-bold mb-4 text-lg">Contact</h3>
+            <ul className="space-y-2">
+              <li>
+                <a href="https://www.ramble66.com" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
+                  www.ramble66.com
+                </a>
+              </li>
+              <li>
+                <a href="mailto:info@ramble66.com" className="text-white/70 hover:text-white transition-colors">
+                  info@ramble66.com
+                </a>
+              </li>
+            </ul>
+          </div>
+
           {/* Language */}
           <div className="col-span-12 md:col-span-2">
             <h3 className="font-bold mb-4 text-lg">{content.language}</h3>

@@ -14,6 +14,8 @@ import SharedTripPage from "./pages/SharedTripPage";
 
 import FunFactsPage from "./pages/FunFactsPage";
 import TriviaPage from "./pages/TriviaPage";
+import ContactPage from "./pages/ContactPage";
+import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import TestUploadPage from "./pages/test-upload";
 
@@ -44,6 +46,8 @@ function App() {
                   
                   <Route path="/fun-facts" element={<FunFactsPage />} />
                   <Route path="/trivia" element={<TriviaPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/about" element={<AboutPage />} />
                   <Route path="/test-upload" element={<TestUploadPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
