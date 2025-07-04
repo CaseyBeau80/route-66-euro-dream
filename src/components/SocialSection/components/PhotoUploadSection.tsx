@@ -3,17 +3,14 @@ import { Camera, Users, Trophy, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSocialPhotoUpload } from '../hooks/useSocialPhotoUpload';
-
 import { DragDropFileUpload } from '@/components/TestUpload/components/DragDropFileUpload';
 import { StatusAlert } from '@/components/TestUpload/components/StatusAlert';
 import { LoadingSpinner } from '@/components/TestUpload/components/LoadingSpinner';
 import { UploadedImageDisplay } from '@/components/TestUpload/components/UploadedImageDisplay';
 import TrailblazerCelebration from '@/components/TestUpload/components/TrailblazerCelebration';
-
 interface PhotoUploadSectionProps {
   language: string;
 }
-
 const content = {
   en: {
     title: "Share Your Adventure",
@@ -44,12 +41,12 @@ const content = {
     trailblazerTitle: "Torne-se um desbravador"
   }
 };
-
-const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => {
+const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
+  language
+}) => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedStopId] = useState('social-photo-spot');
   const [selectedLocationName] = useState('Route 66 Community');
-  
   const {
     status,
     loading,
@@ -63,11 +60,8 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
     closeTrailblazerCelebration,
     resultsRef
   } = useSocialPhotoUpload();
-
   const sectionContent = content[language as keyof typeof content] || content.en;
-
-  return (
-    <div className="space-y-8">
+  return <div className="space-y-8">
       {/* Photo Upload Call to Action */}
       <Card className="bg-gradient-to-r from-route66-primary/5 to-route66-accent/5 border-route66-border">
         <CardContent className="p-8">
@@ -75,76 +69,40 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
             <div className="inline-flex items-center justify-center w-16 h-16 bg-route66-primary/10 rounded-full mb-4">
               <Camera className="h-8 w-8 text-route66-primary" />
             </div>
-            <h3 className="text-2xl font-bold mb-2 text-route66-text-primary">
-              {sectionContent.title}
-            </h3>
-            <p className="text-route66-text-secondary mb-6 max-w-md mx-auto">
-              {sectionContent.subtitle}
-            </p>
             
-            {!showUpload ? (
-              <Button 
-                onClick={() => setShowUpload(true)}
-                className="bg-route66-primary hover:bg-route66-primary/90 text-white px-8 py-4 text-lg min-h-[50px] w-full sm:w-auto"
-              >
+            
+            
+            {!showUpload ? <Button onClick={() => setShowUpload(true)} className="bg-route66-primary hover:bg-route66-primary/90 text-white px-8 py-4 text-lg min-h-[50px] w-full sm:w-auto">
                 <Upload className="h-5 w-5 mr-2 flex-shrink-0" />
                 <span className="text-center">{sectionContent.uploadPrompt}</span>
-              </Button>
-            ) : (
-              <div className="space-y-6">
-                <DragDropFileUpload 
-                  onFileSelect={handleUpload}
-                  disabled={loading}
-                />
+              </Button> : <div className="space-y-6">
+                <DragDropFileUpload onFileSelect={handleUpload} disabled={loading} />
                 
                 {loading && <LoadingSpinner loading={loading} />}
                 
-                {status && (
-                  <StatusAlert 
-                    status={status}
-                  />
-                )}
+                {status && <StatusAlert status={status} />}
                 
-                {photoUrl && (
-                  <UploadedImageDisplay 
-                    photoUrl={photoUrl}
-                    isTrailblazer={isTrailblazer}
-                    onReplacePhoto={() => {
-                      setShowUpload(false);
-                      resetUpload();
-                    }}
-                  />
-                )}
+                {photoUrl && <UploadedImageDisplay photoUrl={photoUrl} isTrailblazer={isTrailblazer} onReplacePhoto={() => {
+              setShowUpload(false);
+              resetUpload();
+            }} />}
 
                 <div ref={resultsRef} />
 
-                {showTrailblazerCelebration && (
-                  <TrailblazerCelebration 
-                    isVisible={showTrailblazerCelebration}
-                    onClose={closeTrailblazerCelebration}
-                    locationName={selectedLocationName}
-                  />
-                )}
+                {showTrailblazerCelebration && <TrailblazerCelebration isVisible={showTrailblazerCelebration} onClose={closeTrailblazerCelebration} locationName={selectedLocationName} />}
 
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setShowUpload(false);
-                    resetUpload();
-                  }}
-                  className="border-route66-border text-route66-text-secondary hover:bg-route66-background min-h-[44px] w-full sm:w-auto px-6"
-                >
+                <Button variant="outline" onClick={() => {
+              setShowUpload(false);
+              resetUpload();
+            }} className="border-route66-border text-route66-text-secondary hover:bg-route66-background min-h-[44px] w-full sm:w-auto px-6">
                   Upload Another Photo
                 </Button>
-              </div>
-            )}
+              </div>}
           </div>
         </CardContent>
       </Card>
 
 
-    </div>
-  );
+    </div>;
 };
-
 export default PhotoUploadSection;
