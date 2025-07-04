@@ -55,12 +55,8 @@ const AttractionClickableCard: React.FC<AttractionClickableCardProps> = ({
     return { left, top, display: 'block' };
   }, [isVisible, position]);
 
-  // Extract website from description if available
-  const attractionWebsite = useMemo(() => {
-    const descriptionText = attraction.description || '';
-    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
-    return websiteMatch ? websiteMatch[0] : null;
-  }, [attraction.description]);
+  // Use direct website field from attraction data
+  const attractionWebsite = attraction.website || null;
 
   if (!isVisible) return null;
 
@@ -127,7 +123,7 @@ const AttractionClickableCard: React.FC<AttractionClickableCardProps> = ({
           {/* Website button */}
           {attractionWebsite && (
             <button
-              onClick={() => onWebsiteClick?.(attractionWebsite)}
+              onClick={() => window.open(attractionWebsite, '_blank', 'noopener,noreferrer')}
               className="w-full bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
             >
               <ExternalLink className="h-4 w-4" />

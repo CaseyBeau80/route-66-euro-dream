@@ -17,12 +17,8 @@ const AttractionHoverCard: React.FC<AttractionHoverCardProps> = ({
   onMouseEnter,
   onMouseLeave
 }) => {
-  // Extract website from description if available
-  const attractionWebsite = useMemo(() => {
-    const descriptionText = attraction.description || '';
-    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
-    return websiteMatch ? websiteMatch[0] : null;
-  }, [attraction.description]);
+  // Use direct website field from attraction data
+  const attractionWebsite = attraction.website || null;
 
   return (
     <Card 
@@ -90,16 +86,7 @@ const AttractionHoverCard: React.FC<AttractionHoverCardProps> = ({
         {attractionWebsite && (
           <div className="mb-4">
             <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🌐 Attraction website button clicked for:', attraction.name, 'URL:', attractionWebsite);
-                onWebsiteClick?.(attractionWebsite);
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
+              onClick={() => window.open(attractionWebsite, '_blank', 'noopener,noreferrer')}
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer pointer-events-auto"
             >
               <ExternalLink className="h-4 w-4" />

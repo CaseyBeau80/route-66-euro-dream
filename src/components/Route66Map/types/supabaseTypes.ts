@@ -10,6 +10,7 @@ export interface Route66Waypoint {
   highway_designation: string | null;
   description: string | null;
   city_name?: string; // Added city_name as optional property
+  website?: string; // Added website field for attractions
 }
 
 export interface SupabaseRoute66Props {

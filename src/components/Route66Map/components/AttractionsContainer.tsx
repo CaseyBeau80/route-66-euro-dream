@@ -183,6 +183,7 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
               description: attraction.description,
               state: attraction.state,
               city_name: attraction.city_name,
+              website: attraction.website, // Include website field
               // Add required Route66Waypoint properties with default values
               sequence_order: 0, // Attractions don't have a sequence order
               is_major_stop: false, // Attractions are not major stops by default
