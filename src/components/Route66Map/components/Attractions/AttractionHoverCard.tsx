@@ -17,8 +17,12 @@ const AttractionHoverCard: React.FC<AttractionHoverCardProps> = ({
   onMouseEnter,
   onMouseLeave
 }) => {
-  // Use direct website field from attraction data with type assertion
-  const attractionWebsite = (attraction as any).website || null;
+  // Extract website from description if available
+  const attractionWebsite = useMemo(() => {
+    const descriptionText = attraction.description || '';
+    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
+    return websiteMatch ? websiteMatch[0] : null;
+  }, [attraction.description]);
 
   return (
     <Card 
