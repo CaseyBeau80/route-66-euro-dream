@@ -60,12 +60,8 @@ const DriveInHoverCard: React.FC<DriveInHoverCardProps> = ({
     return { left, top, display: 'block' };
   }, [isVisible, position, attraction.name]);
 
-  // Check if attraction has website property
-  const attractionWebsite = useMemo(() => {
-    const descriptionText = attraction.description || '';
-    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
-    return websiteMatch ? websiteMatch[0] : null;
-  }, [attraction.description]);
+  // Use direct website field from attraction data with type assertion
+  const attractionWebsite = (attraction as any).website || null;
 
   if (!isVisible) return null;
 
