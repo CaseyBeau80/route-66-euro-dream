@@ -35,7 +35,7 @@ const ActionButtonsSection: React.FC<ActionButtonsSectionProps> = ({
         <Button
           onClick={onPlanTrip}
           disabled={!canPlan}
-          className={`w-full py-6 text-xl font-bold rounded-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+          className={`w-full min-h-[56px] py-4 md:py-6 text-lg md:text-xl font-bold rounded-lg flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
             canPlan
               ? 'bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white'
               : 'bg-gray-300 text-gray-500'
@@ -44,12 +44,12 @@ const ActionButtonsSection: React.FC<ActionButtonsSectionProps> = ({
           {isPlanning ? (
             <>
               <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
-              <span className="animate-pulse">Planning Your Route 66 Adventure...</span>
+              <span className="animate-pulse text-center">Planning Your Route 66 Adventure...</span>
             </>
           ) : (
             <>
-              <MapPin className="h-6 w-6" />
-              <span>Plan My Route 66 Adventure</span>
+              <MapPin className="h-5 w-5 md:h-6 md:w-6 flex-shrink-0" />
+              <span className="text-center">Plan My Route 66 Adventure</span>
             </>
           )}
         </Button>
@@ -74,9 +74,9 @@ const ActionButtonsSection: React.FC<ActionButtonsSectionProps> = ({
       <Button
         onClick={onResetTrip}
         variant="outline"
-        className="w-full py-3 text-lg font-medium border-2 border-route66-border hover:bg-route66-background-alt transition-colors duration-200"
+        className="w-full min-h-[44px] py-3 text-lg font-medium border-2 border-route66-border hover:bg-route66-background-alt transition-colors duration-200"
       >
-        <RotateCcw className="h-5 w-5 mr-2" />
+        <RotateCcw className="h-5 w-5 mr-2 flex-shrink-0" />
         Reset Trip
       </Button>
 
