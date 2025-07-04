@@ -12,19 +12,19 @@ export const DragDropFileUpload = ({
   onFileSelect,
   disabled
 }: DragDropFileUploadProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [dragError, setDragError] = useState<string | null>(null);
   const validateFile = (file: File): {
     valid: boolean;
     error?: string;
   } => {
-    // Check file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedTypes.includes(file.type)) {
+    // Check file type - accept all image types for mobile compatibility
+    if (!file.type.startsWith('image/')) {
       return {
         valid: false,
-        error: 'Only JPG and PNG files are allowed'
+        error: 'Only image files are allowed'
       };
     }
 
@@ -56,8 +56,12 @@ export const DragDropFileUpload = ({
       handleFile(file);
     }
   };
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
+  const handleCameraClick = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const handleGalleryClick = () => {
+    galleryInputRef.current?.click();
   };
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -116,22 +120,44 @@ export const DragDropFileUpload = ({
           </div>}
 
         <div className={cn("transition-opacity duration-200", (isDragOver || dragError) && "opacity-30")}>
+          {/* Mobile-friendly buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+            <Button onClick={handleCameraClick} disabled={disabled} className="bg-route66-primary hover:bg-route66-primary-dark text-white min-h-[50px] flex-1 sm:flex-none">
+              <Camera className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Take Photo</span>
+              <span className="sm:hidden">Camera</span>
+            </Button>
+            
+            <Button onClick={handleGalleryClick} disabled={disabled} variant="outline" className="border-route66-border text-route66-text-secondary hover:bg-route66-background min-h-[50px] flex-1 sm:flex-none">
+              <Upload className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Choose from Gallery</span>
+              <span className="sm:hidden">Gallery</span>
+            </Button>
+          </div>
           
+          {/* Hidden camera input */}
+          <Input 
+            ref={cameraInputRef} 
+            type="file" 
+            accept="image/*" 
+            capture="environment"
+            onChange={handleFileChange} 
+            disabled={disabled} 
+            className="hidden" 
+          />
           
-          
-          
-          
-          {!disabled}
-          
-          <Button onClick={handleButtonClick} disabled={disabled} className="mb-4 bg-route66-primary hover:bg-route66-primary-dark text-white" variant={isDragOver ? "default" : "default"}>
-            <Upload className="h-4 w-4 mr-2" />
-            Choose Photo
-          </Button>
-          
-          <Input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/jpg" onChange={handleFileChange} disabled={disabled} className="hidden" />
+          {/* Hidden gallery input */}
+          <Input 
+            ref={galleryInputRef} 
+            type="file" 
+            accept="image/*"
+            onChange={handleFileChange} 
+            disabled={disabled} 
+            className="hidden" 
+          />
           
           <p className="text-xs text-muted-foreground">
-            Accepted formats: JPG, PNG • Maximum size: 50MB
+            Take a photo or choose from gallery • Maximum size: 50MB
           </p>
         </div>
       </div>
