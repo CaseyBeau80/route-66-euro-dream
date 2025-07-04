@@ -13,6 +13,13 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
+  // Debug logging
+  console.log(`🔍 Card for ${item.name}:`, {
+    hasWebsite: !!item.website,
+    website: item.website,
+    hasCoords: !!(item.latitude && item.longitude)
+  });
+
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case 'attractions': return 'Historic Attraction';
