@@ -55,12 +55,8 @@ const AttractionClickableCard: React.FC<AttractionClickableCardProps> = ({
     return { left, top, display: 'block' };
   }, [isVisible, position]);
 
-  // Extract website from description if available
-  const attractionWebsite = useMemo(() => {
-    const descriptionText = attraction.description || '';
-    const websiteMatch = descriptionText.match(/https?:\/\/[^\s]+/);
-    return websiteMatch ? websiteMatch[0] : null;
-  }, [attraction.description]);
+  // Use direct website field from attraction data with type assertion
+  const attractionWebsite = (attraction as any).website || null;
 
   if (!isVisible) return null;
 
