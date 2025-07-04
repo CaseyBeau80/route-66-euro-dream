@@ -18,28 +18,28 @@ const content = {
   en: {
     title: "Share Your Adventure",
     subtitle: "Upload photos from your Route 66 journey",
-    uploadPrompt: "Capture and share your Route 66 moments",
+    uploadPrompt: "Post Your 66 Pic",
     galleryTitle: "Community Gallery",
     trailblazerTitle: "Become a Trailblazer"
   },
   de: {
     title: "Teilen Sie Ihr Abenteuer",
     subtitle: "Laden Sie Fotos von Ihrer Route 66 Reise hoch",
-    uploadPrompt: "Erfassen und teilen Sie Ihre Route 66 Momente",
+    uploadPrompt: "Post Your 66 Pic",
     galleryTitle: "Gemeinschaftsgalerie",
     trailblazerTitle: "Werden Sie ein Wegbereiter"
   },
   fr: {
     title: "Partagez votre aventure",
     subtitle: "Téléchargez des photos de votre voyage sur la Route 66",
-    uploadPrompt: "Capturez et partagez vos moments Route 66",
+    uploadPrompt: "Post Your 66 Pic",
     galleryTitle: "Galerie communautaire",
     trailblazerTitle: "Devenez un pionnier"
   },
   'pt-BR': {
     title: "Compartilhe sua aventura",
     subtitle: "Envie fotos da sua jornada pela Rota 66",
-    uploadPrompt: "Capture e compartilhe seus momentos da Rota 66",
+    uploadPrompt: "Post Your 66 Pic",
     galleryTitle: "Galeria da comunidade",
     trailblazerTitle: "Torne-se um desbravador"
   }
