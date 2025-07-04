@@ -85,10 +85,10 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
             {!showUpload ? (
               <Button 
                 onClick={() => setShowUpload(true)}
-                className="bg-route66-primary hover:bg-route66-primary/90 text-white px-8 py-3 text-lg"
+                className="bg-route66-primary hover:bg-route66-primary/90 text-white px-8 py-4 text-lg min-h-[50px] w-full sm:w-auto"
               >
-                <Upload className="h-5 w-5 mr-2" />
-                {sectionContent.uploadPrompt}
+                <Upload className="h-5 w-5 mr-2 flex-shrink-0" />
+                <span className="text-center">{sectionContent.uploadPrompt}</span>
               </Button>
             ) : (
               <div className="space-y-6">
@@ -132,7 +132,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ language }) => 
                     setShowUpload(false);
                     resetUpload();
                   }}
-                  className="border-route66-border text-route66-text-secondary hover:bg-route66-background"
+                  className="border-route66-border text-route66-text-secondary hover:bg-route66-background min-h-[44px] w-full sm:w-auto px-6"
                 >
                   Upload Another Photo
                 </Button>
