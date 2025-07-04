@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ExternalLink, MapPin, Calendar, ImageIcon, Tag } from 'lucide-react';
+import { ExternalLink, MapPin, Calendar, ImageIcon, Tag, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UnifiedRoute66Item } from '../types';
@@ -59,9 +59,34 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
   const displayName = item.title || item.name;
 
   return (
-    <Card className="h-full overflow-hidden hover:shadow-xl transition-all duration-300 border-3 border-route66-primary bg-white shadow-lg hover:border-route66-primary-dark">
+    <Card className="h-full overflow-hidden border-3 border-blue-600 bg-gradient-to-br from-blue-50 via-white to-blue-100 shadow-2xl relative">
+      {/* Vintage Route 66 decorative border */}
+      <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-red-600 via-white via-blue-600 to-red-600"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-red-600 via-white via-blue-600 to-red-600"></div>
+      
+      {/* Side decorative elements */}
+      <div className="absolute left-0 top-0 bottom-0 w-2 bg-blue-600"></div>
+      <div className="absolute right-0 top-0 bottom-0 w-2 bg-blue-600"></div>
+
+      {/* Header with vintage styling */}
+      <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-800 text-white px-6 py-4 mt-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center border-2 border-blue-200 shadow-sm">
+            <Star className="h-4 w-4 text-blue-800" fill="currentColor" />
+          </div>
+          <div className="flex-1">
+            <span className="text-sm font-bold tracking-wider uppercase text-blue-100">Route 66 Attraction</span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold uppercase tracking-wide">
+                Historic Stop
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Image Section */}
-      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-route66-background-section to-route66-background-alt">
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-50 to-white">
         {!imageError && (
           <img
             src={imageUrl}
@@ -80,104 +105,84 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
         
         {/* Loading/Error Fallback */}
         {(!imageLoaded || imageError) && (
-          <div className="absolute inset-0 bg-gradient-to-br from-route66-background-section via-route66-background-alt to-route66-background flex flex-col items-center justify-center text-route66-text-muted border-2 border-dashed border-route66-divider">
-            <div className="bg-route66-background rounded-full p-3 mb-2 shadow-sm">
-              <ImageIcon className="h-8 w-8 opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-100 flex flex-col items-center justify-center text-blue-800 border-2 border-dashed border-blue-300">
+            <div className="bg-white rounded-full p-3 mb-2 shadow-sm border-2 border-blue-200">
+              <ImageIcon className="h-8 w-8 text-blue-600" />
             </div>
             <span className="text-sm font-medium text-center px-4">
               {imageError ? 'Image not available' : 'Loading image...'}
             </span>
-            <span className="text-xs text-route66-text-muted mt-1 opacity-75">
+            <span className="text-xs text-blue-600 mt-1 opacity-75">
               Route 66 {getCategoryLabel(item.category)}
             </span>
           </div>
         )}
 
-        {/* Category Badge */}
-        <div className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${getCategoryColor(item.category)}`}>
-          {getCategoryLabel(item.category)}
-        </div>
-
-        {/* Featured Badge */}
-        {item.featured && (
-          <div className="absolute top-3 right-3 bg-route66-accent-gold text-white px-2 py-1 rounded-full text-xs font-medium border border-route66-accent-gold/20 backdrop-blur-sm">
-            Featured
-          </div>
-        )}
       </div>
 
-      <CardContent className="p-5 flex-1 flex flex-col">
-        {/* Title */}
-        <h3 className="font-semibold text-lg text-route66-text-primary mb-2 line-clamp-2 group-hover:text-route66-primary transition-colors">
-          {displayName}
-        </h3>
-
-        {/* Location */}
-        <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-3">
-          <MapPin className="h-4 w-4 flex-shrink-0" />
-          <span className="truncate">{item.city_name}{item.state && `, ${item.state}`}</span>
-        </div>
-
-        {/* Description */}
-        {item.description && (
-          <p className="text-sm text-route66-text-muted mb-4 line-clamp-3 flex-1">
-            {item.description}
-          </p>
-        )}
-
-        {/* Year Info */}
-        {(item.founded_year || item.year_opened) && (
-          <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-4">
-            <Calendar className="h-4 w-4 flex-shrink-0" />
-            <span>
-              {item.founded_year ? `Founded ${item.founded_year}` : `Opened ${item.year_opened}`}
+      <CardContent className="p-6 pb-3">
+        {/* Enhanced title with better typography */}
+        <div className="text-center mb-4">
+          <h3 className="font-black text-xl text-blue-900 leading-tight mb-2 break-words">
+            {displayName}
+          </h3>
+          
+          {/* Location with enhanced styling */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <MapPin className="h-4 w-4 text-blue-700" />
+            <span className="bg-blue-800 text-blue-100 px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide shadow-lg">
+              {item.state || 'Route 66'}
             </span>
           </div>
-        )}
-
-        {/* Tags */}
-        {item.tags && item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            <div className="flex items-center gap-1 text-xs text-route66-text-muted">
-              <Tag className="h-3 w-3" />
-              <span>Tags:</span>
-            </div>
-            {item.tags.slice(0, 3).map((tag, index) => (
-              <span
-                key={index}
-                className="bg-route66-background-section text-route66-text-muted px-2 py-1 rounded text-xs border border-route66-divider"
-              >
-                {tag}
-              </span>
-            ))}
-            {item.tags.length > 3 && (
-              <span className="text-xs text-route66-text-muted">
-                +{item.tags.length - 3} more
-              </span>
-            )}
+        </div>
+        
+        {/* Description with improved styling */}
+        {item.description && (
+          <div className="bg-gradient-to-br from-blue-50 to-white border-2 border-dashed border-blue-300 rounded-lg p-4 mb-4 shadow-inner">
+            <p className="text-sm text-blue-800 leading-relaxed font-medium text-center break-words">
+              {item.description.length > 100 
+                ? `${item.description.substring(0, 100)}...` 
+                : item.description
+              }
+            </p>
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-4 mt-auto">
-          {item.website && (
-            <button 
-              onClick={handleWebsiteClick}
-              className="inline-flex items-center gap-1 text-route66-blue hover:text-route66-blue/80 text-sm font-medium cursor-pointer"
+        {/* Website button - fully interactive */}
+        {item.website && (
+          <div className="mb-4">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🌐 Website button clicked for:', displayName, 'URL:', item.website);
+                handleWebsiteClick();
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
             >
-              <ExternalLink size={14} />
+              <ExternalLink className="h-4 w-4" />
               Visit Website
             </button>
-          )}
-          {item.latitude && item.longitude && (
-            <button
-              onClick={handleMapClick}
-              className="inline-flex items-center gap-1 text-route66-primary hover:text-route66-primary/80 text-sm font-medium cursor-pointer"
-            >
-              <MapPin size={14} />
-              View on Map
-            </button>
-          )}
+          </div>
+        )}
+        
+        {/* Enhanced footer with vintage Route 66 styling */}
+        <div className="bg-gradient-to-r from-red-700 via-red-600 to-red-700 text-white px-4 py-3 -mx-6 -mb-3 rounded-b-lg border-t-2 border-blue-600">
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center border-2 border-red-200 shadow-sm">
+              <span className="text-xs font-black text-red-700">66</span>
+            </div>
+            <span className="text-sm font-bold uppercase tracking-wider text-center">
+              America's Main Street
+            </span>
+            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center border-2 border-red-200 shadow-sm">
+              <span className="text-xs font-black text-red-700">66</span>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
