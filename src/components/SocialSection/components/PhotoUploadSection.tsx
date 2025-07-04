@@ -64,16 +64,10 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   return <div className="space-y-8">
       {/* Photo Upload Call to Action */}
       <Card className="bg-gradient-to-r from-route66-primary/5 to-route66-accent/5 border-route66-border">
-        <CardContent className="p-8">
+        <CardContent className="p-4">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-route66-primary/10 rounded-full mb-4">
-              <Camera className="h-8 w-8 text-route66-primary" />
-            </div>
-            
-            
-            
             {!showUpload ? <Button onClick={() => setShowUpload(true)} className="bg-route66-primary hover:bg-route66-primary/90 text-white px-8 py-4 text-lg min-h-[50px] w-full sm:w-auto">
-                <Upload className="h-5 w-5 mr-2 flex-shrink-0" />
+                <Camera className="h-5 w-5 mr-2 flex-shrink-0" />
                 <span className="text-center">{sectionContent.uploadPrompt}</span>
               </Button> : <div className="space-y-6">
                 <DragDropFileUpload onFileSelect={handleUpload} disabled={loading} />
