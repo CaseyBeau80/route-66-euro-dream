@@ -1,5 +1,6 @@
 
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import LogoImage from "./shared/LogoImage";
 
 type FooterProps = {
   language: string;
@@ -88,16 +89,15 @@ const Footer = ({ language }: FooterProps) => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Logo & Description */}
-          <div className="col-span-12 md:col-span-4">
+          <div className="col-span-12 md:col-span-6">
             <div className="flex items-center mb-4">
-              <div className="mr-2">
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                  <div className="w-8 h-8 bg-route66-red rounded-full flex items-center justify-center">
-                    <span className="font-route66 text-white text-xs">66</span>
-                  </div>
-                </div>
+              <div className="mr-3">
+                <LogoImage 
+                  className="w-10 h-10"
+                  alt="Ramble Route 66 Logo"
+                />
               </div>
-              <span className="font-route66 text-2xl text-white">ROUTE 66</span>
+              <span className="font-route66 text-2xl text-white">RAMBLE 66</span>
             </div>
             <p className="text-white/80 mb-6 max-w-md">
               {content.description}
@@ -118,48 +118,8 @@ const Footer = ({ language }: FooterProps) => {
             </div>
           </div>
           
-          {/* Links */}
-          <div className="col-span-12 md:col-span-2">
-            <h3 className="font-bold mb-4 text-lg">{content.company.title}</h3>
-            <ul className="space-y-2">
-              {content.company.links.map((link, index) => (
-                <li key={index}>
-                  <a href="#" className="text-white/70 hover:text-white transition-colors">
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div className="col-span-12 md:col-span-2">
-            <h3 className="font-bold mb-4 text-lg">{content.resources.title}</h3>
-            <ul className="space-y-2">
-              {content.resources.links.map((link, index) => (
-                <li key={index}>
-                  <a href="#" className="text-white/70 hover:text-white transition-colors">
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          <div className="col-span-12 md:col-span-2">
-            <h3 className="font-bold mb-4 text-lg">{content.business.title}</h3>
-            <ul className="space-y-2">
-              {content.business.links.map((link, index) => (
-                <li key={index}>
-                  <a href="#" className="text-white/70 hover:text-white transition-colors">
-                    {link}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
           {/* Contact */}
-          <div className="col-span-12 md:col-span-2">
+          <div className="col-span-12 md:col-span-3">
             <h3 className="font-bold mb-4 text-lg">Contact</h3>
             <ul className="space-y-2">
               <li>
@@ -176,7 +136,7 @@ const Footer = ({ language }: FooterProps) => {
           </div>
 
           {/* Language */}
-          <div className="col-span-12 md:col-span-2">
+          <div className="col-span-12 md:col-span-3">
             <h3 className="font-bold mb-4 text-lg">{content.language}</h3>
             <ul className="space-y-2">
               <li>
