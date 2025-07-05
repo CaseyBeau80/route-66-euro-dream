@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
-import TripDetailsPage from "./pages/TripDetailsPage";
+import TripDetailsPage from "./pages/TripDetailsPage/index";
 import SharedTripPage from "./pages/SharedTripPage";
 
 
