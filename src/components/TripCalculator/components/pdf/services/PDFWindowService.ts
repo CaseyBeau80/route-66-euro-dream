@@ -157,22 +157,44 @@ export class PDFWindowService {
             </div>
           ` : ''}
 
-          ${segment.attractions && segment.attractions.length > 0 ? `
+          ${(segment.attractions && segment.attractions.length > 0) || 
+            (segment.stops && segment.stops.length > 0) || 
+            (segment.recommendedStops && segment.recommendedStops.length > 0) ? `
             <div class="attractions-section">
               <h4 class="attractions-title">📍 Recommended Stops</h4>
               <div class="attractions-grid">
-                ${segment.attractions.map((attraction: any) => 
-                  `<div class="attraction-item">
-                     <span class="attraction-icon">🎯</span>
-                     <span class="attraction-name">${attraction.name}</span>
-                   </div>`
-                ).join('')}
+                ${(() => {
+                  // Check all possible attraction/stop properties
+                  const allStops = [
+                    ...(segment.attractions || []),
+                    ...(segment.stops || []),
+                    ...(segment.recommendedStops || [])
+                  ];
+                  
+                  // Remove duplicates based on name
+                  const uniqueStops = allStops.reduce((acc, stop) => {
+                    const name = stop.name || stop.title || stop.attraction || 'Unnamed Stop';
+                    if (!acc.find(existing => existing.name === name)) {
+                      acc.push({ name, ...stop });
+                    }
+                    return acc;
+                  }, []);
+                  
+                  return uniqueStops.map(stop => 
+                    `<div class="attraction-item">
+                       <span class="attraction-icon">🎯</span>
+                       <span class="attraction-name">${stop.name || stop.title || stop.attraction || 'Unnamed Stop'}</span>
+                     </div>`
+                  ).join('');
+                })()}
               </div>
-              ${segment.attractions.length === 0 ? `
-                <p class="no-attractions">No attractions found for ${segment.endCity}. Explore the area when you arrive!</p>
-              ` : ''}
             </div>
-          ` : ''}
+          ` : `
+            <div class="attractions-section">
+              <h4 class="attractions-title">📍 Recommended Stops</h4>
+              <p class="no-attractions">No specific attractions listed for ${segment.endCity}. Explore the area when you arrive!</p>
+            </div>
+          `}
         </div>
       `;
     }).join('') || '';
