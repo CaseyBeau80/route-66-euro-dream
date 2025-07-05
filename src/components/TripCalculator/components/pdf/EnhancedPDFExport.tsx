@@ -1,14 +1,12 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
-import { Settings, X } from 'lucide-react';
+import { Settings, X, Printer } from 'lucide-react';
 import { TripPlan } from '../../services/planning/TripPlanBuilder';
 import { usePDFExportOptions } from '../../hooks/usePDFExportOptions';
-import { usePDFExport } from './hooks/usePDFExport';
-import { usePDFKeyboardHandlers } from './hooks/usePDFKeyboardHandlers';
-import PDFExportOptionsForm from './components/PDFExportOptionsForm';
-import PDFPreviewContainer from './PDFPreviewContainer';
+import { PDFWindowService } from './services/PDFWindowService';
+import { toast } from '@/hooks/use-toast';
 
 interface EnhancedPDFExportProps {
   tripPlan: TripPlan;
@@ -26,84 +24,62 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   onClose
 }) => {
   const { exportOptions, updateExportOption } = usePDFExportOptions();
-  
-  const {
-    isExporting,
-    showPreview,
-    previewTripPlan,
-    weatherLoading,
-    handleClosePreview,
-    handleExportPDF
-  } = usePDFExport({
-    tripPlan,
-    tripStartDate,
-    shareUrl,
-    exportOptions,
-    onClose
-  });
-
-  usePDFKeyboardHandlers({
-    showPreview,
-    onClosePreview: handleClosePreview
-  });
+  const [isExporting, setIsExporting] = useState(false);
 
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
-  console.log('📄 EnhancedPDFExport render state:', {
-    isOpen,
-    showPreview,
-    hasPreviewTripPlan: !!previewTripPlan,
-    isTripComplete,
-    isExporting
-  });
+  // Cleanup PDF window on unmount
+  useEffect(() => {
+    return () => {
+      PDFWindowService.cleanup();
+    };
+  }, []);
 
-  // Handle printing from preview
-  const handlePrintFromPreview = () => {
-    console.log('🖨️ Print button clicked from Enhanced PDF preview');
-    window.print();
+  const handleExportPDF = async () => {
+    if (!isTripComplete) {
+      toast({
+        title: "Cannot Export PDF",
+        description: "Please create a trip plan first before exporting to PDF.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('🖨️ Starting PDF export to new window');
+    setIsExporting(true);
+
+    try {
+      await PDFWindowService.openPrintWindow(
+        tripPlan,
+        tripStartDate,
+        exportOptions,
+        shareUrl
+      );
+      
+      toast({
+        title: "PDF Opened",
+        description: "Your trip plan has been opened in a new window for printing.",
+        variant: "default"
+      });
+      
+      // Close the modal after successful export
+      onClose();
+      
+    } catch (error) {
+      console.error('❌ Error opening PDF window:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to open PDF window. Please check your popup blocker settings.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  // CRITICAL: Show preview when showPreview is true
-  if (showPreview) {
-    console.log('📄 Rendering Enhanced PDF preview container');
-    
-    const tripPlanToRender = previewTripPlan || tripPlan;
-    
-    if (!tripPlanToRender) {
-      console.error('❌ No trip plan available for Enhanced PDF preview');
-      return (
-        <div className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg max-w-md mx-4">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-red-600 mb-2">Preview Error</h3>
-              <p className="text-gray-700 mb-4">No trip plan available for preview. Please try again.</p>
-              <Button onClick={handleClosePreview} className="w-full">Close</Button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    return (
-      <PDFPreviewContainer
-        tripPlan={tripPlanToRender}
-        tripStartDate={tripStartDate}
-        exportOptions={exportOptions}
-        shareUrl={shareUrl}
-        weatherTimeout={false}
-        onClose={handleClosePreview}
-        onPrint={handlePrintFromPreview}
-      />
-    );
-  }
-
-  // Only show modal form if NOT in preview mode AND modal should be open
   if (!isOpen) {
-    console.log('📄 Enhanced PDF modal not open, returning null');
     return null;
   }
-
-  console.log('📄 Rendering Enhanced PDF export form modal');
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -114,8 +90,8 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       >
         <DialogHeader>
           <DialogTitle id="enhanced-pdf-export-title" className="flex items-center gap-2 text-route66-primary font-semibold text-base sm:text-lg font-route66">
-            <Settings className="w-5 h-5" />
-            Enhanced PDF Export Options
+            <Printer className="w-5 h-5" />
+            Print Trip Plan
           </DialogTitle>
         </DialogHeader>
 
@@ -132,21 +108,23 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
             </div>
           </div>
         ) : (
-          <>
-            <PDFExportOptionsForm
-              exportOptions={exportOptions}
-              updateExportOption={updateExportOption}
-              weatherLoading={weatherLoading}
-            />
+          <div className="space-y-4">
+            <div className="text-center text-gray-600">
+              <p className="text-sm">
+                This will open your trip plan in a new window optimized for printing.
+                You can then save it as a PDF using your browser's print dialog.
+              </p>
+            </div>
 
             <Button
               onClick={handleExportPDF}
               disabled={isExporting || !isTripComplete}
-              className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-2 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66"
+              className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-3 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66 flex items-center justify-center gap-2"
             >
-              {isExporting ? 'Preparing Enhanced PDF...' : 'Export Enhanced PDF with Preview'}
+              <Printer className="w-4 h-4" />
+              {isExporting ? 'Opening Print Window...' : 'Open Print Window'}
             </Button>
-          </>
+          </div>
         )}
       </DialogContent>
     </Dialog>
