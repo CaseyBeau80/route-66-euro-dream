@@ -44,14 +44,17 @@ export class PDFWindowService {
         }
       }
 
-      // Create new window with proper dimensions
+      // Create new window with proper configuration
       this.pdfWindow = window.open('', '_blank', 
-        'width=1200,height=800,scrollbars=yes,resizable=yes'
+        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no'
       );
 
       if (!this.pdfWindow) {
         throw new Error('Failed to open new window. Please check popup blocker settings.');
       }
+
+      // Set a proper title for the window
+      this.pdfWindow.document.title = `${enrichedTripPlan.segments?.[0]?.startCity || 'Chicago'} to ${enrichedTripPlan.segments?.[enrichedTripPlan.segments.length - 1]?.endCity || 'Los Angeles'} - Route 66 Trip Plan`;
 
       // Generate HTML content for the PDF with enriched data
       const htmlContent = this.generatePrintHTML(enrichedTripPlan, tripStartDate, exportOptions, shareUrl);
@@ -60,10 +63,11 @@ export class PDFWindowService {
       this.pdfWindow.document.write(htmlContent);
       this.pdfWindow.document.close();
 
-      // Wait for content to load, then print
+      // Wait for content to load, then focus and print
       this.pdfWindow.onload = () => {
         setTimeout(() => {
           if (this.pdfWindow && !this.pdfWindow.closed) {
+            this.pdfWindow.focus(); // Focus the window
             console.log('🖨️ Triggering print dialog in new window');
             this.pdfWindow.print();
             
@@ -74,7 +78,7 @@ export class PDFWindowService {
               }
             }, 1000);
           }
-        }, 500);
+        }, 800); // Slightly longer delay to ensure everything loads
       };
 
     } catch (error) {
@@ -561,23 +565,23 @@ export class PDFWindowService {
           
           @media print {
             body {
-              background: white;
+              background: white !important;
             }
             
             .container {
-              box-shadow: none;
+              box-shadow: none !important;
             }
             
             .hero-header {
               background: #4f46e5 !important;
-              -webkit-print-color-adjust: exact;
-              color-adjust: exact;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
             }
             
             .day-header {
               background: #3b82f6 !important;
-              -webkit-print-color-adjust: exact;
-              color-adjust: exact;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
             }
             
             .day-card {
@@ -590,8 +594,19 @@ export class PDFWindowService {
             }
             
             .weather-section, .attractions-section {
-              -webkit-print-color-adjust: exact;
-              color-adjust: exact;
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            
+            /* Hide any browser UI elements */
+            @page {
+              margin: 0.75in;
+              size: letter;
+            }
+            
+            /* Ensure no page URLs show up */
+            body::after {
+              content: "";
             }
           }
           
