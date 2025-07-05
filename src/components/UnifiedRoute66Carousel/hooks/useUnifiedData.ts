@@ -19,7 +19,7 @@ export const useUnifiedData = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching unified Route 66 data with standardized schema...');
+      // Fetching unified Route 66 data with standardized schema
 
       // Fetch all three data types in parallel
       const [attractionsResult, driveInsResult, hiddenGemsResult] = await Promise.all([
@@ -32,7 +32,7 @@ export const useUnifiedData = () => {
 
       // Process attractions with standardized schema
       if (attractionsResult.data) {
-        console.log(`🎯 Processing ${attractionsResult.data.length} attractions`);
+        // Processing attractions
         attractionsResult.data.forEach(attraction => {
           unifiedItems.push({
             id: `attraction-${attraction.id}`,
@@ -58,7 +58,7 @@ export const useUnifiedData = () => {
 
       // Process drive-ins (unchanged)
       if (driveInsResult.data) {
-        console.log(`🎬 Processing ${driveInsResult.data.length} drive-ins`);
+        // Processing drive-ins
         driveInsResult.data.forEach(driveIn => {
           unifiedItems.push({
             id: `drive-in-${driveIn.id}`,
@@ -82,7 +82,7 @@ export const useUnifiedData = () => {
 
       // Process hidden gems with standardized schema
       if (hiddenGemsResult.data) {
-        console.log(`💎 Processing ${hiddenGemsResult.data.length} hidden gems`);
+        // Processing hidden gems
         hiddenGemsResult.data.forEach(gem => {
           unifiedItems.push({
             id: `hidden-gem-${gem.id}`,
@@ -106,7 +106,7 @@ export const useUnifiedData = () => {
         });
       }
 
-      console.log(`✅ Loaded ${unifiedItems.length} unified Route 66 items with standardized schema`);
+      // Loaded unified Route 66 items
       setItems(unifiedItems);
     } catch (error) {
       console.error('❌ Error fetching unified data:', error);
@@ -135,12 +135,12 @@ export const useUnifiedData = () => {
   const filteredItems = useMemo(() => {
     let filtered = items;
 
-    console.log(`🔍 Starting filter with ${filtered.length} items, filters:`, filters);
+    // Starting filter process
 
     // Filter by type
     if (filters.type !== 'all') {
       filtered = filtered.filter(item => item.category === filters.type);
-      console.log(`🎯 After type filter (${filters.type}): ${filtered.length} items`);
+      // After type filter
     }
 
     // Enhanced state filter
@@ -153,7 +153,7 @@ export const useUnifiedData = () => {
                (stateFilter === 'OK' && itemState === 'OKLAHOMA') ||
                (stateFilter === 'OKLAHOMA' && itemState === 'OK');
       });
-      console.log(`🏛️ After state filter (${filters.state}): ${filtered.length} items`);
+      // After state filter
     }
 
     // Filter by city
@@ -163,7 +163,7 @@ export const useUnifiedData = () => {
         if (!item.city_name) return false;
         return item.city_name.toLowerCase().includes(cityFilter);
       });
-      console.log(`🏙️ After city filter (${filters.city}): ${filtered.length} items`);
+      // After city filter
     }
 
     // Enhanced search filter
@@ -176,7 +176,7 @@ export const useUnifiedData = () => {
                item.city_name.toLowerCase().includes(searchLower) ||
                item.tags.some(tag => tag.toLowerCase().includes(searchLower));
       });
-      console.log(`🔍 After search filter ("${filters.search}"): ${filtered.length} items`);
+      // After search filter
     }
 
     // Sort: featured first, then alphabetically
@@ -186,17 +186,17 @@ export const useUnifiedData = () => {
       return a.name.localeCompare(b.name);
     });
 
-    console.log(`✅ Final filtered results: ${sorted.length} items`);
+    // Final filtered results ready
     return sorted;
   }, [items, filters]);
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
-    console.log('🔄 Updating filters:', newFilters);
+    // Updating filters
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
   const resetFilters = () => {
-    console.log('🔄 Resetting all filters');
+    // Resetting all filters
     setFilters({
       type: 'all',
       state: '',
