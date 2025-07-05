@@ -31,33 +31,31 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <HelmetProvider>
-          <UnitProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
-                  <Route path="/shared-trip" element={<SharedTripPage />} />
-                  
-                  
-                  <Route path="/fun-facts" element={<FunFactsPage />} />
-                  <Route path="/trivia" element={<TriviaPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/test-upload" element={<TestUploadPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </UnitProvider>
-        </HelmetProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <UnitProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
+                <Route path="/shared-trip" element={<SharedTripPage />} />
+                
+                
+                <Route path="/fun-facts" element={<FunFactsPage />} />
+                <Route path="/trivia" element={<TriviaPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/test-upload" element={<TestUploadPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </UnitProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
   );
 }
 
