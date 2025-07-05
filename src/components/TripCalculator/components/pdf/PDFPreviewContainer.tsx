@@ -25,10 +25,7 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
   onPrint
 }) => {
   useEffect(() => {
-    // Immediately restore scrolling in case it was previously disabled
-    document.body.style.overflow = '';
-    
-    // Then disable body scroll when preview is open
+    // Disable body scroll when preview is open
     document.body.style.overflow = 'hidden';
     
     return () => {

@@ -11,7 +11,7 @@ export const useAttractions = () => {
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
-        // Fetching attractions from attractions table
+        console.log('🏛️ Fetching attractions from attractions table...');
         
         const { data: attractions, error } = await supabase
           .from('attractions')
@@ -20,7 +20,7 @@ export const useAttractions = () => {
           .limit(6);
 
         if (!error && attractions) {
-          // Fetched attractions successfully
+          console.log(`🏛️ Fetched ${attractions.length} attractions from attractions table`);
           setItems(attractions.map(attraction => ({
             id: attraction.id,
             name: attraction.name,

@@ -19,7 +19,7 @@ export const useUnifiedData = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      // Fetching unified Route 66 data with standardized schema
+      console.log('🔍 Fetching unified Route 66 data with standardized schema...');
 
       // Fetch all three data types in parallel
       const [attractionsResult, driveInsResult, hiddenGemsResult] = await Promise.all([
@@ -32,7 +32,7 @@ export const useUnifiedData = () => {
 
       // Process attractions with standardized schema
       if (attractionsResult.data) {
-        // Processing attractions
+        console.log(`🎯 Processing ${attractionsResult.data.length} attractions`);
         attractionsResult.data.forEach(attraction => {
           unifiedItems.push({
             id: `attraction-${attraction.id}`,
@@ -58,7 +58,7 @@ export const useUnifiedData = () => {
 
       // Process drive-ins (unchanged)
       if (driveInsResult.data) {
-        // Processing drive-ins
+        console.log(`🎬 Processing ${driveInsResult.data.length} drive-ins`);
         driveInsResult.data.forEach(driveIn => {
           unifiedItems.push({
             id: `drive-in-${driveIn.id}`,
@@ -82,7 +82,7 @@ export const useUnifiedData = () => {
 
       // Process hidden gems with standardized schema
       if (hiddenGemsResult.data) {
-        // Processing hidden gems
+        console.log(`💎 Processing ${hiddenGemsResult.data.length} hidden gems`);
         hiddenGemsResult.data.forEach(gem => {
           unifiedItems.push({
             id: `hidden-gem-${gem.id}`,
@@ -106,7 +106,7 @@ export const useUnifiedData = () => {
         });
       }
 
-      // Loaded unified Route 66 items
+      console.log(`✅ Loaded ${unifiedItems.length} unified Route 66 items with standardized schema`);
       setItems(unifiedItems);
     } catch (error) {
       console.error('❌ Error fetching unified data:', error);
@@ -135,12 +135,12 @@ export const useUnifiedData = () => {
   const filteredItems = useMemo(() => {
     let filtered = items;
 
-    // Starting filter process
+    console.log(`🔍 Starting filter with ${filtered.length} items, filters:`, filters);
 
     // Filter by type
     if (filters.type !== 'all') {
       filtered = filtered.filter(item => item.category === filters.type);
-      // After type filter
+      console.log(`🎯 After type filter (${filters.type}): ${filtered.length} items`);
     }
 
     // Enhanced state filter
@@ -153,7 +153,7 @@ export const useUnifiedData = () => {
                (stateFilter === 'OK' && itemState === 'OKLAHOMA') ||
                (stateFilter === 'OKLAHOMA' && itemState === 'OK');
       });
-      // After state filter
+      console.log(`🏛️ After state filter (${filters.state}): ${filtered.length} items`);
     }
 
     // Filter by city
@@ -163,7 +163,7 @@ export const useUnifiedData = () => {
         if (!item.city_name) return false;
         return item.city_name.toLowerCase().includes(cityFilter);
       });
-      // After city filter
+      console.log(`🏙️ After city filter (${filters.city}): ${filtered.length} items`);
     }
 
     // Enhanced search filter
@@ -176,7 +176,7 @@ export const useUnifiedData = () => {
                item.city_name.toLowerCase().includes(searchLower) ||
                item.tags.some(tag => tag.toLowerCase().includes(searchLower));
       });
-      // After search filter
+      console.log(`🔍 After search filter ("${filters.search}"): ${filtered.length} items`);
     }
 
     // Sort: featured first, then alphabetically
@@ -186,17 +186,17 @@ export const useUnifiedData = () => {
       return a.name.localeCompare(b.name);
     });
 
-    // Final filtered results ready
+    console.log(`✅ Final filtered results: ${sorted.length} items`);
     return sorted;
   }, [items, filters]);
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
-    // Updating filters
+    console.log('🔄 Updating filters:', newFilters);
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
   const resetFilters = () => {
-    // Resetting all filters
+    console.log('🔄 Resetting all filters');
     setFilters({
       type: 'all',
       state: '',

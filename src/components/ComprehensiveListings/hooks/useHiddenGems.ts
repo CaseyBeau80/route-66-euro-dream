@@ -11,7 +11,7 @@ export const useHiddenGems = () => {
   useEffect(() => {
     const fetchHiddenGems = async () => {
       try {
-        // Fetching hidden gems from hidden_gems table
+        console.log('💎 Fetching hidden gems from hidden_gems table...');
         
         const { data: hiddenGems, error } = await supabase
           .from('hidden_gems')
@@ -20,7 +20,7 @@ export const useHiddenGems = () => {
           .limit(6);
 
         if (!error && hiddenGems) {
-          // Fetched hidden gems successfully
+          console.log(`💎 Fetched ${hiddenGems.length} hidden gems from hidden_gems table`);
           setItems(hiddenGems.map(gem => ({
             id: gem.id,
             name: gem.title,

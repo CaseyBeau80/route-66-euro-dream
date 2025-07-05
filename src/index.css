@@ -31,12 +31,12 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Route 66 Theme Colors - converted to HSL */
-    --route66-background: 210 40% 98%;
-    --route66-primary: 220 70% 40%;
-    --route66-secondary: 0 84% 60%;
-    --route66-accent: 43 96% 56%;
-    --route66-border: 214 32% 91%;
+    /* Route 66 Theme Colors */
+    --route66-background: #f8fafc;
+    --route66-primary: #1e40af;
+    --route66-secondary: #dc2626;
+    --route66-accent: #f59e0b;
+    --route66-border: #e2e8f0;
   }
 
   .dark {
@@ -157,23 +157,23 @@
   transition: all 0.3s ease-in-out;
 }
 
-/* Route 66 brand colors as utilities - using HSL */
+/* Route 66 brand colors as utilities */
 .bg-route66-background {
-  background-color: hsl(var(--route66-background));
+  background-color: var(--route66-background);
 }
 
 .text-route66-primary {
-  color: hsl(var(--route66-primary));
+  color: var(--route66-primary);
 }
 
 .text-route66-secondary {
-  color: hsl(var(--route66-secondary));
+  color: var(--route66-secondary);
 }
 
 .text-route66-accent {
-  color: hsl(var(--route66-accent));
+  color: var(--route66-accent);
 }
 
 .border-route66-border {
-  border-color: hsl(var(--route66-border));
+  border-color: var(--route66-border);
 }

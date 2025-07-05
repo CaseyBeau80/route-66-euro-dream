@@ -11,7 +11,7 @@ export const useDriveIns = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        // Fetching drive-ins from drive_ins table
+        console.log('🎬 Fetching drive-ins from drive_ins table...');
         
         const { data: driveIns, error } = await supabase
           .from('drive_ins')
@@ -20,7 +20,7 @@ export const useDriveIns = () => {
           .limit(6);
 
         if (!error && driveIns) {
-          // Fetched drive-ins successfully
+          console.log(`🎬 Fetched ${driveIns.length} drive-ins from drive_ins table`);
           setItems(driveIns.map(driveIn => ({
             id: driveIn.id,
             name: driveIn.name,
