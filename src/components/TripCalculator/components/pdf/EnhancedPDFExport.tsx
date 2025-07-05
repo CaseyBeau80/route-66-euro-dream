@@ -25,6 +25,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
 }) => {
   const { exportOptions, updateExportOption } = usePDFExportOptions();
   const [isExporting, setIsExporting] = useState(false);
+  const [isEnrichingWeather, setIsEnrichingWeather] = useState(false);
 
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
@@ -45,8 +46,9 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       return;
     }
 
-    console.log('🖨️ Starting PDF export to new window');
+    console.log('🖨️ Starting PDF export to new window with weather enrichment');
     setIsExporting(true);
+    setIsEnrichingWeather(true);
 
     try {
       await PDFWindowService.openPrintWindow(
@@ -58,7 +60,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       
       toast({
         title: "PDF Opened",
-        description: "Your trip plan has been opened in a new window for printing.",
+        description: "Your trip plan with weather data has been opened in a new window for printing.",
         variant: "default"
       });
       
@@ -74,6 +76,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       });
     } finally {
       setIsExporting(false);
+      setIsEnrichingWeather(false);
     }
   };
 
@@ -111,10 +114,27 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
           <div className="space-y-4">
             <div className="text-center text-gray-600">
               <p className="text-sm">
-                This will open your trip plan in a new window optimized for printing.
+                This will fetch live weather data and open your trip plan in a new window optimized for printing.
                 You can then save it as a PDF using your browser's print dialog.
               </p>
+              {tripStartDate && (
+                <p className="text-xs mt-2 text-blue-600">
+                  🌤️ Weather forecasts will be included for each destination
+                </p>
+              )}
             </div>
+
+            {isEnrichingWeather && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-blue-700">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                  <span className="text-sm font-medium">Fetching weather data...</span>
+                </div>
+                <p className="text-xs text-blue-600 mt-1">
+                  Getting live forecasts for each destination city
+                </p>
+              </div>
+            )}
 
             <Button
               onClick={handleExportPDF}
@@ -122,7 +142,10 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
               className="w-full bg-route66-primary hover:bg-route66-primary-dark text-white font-bold py-3 px-4 rounded transition-colors duration-200 text-sm sm:text-base font-route66 flex items-center justify-center gap-2"
             >
               <Printer className="w-4 h-4" />
-              {isExporting ? 'Opening Print Window...' : 'Open Print Window'}
+              {isExporting 
+                ? (isEnrichingWeather ? 'Enriching with Weather...' : 'Opening Print Window...') 
+                : 'Generate PDF with Weather'
+              }
             </Button>
           </div>
         )}

@@ -1,4 +1,5 @@
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
+import { PDFWeatherIntegrationService } from '../PDFWeatherIntegrationService';
 
 export class PDFWindowService {
   private static pdfWindow: Window | null = null;
@@ -17,6 +18,32 @@ export class PDFWindowService {
         this.pdfWindow.close();
       }
 
+      // Enrich trip data with weather information
+      console.log('🌤️ Enriching trip data with weather information...');
+      let enrichedTripPlan = { ...tripPlan };
+      
+      if (tripStartDate && tripPlan.segments) {
+        try {
+          const enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+            tripPlan.segments,
+            tripStartDate
+          );
+          
+          enrichedTripPlan = {
+            ...tripPlan,
+            segments: enrichedSegments,
+            dailySegments: enrichedSegments
+          };
+          
+          console.log('✅ Weather enrichment completed for PDF export');
+          console.log('🌤️ Segments with weather data:', 
+            enrichedSegments.filter(s => s.weather).length + '/' + enrichedSegments.length
+          );
+        } catch (weatherError) {
+          console.warn('⚠️ Weather enrichment failed, proceeding without weather data:', weatherError);
+        }
+      }
+
       // Create new window with proper dimensions
       this.pdfWindow = window.open('', '_blank', 
         'width=1200,height=800,scrollbars=yes,resizable=yes'
@@ -26,8 +53,8 @@ export class PDFWindowService {
         throw new Error('Failed to open new window. Please check popup blocker settings.');
       }
 
-      // Generate HTML content for the PDF
-      const htmlContent = this.generatePrintHTML(tripPlan, tripStartDate, exportOptions, shareUrl);
+      // Generate HTML content for the PDF with enriched data
+      const htmlContent = this.generatePrintHTML(enrichedTripPlan, tripStartDate, exportOptions, shareUrl);
       
       // Write content to new window
       this.pdfWindow.document.write(htmlContent);
