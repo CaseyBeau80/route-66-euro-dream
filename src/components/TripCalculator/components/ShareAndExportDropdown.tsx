@@ -135,9 +135,9 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           
           <DropdownMenuItem 
             onClick={() => window.print()}
-            className="rounded-lg hover:bg-gray-50 py-3 px-4 cursor-pointer"
+            className="rounded-lg hover:bg-blue-50 py-3 px-4 cursor-pointer"
           >
-            <Download className="mr-3 h-5 w-5 text-gray-600" />
+            <Download className="mr-3 h-5 w-5 text-blue-600" />
             <span className="font-medium">Print/Save as PDF</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
