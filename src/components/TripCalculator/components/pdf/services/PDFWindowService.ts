@@ -63,56 +63,87 @@ export class PDFWindowService {
     shareUrl?: string
   ): string {
     const startDate = tripStartDate ? new Date(tripStartDate) : new Date();
+    const totalDriveHours = tripPlan.segments?.reduce((total, segment) => 
+      total + (segment.driveTimeHours || (segment.distance || segment.approximateMiles || 0) / 55), 0
+    ) || 0;
     
-    // Generate segments HTML
+    // Generate segments HTML matching the web interface design
     const segmentsHTML = tripPlan.segments?.map((segment, index) => {
       const segmentDate = new Date(startDate);
       segmentDate.setDate(startDate.getDate() + index);
       
       return `
-        <div class="day-segment">
+        <div class="day-card">
           <div class="day-header">
-            <div class="day-number">Day ${segment.day || index + 1}</div>
+            <div class="day-circle">
+              <span class="day-number">${segment.day || index + 1}</span>
+            </div>
             <div class="day-info">
-              <h3>${segment.startCity} → ${segment.endCity}</h3>
-              <p class="date">${segmentDate.toLocaleDateString('en-US', { 
+              <h3 class="day-title">Day ${segment.day || index + 1}</h3>
+              <p class="day-date">📅 ${segmentDate.toLocaleDateString('en-US', { 
                 weekday: 'long', 
-                year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
               })}</p>
+              <p class="day-route">${segment.startCity} → ${segment.endCity}</p>
             </div>
           </div>
           
-          <div class="segment-stats">
-            <span class="stat">
-              <strong>Distance:</strong> ${Math.round(segment.distance || segment.approximateMiles || 0)} miles
-            </span>
-            <span class="stat">
-              <strong>Drive Time:</strong> ${segment.driveTimeHours ? 
-                `${Math.round(segment.driveTimeHours * 10) / 10}h` :
-                `${Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10}h`
-              }
-            </span>
+          <div class="day-stats">
+            <div class="stat-item">
+              <span class="stat-icon">📍</span>
+              <span class="stat-value">${Math.round(segment.distance || segment.approximateMiles || 0)} MILES</span>
+              <span class="stat-label">Total Distance</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⏰</span>
+              <span class="stat-value">${segment.driveTimeHours ? 
+                `${Math.round(segment.driveTimeHours * 10) / 10}H ${Math.round((segment.driveTimeHours % 1) * 60)}MIN` :
+                `${Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10}H`
+              }</span>
+              <span class="stat-label">Drive Time</span>
+            </div>
           </div>
 
           ${segment.weather ? `
-            <div class="weather-info">
-              <strong>Weather:</strong> ${segment.weather.description || 'N/A'} | 
-              High: ${segment.weather.highTemp || 'N/A'}°F | 
-              Low: ${segment.weather.lowTemp || 'N/A'}°F
-              ${segment.weather.humidity ? `| Humidity: ${segment.weather.humidity}%` : ''}
+            <div class="weather-section">
+              <div class="weather-header">
+                <span class="weather-icon">🌤️</span>
+                <span class="weather-title">Weather for ${segment.endCity}</span>
+                <span class="weather-date">${segmentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              </div>
+              <div class="weather-details">
+                <div class="weather-temp">
+                  <span class="temp-high">${segment.weather.highTemp || 'N/A'}°F</span>
+                  <span class="temp-divider">|</span>
+                  <span class="temp-low">${segment.weather.lowTemp || 'N/A'}°F</span>
+                </div>
+                <div class="weather-info">
+                  <span class="weather-condition">${segment.weather.description || 'N/A'}</span>
+                  ${segment.weather.humidity ? `<span class="weather-humidity">${segment.weather.humidity}% Humidity</span>` : ''}
+                  ${segment.weather.windSpeed ? `<span class="weather-wind">${segment.weather.windSpeed} mph Wind</span>` : ''}
+                </div>
+                <div class="weather-badge">
+                  <span class="live-forecast">🌟 Live Forecast</span>
+                </div>
+              </div>
             </div>
           ` : ''}
 
           ${segment.attractions && segment.attractions.length > 0 ? `
-            <div class="attractions">
-              <h4>Recommended Stops:</h4>
-              <ul>
+            <div class="attractions-section">
+              <h4 class="attractions-title">📍 Recommended Stops</h4>
+              <div class="attractions-grid">
                 ${segment.attractions.map((attraction: any) => 
-                  `<li>${attraction.name}</li>`
+                  `<div class="attraction-item">
+                     <span class="attraction-icon">🎯</span>
+                     <span class="attraction-name">${attraction.name}</span>
+                   </div>`
                 ).join('')}
-              </ul>
+              </div>
+              ${segment.attractions.length === 0 ? `
+                <p class="no-attractions">No attractions found for ${segment.endCity}. Explore the area when you arrive!</p>
+              ` : ''}
             </div>
           ` : ''}
         </div>
@@ -134,88 +165,132 @@ export class PDFWindowService {
           }
           
           body {
-            font-family: 'Georgia', serif;
-            line-height: 1.6;
-            color: #2c3e50;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.5;
+            color: #1f2937;
+            background: #f8fafc;
+            padding: 0;
+            margin: 0;
+          }
+          
+          .container {
+            max-width: 900px;
+            margin: 0 auto;
             background: white;
-            padding: 20px;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+          }
+          
+          .hero-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+          }
+          
+          .hero-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          }
+          
+          .hero-subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 0;
+          }
+          
+          .stats-section {
+            background: white;
+            padding: 30px;
+            margin: 0;
+          }
+          
+          .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
             max-width: 800px;
             margin: 0 auto;
           }
           
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #e74c3c;
-            padding-bottom: 20px;
-          }
-          
-          .header h1 {
-            color: #c0392b;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: bold;
-          }
-          
-          .header .subtitle {
-            color: #7f8c8d;
-            font-size: 1.2em;
-            font-style: italic;
-          }
-          
-          .trip-overview {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            border-left: 5px solid #3498db;
-          }
-          
-          .trip-overview h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-          }
-          
-          .overview-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-          }
-          
-          .overview-stat {
-            text-align: center;
-            padding: 10px;
+          .stat-box {
             background: white;
-            border-radius: 5px;
-            border: 1px solid #ecf0f1;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
           }
           
-          .overview-stat strong {
-            display: block;
+          .stat-box.days { border-color: #3b82f6; }
+          .stat-box.miles { border-color: #10b981; }
+          .stat-box.hours { border-color: #f59e0b; }
+          .stat-box.cost { border-color: #8b5cf6; }
+          
+          .stat-icon {
             font-size: 1.5em;
-            color: #e74c3c;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            display: block;
           }
           
-          .day-segment {
-            margin-bottom: 25px;
-            border: 1px solid #ecf0f1;
-            border-radius: 8px;
+          .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #1f2937;
+            display: block;
+            margin-bottom: 4px;
+          }
+          
+          .stat-box.days .stat-value { color: #3b82f6; }
+          .stat-box.miles .stat-value { color: #10b981; }
+          .stat-box.hours .stat-value { color: #f59e0b; }
+          .stat-box.cost .stat-value { color: #8b5cf6; }
+          
+          .stat-label {
+            font-size: 0.9em;
+            color: #6b7280;
+            font-weight: 500;
+          }
+          
+          .itinerary-section {
+            background: #f8fafc;
+            padding: 40px 30px;
+          }
+          
+          .section-header {
+            background: #374151;
+            color: white;
+            padding: 20px 30px;
+            margin: 0 -30px 30px -30px;
+            font-size: 1.3em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+          
+          .day-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
           }
           
           .day-header {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             color: white;
-            padding: 15px 20px;
+            padding: 20px 25px;
             display: flex;
             align-items: center;
             gap: 15px;
           }
           
-          .day-number {
+          .day-circle {
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
             width: 50px;
@@ -223,144 +298,313 @@ export class PDFWindowService {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 1.1em;
+            border: 2px solid rgba(255,255,255,0.3);
           }
           
-          .day-info h3 {
+          .day-info {
+            flex: 1;
+          }
+          
+          .day-title {
             font-size: 1.3em;
-            margin-bottom: 5px;
+            font-weight: 600;
+            margin-bottom: 4px;
           }
           
-          .date {
+          .day-date {
+            font-size: 0.9em;
             opacity: 0.9;
-            font-size: 0.9em;
+            margin-bottom: 2px;
           }
           
-          .segment-stats {
-            padding: 15px 20px;
-            background: #f8f9fa;
+          .day-route {
+            font-size: 1em;
+            opacity: 0.95;
+            font-weight: 500;
+          }
+          
+          .day-stats {
+            background: #f8fafc;
+            padding: 20px 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          
+          .stat-item {
             display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
           }
           
-          .stat {
+          .stat-icon {
+            font-size: 1.2em;
+            margin-bottom: 6px;
+          }
+          
+          .stat-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 2px;
+          }
+          
+          .stat-label {
+            font-size: 0.8em;
+            color: #6b7280;
+            font-weight: 500;
+          }
+          
+          .weather-section {
+            background: #eff6ff;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          
+          .weather-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+          }
+          
+          .weather-icon {
+            font-size: 1.2em;
+          }
+          
+          .weather-title {
+            font-weight: 600;
+            color: #1f2937;
+            flex: 1;
+          }
+          
+          .weather-date {
             font-size: 0.9em;
-            color: #5d6d7e;
+            color: #6b7280;
+          }
+          
+          .weather-details {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 15px;
+            align-items: center;
+          }
+          
+          .weather-temp {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+          }
+          
+          .temp-high {
+            color: #dc2626;
+          }
+          
+          .temp-low {
+            color: #2563eb;
+          }
+          
+          .temp-divider {
+            color: #9ca3af;
           }
           
           .weather-info {
-            padding: 10px 20px;
-            background: #e8f4f8;
-            border-top: 1px solid #d5dbdb;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
             font-size: 0.9em;
-            color: #2c3e50;
           }
           
-          .attractions {
-            padding: 15px 20px;
-            background: #fff5e6;
-            border-top: 1px solid #f39c12;
+          .weather-condition {
+            color: #1f2937;
+            font-weight: 500;
           }
           
-          .attractions h4 {
-            color: #d68910;
-            margin-bottom: 10px;
+          .weather-humidity, .weather-wind {
+            color: #6b7280;
+            font-size: 0.85em;
+          }
+          
+          .weather-badge {
+            text-align: right;
+          }
+          
+          .live-forecast {
+            background: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 500;
+            white-space: nowrap;
+          }
+          
+          .attractions-section {
+            padding: 20px 25px;
+            background: #fefce8;
+          }
+          
+          .attractions-title {
+            color: #92400e;
+            font-weight: 600;
+            font-size: 1em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          
+          .attractions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+          }
+          
+          .attraction-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+          }
+          
+          .attraction-icon {
             font-size: 1em;
           }
           
-          .attractions ul {
-            list-style: none;
-            padding-left: 0;
+          .attraction-name {
+            font-weight: 500;
+            color: #1f2937;
           }
           
-          .attractions li {
-            padding: 3px 0;
-            padding-left: 15px;
-            position: relative;
+          .no-attractions {
+            color: #6b7280;
+            font-style: italic;
             font-size: 0.9em;
-          }
-          
-          .attractions li::before {
-            content: "📍";
-            position: absolute;
-            left: 0;
           }
           
           .footer {
-            margin-top: 40px;
+            background: #1f2937;
+            color: white;
+            padding: 30px;
             text-align: center;
-            color: #7f8c8d;
+          }
+          
+          .footer p {
+            margin-bottom: 8px;
             font-size: 0.9em;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
+          }
+          
+          .footer p:last-child {
+            margin-bottom: 0;
+            font-size: 0.8em;
+            opacity: 0.8;
           }
           
           @media print {
             body {
-              padding: 0;
-              font-size: 12px;
+              background: white;
             }
             
-            .header h1 {
-              font-size: 2em;
+            .container {
+              box-shadow: none;
             }
             
-            .day-segment {
+            .hero-header {
+              background: #4f46e5 !important;
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+            }
+            
+            .day-header {
+              background: #3b82f6 !important;
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+            }
+            
+            .day-card {
               break-inside: avoid;
               margin-bottom: 15px;
             }
             
-            .trip-overview {
+            .stats-section {
               break-inside: avoid;
+            }
+            
+            .weather-section, .attractions-section {
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
             }
           }
           
           @page {
-            margin: 0.5in;
+            margin: 0.75in;
             size: letter;
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>🛣️ ${tripPlan.title || 'Route 66 Adventure'}</h1>
-          <p class="subtitle">Your Classic American Road Trip Itinerary</p>
-        </div>
-
-        <div class="trip-overview">
-          <h2>Trip Overview</h2>
-          <div class="overview-stats">
-            <div class="overview-stat">
-              <strong>${tripPlan.totalDays || tripPlan.segments?.length || 0}</strong>
-              <span>Days</span>
-            </div>
-            <div class="overview-stat">
-              <strong>${Math.round(tripPlan.totalDistance || 0)}</strong>
-              <span>Miles</span>
-            </div>
-            <div class="overview-stat">
-              <strong>${tripPlan.segments?.length || 0}</strong>
-              <span>Segments</span>
-            </div>
-            ${tripStartDate ? `
-            <div class="overview-stat">
-              <strong>${startDate.toLocaleDateString()}</strong>
-              <span>Start Date</span>
-            </div>
-            ` : ''}
+        <div class="container">
+          <div class="hero-header">
+            <h1 class="hero-title">${tripPlan.segments?.[0]?.startCity || 'Chicago'} to ${tripPlan.segments?.[tripPlan.segments.length - 1]?.endCity || 'Tucumcari'}</h1>
+            <p class="hero-subtitle">Journey begins: ${startDate.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              month: 'long', 
+              day: 'numeric',
+              year: 'numeric'
+            })}</p>
           </div>
-        </div>
 
-        <div class="itinerary">
-          ${segmentsHTML}
-        </div>
+          <div class="stats-section">
+            <div class="stats-grid">
+              <div class="stat-box days">
+                <span class="stat-icon">📅</span>
+                <span class="stat-value">${tripPlan.totalDays || tripPlan.segments?.length || 0}</span>
+                <span class="stat-label">Days</span>
+              </div>
+              <div class="stat-box miles">
+                <span class="stat-icon">📍</span>
+                <span class="stat-value">${Math.round(tripPlan.totalDistance || 0)}</span>
+                <span class="stat-label">Miles</span>
+              </div>
+              <div class="stat-box hours">
+                <span class="stat-icon">⏰</span>
+                <span class="stat-value">${Math.round(totalDriveHours)}</span>
+                <span class="stat-label">Drive Hours</span>
+              </div>
+              <div class="stat-box cost">
+                <span class="stat-icon">💲</span>
+                <span class="stat-value">$${Math.round((tripPlan.totalDistance || 0) * 0.65 + (tripPlan.totalDays || 0) * 150)}</span>
+                <span class="stat-label">Est. Cost</span>
+              </div>
+            </div>
+          </div>
 
-        <div class="footer">
-          <p>Generated by Ramble 66 - Your Route 66 Trip Planner</p>
-          <p>Visit ramble66.com to plan your own adventure!</p>
-          ${shareUrl ? `<p>Share this trip: ${shareUrl}</p>` : ''}
+          <div class="itinerary-section">
+            <div class="section-header">
+              🗺️ Daily Itinerary
+            </div>
+            <div class="section-subheader" style="background: #4f46e5; color: white; padding: 15px 20px; margin: -30px -30px 25px -30px; text-align: center; font-size: 0.9em;">
+              📋 Your complete day-by-day guide with live weather forecasts<br>
+              <small>Trip starts: ${startDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</small>
+            </div>
+            ${segmentsHTML}
+          </div>
+
+          <div class="footer">
+            <p>Generated by Ramble 66 - Your Route 66 Trip Planner</p>
+            <p>Visit ramble66.com to plan your own adventure!</p>
+            ${shareUrl ? `<p style="margin-top: 10px; font-size: 0.8em;">Share this trip: ${shareUrl}</p>` : ''}
+          </div>
         </div>
       </body>
       </html>
