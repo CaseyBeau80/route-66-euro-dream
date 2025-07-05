@@ -11,6 +11,7 @@ import {
 import { Share2, Download, Link2, Mail } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanTypes';
 import ShareTripModal from './ShareTripModal';
+import EnhancedPDFExport from './pdf/EnhancedPDFExport';
 import { toast } from '@/hooks/use-toast';
 
 interface ShareAndExportDropdownProps {
@@ -33,6 +34,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   className
 }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isPDFExportOpen, setIsPDFExportOpen] = useState(false);
   const [currentShareUrl, setCurrentShareUrl] = useState<string | null>(shareUrl || null);
 
   const handleCopyLink = async () => {
@@ -134,7 +136,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           )}
           
           <DropdownMenuItem 
-            onClick={() => window.print()}
+            onClick={() => setIsPDFExportOpen(true)}
             className="rounded-lg hover:bg-blue-50 py-3 px-4 cursor-pointer"
           >
             <Download className="mr-3 h-5 w-5 text-blue-600" />
@@ -152,6 +154,14 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
         onShareUrlGenerated={(shareCode, shareUrl) => {
           setCurrentShareUrl(shareUrl);
         }}
+      />
+
+      <EnhancedPDFExport
+        tripPlan={tripPlan}
+        tripStartDate={tripStartDate}
+        shareUrl={currentShareUrl}
+        isOpen={isPDFExportOpen}
+        onClose={() => setIsPDFExportOpen(false)}
       />
     </>
   );
