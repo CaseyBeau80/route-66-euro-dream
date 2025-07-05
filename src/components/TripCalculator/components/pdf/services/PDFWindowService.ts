@@ -1,6 +1,5 @@
-import { TripPlan, DailySegment } from '../../../services/planning/TripPlanBuilder';
-import { PDFDataEnrichmentService } from './PDFDataEnrichmentService';
-import { PDFExportOptions } from '../../../services/pdf/PDFTypesService';
+import { TripPlan } from '../../../services/planning/TripPlanBuilder';
+import { PDFWeatherIntegrationService } from '../PDFWeatherIntegrationService';
 
 export class PDFWindowService {
   private static pdfWindow: Window | null = null;
@@ -19,28 +18,43 @@ export class PDFWindowService {
         this.pdfWindow.close();
       }
 
-      // Enhanced data enrichment (weather + attractions) for PDF export
-      console.log('📋 Starting comprehensive data enrichment for PDF...');
-      const enrichedTripPlan = {
-        ...tripPlan,
-        segments: await PDFDataEnrichmentService.enrichSegmentsForPDF(
-          tripPlan.segments || [],
-          tripStartDate
-        )
-      };
+      // Enrich trip data with weather information
+      console.log('🌤️ Enriching trip data with weather information...');
+      let enrichedTripPlan = { ...tripPlan };
+      
+      if (tripStartDate && tripPlan.segments) {
+        try {
+          const enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+            tripPlan.segments,
+            tripStartDate
+          );
+          
+          enrichedTripPlan = {
+            ...tripPlan,
+            segments: enrichedSegments,
+            dailySegments: enrichedSegments
+          };
+          
+          console.log('✅ Weather enrichment completed for PDF export');
+          console.log('🌤️ Segments with weather data:', 
+            enrichedSegments.filter(s => s.weather).length + '/' + enrichedSegments.length
+          );
+        } catch (weatherError) {
+          console.warn('⚠️ Weather enrichment failed, proceeding without weather data:', weatherError);
+        }
+      }
 
-      // Create new window with proper configuration to hide browser chrome
+      // Create new window with proper configuration
       this.pdfWindow = window.open('', '_blank', 
-        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no,directories=no'
+        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no'
       );
 
       if (!this.pdfWindow) {
         throw new Error('Failed to open new window. Please check popup blocker settings.');
       }
 
-      // Set proper document title to help prevent "about:blank" showing
-      const tripTitle = `${enrichedTripPlan.segments?.[0]?.startCity || 'Chicago'} to ${enrichedTripPlan.segments?.[enrichedTripPlan.segments.length - 1]?.endCity || 'Los Angeles'} - Route 66 Trip Plan`;
-      this.pdfWindow.document.title = tripTitle;
+      // Set a proper title for the window
+      this.pdfWindow.document.title = `${enrichedTripPlan.segments?.[0]?.startCity || 'Chicago'} to ${enrichedTripPlan.segments?.[enrichedTripPlan.segments.length - 1]?.endCity || 'Los Angeles'} - Route 66 Trip Plan`;
 
       // Generate HTML content for the PDF with enriched data
       const htmlContent = this.generatePrintHTML(enrichedTripPlan, tripStartDate, exportOptions, shareUrl);
@@ -584,39 +598,15 @@ export class PDFWindowService {
               color-adjust: exact !important;
             }
             
-            /* Hide any browser UI elements and URLs */
+            /* Hide any browser UI elements */
             @page {
               margin: 0.75in;
               size: letter;
             }
             
-            /* Prevent "about:blank" and URLs from showing in print headers/footers */
-            @page :first {
-              @top-left { content: ""; }
-              @top-center { content: ""; }
-              @top-right { content: ""; }
-              @bottom-left { content: ""; }
-              @bottom-center { content: ""; }
-              @bottom-right { content: ""; }
-            }
-            
-            @page {
-              @top-left { content: ""; }
-              @top-center { content: ""; }
-              @top-right { content: ""; }
-              @bottom-left { content: ""; }
-              @bottom-center { content: ""; }
-              @bottom-right { content: ""; }
-            }
-            
-            /* Additional attempts to hide browser chrome */
+            /* Ensure no page URLs show up */
             body::after {
               content: "";
-            }
-            
-            /* Hide any default browser print elements */
-            header, footer, .no-print {
-              display: none !important;
             }
           }
           
