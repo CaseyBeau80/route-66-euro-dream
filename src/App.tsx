@@ -41,6 +41,7 @@ function App() {
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
                   <Route path="/shared-trip" element={<SharedTripPage />} />
                   
                   
