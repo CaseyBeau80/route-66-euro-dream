@@ -84,7 +84,7 @@ const Footer = ({ language }: FooterProps) => {
   const content = footerContent[language as keyof typeof footerContent] || footerContent.en;
 
   return (
-    <footer className="bg-route66-gray text-white">
+    <footer className="bg-route66-dark text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Logo & Description */}
