@@ -14,7 +14,7 @@ import FunSection from "../components/FunSection/FunSection";
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   
-  console.log("🏠 Index page: Rendering with restored directory view");
+  // Index page rendering
 
   return (
     <MainLayout language={language} setLanguage={setLanguage}>

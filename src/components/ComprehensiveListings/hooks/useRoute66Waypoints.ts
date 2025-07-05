@@ -11,7 +11,7 @@ export const useRoute66Waypoints = () => {
   useEffect(() => {
     const fetchRoute66Waypoints = async () => {
       try {
-        console.log('🛣️ Fetching Route 66 waypoints with images...');
+        // Fetching Route 66 waypoints with images
         
         const { data: waypoints, error } = await supabase
           .from('route66_waypoints')
@@ -20,7 +20,7 @@ export const useRoute66Waypoints = () => {
           .limit(6);
 
         if (!error && waypoints) {
-          console.log(`🛣️ Fetched ${waypoints.length} waypoints with images`);
+          // Fetched waypoints successfully
           setItems(waypoints.map(waypoint => ({
             id: waypoint.id,
             name: waypoint.name,

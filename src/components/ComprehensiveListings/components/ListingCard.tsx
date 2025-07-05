@@ -15,15 +15,6 @@ interface ListingCardProps {
 }
 
 export const ListingCard = ({ item }: ListingCardProps) => {
-  console.log(`🃏 ListingCard render for ${item.name}`, { 
-    category: item.category, 
-    hasWebsite: !!item.website,
-    website: item.website,
-    hasImage: !!item.image_url,
-    hasThumbnail: !!item.thumbnail_url,
-    thumbnail_url: item.thumbnail_url
-  });
-
   const handleImageClick = createImageClickHandler(item);
   const handleContainerClick = createContainerClickHandler(item);
   const handleWebsiteLinkClick = createWebsiteLinkClickHandler(item);

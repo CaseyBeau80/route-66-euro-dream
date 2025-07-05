@@ -11,7 +11,7 @@ export const useDestinationCities = () => {
   useEffect(() => {
     const fetchDestinationCities = async () => {
       try {
-        console.log('🏙️ Fetching destination cities with images...');
+        // Fetching destination cities with images
         
         const { data: cities, error } = await supabase
           .from('destination_cities')
@@ -19,7 +19,7 @@ export const useDestinationCities = () => {
           .limit(6);
 
         if (!error && cities) {
-          console.log(`🏙️ Fetched ${cities.length} destination cities with images`);
+          // Fetched cities successfully
           setItems(cities.map(city => ({
             id: city.id,
             name: city.name,

@@ -6,7 +6,7 @@ import { useHiddenGems } from './useHiddenGems';
 import { useCategoryConfig } from './useCategoryConfig';
 
 export const useListingsData = () => {
-  console.log('🔍 useListingsData: Starting data fetch...');
+  // Starting data fetch
   
   const categoryConfig = useCategoryConfig();
   
@@ -14,11 +14,7 @@ export const useListingsData = () => {
   const driveIns = useDriveIns();
   const hiddenGems = useHiddenGems();
 
-  console.log('🔍 useListingsData: Data status:', {
-    attractions: { loading: attractions.loading, count: attractions.items.length },
-    driveIns: { loading: driveIns.loading, count: driveIns.items.length },
-    hiddenGems: { loading: hiddenGems.loading, count: hiddenGems.items.length }
-  });
+  // Data status check
 
   // Only include the categories we want to display
   const categories: Record<string, CategoryData> = {
@@ -39,7 +35,7 @@ export const useListingsData = () => {
     }
   };
 
-  console.log('🔍 useListingsData: Final categories:', Object.keys(categories));
+  // Final categories processed
 
   return { categories };
 };

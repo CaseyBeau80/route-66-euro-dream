@@ -18,27 +18,17 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
 
-  console.log(`🎠 ListingCarousel render for ${categoryTitle}`, { 
-    loading, 
-    itemCount: items.length,
-    canScrollPrev,
-    canScrollNext,
-    hasApi: !!api
-  });
-
   const scrollPrev = useCallback(() => {
-    console.log(`◀️ Scrolling prev for ${categoryTitle}`);
     if (api) {
       api.scrollPrev();
     }
-  }, [api, categoryTitle]);
+  }, [api]);
 
   const scrollNext = useCallback(() => {
-    console.log(`▶️ Scrolling next for ${categoryTitle}`);
     if (api) {
       api.scrollNext();
     }
-  }, [api, categoryTitle]);
+  }, [api]);
 
   useEffect(() => {
     if (!api) return;
@@ -48,7 +38,7 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
       const nextState = api.canScrollNext();
       setCanScrollPrev(prevState);
       setCanScrollNext(nextState);
-      console.log(`🎠 Navigation state for ${categoryTitle}:`, { canScrollPrev: prevState, canScrollNext: nextState });
+      // Navigation state updated
     };
 
     onSelect();
@@ -59,7 +49,7 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
       api.off('select', onSelect);
       api.off('reInit', onSelect);
     };
-  }, [api, categoryTitle]);
+  }, [api]);
 
   if (loading) {
     return (
