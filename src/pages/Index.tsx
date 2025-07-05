@@ -14,8 +14,6 @@ import FunSection from "../components/FunSection/FunSection";
 const Index = () => {
   const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   
-  // Index page rendering
-
   return (
     <MainLayout language={language} setLanguage={setLanguage}>
       {/* Hero Section - Full viewport height with two-column layout */}
@@ -23,35 +21,15 @@ const Index = () => {
         <HeroSection language={language} />
       </section>
 
-      {/* Interactive Map Section with fade-in */}
-      <FadeInSection id="interactive-map" delay={200}>
-        <InteractiveMapSection language={language} />
-      </FadeInSection>
-
-      {/* Trip Planner Section with fade-in */}
-      <FadeInSection id="trip-planner" delay={300}>
-        <TripPlannerSection />
-      </FadeInSection>
-
-      {/* Unified Route 66 Directory - Restored comprehensive directory view */}
-      <FadeInSection id="route66-directory" delay={350}>
-        <UnifiedRoute66Carousel className="bg-route66-background-section" />
-      </FadeInSection>
-
-      {/* Social Section with fade-in */}
-      <FadeInSection id="social" delay={400}>
-        <SocialSection language={language} />
-      </FadeInSection>
-
-      {/* Fun Section with fade-in */}
-      <FadeInSection id="fun" delay={450}>
-        <FunSection language={language} />
-      </FadeInSection>
-
-      {/* Toll Roads Advisory Section with fade-in */}
-      <FadeInSection id="toll-roads" delay={500}>
-        <TollRoads language={language} />
-      </FadeInSection>
+      {/* Simple test content */}
+      <div className="py-16 bg-white text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Route 66 Planning Made Simple
+        </h2>
+        <p className="text-lg text-gray-600">
+          Your complete Route 66 adventure starts here.
+        </p>
+      </div>
 
       {/* Back to Top Button */}
       <BackToTopButton />
