@@ -34,11 +34,6 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="/trivia" className="text-white/70 hover:text-white transition-colors text-sm">
-                  Trivia Game
-                </a>
-              </li>
-              <li>
                 <a href="/fun-facts" className="text-white/70 hover:text-white transition-colors text-sm">
                   Fun Facts
                 </a>
