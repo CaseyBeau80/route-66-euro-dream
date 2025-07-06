@@ -1,6 +1,7 @@
 
 import { ReactNode } from 'react';
 import NavigationBar from "./NavigationBar";
+import Footer from "./Footer";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -16,6 +17,9 @@ const MainLayout = ({ children, language, setLanguage }: MainLayoutProps) => {
       
       {/* Main Content */}
       {children}
+      
+      {/* Footer */}
+      <Footer language={language} />
     </div>
   );
 };
