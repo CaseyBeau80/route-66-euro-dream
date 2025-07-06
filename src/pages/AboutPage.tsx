@@ -83,7 +83,10 @@ const AboutPage = () => {
                     Ramble 66 was born out of a cherished memory — a road trip that stretched from the quiet hills of Southwest Missouri all the way to Northern California. Although not a kid but a young adult, I was packed into the backseat with my grandparents, headed west on Route 66 for my cousin's wedding. We didn't rush. We rambled.
                   </p>
                   <p>
-                    That trip left a mark on me: the laughter at old diners, the songs on the radio, the feeling of the open road — and one unforgettable stop at the Grand Canyon, where I wandered off and got separated from my grandparents. My grandpa, calm and wise as ever, taught me a simple rule: when you're lost, stay put. I never forgot it — or the squirrel that kept me company until I was found.
+                    That trip left a mark on me: the laughter at old diners, the songs on the radio, the feeling of the open road. Traveling with my grandparents was like time traveling itself — they had been there from the beginning of Route 66, growing up during the Great Depression and serving in World War II. Through their eyes, I saw the road not just as pavement and roadside attractions, but as a living piece of American history.
+                  </p>
+                  <p>
+                    At one unforgettable stop at the Grand Canyon, I wandered off and got separated from them. My grandpa, calm and wise as ever, taught me a simple rule when he found me: when you're lost, stay put. I never forgot it — or the squirrel that kept me company until I was found.
                   </p>
                   <p>
                     We crossed the big farms of Southern California, sampling every fruit and nut we could get our hands on. It was more than a road trip. It was connection. It was heritage. It was the kind of journey you don't just remember — you carry with you.
