@@ -2,6 +2,8 @@ import { tollRoadsContent } from "./content";
 import TollRoadInfoCard from "./TollRoadInfoCard";
 import CostBreakdownCard from "./CostBreakdownCard";
 import TollRoadLinksCard from "./TollRoadLinksCard";
+import ChatBubble from "@/components/ui/chat-bubble";
+import { CreditCard } from "lucide-react";
 const TollRoads = () => {
   const content = tollRoadsContent.en; // Always use English
   return <section className="py-4 bg-blue-900">
@@ -15,6 +17,38 @@ const TollRoads = () => {
           {content.sections.map((section, index) => <TollRoadInfoCard key={index} section={section} />)}
         </div>
         
+        {/* Helpful Tips Chat Bubble */}
+        <div className="mb-6">
+          <ChatBubble 
+            title="💡 Cashless Toll Tips" 
+            icon={<CreditCard className="h-5 w-5" />}
+          >
+            <div className="space-y-3">
+              <p>
+                <strong>Most Route 66 toll roads are now cashless!</strong> Here's what you need to know:
+              </p>
+              <ul className="space-y-2 ml-4">
+                <li className="flex items-start">
+                  <span className="text-route66-primary mr-2">•</span>
+                  <span><strong>Payment methods:</strong> License plate billing, E-ZPass, or mobile apps</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-route66-primary mr-2">•</span>
+                  <span><strong>Rental cars:</strong> Check if your rental company handles tolls automatically</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-route66-primary mr-2">•</span>
+                  <span><strong>Avoid violations:</strong> Sign up for toll transponders or apps before your trip</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-route66-primary mr-2">•</span>
+                  <span><strong>Multiple states:</strong> Different states use different systems - plan accordingly!</span>
+                </li>
+              </ul>
+            </div>
+          </ChatBubble>
+        </div>
+
         {/* Cost Breakdown Card */}
         <div className="mb-4">
           <CostBreakdownCard estimatedCosts={content.estimatedCosts} />
