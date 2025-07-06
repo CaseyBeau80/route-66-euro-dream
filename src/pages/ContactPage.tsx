@@ -1,19 +1,16 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Globe, MapPin, Phone } from 'lucide-react';
-import NavigationBar from '@/components/NavigationBar';
-import Footer from '@/components/Footer';
+import MainLayout from '@/components/MainLayout';
 
 const ContactPage = () => {
   return (
-    <>
+    <MainLayout>
       <Helmet>
         <title>Contact Us - Ramble Route 66</title>
         <meta name="description" content="Get in touch with Ramble Route 66. Contact us for questions, suggestions, or partnership opportunities." />
         <link rel="canonical" href="https://www.ramble66.com/contact" />
       </Helmet>
-      
-      <NavigationBar />
       
       <main className="min-h-screen bg-white">
         {/* Hero Section */}
@@ -167,9 +164,7 @@ const ContactPage = () => {
           </div>
         </section>
       </main>
-      
-      <Footer />
-    </>
+    </MainLayout>
   );
 };
 
