@@ -16,6 +16,13 @@ const LogoImage: React.FC<LogoImageProps> = ({
 }) => {
   const [imageSrc, setImageSrc] = useState(getRambleLogoUrl());
   const [hasError, setHasError] = useState(false);
+  
+  console.log('🚀 LogoImage DEBUG: Component rendered', {
+    imageSrc,
+    hasError,
+    className,
+    alt
+  });
 
   useEffect(() => {
     console.log('🖼️ LogoImage: Component mounted with props', {

@@ -1,6 +1,7 @@
 import LogoImage from "./shared/LogoImage";
 
 const Footer = () => {
+  console.log('🏁 Footer: Rendering with LogoImage component');
   
   return (
     <footer className="bg-route66-dark text-white">
