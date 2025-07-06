@@ -1,11 +1,8 @@
-
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import LogoImage from "./shared/LogoImage";
-
 type FooterProps = {
   language: string;
 };
-
 const footerContent = {
   en: {
     description: "Route 66 Guide helps European travelers plan their perfect American road trip adventure.",
@@ -80,42 +77,23 @@ const footerContent = {
     terms: "Voorwaarden & Privacy"
   }
 };
-
-const Footer = ({ language }: FooterProps) => {
+const Footer = ({
+  language
+}: FooterProps) => {
   const content = footerContent[language as keyof typeof footerContent] || footerContent.en;
-
-  return (
-    <footer className="bg-route66-dark text-white">
+  return <footer className="bg-route66-dark text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Logo & Description */}
           <div className="col-span-12 md:col-span-6">
             <div className="flex items-center mb-4">
               <div className="mr-3">
-                <LogoImage 
-                  className="w-10 h-10"
-                  alt="Ramble Route 66 Logo"
-                />
+                <LogoImage className="w-10 h-10" alt="Ramble Route 66 Logo" />
               </div>
               <span className="font-route66 text-2xl text-white">RAMBLE 66</span>
             </div>
-            <p className="text-white/80 mb-6 max-w-md">
-              {content.description}
-            </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-white/70 hover:text-white transition-colors">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="text-white/70 hover:text-white transition-colors">
-                <Instagram size={20} />
-              </a>
-              <a href="#" className="text-white/70 hover:text-white transition-colors">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-white/70 hover:text-white transition-colors">
-                <Youtube size={20} />
-              </a>
-            </div>
+            
+            
           </div>
           
           {/* Contact */}
@@ -140,35 +118,7 @@ const Footer = ({ language }: FooterProps) => {
           </div>
 
           {/* Language */}
-          <div className="col-span-12 md:col-span-3">
-            <h3 className="font-bold mb-4 text-lg">{content.language}</h3>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className={`flex items-center ${language === 'en' ? 'text-white font-medium' : 'text-white/70'}`}>
-                  <div className={`w-2 h-2 rounded-full ${language === 'en' ? 'bg-route66-red' : 'bg-transparent border border-white/30'} mr-2`}></div>
-                  English
-                </a>
-              </li>
-              <li>
-                <a href="#" className={`flex items-center ${language === 'de' ? 'text-white font-medium' : 'text-white/70'}`}>
-                  <div className={`w-2 h-2 rounded-full ${language === 'de' ? 'bg-route66-red' : 'bg-transparent border border-white/30'} mr-2`}></div>
-                  Deutsch
-                </a>
-              </li>
-              <li>
-                <a href="#" className={`flex items-center ${language === 'fr' ? 'text-white font-medium' : 'text-white/70'}`}>
-                  <div className={`w-2 h-2 rounded-full ${language === 'fr' ? 'bg-route66-red' : 'bg-transparent border border-white/30'} mr-2`}></div>
-                  Français
-                </a>
-              </li>
-              <li>
-                <a href="#" className={`flex items-center ${language === 'nl' ? 'text-white font-medium' : 'text-white/70'}`}>
-                  <div className={`w-2 h-2 rounded-full ${language === 'nl' ? 'bg-route66-red' : 'bg-transparent border border-white/30'} mr-2`}></div>
-                  Nederlands
-                </a>
-              </li>
-            </ul>
-          </div>
+          
         </div>
         
         {/* Bottom */}
@@ -183,8 +133,6 @@ const Footer = ({ language }: FooterProps) => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
