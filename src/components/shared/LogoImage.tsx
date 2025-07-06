@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { getRambleLogoUrl, getRambleLogoAlt, testLogoUrl } from '../../utils/logoConfig';
+import React, { useState } from 'react';
 
 interface LogoImageProps {
   className?: string;
@@ -11,54 +10,32 @@ interface LogoImageProps {
 
 const LogoImage: React.FC<LogoImageProps> = ({
   className = 'w-10 h-10',
-  alt,
+  alt = 'Ramble 66 Logo',
   onError
 }) => {
-  const [imageSrc, setImageSrc] = useState(getRambleLogoUrl());
   const [hasError, setHasError] = useState(false);
   
-  console.log('🚀 LogoImage DEBUG: Component rendered', {
-    imageSrc,
-    hasError,
+  // Direct URL to your Supabase logo
+  const logoUrl = "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png";
+  
+  console.log('🚀 LogoImage: Loading logo from Supabase', {
+    logoUrl,
     className,
     alt
   });
 
-  useEffect(() => {
-    console.log('🖼️ LogoImage: Component mounted with props', {
-      className,
-      alt,
-      initialSrc: imageSrc
-    });
-
-    // Test logo accessibility on mount
-    const testLogo = async () => {
-      console.log('🧪 LogoImage: Testing logo accessibility on mount');
-      const isAccessible = await testLogoUrl(getRambleLogoUrl());
-      if (!isAccessible) {
-        console.warn('⚠️ LogoImage: Primary logo not accessible');
-      }
-    };
-
-    testLogo();
-  }, [imageSrc, className, alt]);
-
   const handleError = () => {
-    console.error('❌ LogoImage: Image failed to load', {
-      src: imageSrc,
-      hasError,
+    console.error('❌ LogoImage: Failed to load logo from Supabase', {
+      logoUrl,
       timestamp: new Date().toISOString()
     });
-    console.error('❌ LogoImage: Full error details for debugging');
     setHasError(true);
     onError?.();
   };
 
   const handleLoad = () => {
-    console.log('✅ LogoImage: Image loaded successfully', {
-      src: imageSrc,
-      className,
-      alt: alt || getRambleLogoAlt(),
+    console.log('✅ LogoImage: Successfully loaded logo from Supabase', {
+      logoUrl,
       timestamp: new Date().toISOString()
     });
     setHasError(false);
@@ -66,8 +43,8 @@ const LogoImage: React.FC<LogoImageProps> = ({
 
   return (
     <img 
-      src={imageSrc}
-      alt={alt || getRambleLogoAlt()}
+      src={logoUrl}
+      alt={alt}
       className={`${className} object-contain`}
       onError={handleError}
       onLoad={handleLoad}
