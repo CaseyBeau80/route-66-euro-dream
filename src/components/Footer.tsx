@@ -1,4 +1,3 @@
-import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import LogoImage from "./shared/LogoImage";
 
 const Footer = () => {
@@ -6,7 +5,7 @@ const Footer = () => {
   return (
     <footer className="bg-route66-dark text-white">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Logo & Description */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-4">
@@ -68,27 +67,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Social & Follow */}
-          <div className="col-span-1">
-            <h3 className="font-bold mb-4 text-lg text-white">Follow Us</h3>
-            <div className="flex space-x-3 mb-4">
-              <a href="#" className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-route66-red transition-colors">
-                <Facebook className="h-4 w-4 text-white" />
-              </a>
-              <a href="#" className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-route66-red transition-colors">
-                <Instagram className="h-4 w-4 text-white" />
-              </a>
-              <a href="#" className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-route66-red transition-colors">
-                <Twitter className="h-4 w-4 text-white" />
-              </a>
-              <a href="#" className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center hover:bg-route66-red transition-colors">
-                <Youtube className="h-4 w-4 text-white" />
-              </a>
-            </div>
-            <p className="text-white/70 text-xs">
-              Join our community of Route 66 enthusiasts
-            </p>
-          </div>
         </div>
         
         {/* Bottom */}
