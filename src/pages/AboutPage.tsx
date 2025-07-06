@@ -26,10 +26,10 @@ const AboutPage = () => {
         </section>
 
         {/* Mission Section */}
-        <section className="py-16">
+        <section className="py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <div className="text-center mb-12">
+              <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-foreground mb-4">Our Mission</h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   We're dedicated to helping travelers discover the authentic spirit of Route 66, 
@@ -37,7 +37,7 @@ const AboutPage = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="text-center">
                   <div className="w-16 h-16 bg-route66-primary rounded-full flex items-center justify-center mx-auto mb-4">
                     <Map className="h-8 w-8 text-white" />
@@ -73,12 +73,12 @@ const AboutPage = () => {
         </section>
 
         {/* Story Section */}
-        <section className="py-16 bg-muted/30">
+        <section className="py-10 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-foreground mb-8">The Story Behind Ramble 66</h2>
-                <div className="max-w-3xl mx-auto space-y-6 text-lg text-muted-foreground leading-relaxed">
+                <h2 className="text-3xl font-bold text-foreground mb-6">The Story Behind Ramble 66</h2>
+                <div className="max-w-3xl mx-auto space-y-4 text-lg text-muted-foreground leading-relaxed">
                   <p>
                     Ramble 66 was born out of a cherished memory — a road trip that stretched from the quiet hills of Southwest Missouri all the way to Northern California. Although not a kid but a young adult, I was packed into the backseat with my grandparents, headed west on Route 66 for my cousin's wedding. We didn't rush. We rambled.
                   </p>
@@ -101,11 +101,11 @@ const AboutPage = () => {
         </section>
 
         {/* Contact Section */}
-        <section className="py-16">
+        <section className="py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
               <h2 className="text-3xl font-bold text-foreground mb-4">Get in Touch</h2>
-              <p className="text-lg text-muted-foreground mb-8">
+              <p className="text-lg text-muted-foreground mb-6">
                 Have questions, suggestions, or want to share your Route 66 story? 
                 We'd love to hear from you!
               </p>
