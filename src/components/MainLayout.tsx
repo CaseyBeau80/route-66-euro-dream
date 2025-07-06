@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import NavigationBar from "./NavigationBar";
 import Footer from "./Footer";
 import RouteIndicator from "./RouteIndicator";
+import NavigationDropdown from "./NavigationDropdown";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -16,7 +17,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       {/* Route Indicator */}
       <div className="pt-20 pb-4 container mx-auto px-4">
-        <RouteIndicator />
+        <div className="flex items-center justify-between">
+          <RouteIndicator />
+          <NavigationDropdown />
+        </div>
       </div>
       
       {/* Main Content */}
