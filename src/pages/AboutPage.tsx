@@ -12,9 +12,9 @@ const AboutPage = () => {
         <link rel="canonical" href="https://www.ramble66.com/about" />
       </Helmet>
       
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="bg-route66-red text-white py-16">
+        <section className="bg-route66-primary text-white py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">About Ramble Route 66</h1>
@@ -30,8 +30,8 @@ const AboutPage = () => {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Mission</h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                <h2 className="text-3xl font-bold text-foreground mb-4">Our Mission</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   We're dedicated to helping travelers discover the authentic spirit of Route 66, 
                   from its iconic landmarks to its hidden gems and local stories.
                 </p>
@@ -39,31 +39,31 @@ const AboutPage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-route66-red rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-route66-primary rounded-full flex items-center justify-center mx-auto mb-4">
                     <Map className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Comprehensive Guides</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-xl font-semibold text-foreground mb-3">Comprehensive Guides</h3>
+                  <p className="text-muted-foreground">
                     Detailed information about every mile of Route 66, from Chicago to Santa Monica.
                   </p>
                 </div>
 
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-route66-red rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-route66-primary rounded-full flex items-center justify-center mx-auto mb-4">
                     <Heart className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Authentic Stories</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-xl font-semibold text-foreground mb-3">Authentic Stories</h3>
+                  <p className="text-muted-foreground">
                     Real stories from the road, local legends, and the people who keep Route 66 alive.
                   </p>
                 </div>
 
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-route66-red rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-route66-primary rounded-full flex items-center justify-center mx-auto mb-4">
                     <Users className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Community</h3>
-                  <p className="text-gray-600">
+                  <h3 className="text-xl font-semibold text-foreground mb-3">Community</h3>
+                  <p className="text-muted-foreground">
                     Connecting Route 66 enthusiasts from around the world to share experiences.
                   </p>
                 </div>
@@ -73,12 +73,12 @@ const AboutPage = () => {
         </section>
 
         {/* Story Section */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <div className="text-center">
-                <h2 className="text-3xl font-bold text-gray-900 mb-8">The Story Behind Ramble 66</h2>
-                <div className="max-w-3xl mx-auto space-y-6 text-lg text-gray-600 leading-relaxed">
+                <h2 className="text-3xl font-bold text-foreground mb-8">The Story Behind Ramble 66</h2>
+                <div className="max-w-3xl mx-auto space-y-6 text-lg text-muted-foreground leading-relaxed">
                   <p>
                     Ramble 66 was born out of a cherished memory — a road trip that stretched from the quiet hills of Southwest Missouri all the way to Northern California. Although not a kid but a young adult, I was packed into the backseat with my grandparents, headed west on Route 66 for my cousin's wedding. We didn't rush. We rambled.
                   </p>
@@ -104,8 +104,8 @@ const AboutPage = () => {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Get in Touch</h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Get in Touch</h2>
+              <p className="text-lg text-muted-foreground mb-8">
                 Have questions, suggestions, or want to share your Route 66 story? 
                 We'd love to hear from you!
               </p>
@@ -113,17 +113,17 @@ const AboutPage = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <a
                   href="mailto:info@ramble66.com"
-                  className="inline-flex items-center gap-2 bg-route66-red text-white px-6 py-3 rounded-lg font-semibold hover:bg-route66-red/90 transition-colors"
+                  className="inline-flex items-center gap-2 bg-route66-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-route66-primary-dark transition-colors"
                 >
                   <Mail className="h-5 w-5" />
                   info@ramble66.com
                 </a>
                 
-                <span className="text-gray-400">or</span>
+                <span className="text-muted-foreground">or</span>
                 
                 <a
                   href="/contact"
-                  className="inline-flex items-center gap-2 border-2 border-route66-red text-route66-red px-6 py-3 rounded-lg font-semibold hover:bg-route66-red hover:text-white transition-colors"
+                  className="inline-flex items-center gap-2 border-2 border-route66-primary text-route66-primary px-6 py-3 rounded-lg font-semibold hover:bg-route66-primary hover:text-white transition-colors"
                 >
                   Visit Contact Page
                 </a>
