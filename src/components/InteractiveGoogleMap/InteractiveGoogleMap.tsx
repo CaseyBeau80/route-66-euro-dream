@@ -44,6 +44,10 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   const isMobile = useIsMobile();
   const [isMapReady, setIsMapReady] = useState(false);
 
+  // FORCE DEBUG - This should appear in console
+  console.log('🚨 INTERACTIVE GOOGLE MAP RENDERING - NEW VERSION WITH DEVICE DETECTION');
+  console.log('🚨 Device detection result:', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
+
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
@@ -54,7 +58,8 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     // Mobile: 'greedy' allows normal touch gestures
     const gestureHandling = isMobile ? 'greedy' : 'cooperative';
     
-    console.log(`🎯 InteractiveGoogleMap: Setting gesture handling to ${gestureHandling} (${isMobile ? 'mobile' : 'desktop'})`);
+    console.log('🚨 CREATING MAP OPTIONS WITH GESTURE HANDLING:', gestureHandling);
+    console.log('🚨 Is mobile device?', isMobile);
     
     return {
       // Enable scroll wheel with device-aware gesture handling
