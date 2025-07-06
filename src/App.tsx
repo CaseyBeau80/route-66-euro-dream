@@ -14,7 +14,6 @@ import FunFactsPage from "./pages/FunFactsPage";
 import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
-import TestUploadPage from "./pages/test-upload";
 
 // Create QueryClient instance outside of component to avoid recreation
 const queryClient = new QueryClient({
@@ -43,7 +42,6 @@ function App() {
                   <Route path="/fun-facts" element={<FunFactsPage />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/about" element={<AboutPage />} />
-                  <Route path="/test-upload" element={<TestUploadPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
