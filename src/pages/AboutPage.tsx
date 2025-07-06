@@ -76,46 +76,21 @@ const AboutPage = () => {
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-6">The Story Behind Route 66</h2>
-                  <div className="space-y-4 text-gray-600">
-                    <p>
-                      Route 66, known as "America's Main Street" and "The Mother Road," 
-                      was one of the original highways in the U.S. Highway System, established in 1926. 
-                      Running from Chicago to Santa Monica, it became a symbol of freedom and adventure.
-                    </p>
-                    <p>
-                      Though officially decommissioned in 1985, Route 66 lives on in the hearts 
-                      of millions of travelers who continue to seek out its historic path, 
-                      vintage diners, classic motels, and quirky roadside attractions.
-                    </p>
-                    <p>
-                      Our team is passionate about preserving this legacy while making it accessible 
-                      to modern travelers who want to experience the authentic spirit of the American road trip.
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-white p-8 rounded-lg shadow-lg">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Route 66 by the Numbers</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Distance:</span>
-                      <span className="font-semibold">2,448 miles</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">States Crossed:</span>
-                      <span className="font-semibold">8 states</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Years Active:</span>
-                      <span className="font-semibold">1926-1985</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Historic Landmarks:</span>
-                      <span className="font-semibold">200+</span>
-                    </div>
-                  </div>
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900 mb-8">The Story Behind Ramble 66</h2>
+                <div className="max-w-3xl mx-auto space-y-6 text-lg text-gray-600 leading-relaxed">
+                  <p>
+                    Ramble 66 was born out of a cherished memory — a road trip that stretched from the quiet hills of Southwest Missouri all the way to Northern California. Although not a kid but a young adult, I was packed into the backseat with my grandparents, headed west on Route 66 for my cousin's wedding. We didn't rush. We rambled.
+                  </p>
+                  <p>
+                    That trip left a mark on me: the laughter at old diners, the songs on the radio, the feeling of the open road — and one unforgettable stop at the Grand Canyon, where I wandered off and got separated from my grandparents. My grandpa, calm and wise as ever, taught me a simple rule: when you're lost, stay put. I never forgot it — or the squirrel that kept me company until I was found.
+                  </p>
+                  <p>
+                    We crossed the big farms of Southern California, sampling every fruit and nut we could get our hands on. It was more than a road trip. It was connection. It was heritage. It was the kind of journey you don't just remember — you carry with you.
+                  </p>
+                  <p>
+                    Ramble 66 was built to help others create those same kinds of memories. It's a guide, a tribute, and an invitation: to slow down, explore the road, and rediscover the magic of the American journey.
+                  </p>
                 </div>
               </div>
             </div>
