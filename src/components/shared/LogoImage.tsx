@@ -50,6 +50,10 @@ const LogoImage: React.FC<LogoImageProps> = ({
       onLoad={handleLoad}
       loading="eager"
       crossOrigin="anonymous"
+      style={{ 
+        filter: 'none',
+        WebkitFilter: 'none'
+      }}
     />
   );
 };
