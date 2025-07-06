@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import MapInitializerCore from './MapInitializerCore';
 import DestinationCitiesContainer from './DestinationCitiesContainer';
 import AttractionsContainer from './AttractionsContainer';
@@ -33,15 +34,22 @@ const MapCore: React.FC<MapCoreProps> = ({
   onAttractionClick
 }) => {
   const [showScrollHint, setShowScrollHint] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleMapLoad = async (map: google.maps.Map) => {
     console.log('🗺️ MapCore: Map loaded, setting up controls');
     
-    // Enable mouse wheel zoom
+    // Use device-aware gesture handling
+    // Desktop: 'cooperative' requires Ctrl+scroll to zoom
+    // Mobile: 'greedy' allows normal touch gestures
+    const gestureHandling = isMobile ? 'greedy' : 'cooperative';
+    
     map.setOptions({
       scrollwheel: true,
-      gestureHandling: 'greedy'
+      gestureHandling
     });
+    
+    console.log(`🎯 Gesture handling set to: ${gestureHandling} (${isMobile ? 'mobile' : 'desktop'})`);
     
     onMapLoad(map);
   };

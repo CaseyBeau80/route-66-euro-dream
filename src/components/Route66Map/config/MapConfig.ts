@@ -33,8 +33,8 @@ export const mapRestrictions = {
 // Route 66 states to highlight (using full names now for more reliable matching)
 export const route66StateIds = ['California', 'Arizona', 'New Mexico', 'Texas', 'Oklahoma', 'Missouri', 'Illinois'];
 
-// Custom styling to focus on Route 66 and de-emphasize other areas
-export const mapOptions = {
+// Device-aware map options function
+export const createMapOptions = (isMobile: boolean): google.maps.MapOptions => ({
   disableDefaultUI: false,
   zoomControl: true, // Enable zoom controls
   mapTypeControl: false,
@@ -43,7 +43,10 @@ export const mapOptions = {
   restriction: mapRestrictions,
   minZoom: 4, // Increased minimum zoom for Route 66 focus
   maxZoom: 12, // Reasonable maximum zoom for route exploration
-  gestureHandling: 'greedy', // Enable aggressive touch gestures for mobile
+  // Device-aware gesture handling:
+  // Desktop: 'cooperative' requires Ctrl+scroll to zoom  
+  // Mobile: 'greedy' allows normal touch gestures
+  gestureHandling: isMobile ? 'greedy' : 'cooperative',
   styles: [
     {
       // Make all states lighter
@@ -82,7 +85,10 @@ export const mapOptions = {
       stylers: [{ visibility: 'off' }]
     }
   ]
-};
+});
+
+// Default map options (for backwards compatibility)
+export const mapOptions = createMapOptions(false); // Default to desktop behavior
 
 // Route 66 polyline options
 export const polylineOptions = {

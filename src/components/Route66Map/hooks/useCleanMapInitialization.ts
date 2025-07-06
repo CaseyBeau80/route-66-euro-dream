@@ -1,5 +1,6 @@
 
 import { useCallback, useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UseCleanMapInitializationProps {
   mapRef: React.MutableRefObject<google.maps.Map | null>;
@@ -11,6 +12,7 @@ export const useCleanMapInitialization = ({
   setupMapListeners
 }: UseCleanMapInitializationProps) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const isMobile = useIsMobile();
 
   const onLoad = useCallback((map: google.maps.Map) => {
     console.log("🗺️ Google Map loaded - using NATIVE navigation only");
@@ -22,10 +24,15 @@ export const useCleanMapInitialization = ({
     map.setZoom(5);
     map.setCenter(route66Center);
     
+    // Use device-aware gesture handling
+    // Desktop: 'cooperative' requires Ctrl+scroll to zoom
+    // Mobile: 'greedy' allows normal touch gestures
+    const gestureHandling = isMobile ? 'greedy' : 'cooperative';
+    
     // Enable native navigation with minimal restrictions
     map.setOptions({
       draggable: true,
-      gestureHandling: 'greedy',
+      gestureHandling,
       scrollwheel: true,
       panControl: true,
       zoomControl: true,
@@ -37,14 +44,14 @@ export const useCleanMapInitialization = ({
     });
     
     console.log('🖱️ Native dragging enabled:', map.get('draggable'));
-    console.log('🖱️ Gesture handling:', map.get('gestureHandling'));
+    console.log(`🎯 Gesture handling set to: ${gestureHandling} (${isMobile ? 'mobile' : 'desktop'})`);
     console.log('🎯 Initial center set to Route 66 area:', route66Center);
     
     // Setup simple listeners
     setupMapListeners(map);
     
     console.log('✅ Map ready for NATIVE navigation - no interference');
-  }, [mapRef, setupMapListeners]);
+  }, [mapRef, setupMapListeners, isMobile]);
 
   const onUnmount = useCallback(() => {
     console.log("🗺️ Google Map unmounted - simple cleanup");

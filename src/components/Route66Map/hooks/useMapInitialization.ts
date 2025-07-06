@@ -1,5 +1,6 @@
 
 import { useState, useCallback } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { mapBounds, mapRestrictions } from '../config/MapConfig';
 
 interface UseMapInitializationProps {
@@ -14,6 +15,7 @@ export const useMapInitialization = ({
   onMapClick
 }: UseMapInitializationProps) => {
   const [mapInitialized, setMapInitialized] = useState(false);
+  const isMobile = useIsMobile();
 
   const initializeMap = useCallback((containerRef: HTMLDivElement) => {
     if (mapInitialized) {
@@ -27,14 +29,19 @@ export const useMapInitialization = ({
       return null;
     }
 
-    console.log('🗺️ MapCore: Initializing Google Map with scroll zoom enabled');
+    console.log('🗺️ MapCore: Initializing Google Map with device-aware gesture handling');
+
+    // Use device-aware gesture handling
+    // Desktop: 'cooperative' requires Ctrl+scroll to zoom
+    // Mobile: 'greedy' allows normal touch gestures
+    const gestureHandling = isMobile ? 'greedy' : 'cooperative';
 
     try {
       const map = new google.maps.Map(containerRef, {
         zoom: 4,
         center: { lat: 39.0, lng: -98.0 },
         mapTypeId: google.maps.MapTypeId.ROADMAP,
-        gestureHandling: 'greedy',
+        gestureHandling,
         zoomControl: false, // Disable default zoom controls since we have custom ones
         mapTypeControl: false,
         scaleControl: true,
@@ -70,7 +77,7 @@ export const useMapInitialization = ({
         console.log('📍 Created map portal root for hover cards');
       }
 
-      console.log('✅ Google Map initialized successfully with scroll wheel enabled');
+      console.log(`✅ Google Map initialized with ${gestureHandling} gesture handling (${isMobile ? 'mobile' : 'desktop'})`);
       onMapLoad(map);
       onMapReady();
 
@@ -82,7 +89,7 @@ export const useMapInitialization = ({
       console.error('❌ Error initializing Google Map:', error);
       return null;
     }
-  }, [mapInitialized, onMapLoad, onMapReady, onMapClick]);
+  }, [mapInitialized, onMapLoad, onMapReady, onMapClick, isMobile]);
 
   return {
     mapInitialized,

@@ -10,7 +10,8 @@ export const center = {
   lng: -100
 };
 
-export const mapOptions = {
+// Device-aware map options function
+export const createMapOptions = (isMobile: boolean): google.maps.MapOptions => ({
   disableDefaultUI: false,
   zoomControl: true,
   mapTypeControl: false,
@@ -18,7 +19,10 @@ export const mapOptions = {
   streetViewControl: false,
   rotateControl: false,
   fullscreenControl: true,
-  gestureHandling: 'greedy' as const,
+  // Device-aware gesture handling:
+  // Desktop: 'cooperative' requires Ctrl+scroll to zoom
+  // Mobile: 'greedy' allows normal touch gestures
+  gestureHandling: isMobile ? 'greedy' : 'cooperative',
   draggable: true,
   scrollwheel: true,
   disableDoubleClickZoom: false,
@@ -27,4 +31,7 @@ export const mapOptions = {
   minZoom: 3,
   maxZoom: 18,
   styles: []
-};
+});
+
+// Default map options (for backwards compatibility)
+export const mapOptions = createMapOptions(false); // Default to desktop behavior
