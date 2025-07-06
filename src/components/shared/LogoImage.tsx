@@ -46,8 +46,10 @@ const LogoImage: React.FC<LogoImageProps> = ({
   const handleError = () => {
     console.error('❌ LogoImage: Image failed to load', {
       src: imageSrc,
-      hasError
+      hasError,
+      timestamp: new Date().toISOString()
     });
+    console.error('❌ LogoImage: Full error details for debugging');
     setHasError(true);
     onError?.();
   };
@@ -56,7 +58,8 @@ const LogoImage: React.FC<LogoImageProps> = ({
     console.log('✅ LogoImage: Image loaded successfully', {
       src: imageSrc,
       className,
-      alt: alt || getRambleLogoAlt()
+      alt: alt || getRambleLogoAlt(),
+      timestamp: new Date().toISOString()
     });
     setHasError(false);
   };
