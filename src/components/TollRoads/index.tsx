@@ -27,6 +27,19 @@ const TollRoads = () => {
               <p>
                 <strong>Most Route 66 toll roads are now cashless!</strong> Here's what you need to know:
               </p>
+              
+              <div className="bg-white/50 p-4 rounded-lg border border-route66-primary/20">
+                <p className="font-medium text-route66-text-primary mb-2">
+                  When you drive through a cashless toll, the system uses license plate recognition cameras to snap a photo of your car's plate. Then:
+                </p>
+                <div className="ml-4">
+                  <p className="flex items-start">
+                    <span className="mr-2">📨</span>
+                    <span><strong>If it's your car:</strong> A bill is mailed to the registered owner's address (usually within 30–45 days).</span>
+                  </p>
+                </div>
+              </div>
+              
               <ul className="space-y-2 ml-4">
                 <li className="flex items-start">
                   <span className="text-route66-primary mr-2">•</span>
