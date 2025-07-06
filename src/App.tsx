@@ -9,7 +9,6 @@ import { HelmetProvider } from "react-helmet-async";
 import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
 import TripDetailsPage from "./pages/TripDetailsPage/index";
-import SharedTripPage from "./pages/SharedTripPage";
 
 
 import FunFactsPage from "./pages/FunFactsPage";
@@ -42,7 +41,6 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
-                  <Route path="/shared-trip" element={<SharedTripPage />} />
                   
                   
                   <Route path="/fun-facts" element={<FunFactsPage />} />
