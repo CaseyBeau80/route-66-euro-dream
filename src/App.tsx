@@ -8,7 +8,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
-import TripDetailsPage from "./pages/TripDetailsPage/index";
 
 
 import FunFactsPage from "./pages/FunFactsPage";
@@ -40,7 +39,6 @@ function App() {
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/trip/:shareCode" element={<TripDetailsPage />} />
                   
                   
                   <Route path="/fun-facts" element={<FunFactsPage />} />
