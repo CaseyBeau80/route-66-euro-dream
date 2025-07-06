@@ -1,26 +1,21 @@
-
 import { ReactNode } from 'react';
 import NavigationBar from "./NavigationBar";
 import Footer from "./Footer";
 import RouteIndicator from "./RouteIndicator";
 import NavigationDropdown from "./NavigationDropdown";
-
 interface MainLayoutProps {
   children: ReactNode;
 }
-
-const MainLayout = ({ children }: MainLayoutProps) => {
-  return (
-    <div className="min-h-screen bg-route66-background">
+const MainLayout = ({
+  children
+}: MainLayoutProps) => {
+  return <div className="min-h-screen bg-route66-background">
       {/* Navigation Bar with modern styling */}
       <NavigationBar />
       
       {/* Route Indicator */}
       <div className="pt-20 pb-4 container mx-auto px-4">
-        <div className="flex items-center justify-between">
-          <RouteIndicator />
-          <NavigationDropdown />
-        </div>
+        
       </div>
       
       {/* Main Content */}
@@ -28,8 +23,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       {/* Footer */}
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default MainLayout;
