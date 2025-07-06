@@ -104,8 +104,8 @@ const AboutPage = () => {
         <section className="py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-4">Get in Touch</h2>
-              <p className="text-lg text-muted-foreground mb-6">
+              <h2 className="text-3xl font-bold text-route66-text-primary mb-4">Get in Touch</h2>
+              <p className="text-lg text-route66-text-secondary mb-6">
                 Have questions, suggestions, or want to share your Route 66 story? 
                 We'd love to hear from you!
               </p>
@@ -119,7 +119,7 @@ const AboutPage = () => {
                   info@ramble66.com
                 </a>
                 
-                <span className="text-muted-foreground">or</span>
+                <span className="text-route66-text-muted">or</span>
                 
                 <a
                   href="/contact"
