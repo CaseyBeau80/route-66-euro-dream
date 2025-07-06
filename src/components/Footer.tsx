@@ -120,7 +120,11 @@ const Footer = ({ language }: FooterProps) => {
           
           {/* Contact */}
           <div className="col-span-12 md:col-span-3">
-            <h3 className="font-bold mb-4 text-lg">Contact</h3>
+            <h3 className="font-bold mb-4 text-lg">
+              <a href="/contact" className="text-white hover:text-route66-red transition-colors">
+                Contact
+              </a>
+            </h3>
             <ul className="space-y-2">
               <li>
                 <a href="https://www.ramble66.com" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
@@ -170,7 +174,7 @@ const Footer = ({ language }: FooterProps) => {
         {/* Bottom */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between">
           <div className="text-white/60 text-sm mb-4 md:mb-0">
-            {content.copyright}
+            © 2025 Ramble66 | Contact: <a href="mailto:info@ramble66.com" className="text-white/70 hover:text-white transition-colors">info@ramble66.com</a>
           </div>
           <div>
             <a href="#" className="text-white/60 text-sm hover:text-white transition-colors">
