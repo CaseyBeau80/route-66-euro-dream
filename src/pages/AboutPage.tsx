@@ -17,6 +17,13 @@ const AboutPage = () => {
         <section className="bg-route66-primary text-white py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
+              <div className="flex justify-center mb-6">
+                <img 
+                  src="/lovable-uploads/1e9e4b09-68ae-4c10-943c-82511ffe0bba.png"
+                  alt="Ramble Route 66 Logo"
+                  className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                />
+              </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">About Ramble Route 66</h1>
               <p className="text-xl text-white/90">
                 Preserving and sharing the magic of America's Main Street
