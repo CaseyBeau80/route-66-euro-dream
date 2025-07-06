@@ -80,11 +80,11 @@ const TripDetailsPage: React.FC = () => {
           <title>Loading Trip | Ramble Route 66</title>
           <meta name="description" content="Loading your Route 66 trip details..." />
         </Helmet>
-        <NavigationBar language="en" setLanguage={() => {}} />
+        <NavigationBar />
         <main className="min-h-screen bg-white">
           <TripDetailsLoading shareCode={shareCode} />
         </main>
-        <Footer language="en" />
+        <Footer />
       </>
     );
   }

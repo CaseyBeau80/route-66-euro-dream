@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
@@ -12,20 +11,18 @@ import TollRoads from "../components/TollRoads";
 import FunSection from "../components/FunSection/FunSection";
 
 const Index = () => {
-  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
-  
   console.log("🏠 Index page: Rendering with restored directory view");
 
   return (
-    <MainLayout language={language} setLanguage={setLanguage}>
+    <MainLayout>
       {/* Hero Section - Full viewport height with two-column layout */}
       <section id="hero">
-        <HeroSection language={language} />
+        <HeroSection />
       </section>
 
       {/* Interactive Map Section with fade-in */}
       <FadeInSection id="interactive-map" delay={200}>
-        <InteractiveMapSection language={language} />
+        <InteractiveMapSection />
       </FadeInSection>
 
       {/* Trip Planner Section with fade-in */}
@@ -40,17 +37,17 @@ const Index = () => {
 
       {/* Social Section with fade-in */}
       <FadeInSection id="social" delay={400}>
-        <SocialSection language={language} />
+        <SocialSection />
       </FadeInSection>
 
       {/* Fun Section with fade-in */}
       <FadeInSection id="fun" delay={450}>
-        <FunSection language={language} />
+        <FunSection />
       </FadeInSection>
 
       {/* Toll Roads Advisory Section with fade-in */}
       <FadeInSection id="toll-roads" delay={500}>
-        <TollRoads language={language} />
+        <TollRoads />
       </FadeInSection>
 
       {/* Back to Top Button */}

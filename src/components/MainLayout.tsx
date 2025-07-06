@@ -5,21 +5,19 @@ import Footer from "./Footer";
 
 interface MainLayoutProps {
   children: ReactNode;
-  language: "en" | "de" | "fr" | "pt-BR";
-  setLanguage: (language: "en" | "de" | "fr" | "pt-BR") => void;
 }
 
-const MainLayout = ({ children, language, setLanguage }: MainLayoutProps) => {
+const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <div className="min-h-screen bg-route66-background">
       {/* Navigation Bar with modern styling */}
-      <NavigationBar language={language} setLanguage={setLanguage} />
+      <NavigationBar />
       
       {/* Main Content */}
       {children}
       
       {/* Footer */}
-      <Footer language={language} />
+      <Footer />
     </div>
   );
 };

@@ -2,22 +2,18 @@
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { navigationItems, languageOptions } from "../constants/navigationConfig";
+import { navigationItems } from "../constants/navigationConfig";
 
 type MobileNavigationProps = {
   isMenuOpen: boolean;
   setIsMenuOpen: (open: boolean) => void;
   isActiveRoute: (href: string) => boolean;
-  language: string;
-  setLanguage: (lang: "en" | "de" | "fr" | "pt-BR") => void;
 };
 
 const MobileNavigation = ({ 
   isMenuOpen, 
   setIsMenuOpen, 
-  isActiveRoute, 
-  language, 
-  setLanguage 
+  isActiveRoute
 }: MobileNavigationProps) => {
   return (
     <>
@@ -62,26 +58,6 @@ const MobileNavigation = ({
               </Link>
             );
           })}
-
-          <div className="border-t border-route66-primary/20 pt-4 mt-4">
-            <p className="text-sm text-route66-text-secondary mb-3 px-4 font-medium">Language</p>
-            <div className="grid grid-cols-2 gap-2 px-4">
-              {languageOptions.map((option) => (
-                <button
-                  key={option.code}
-                  onClick={() => setLanguage(option.code as "en" | "de" | "fr" | "pt-BR")}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    language === option.code
-                      ? 'bg-route66-primary text-white shadow-md'
-                      : 'bg-route66-background-alt text-route66-text-secondary hover:bg-route66-primary/10'
-                  }`}
-                >
-                  <span>{option.flag}</span>
-                  <span>{option.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </>

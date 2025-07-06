@@ -4,12 +4,7 @@ import Logo from "./components/Logo";
 import DesktopNavigation from "./components/DesktopNavigation";
 import MobileNavigation from "./components/MobileNavigation";
 
-type NavigationBarProps = {
-  language: string;
-  setLanguage: (lang: "en" | "de" | "fr" | "pt-BR") => void;
-};
-
-const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
+const NavigationBar = () => {
   const { isMenuOpen, setIsMenuOpen, scrolled, isActiveRoute } = useNavigationState();
 
   return (
@@ -26,8 +21,6 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
           {/* Desktop Navigation */}
           <DesktopNavigation 
             isActiveRoute={isActiveRoute}
-            language={language}
-            setLanguage={setLanguage}
           />
 
           {/* Mobile Navigation */}
@@ -35,8 +28,6 @@ const NavigationBar = ({ language, setLanguage }: NavigationBarProps) => {
             isMenuOpen={isMenuOpen}
             setIsMenuOpen={setIsMenuOpen}
             isActiveRoute={isActiveRoute}
-            language={language}
-            setLanguage={setLanguage}
           />
         </div>
       </div>

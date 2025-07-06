@@ -13,7 +13,7 @@ const AboutPage = () => {
         <link rel="canonical" href="https://www.ramble66.com/about" />
       </Helmet>
       
-      <NavigationBar language="en" setLanguage={() => {}} />
+      <NavigationBar />
       
       <main className="min-h-screen bg-white">
         {/* Hero Section */}
@@ -158,7 +158,7 @@ const AboutPage = () => {
         </section>
       </main>
       
-      <Footer language="en" />
+      <Footer />
     </>
   );
 };

@@ -1,87 +1,7 @@
 import { Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import LogoImage from "./shared/LogoImage";
 
-type FooterProps = {
-  language: string;
-};
-
-const footerContent = {
-  en: {
-    description: "Route 66 Guide helps European travelers plan their perfect American road trip adventure.",
-    company: {
-      title: "Company",
-      links: ["About Us", "Our Team", "Press", "Testimonials"]
-    },
-    resources: {
-      title: "Resources",
-      links: ["Blog", "Route Maps", "Travel Guide", "FAQ"]
-    },
-    business: {
-      title: "Partner with Us",
-      links: ["List Your Business", "Advertising", "Affiliate Program", "Contact"]
-    },
-    language: "Language",
-    copyright: "© 2023 Route 66 Guide. All rights reserved.",
-    terms: "Terms & Privacy"
-  },
-  de: {
-    description: "Route 66 Guide hilft europäischen Reisenden bei der Planung ihres perfekten amerikanischen Roadtrip-Abenteuers.",
-    company: {
-      title: "Unternehmen",
-      links: ["Über uns", "Unser Team", "Presse", "Erfahrungsberichte"]
-    },
-    resources: {
-      title: "Ressourcen",
-      links: ["Blog", "Routenkarten", "Reiseführer", "FAQ"]
-    },
-    business: {
-      title: "Partnerschaften",
-      links: ["Ihr Unternehmen eintragen", "Werbung", "Partnerprogramm", "Kontakt"]
-    },
-    language: "Sprache",
-    copyright: "© 2023 Route 66 Guide. Alle Rechte vorbehalten.",
-    terms: "Nutzungsbedingungen & Datenschutz"
-  },
-  fr: {
-    description: "Route 66 Guide aide les voyageurs européens à planifier leur parfaite aventure de road trip américain.",
-    company: {
-      title: "Entreprise",
-      links: ["À propos de nous", "Notre équipe", "Presse", "Témoignages"]
-    },
-    resources: {
-      title: "Ressources",
-      links: ["Blog", "Cartes de route", "Guide de voyage", "FAQ"]
-    },
-    business: {
-      title: "Partenariat",
-      links: ["Référencer votre entreprise", "Publicité", "Programme d'affiliation", "Contact"]
-    },
-    language: "Langue",
-    copyright: "© 2023 Route 66 Guide. Tous droits réservés.",
-    terms: "Conditions & Confidentialité"
-  },
-  nl: {
-    description: "Route 66 Guide helpt Europese reizigers bij het plannen van hun perfecte Amerikaanse roadtrip-avontuur.",
-    company: {
-      title: "Bedrijf",
-      links: ["Over ons", "Ons team", "Pers", "Getuigenissen"]
-    },
-    resources: {
-      title: "Bronnen",
-      links: ["Blog", "Routekaarten", "Reisgids", "FAQ"]
-    },
-    business: {
-      title: "Partner worden",
-      links: ["Uw bedrijf vermelden", "Adverteren", "Partnerprogramma", "Contact"]
-    },
-    language: "Taal",
-    copyright: "© 2023 Route 66 Guide. Alle rechten voorbehouden.",
-    terms: "Voorwaarden & Privacy"
-  }
-};
-
-const Footer = ({ language }: FooterProps) => {
-  const content = footerContent[language as keyof typeof footerContent] || footerContent.en;
+const Footer = () => {
   
   return (
     <footer className="bg-route66-dark text-white">
@@ -178,7 +98,7 @@ const Footer = ({ language }: FooterProps) => {
           </div>
           <div>
             <a href="#" className="text-white/60 text-sm hover:text-white transition-colors">
-              {content.terms}
+              Terms & Privacy
             </a>
           </div>
         </div>
