@@ -10,7 +10,6 @@ import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
 
 
-import FunFactsPage from "./pages/FunFactsPage";
 import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
@@ -39,7 +38,6 @@ function App() {
                   <Route path="/" element={<Index />} />
                   
                   
-                  <Route path="/fun-facts" element={<FunFactsPage />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/about" element={<AboutPage />} />
                   <Route path="*" element={<NotFound />} />

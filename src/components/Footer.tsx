@@ -33,11 +33,6 @@ const Footer = () => {
                   About Route 66
                 </a>
               </li>
-              <li>
-                <a href="/fun-facts" className="text-white/70 hover:text-white transition-colors text-sm">
-                  Fun Facts
-                </a>
-              </li>
             </ul>
           </div>
 
