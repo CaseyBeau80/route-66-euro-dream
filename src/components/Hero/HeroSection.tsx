@@ -6,9 +6,7 @@ import cakeImage from "@/assets/route66-100th-cake-transparent.png";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 
 
-interface HeroSectionProps {
-  language: string;
-}
+// No props needed - English only
 const heroContent = {
   en: {
     title: "Plan <span class='underline'>Your</span> Route 66 Vacation 👇",
@@ -35,10 +33,8 @@ const heroContent = {
     mascotAlt: "Big Bo Ramble - Mascote Rota 66"
   }
 };
-const HeroSection: React.FC<HeroSectionProps> = ({
-  language
-}) => {
-  const content = heroContent[language as keyof typeof heroContent] || heroContent.en;
+const HeroSection: React.FC = () => {
+  const content = heroContent.en; // Always use English
   const { timeLeft, mounted } = useTimer();
   const scrollToInteractiveMap = () => {
     const mapSection = document.getElementById('interactive-map');

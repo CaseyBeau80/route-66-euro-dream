@@ -96,7 +96,7 @@ const TripDetailsPage: React.FC = () => {
           <title>Trip Not Found | Ramble Route 66</title>
           <meta name="description" content="The requested Route 66 trip could not be found." />
         </Helmet>
-        <NavigationBar language="en" setLanguage={() => {}} />
+        <NavigationBar />
         <main className="min-h-screen bg-white">
           <TripDetailsError
             error={error || 'Trip not found'}
@@ -105,7 +105,7 @@ const TripDetailsPage: React.FC = () => {
             onPlanNewTrip={handlePlanNewTrip}
           />
         </main>
-        <Footer language="en" />
+        <Footer />
       </>
     );
   }
@@ -122,7 +122,7 @@ const TripDetailsPage: React.FC = () => {
         <link rel="canonical" href={shareUrl} />
       </Helmet>
       
-      <NavigationBar language="en" setLanguage={() => {}} />
+      <NavigationBar />
       
       <main className="min-h-screen bg-gray-50">
         <div className="pt-20 pb-8">
@@ -137,7 +137,7 @@ const TripDetailsPage: React.FC = () => {
         </div>
       </main>
       
-      <Footer language="en" />
+      <Footer />
     </>
   );
 };

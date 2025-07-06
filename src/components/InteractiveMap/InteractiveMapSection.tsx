@@ -2,13 +2,7 @@
 import React, { useState } from 'react';
 import InteractiveMapDisplay from './components/InteractiveMapDisplay';
 
-interface InteractiveMapSectionProps {
-  language: string;
-}
-
-const InteractiveMapSection: React.FC<InteractiveMapSectionProps> = ({
-  language
-}) => {
+const InteractiveMapSection: React.FC = () => {
   const [isMapExpanded, setIsMapExpanded] = useState(false);
 
   return (

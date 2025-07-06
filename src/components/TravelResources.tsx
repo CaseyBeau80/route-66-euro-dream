@@ -6,10 +6,10 @@ import ResourceHeader from "./TravelResources/ResourceHeader";
 import ResourceCategoryCard from "./TravelResources/ResourceCategoryCard";
 import PopularArticlesSection from "./TravelResources/PopularArticlesSection";
 
-const TravelResources = ({ language }: TravelResourcesProps) => {
-  console.log("🚗 TravelResources: Rendering with language:", language);
+const TravelResources = () => {
+  console.log("🚗 TravelResources: Rendering with English only");
   
-  const content = useResourceContent(language);
+  const content = useResourceContent("en"); // Always use English
   
   return (
     <>
@@ -38,7 +38,7 @@ const TravelResources = ({ language }: TravelResourcesProps) => {
       </section>
       
       {/* Add Toll Roads section */}
-      <TollRoads language={language} />
+      <TollRoads />
     </>
   );
 };

@@ -12,9 +12,7 @@ import { Button } from '@/components/ui/button';
 import { TrailblazerService } from '@/services/trailblazerService';
 import { usePhotoRotation } from '../hooks/usePhotoRotation';
 
-interface CarouselPhotoGalleryProps {
-  language: string;
-}
+// No props needed - English only
 
 const content = {
   en: {
@@ -59,8 +57,8 @@ const content = {
   }
 };
 
-const CarouselPhotoGallery: React.FC<CarouselPhotoGalleryProps> = ({ language }) => {
-  const galleryContent = content[language as keyof typeof content] || content.en;
+const CarouselPhotoGallery: React.FC = () => {
+  const galleryContent = content.en; // Always use English
   
   const {
     photos,

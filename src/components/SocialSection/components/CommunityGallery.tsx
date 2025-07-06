@@ -2,9 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import CommunityStats from './CommunityStats';
 import CarouselPhotoGallery from './CarouselPhotoGallery';
-interface CommunityGalleryProps {
-  language: string;
-}
+// No props needed - English only
 const content = {
   en: {
     title: "Community Gallery",
@@ -35,19 +33,18 @@ const content = {
     loading: "Carregando fotos..."
   }
 };
-const CommunityGallery: React.FC<CommunityGalleryProps> = ({
-  language
-}) => {
+const CommunityGallery: React.FC = () => {
+  const sectionContent = content.en; // Always use English
   return (
     <div className="space-y-4">
       <Card className="border-route66-border">
         <CardContent className="p-8">
-          <CarouselPhotoGallery language={language} />
+          <CarouselPhotoGallery />
         </CardContent>
       </Card>
       
       {/* Community Stats */}
-      <CommunityStats language={language} />
+      <CommunityStats />
     </div>
   );
 };

@@ -3,9 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, Camera, Trophy, MapPin } from 'lucide-react';
 import { TrailblazerService } from '@/services/trailblazerService';
-interface CommunityStatsProps {
-  language: string;
-}
+// No props needed - English only
 interface StatsData {
   totalPhotos: number;
   totalTrailblazers: number;
@@ -42,9 +40,7 @@ const content = {
     todayUploads: "Enviadas hoje"
   }
 };
-const CommunityStats: React.FC<CommunityStatsProps> = ({
-  language
-}) => {
+const CommunityStats: React.FC = () => {
   const [stats, setStats] = useState<StatsData>({
     totalPhotos: 0,
     totalTrailblazers: 0,
@@ -52,7 +48,7 @@ const CommunityStats: React.FC<CommunityStatsProps> = ({
     todayUploads: 0
   });
   const [loading, setLoading] = useState(true);
-  const statsContent = content[language as keyof typeof content] || content.en;
+  const statsContent = content.en; // Always use English
   useEffect(() => {
     fetchCommunityStats();
   }, []);

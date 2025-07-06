@@ -8,9 +8,7 @@ import { StatusAlert } from '@/components/TestUpload/components/StatusAlert';
 import { LoadingSpinner } from '@/components/TestUpload/components/LoadingSpinner';
 import { UploadedImageDisplay } from '@/components/TestUpload/components/UploadedImageDisplay';
 import TrailblazerCelebration from '@/components/TestUpload/components/TrailblazerCelebration';
-interface PhotoUploadSectionProps {
-  language: string;
-}
+// No props needed - English only
 const content = {
   en: {
     title: "Share Your Adventure",
@@ -41,9 +39,7 @@ const content = {
     trailblazerTitle: "Torne-se um desbravador"
   }
 };
-const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
-  language
-}) => {
+const PhotoUploadSection: React.FC = () => {
   const [showUpload, setShowUpload] = useState(false);
   const [selectedStopId] = useState('social-photo-spot');
   const [selectedLocationName] = useState('Route 66 Community');
@@ -60,7 +56,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     closeTrailblazerCelebration,
     resultsRef
   } = useSocialPhotoUpload();
-  const sectionContent = content[language as keyof typeof content] || content.en;
+  const sectionContent = content.en; // Always use English
   return <div className="space-y-8">
       {/* Photo Upload Call to Action */}
       <Card className="bg-gradient-to-r from-route66-primary/5 to-route66-accent/5 border-route66-border">

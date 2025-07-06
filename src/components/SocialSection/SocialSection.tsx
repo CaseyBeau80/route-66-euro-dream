@@ -3,9 +3,7 @@ import { Instagram, Users, Heart, MessageCircle } from 'lucide-react';
 import SimpleInstagramCarousel from '../InstagramCarousel/components/SimpleInstagramCarousel';
 import PhotoUploadSection from './components/PhotoUploadSection';
 import CommunityGallery from './components/CommunityGallery';
-interface SocialSectionProps {
-  language: string;
-}
+// No props needed - English only
 const socialContent = {
   en: {
     badge: "Join the Community",
@@ -92,10 +90,8 @@ const socialContent = {
     }]
   }
 };
-const SocialSection: React.FC<SocialSectionProps> = ({
-  language
-}) => {
-  const content = socialContent[language as keyof typeof socialContent] || socialContent.en;
+const SocialSection: React.FC = () => {
+  const content = socialContent.en; // Always use English
   return <section className="py-6 bg-route66-background-alt">
       <div className="container mx-auto px-4">
         {/* Header */}
@@ -109,12 +105,12 @@ const SocialSection: React.FC<SocialSectionProps> = ({
 
         {/* Community Gallery */}
         <div className="mb-4">
-          <CommunityGallery language={language} />
+          <CommunityGallery />
         </div>
 
         {/* Photo Upload Section */}
         <div className="mb-4">
-          <PhotoUploadSection language={language} />
+          <PhotoUploadSection />
         </div>
 
         {/* Instagram Carousel */}

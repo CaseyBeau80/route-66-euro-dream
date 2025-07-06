@@ -7,7 +7,6 @@ import { PlannerFormData, TripItinerary } from '@/components/Route66Planner/type
 import LogoImage from '../components/shared/LogoImage';
 
 const Route66Planner = () => {
-  const [language, setLanguage] = useState<"en" | "de" | "fr" | "pt-BR">("en");
   const [formData, setFormData] = useState<PlannerFormData>({
     startDate: '',
     startCity: '',
@@ -22,7 +21,7 @@ const Route66Planner = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
-      <NavigationBar language={language} setLanguage={setLanguage} />
+      <NavigationBar />
       
       <div className="pt-20 pb-8">
         <div className="container mx-auto px-4">
