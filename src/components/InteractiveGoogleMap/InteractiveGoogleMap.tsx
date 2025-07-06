@@ -47,13 +47,20 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // Use the same Google Maps hook as the main map to avoid loader conflicts
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
-  // Map options with proper wheel zoom handling
+  // Map options with device-aware wheel zoom handling
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
+    // Device-aware gesture handling
+    // Desktop: 'cooperative' requires Ctrl+scroll to zoom
+    // Mobile: 'greedy' allows normal touch gestures
+    const gestureHandling = isMobile ? 'greedy' : 'cooperative';
+    
+    console.log(`🎯 InteractiveGoogleMap: Setting gesture handling to ${gestureHandling} (${isMobile ? 'mobile' : 'desktop'})`);
+    
     return {
-      // Enable scroll wheel but use cooperative gesture handling
+      // Enable scroll wheel with device-aware gesture handling
       scrollwheel: true, // Enable wheel zoom
       disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'cooperative', // Require Ctrl for zoom, allow pan
+      gestureHandling, // Device-aware: 'cooperative' for desktop, 'greedy' for mobile
       
       // Disable ALL map controls including default zoom
       zoomControl: false, // Always disabled - we use custom controls only
@@ -97,13 +104,16 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     mapRef.current = map;
     setIsMapReady(true);
     
-    console.log('🗺️ Map loaded, setting up proper zoom controls');
+    // Device-aware gesture handling
+    const gestureHandling = isMobile ? 'greedy' : 'cooperative';
+    
+    console.log(`🗺️ InteractiveGoogleMap: Map loaded, setting up ${gestureHandling} zoom controls (${isMobile ? 'mobile' : 'desktop'})`);
     
     // Ensure proper zoom settings on the map instance
     map.setOptions({ 
       scrollwheel: true, // Enable scroll wheel
       disableDoubleClickZoom: true, // Disable double-click zoom
-      gestureHandling: 'cooperative', // Require Ctrl for wheel zoom
+      gestureHandling, // Device-aware gesture handling
       zoomControl: false, // Never show default zoom controls
       restriction: {
         latLngBounds: route66Bounds,
@@ -133,7 +143,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     if (onMapLoad) {
       onMapLoad(map);
     }
-  }, [onMapLoad]);
+  }, [onMapLoad, isMobile]);
 
   const handleMapClick = useCallback(() => {
     if (onMapClick) {
