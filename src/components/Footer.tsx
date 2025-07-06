@@ -10,9 +10,6 @@ const Footer = () => {
           {/* Logo & Description */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-4">
-              <div className="mr-3">
-                <LogoImage className="w-10 h-10" alt="Ramble Route 66 Logo" />
-              </div>
               <span className="font-route66 text-xl text-white">RAMBLE 66</span>
             </div>
             <p className="text-white/70 text-sm">
