@@ -1,9 +1,9 @@
 
 import React from "react";
-import { useCarouselLogic } from "./hooks/useCarouselLogic";
+import { useEnhancedCarouselLogic } from "./hooks/useEnhancedCarouselLogic";
 import InstagramCarouselHeader from "./components/InstagramCarouselHeader";
 import InstagramCarouselGrid from "./components/InstagramCarouselGrid";
-import InstagramCarouselFooter from "./components/InstagramCarouselFooter";
+import EnhancedInstagramCarouselFooter from "./components/EnhancedInstagramCarouselFooter";
 import InstagramCarouselLoading from "./components/InstagramCarouselLoading";
 
 const InstagramCarousel = () => {
@@ -19,9 +19,9 @@ const InstagramCarousel = () => {
     currentIndex,
     canGoPrevious,
     canGoNext,
-    goToPrevious,
-    goToNext
-  } = useCarouselLogic();
+    isRotating,
+    controls,
+  } = useEnhancedCarouselLogic();
 
   if (error) {
     console.error("🚗 InstagramCarousel: Error loading posts:", error);
@@ -42,15 +42,19 @@ const InstagramCarousel = () => {
               currentIndex={currentIndex}
             />
             
-            <InstagramCarouselFooter
+            <EnhancedInstagramCarouselFooter
               currentPage={currentPage}
               totalPages={totalPages}
               visiblePostsCount={visiblePosts.length}
               totalPostsCount={posts.length}
               canGoPrevious={canGoPrevious}
               canGoNext={canGoNext}
-              onPrevious={goToPrevious}
-              onNext={goToNext}
+              isRotating={isRotating}
+              onPrevious={controls.manualPrevious}
+              onNext={controls.manualNext}
+              onStartRotation={controls.startRotation}
+              onStopRotation={controls.stopRotation}
+              onRefresh={controls.refresh}
             />
           </div>
         )}
