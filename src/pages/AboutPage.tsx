@@ -14,10 +14,10 @@ const AboutPage = () => {
       
       <main className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="bg-route66-primary text-white py-16">
+        <section className="bg-route66-primary text-white py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-6">
+              <div className="flex justify-center mb-4">
                 <img 
                   src="/lovable-uploads/1e9e4b09-68ae-4c10-943c-82511ffe0bba.png"
                   alt="Ramble Route 66 Logo"
