@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// GitHub Pages SPA routing fix - must run before React initializes
+console.log('🚀 Main.tsx loading...');
+
+// GitHub Pages SPA routing fix
 (function(l) {
   if (l.search[1] === '/' ) {
     var decoded = l.search.slice(1).split('&').map(function(s) { 
@@ -13,13 +15,24 @@ import './index.css';
   }
 }(window.location));
 
-// Simple React initialization
+console.log('🔍 Looking for root element...');
 const rootElement = document.getElementById('root');
-if (rootElement) {
-  const root = createRoot(rootElement);
-  root.render(
-    <StrictMode>
-      <App />
-    </StrictMode>
-  );
+
+if (!rootElement) {
+  console.error('❌ No root element found!');
+  document.body.innerHTML = '<h1>Error: No root element found</h1>';
+} else {
+  console.log('✅ Root element found, creating React app...');
+  try {
+    const root = createRoot(rootElement);
+    root.render(
+      <StrictMode>
+        <App />
+      </StrictMode>
+    );
+    console.log('✅ React app rendered successfully');
+  } catch (error) {
+    console.error('❌ Error rendering React app:', error);
+    rootElement.innerHTML = `<h1>Error: ${error.message}</h1>`;
+  }
 }
