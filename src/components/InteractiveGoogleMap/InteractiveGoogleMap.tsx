@@ -45,21 +45,11 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   const [isMapReady, setIsMapReady] = useState(false);
 
   // FORCE DEBUG - This should appear in console
-  console.log('🚨 INTERACTIVE GOOGLE MAP RENDERING - NUCLEAR FIX VERSION');
+  console.log('🚨 INTERACTIVE GOOGLE MAP RENDERING - NEW VERSION WITH DEVICE DETECTION');
+  console.log('🚨 Device detection result:', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
 
   // Use the same Google Maps hook as the main map to avoid loader conflicts
-  const { isLoaded, loadError } = useGoogleMaps(); // Removed hasApiKey from here
-  
-  // NUCLEAR FIX: Always force hasApiKey to true - OVERRIDE EVERYTHING
-  const hasApiKey = true; // PERMANENTLY FORCED TO TRUE
-  
-  // Auto-set the API key
-  React.useEffect(() => {
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-    if (!localStorage.getItem('google_maps_api_key')) {
-      localStorage.setItem('google_maps_api_key', hardcodedApiKey);
-    }
-  }, []);
+  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
   // Map options with device-aware wheel zoom handling
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
@@ -136,6 +126,25 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       }
     });
     
+    // Add wheel event handler to show helpful message for regular scroll
+    const mapDiv = map.getDiv();
+    if (mapDiv) {
+      const wheelHandler = (e: WheelEvent) => {
+        if (!e.ctrlKey && !e.metaKey) {
+          // Don't prevent the event - let Google Maps handle it with cooperative gesture
+          console.log('💡 Use Ctrl+scroll to zoom the map, or use the zoom controls');
+        }
+      };
+      
+      mapDiv.addEventListener('wheel', wheelHandler, { passive: true });
+    }
+    
+    // Prevent double-click zoom specifically
+    map.addListener('dblclick', (e: any) => {
+      console.log('🚫 Preventing double-click zoom (use custom controls or Ctrl+scroll)');
+      e.stop();
+    });
+    
     if (onMapLoad) {
       onMapLoad(map);
     }
@@ -147,8 +156,20 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
     }
   }, [onMapClick]);
 
-  // REMOVED PERMANENTLY - NEVER SHOW API KEY REQUIREMENT
-  // This section has been permanently disabled
+  if (!hasApiKey) {
+    return (
+      <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}>
+        <div className="text-center p-8">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            Google Maps API Key Required
+          </h3>
+          <p className="text-gray-600 text-sm">
+            Please add your Google Maps API key to display the map
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loadError) {
     return (

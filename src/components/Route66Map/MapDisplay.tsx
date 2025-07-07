@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import MapLoadingStates from './components/MapLoadingStates';
 import GoogleMapsRoute66 from './GoogleMapsRoute66';
 import ApiKeyInput from './components/ApiKeyInput';
-import DirectGoogleMap from './DirectGoogleMap';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 
 interface MapDisplayProps {
@@ -87,7 +86,11 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
 
   return (
     <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
-      <DirectGoogleMap />
+      <GoogleMapsRoute66
+        selectedState={selectedState}
+        onStateClick={onStateClick}
+        onClearSelection={onClearSelection}
+      />
     </div>
   );
 };
