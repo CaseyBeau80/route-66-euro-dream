@@ -11,8 +11,6 @@ import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 
-console.log('🎯 App.tsx loading...');
-
 // Create QueryClient instance outside of component to avoid recreation
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,30 +22,25 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  console.log('🏗️ App component rendering...');
-  
   return (
-    <div style={{ minHeight: '100vh', background: 'white' }}>
-      <h1 style={{ padding: '20px', color: 'black' }}>Website Loading...</h1>
-      <QueryClientProvider client={queryClient}>
-        <HelmetProvider>
-          <UnitProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </UnitProvider>
-        </HelmetProvider>
-      </QueryClientProvider>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <UnitProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </UnitProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
   );
 }
 
