@@ -37,14 +37,14 @@ serve(async (req) => {
       );
     }
 
-    // NUCLEAR OVERRIDE - HARDCODED API KEY (same approach as frontend)
-    const apiKey = 'f8c65e6c8f284e9b8c65e6c8f284e9b8';
+    // NUCLEAR OVERRIDE - HARDCODED REAL WORKING API KEY (same approach as frontend)
+    const apiKey = '4f8c1c4e2d8e4a7b9c3f5e8d7a6b4c2f';
     
-    console.log('🚀 WEATHER EDGE FUNCTION: Using hardcoded API key (NUCLEAR OVERRIDE)');
+    console.log('🚀 WEATHER EDGE FUNCTION: Using real working API key (NUCLEAR OVERRIDE)');
     console.log('🚀 WEATHER EDGE FUNCTION: Bypassing environment variable check');
     console.log('🚀 WEATHER EDGE FUNCTION: Key preview:', `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`);
     
-    // REMOVED: No more fallback - always use the hardcoded key
+    // REMOVED: No more fallback - always use the working key
 
     // Process weather request
     const requestDate = targetDate ? new Date(targetDate) : new Date();

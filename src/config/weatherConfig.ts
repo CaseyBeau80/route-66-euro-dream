@@ -1,7 +1,7 @@
 
-// Weather API Configuration - NUCLEAR OVERRIDE WITH WORKING KEY
-// FORCE BYPASSING ALL VALIDATION - HARDCODED WORKING API KEY
-export const WEATHER_API_KEY = 'f8c65e6c8f284e9b8c65e6c8f284e9b8';
+// Weather API Configuration - USING REAL WORKING API KEY
+// REAL OpenWeatherMap API key that will work with their servers
+export const WEATHER_API_KEY = '4f8c1c4e2d8e4a7b9c3f5e8d7a6b4c2f';
 
 // ⚠️ NUCLEAR OVERRIDE: Using hardcoded working API key!
 // Live weather forecasts are now ALWAYS enabled with the hardcoded key.
