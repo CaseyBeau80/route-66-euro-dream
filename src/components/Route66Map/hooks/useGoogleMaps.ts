@@ -9,18 +9,23 @@ const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 export const useGoogleMaps = () => {
   // Memoize the API key to prevent it from changing between renders
   const apiKey = useMemo(() => {
+    // Use hardcoded API key for production
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
     const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const storedApiKey = localStorage.getItem('google_maps_api_key');
     
     console.log('🔑 API Key check:', { 
+      hasHardcodedKey: !!hardcodedApiKey,
       hasEnvKey: !!envApiKey, 
-      envKeyValue: envApiKey, 
       hasStoredKey: !!storedApiKey,
       storedKeyLength: storedApiKey?.length || 0
     });
     
-    // Prioritize stored API key over env key for user-provided keys
-    if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
+    // Prioritize hardcoded key, then stored, then env
+    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
+      console.log('🔑 Using hardcoded API key');
+      return hardcodedApiKey.trim();
+    } else if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
       console.log('🔑 Using stored API key');
       return storedApiKey.trim();
     } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
