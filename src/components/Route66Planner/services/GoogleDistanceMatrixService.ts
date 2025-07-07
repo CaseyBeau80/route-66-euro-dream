@@ -22,6 +22,13 @@ export class GoogleDistanceMatrixService {
   }
 
   static getApiKey(): string | null {
+    // Use hardcoded API key for production
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    
+    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
+      return hardcodedApiKey.trim();
+    }
+    
     if (!this.apiKey) {
       this.apiKey = localStorage.getItem('google_maps_api_key');
     }

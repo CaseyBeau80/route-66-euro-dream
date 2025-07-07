@@ -19,10 +19,15 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
 
   // Get API key from environment or localStorage
   const apiKey = React.useMemo(() => {
+    // Use hardcoded API key for production
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
     const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const storedApiKey = localStorage.getItem('google_maps_api_key');
     
-    if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
+    // Always use hardcoded key first
+    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
+      return hardcodedApiKey.trim();
+    } else if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
       return storedApiKey.trim();
     } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
       return envApiKey.trim();
