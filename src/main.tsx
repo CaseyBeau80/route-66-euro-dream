@@ -12,7 +12,7 @@ import './index.css';
     }).join('?');
     window.history.replaceState(null, '', l.pathname.slice(0, -1) + decoded + l.hash);
   }
-}(window.location))
+}(window.location));
 
 // Ensure DOM is ready before initializing
 const initializeApp = () => {
