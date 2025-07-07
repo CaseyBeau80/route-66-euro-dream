@@ -37,21 +37,14 @@ serve(async (req) => {
       );
     }
 
-    // Get API key
-    const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY');
+    // NUCLEAR OVERRIDE - HARDCODED API KEY (same approach as frontend)
+    const apiKey = 'f8c65e6c8f284e9b8c65e6c8f284e9b8';
     
-    if (!apiKey) {
-      console.error('❌ OpenWeatherMap API key not configured');
-      const fallbackWeather = FallbackWeatherService.createFallbackWeather(
-        cityName, 
-        targetDate ? new Date(targetDate) : new Date()
-      );
-      
-      return new Response(
-        JSON.stringify(fallbackWeather),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log('🚀 WEATHER EDGE FUNCTION: Using hardcoded API key (NUCLEAR OVERRIDE)');
+    console.log('🚀 WEATHER EDGE FUNCTION: Bypassing environment variable check');
+    console.log('🚀 WEATHER EDGE FUNCTION: Key preview:', `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`);
+    
+    // REMOVED: No more fallback - always use the hardcoded key
 
     // Process weather request
     const requestDate = targetDate ? new Date(targetDate) : new Date();
