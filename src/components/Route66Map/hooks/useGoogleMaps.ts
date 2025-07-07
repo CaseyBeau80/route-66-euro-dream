@@ -125,7 +125,15 @@ export const useGoogleMaps = () => {
 
   // If no API key is available or the key is clearly invalid, return appropriate state
   if (!shouldLoadApi) {
-    console.log('🔑 No valid Google Maps API key available - showing input form');
+    console.log('🔑 DEBUG: No valid Google Maps API key available - showing input form');
+    console.log('🔑 DEBUG: shouldLoadApi:', shouldLoadApi, 'apiKey length:', apiKey.length, 'apiKey preview:', apiKey.substring(0, 10) + '...');
+    
+    // FORCE hasApiKey to true if we have our hardcoded key
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    const forceHasKey = apiKey === hardcodedApiKey;
+    
+    console.log('🔑 DEBUG: Force override check:', { forceHasKey, isHardcodedKey: apiKey === hardcodedApiKey });
+    
     return {
       isLoaded: false,
       loadError: null,
@@ -137,7 +145,7 @@ export const useGoogleMaps = () => {
       handleMapClick,
       setCurrentZoom,
       setIsDragging,
-      hasApiKey: false
+      hasApiKey: forceHasKey // Override this to true if we have hardcoded key
     };
   }
 
