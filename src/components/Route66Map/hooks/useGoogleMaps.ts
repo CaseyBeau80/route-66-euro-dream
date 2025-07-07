@@ -14,26 +14,28 @@ export const useGoogleMaps = () => {
     const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     const storedApiKey = localStorage.getItem('google_maps_api_key');
     
-    console.log('🔑 API Key check:', { 
+    console.log('🔑 DEBUG: API Key check:', { 
+      hardcodedApiKey: hardcodedApiKey?.substring(0, 10) + '...',
       hasHardcodedKey: !!hardcodedApiKey,
       hasEnvKey: !!envApiKey, 
       hasStoredKey: !!storedApiKey,
-      storedKeyLength: storedApiKey?.length || 0
+      storedKeyLength: storedApiKey?.length || 0,
+      finalChoice: hardcodedApiKey ? 'hardcoded' : storedApiKey ? 'stored' : envApiKey ? 'env' : 'none'
     });
     
-    // Prioritize hardcoded key, then stored, then env
+    // Always use hardcoded key first
     if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
-      console.log('🔑 Using hardcoded API key');
+      console.log('🔑 DEBUG: Using hardcoded API key');
       return hardcodedApiKey.trim();
     } else if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
-      console.log('🔑 Using stored API key');
+      console.log('🔑 DEBUG: Using stored API key');
       return storedApiKey.trim();
     } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
-      console.log('🔑 Using environment API key');
+      console.log('🔑 DEBUG: Using environment API key');
       return envApiKey.trim();
     }
     
-    console.log('🔑 No valid API key found');
+    console.log('🔑 DEBUG: No valid API key found');
     return '';
   }, []);
 
