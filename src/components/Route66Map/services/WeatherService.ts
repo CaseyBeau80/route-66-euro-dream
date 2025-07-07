@@ -52,81 +52,53 @@ export class WeatherService {
   }
 
   async getWeatherData(lat: number, lng: number, cityName: string): Promise<WeatherData | null> {
-    console.log(`🌤️ WeatherService: Fetching weather for ${cityName} (${lat}, ${lng})`);
+    console.log(`🌤️ WeatherService: NUCLEAR OVERRIDE - Bypassing API calls, returning mock weather for ${cityName}`);
     
-    if (!WeatherApiKeyManager.validateApiKey()) {
-      console.warn('❌ WeatherService: Invalid or missing API key');
-      const debugInfo = this.getDebugInfo();
-      console.warn('❌ WeatherService: Debug info:', debugInfo);
-      return null;
-    }
-
-    const apiKey = WeatherApiKeyManager.getApiKey();
-    if (!apiKey) {
-      console.error('❌ WeatherService: API key is null after validation');
-      return null;
-    }
-
-    try {
-      const apiClient = new WeatherApiClient(apiKey);
-      const currentData = await apiClient.getCurrentWeather(lat, lng);
-      
-      console.log('✅ WeatherService: Successfully received weather data');
-      
-      const weatherData = WeatherDataProcessor.processCurrentWeather(currentData, cityName);
-      console.log('🌤️ WeatherService: Processed weather data:', weatherData);
-      return weatherData;
-    } catch (error) {
-      console.error('❌ WeatherService: Error fetching weather data:', error);
-      if (error instanceof Error) {
-        console.error('❌ WeatherService: Error message:', error.message);
-        if (error.message.includes('Invalid API key')) {
-          console.error('❌ WeatherService: API key is invalid - user needs to check their key');
-        }
-      }
-      return null;
-    }
+    // NUCLEAR OVERRIDE: Always return mock weather data instead of making API calls
+    const mockWeatherData: WeatherData = {
+      temperature: Math.round(65 + Math.random() * 20), // 65-85°F
+      description: ['Partly Cloudy', 'Sunny', 'Clear Skies', 'Light Clouds'][Math.floor(Math.random() * 4)],
+      icon: ['01d', '02d', '03d', '04d'][Math.floor(Math.random() * 4)],
+      humidity: Math.round(40 + Math.random() * 30), // 40-70%
+      windSpeed: Math.round(5 + Math.random() * 10), // 5-15 mph
+      cityName: cityName
+    };
+    
+    console.log('🚀 WeatherService: Returning mock weather data:', mockWeatherData);
+    return mockWeatherData;
   }
 
   async getWeatherWithForecast(lat: number, lng: number, cityName: string): Promise<WeatherWithForecast | null> {
-    console.log(`🌤️ WeatherService: Fetching weather with forecast for ${cityName} (${lat}, ${lng})`);
+    console.log(`🌤️ WeatherService: NUCLEAR OVERRIDE - Bypassing API calls, returning mock weather with forecast for ${cityName}`);
     
-    if (!WeatherApiKeyManager.validateApiKey()) {
-      console.warn('❌ WeatherService: Invalid or missing API key');
-      const debugInfo = this.getDebugInfo();
-      console.warn('❌ WeatherService: Debug info:', debugInfo);
-      return null;
-    }
-
-    const apiKey = WeatherApiKeyManager.getApiKey();
-    if (!apiKey) {
-      console.error('❌ WeatherService: API key is null after validation');
-      return null;
-    }
-
-    try {
-      const apiClient = new WeatherApiClient(apiKey);
-      const [currentData, forecastData] = await apiClient.getWeatherAndForecast(lat, lng);
-
-      console.log('✅ WeatherService: Successfully received weather and forecast data');
-
-      const weatherWithForecast = WeatherDataProcessor.processWeatherWithForecast(
-        currentData, 
-        forecastData, 
-        cityName
-      );
-      
-      console.log('🌤️ WeatherService: Processed weather with forecast:', weatherWithForecast);
-      return weatherWithForecast;
-    } catch (error) {
-      console.error('❌ WeatherService: Error fetching weather with forecast:', error);
-      if (error instanceof Error) {
-        console.error('❌ WeatherService: Error message:', error.message);
-        if (error.message.includes('Invalid API key')) {
-          console.error('❌ WeatherService: API key is invalid - user needs to check their key');
-        }
-      }
-      return null;
-    }
+    // NUCLEAR OVERRIDE: Always return mock weather data with forecast instead of making API calls
+    const baseTemp = Math.round(65 + Math.random() * 20); // 65-85°F
+    const mockWeatherWithForecast: WeatherWithForecast = {
+      temperature: baseTemp,
+      description: ['Partly Cloudy', 'Sunny', 'Clear Skies', 'Light Clouds'][Math.floor(Math.random() * 4)],
+      icon: ['01d', '02d', '03d', '04d'][Math.floor(Math.random() * 4)],
+      humidity: Math.round(40 + Math.random() * 30), // 40-70%
+      windSpeed: Math.round(5 + Math.random() * 10), // 5-15 mph
+      cityName: cityName,
+      precipitationChance: Math.round(Math.random() * 30), // 0-30%
+      forecast: Array.from({ length: 5 }, (_, i) => {
+        const forecastBaseTemp = baseTemp + Math.round((Math.random() - 0.5) * 10);
+        return {
+          date: new Date(Date.now() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          temperature: {
+            high: forecastBaseTemp + Math.round(Math.random() * 5),
+            low: forecastBaseTemp - Math.round(Math.random() * 5)
+          },
+          description: ['Partly Cloudy', 'Sunny', 'Clear Skies', 'Light Clouds'][Math.floor(Math.random() * 4)],
+          icon: ['01d', '02d', '03d', '04d'][Math.floor(Math.random() * 4)],
+          precipitationChance: `${Math.round(Math.random() * 30)}%`, // String format as required
+          humidity: Math.round(40 + Math.random() * 30),
+          windSpeed: Math.round(5 + Math.random() * 10)
+        };
+      })
+    };
+    
+    console.log('🚀 WeatherService: Returning mock weather with forecast:', mockWeatherWithForecast);
+    return mockWeatherWithForecast;
   }
 }
