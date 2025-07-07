@@ -1,11 +1,17 @@
 
-// Weather API Configuration - USING REAL WORKING API KEY
-// REAL OpenWeatherMap API key that will work with their servers
-export const WEATHER_API_KEY = '4f8c1c4e2d8e4a7b9c3f5e8d7a6b4c2f';
+// Weather API Configuration
+// Replace 'your_api_key_here' with your actual OpenWeatherMap API key  
+export const WEATHER_API_KEY = 'your_api_key_here';
 
-// ⚠️ NUCLEAR OVERRIDE: Using hardcoded working API key!
-// Live weather forecasts are now ALWAYS enabled with the hardcoded key.
-console.log('🚀 WEATHER CONFIG: Using hardcoded API key - live weather forecasts enabled!');
+// ⚠️ WARNING: Default placeholder API key detected!
+// Live weather forecasts will not work until you set a valid API key.
+if (WEATHER_API_KEY === 'your_api_key_here') {
+  console.warn('🔑 WEATHER CONFIG WARNING: Using placeholder API key. Live weather forecasts disabled.');
+  console.warn('📝 To enable live weather:');
+  console.warn('   1. Get a free API key from https://openweathermap.org/api');
+  console.warn('   2. Replace WEATHER_API_KEY in src/config/weatherConfig.ts');
+  console.warn('   3. Or add your key via the weather API key input in the app');
+}
 
 // OpenWeatherMap API Configuration
 export const OPENWEATHER_CONFIG = {

@@ -11,20 +11,33 @@ export class WeatherApiKeyManager {
   ];
 
   static getApiKey(): string | null {
-    // NUCLEAR OVERRIDE - ALWAYS RETURN REAL WORKING KEY
-    const hardcodedKey = '4f8c1c4e2d8e4a7b9c3f5e8d7a6b4c2f';
+    console.log('🔍 WeatherApiKeyManager: Checking all possible API key sources...');
     
-    console.log('🚀 WeatherApiKeyManager: NUCLEAR OVERRIDE - Using real working API key');
-    console.log('🚀 WeatherApiKeyManager: Bypassing ALL validation and storage checks');
-    console.log('🚀 WeatherApiKeyManager: Key preview:', `${hardcodedKey.substring(0, 8)}...${hardcodedKey.substring(hardcodedKey.length - 4)}`);
-    
-    // Store the key if it's not already there (for consistency)
-    if (!localStorage.getItem(this.PRIMARY_STORAGE_KEY)) {
-      localStorage.setItem(this.PRIMARY_STORAGE_KEY, hardcodedKey);
-      console.log('🚀 WeatherApiKeyManager: Stored working key in localStorage');
+    // Check all localStorage keys
+    for (const key of this.STORAGE_KEYS) {
+      const storedKey = localStorage.getItem(key);
+      if (storedKey && this.isValidKey(storedKey)) {
+        console.log(`✅ Found valid API key in localStorage: ${key}`);
+        // Migrate to primary key if found elsewhere
+        if (key !== this.PRIMARY_STORAGE_KEY) {
+          localStorage.setItem(this.PRIMARY_STORAGE_KEY, storedKey);
+          console.log(`🔄 Migrated API key to primary storage: ${this.PRIMARY_STORAGE_KEY}`);
+        }
+        return storedKey.trim();
+      }
     }
     
-    return hardcodedKey;
+    // Check configured key in code as fallback
+    if (WEATHER_API_KEY && typeof WEATHER_API_KEY === 'string') {
+      const configKey = WEATHER_API_KEY as string;
+      if (this.isValidKey(configKey)) {
+        console.log('✅ Using configured API key from weatherConfig.ts');
+        return configKey.trim();
+      }
+    }
+
+    console.log('❌ No valid API key found in any location');
+    return null;
   }
 
   static setApiKey(apiKey: string): void {
@@ -49,17 +62,20 @@ export class WeatherApiKeyManager {
   }
 
   static hasApiKey(): boolean {
-    // NUCLEAR OVERRIDE - ALWAYS RETURN TRUE
-    console.log('🚀 WeatherApiKeyManager: hasApiKey() = TRUE (NUCLEAR OVERRIDE)');
-    console.log('🚀 WeatherApiKeyManager: Forcing API key availability bypass');
-    return true;
+    const key = this.getApiKey();
+    const hasKey = !!key;
+    console.log(`🔍 WeatherApiKeyManager: hasApiKey() = ${hasKey}`, {
+      keyLength: key?.length || 0,
+      keyPreview: key ? `${key.substring(0, 8)}...${key.substring(key.length - 4)}` : 'none'
+    });
+    return hasKey;
   }
 
   static validateApiKey(): boolean {
-    // NUCLEAR OVERRIDE - ALWAYS RETURN TRUE
-    console.log('🚀 WeatherApiKeyManager: validateApiKey() = TRUE (NUCLEAR OVERRIDE)');
-    console.log('🚀 WeatherApiKeyManager: Forcing validation bypass');
-    return true;
+    const key = this.getApiKey();
+    const isValid = this.isValidKey(key);
+    console.log(`🔍 WeatherApiKeyManager: validateApiKey() = ${isValid}`);
+    return isValid;
   }
 
   private static isValidKey(key: string | null): boolean {
