@@ -41,6 +41,12 @@ export const useGoogleMaps = () => {
   const isValidGoogleMapsKey = (key: string): boolean => {
     if (!key || key.trim() === '' || key === 'demo-key') return false;
     
+    // Accept our hardcoded key immediately
+    if (key === 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8') {
+      console.log('🔑 Hardcoded API key validated');
+      return true;
+    }
+    
     // Check if key starts with common test/placeholder text (but NOT AIzaSy which is valid)
     const invalidPrefixes = ['What do yo', 'I am tryin', 'your_', 'demo', 'test', 'placeholder', 'YOUR_API_KEY', 'enter_your'];
     const keyLower = key.toLowerCase();
