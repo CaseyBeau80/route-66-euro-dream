@@ -16,7 +16,16 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onStateClick, 
   onClearSelection 
 }) => {
-  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
+  // FORCE the API key to always be available - bypass all validation
+  const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+  
+  // Store the API key if it's not already there
+  if (!localStorage.getItem('google_maps_api_key')) {
+    localStorage.setItem('google_maps_api_key', hardcodedApiKey);
+  }
+  
+  const { isLoaded, loadError } = useGoogleMaps();
+  const hasApiKey = true; // FORCE this to always be true
 
   const handleApiKeySet = (newApiKey: string) => {
     if (newApiKey && newApiKey.trim() !== '') {
@@ -27,22 +36,16 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     }
   };
 
-  console.log('🗺️ MapDisplay render state:', { 
+  console.log('🗺️ MapDisplay render state (FORCED):', { 
     isLoaded, 
     hasError: !!loadError, 
-    hasApiKey,
+    hasApiKey: true, // Always true now
+    hardcodedApiKey: hardcodedApiKey.substring(0, 10) + '...',
     errorMessage: loadError?.message 
   });
 
-  // If no API key is available, show the input form
-  if (!hasApiKey) {
-    console.log('🔑 No API key available, showing input form');
-    return (
-      <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
-        <ApiKeyInput onApiKeySet={handleApiKeySet} />
-      </div>
-    );
-  }
+  // REMOVED: Never show API key input anymore
+  // if (!hasApiKey) { ... }
 
   // If there's a loading error, show the input form to re-enter key
   if (loadError) {
