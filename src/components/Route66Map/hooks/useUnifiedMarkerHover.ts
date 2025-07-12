@@ -10,7 +10,7 @@ interface UseUnifiedMarkerHoverProps {
   hideDelay?: number;
 }
 
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 export const useUnifiedMarkerHover = ({ 
   showDelay = 0, 
@@ -22,7 +22,7 @@ export const useUnifiedMarkerHover = ({
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = useCallback((itemName: string) => {
-    console.log(`🐭 Mouse entered marker for: ${itemName}`);
+    console.log(`🐭 Mouse entered marker for: ${itemName} (mobile: ${isMobile})`);
     
     // Clear any pending hide timeout
     if (hideTimeoutRef.current) {
@@ -48,7 +48,7 @@ export const useUnifiedMarkerHover = ({
   }, [showDelay, isHovered]);
 
   const handleMouseLeave = useCallback((itemName: string) => {
-    console.log(`🐭 Mouse left marker for: ${itemName}`);
+    console.log(`🐭 Mouse left marker for: ${itemName} (mobile: ${isMobile})`);
     
     // Clear any pending show delay
     if (showTimeoutRef.current) {
