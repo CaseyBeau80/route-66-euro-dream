@@ -1,8 +1,7 @@
 
-import React, { useCallback, useContext, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { HiddenGem } from '../types';
 import { useMarkerHover } from '../hooks/useMarkerHover';
-import { MapHoverContext } from '@/components/Route66Map/GoogleMapsRoute66';
 import HoverCardPortal from './HoverCardPortal';
 import MarkerCore from './MarkerCore';
 
@@ -15,7 +14,6 @@ interface HoverableMarkerProps {
 
 const HoverableMarker: React.FC<HoverableMarkerProps> = ({
   gem,
-  onMarkerClick,
   onWebsiteClick,
   map
 }) => {
@@ -25,41 +23,19 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
-    cleanup,
-    clearHover,
-    handleTap,
-    isMobile
+    cleanup
   } = useMarkerHover();
-  
-  const mapHoverContext = useContext(MapHoverContext);
 
-  // Register hover clear function with map
-  useEffect(() => {
-    if (mapHoverContext && clearHover) {
-      return mapHoverContext.registerHoverClear(clearHover);
-    }
-  }, [mapHoverContext, clearHover]);
+  // Prevent hover card from disappearing when hovering over it
+  const handleCardMouseEnter = useCallback(() => {
+    console.log(`🐭 Mouse entered hover card for: ${gem.title} - keeping card visible`);
+    handleMouseEnter(gem.title);
+  }, [handleMouseEnter, gem.title]);
 
-  // Handle marker click - use tap on mobile, hover on desktop
-  const handleMarkerInteraction = useCallback((gem: HiddenGem) => {
-    console.log(`💎 Marker interaction: ${gem.title} (mobile: ${isMobile})`);
-    
-    // Clear any existing hovers first to prevent duplicates
-    if (mapHoverContext) {
-      mapHoverContext.clearAllHovers();
-    }
-    
-    if (isMobile) {
-      handleTap(gem.title);
-    } else {
-      // Desktop behavior - click shows hover card
-      handleMouseEnter(gem.title);
-    }
-    
-    if (onMarkerClick) {
-      onMarkerClick(gem);
-    }
-  }, [isMobile, handleTap, handleMouseEnter, onMarkerClick, mapHoverContext]);
+  const handleCardMouseLeave = useCallback(() => {
+    console.log(`🐭 Mouse left hover card for: ${gem.title} - starting hide delay`);
+    handleMouseLeave(gem.title);
+  }, [handleMouseLeave, gem.title]);
 
   console.log(`🔍 HoverableMarker render - ${gem.title}:`, {
     isHovered,
@@ -74,7 +50,6 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
         updatePosition={updatePosition}
         handleMouseEnter={handleMouseEnter}
         handleMouseLeave={handleMouseLeave}
-        onMarkerClick={handleMarkerInteraction}
         cleanup={cleanup}
       />
 
@@ -85,9 +60,8 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
           isVisible={true}
           position={hoverPosition}
           onWebsiteClick={onWebsiteClick}
-          onMouseEnter={() => !isMobile && handleMouseEnter(gem.title)}
-          onMouseLeave={() => !isMobile && handleMouseLeave(gem.title)}
-          onClose={clearHover}
+          onMouseEnter={handleCardMouseEnter}
+          onMouseLeave={handleCardMouseLeave}
         />
       )}
     </>

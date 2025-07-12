@@ -1,13 +1,10 @@
 
-import React, { useEffect, useRef, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
 import { useDestinationHover } from './hooks/useDestinationHover';
-import { MapHoverContext } from '@/components/Route66Map/GoogleMapsRoute66';
 import DestinationHoverPortal from './DestinationHoverPortal';
 import { DestinationMarkerCreator } from './DestinationMarkerCreator';
 import { DestinationMarkerEvents } from './DestinationMarkerEvents';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
-import { generateDestinationUrl } from '@/utils/slugUtils';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface DestinationCustomMarkerProps {
@@ -21,56 +18,15 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   map,
   onDestinationClick
 }) => {
-  const navigate = useNavigate();
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
-
-  // Handle marker click - use tap on mobile, hover on desktop
-  const handleMarkerInteraction = (destination: Route66Waypoint) => {
-    console.log(`🏛️ Destination marker interaction: ${destination.name} (mobile: ${isMobile})`);
-    
-    // Clear any existing hovers first to prevent duplicates
-    if (mapHoverContext) {
-      mapHoverContext.clearAllHovers();
-    }
-    
-    if (isMobile) {
-      handleTap(destination.name);
-    } else {
-      // Desktop behavior - click shows hover card
-      handleMouseEnter(destination.name);
-    }
-    
-    if (onDestinationClick) {
-      onDestinationClick(destination);
-    }
-  };
-
-  // Enhanced click handler with navigation
-  const handleDestinationClick = (destination: Route66Waypoint) => {
-    console.log(`🏛️ Destination clicked: ${destination.name}`);
-    
-    // Call the original callback if provided
-    if (onDestinationClick) {
-      onDestinationClick(destination);
-    }
-    
-    // Navigate to the detail page
-    const url = generateDestinationUrl(destination);
-    navigate(url);
-  };
   const {
     isHovered,
     hoverPosition,
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
-    cleanup,
-    clearHover,
-    handleTap,
-    isMobile
+    cleanup
   } = useDestinationHover();
-  
-  const mapHoverContext = useContext(MapHoverContext);
 
   useEffect(() => {
     // Enhanced debugging for Santa Fe
@@ -153,7 +109,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
         enhancedMouseEnter,
         handleMouseLeave,
         updatePosition,
-        handleMarkerInteraction
+        onDestinationClick
       );
 
       if (isSantaFe) {
@@ -173,24 +129,17 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       markerRef.current = null;
       cleanup();
     };
-  }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, navigate]);
-
-  // Register hover clear function with map
-  useEffect(() => {
-    if (mapHoverContext && clearHover) {
-      return mapHoverContext.registerHoverClear(clearHover);
-    }
-  }, [mapHoverContext, clearHover]);
+  }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup]);
 
   // Handle hover card mouse events
   const handleHoverCardMouseEnter = () => {
     console.log(`🏛️ Mouse entered hover card for ${destination.name}`);
-    if (!isMobile) handleMouseEnter(destination.name);
+    handleMouseEnter(destination.name);
   };
 
   const handleHoverCardMouseLeave = () => {
     console.log(`🏛️ Mouse left hover card for ${destination.name}`);
-    if (!isMobile) handleMouseLeave(destination.name);
+    handleMouseLeave(destination.name);
   };
 
   return (
@@ -200,7 +149,6 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       isVisible={isHovered}
       onMouseEnter={handleHoverCardMouseEnter}
       onMouseLeave={handleHoverCardMouseLeave}
-      onClose={clearHover}
     />
   );
 };

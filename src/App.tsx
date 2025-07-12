@@ -9,9 +9,6 @@ import { UnitProvider } from "@/contexts/UnitContext";
 import Index from "./pages/Index";
 import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
-import AttractionDetailPage from "./pages/AttractionDetailPage";
-import DestinationDetailPage from "./pages/DestinationDetailPage";
-import HiddenGemDetailPage from "./pages/HiddenGemDetailPage";
 import NotFound from "./pages/NotFound";
 
 // Create QueryClient instance outside of component to avoid recreation
@@ -37,9 +34,6 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/about" element={<AboutPage />} />
-                <Route path="/attraction/:slug" element={<AttractionDetailPage />} />
-                <Route path="/destination-city/:id" element={<DestinationDetailPage />} />
-                <Route path="/hidden-gem/:slug" element={<HiddenGemDetailPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

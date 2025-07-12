@@ -8,7 +8,6 @@ interface DriveInMarkerEventHandlersConfig {
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (driveInName: string) => void;
   handleMouseLeave: (driveInName: string) => void;
-  onMarkerClick?: (driveIn: DriveInData) => void;
 }
 
 export const createDriveInMarkerEventHandlers = ({
@@ -17,8 +16,7 @@ export const createDriveInMarkerEventHandlers = ({
   marker,
   updatePosition,
   handleMouseEnter,
-  handleMouseLeave,
-  onMarkerClick
+  handleMouseLeave
 }: DriveInMarkerEventHandlersConfig) => {
   
   const updateMarkerPosition = () => {
@@ -87,18 +85,9 @@ export const createDriveInMarkerEventHandlers = ({
     handleMouseLeave(driveIn.name);
   };
 
-  const handleClick = () => {
-    console.log(`🖱️ Click drive-in marker: ${driveIn.name}`);
-    updateMarkerPosition();
-    if (onMarkerClick) {
-      onMarkerClick(driveIn);
-    }
-  };
-
   return {
     handleMouseOver,
     handleMouseOut,
-    handleClick,
     updateMarkerPosition
   };
 };

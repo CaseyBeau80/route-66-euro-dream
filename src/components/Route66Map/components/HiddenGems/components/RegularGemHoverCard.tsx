@@ -1,40 +1,24 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, ExternalLink, ArrowRight, X } from 'lucide-react';
+import { Star, MapPin, ExternalLink } from 'lucide-react';
 import { HiddenGem } from '../types';
-import { generateHiddenGemUrl } from '@/utils/slugUtils';
 
 interface RegularGemHoverCardProps {
   gem: HiddenGem;
   onWebsiteClick: (website: string) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
-  onClose?: () => void;
 }
 
 const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({ 
   gem, 
   onWebsiteClick,
   onMouseEnter,
-  onMouseLeave,
-  onClose
+  onMouseLeave 
 }) => {
-  const navigate = useNavigate();
   const turquoiseColor = '#40E0D0';
   const darkTurquoise = '#20B2AA';
   const lightTurquoise = '#F0FFFF';
-
-  const handleLearnMoreClick = () => {
-    if (gem.website) {
-      // If there's a website, open it
-      onWebsiteClick(gem.website);
-    } else {
-      // Otherwise, navigate to detail page
-      const url = generateHiddenGemUrl(gem);
-      navigate(url);
-    }
-  };
 
   return (
     <div 
@@ -76,25 +60,14 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
               Hidden Gem
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div 
-              className="text-xs font-bold px-2 py-1 rounded transform -rotate-2 shadow-sm"
-              style={{ 
-                backgroundColor: 'white',
-                color: turquoiseColor
-              }}
-            >
-              ROUTE 66
-            </div>
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
-                style={{ color: 'white' }}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+          <div 
+            className="text-xs font-bold px-2 py-1 rounded transform -rotate-2 shadow-sm"
+            style={{ 
+              backgroundColor: 'white',
+              color: turquoiseColor
+            }}
+          >
+            ROUTE 66
           </div>
         </div>
       </div>
@@ -144,33 +117,26 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
             </div>
           )}
           
-          <button
-            onClick={handleLearnMoreClick}
-            className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full"
-            style={{ 
-              backgroundColor: turquoiseColor,
-              color: 'white',
-              border: `2px solid ${turquoiseColor}`
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = darkTurquoise;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = turquoiseColor;
-            }}
-          >
-            {gem.website ? (
-              <>
-                <ExternalLink className="h-4 w-4" />
-                Learn More
-              </>
-            ) : (
-              <>
-                <ArrowRight className="h-4 w-4" />
-                Learn More
-              </>
-            )}
-          </button>
+          {gem.website && (
+            <button
+              onClick={() => onWebsiteClick(gem.website!)}
+              className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full"
+              style={{ 
+                backgroundColor: turquoiseColor,
+                color: 'white',
+                border: `2px solid ${turquoiseColor}`
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = darkTurquoise;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = turquoiseColor;
+              }}
+            >
+              <ExternalLink className="h-4 w-4" />
+              Learn More
+            </button>
+          )}
         </div>
       </div>
     </div>

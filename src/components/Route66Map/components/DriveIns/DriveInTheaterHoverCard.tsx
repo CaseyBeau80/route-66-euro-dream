@@ -9,15 +9,13 @@ interface DriveInTheaterHoverCardProps {
   onWebsiteClick: (website: string) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
-  onClose?: () => void;
 }
 
 const DriveInTheaterHoverCard: React.FC<DriveInTheaterHoverCardProps> = ({ 
   driveIn, 
   onWebsiteClick,
   onMouseEnter,
-  onMouseLeave,
-  onClose 
+  onMouseLeave 
 }) => {
   const isActive = driveIn.status === 'active' || driveIn.status === 'open';
   const statusColor = isActive ? 'text-green-600' : 'text-red-600';

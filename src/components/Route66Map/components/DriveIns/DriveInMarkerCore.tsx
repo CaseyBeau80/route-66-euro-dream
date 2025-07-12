@@ -10,7 +10,6 @@ interface DriveInMarkerCoreProps {
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (driveInName: string) => void;
   handleMouseLeave: (driveInName: string) => void;
-  onMarkerClick?: (driveIn: DriveInData) => void;
   cleanup: () => void;
 }
 
@@ -20,7 +19,6 @@ const DriveInMarkerCore: React.FC<DriveInMarkerCoreProps> = ({
   updatePosition,
   handleMouseEnter,
   handleMouseLeave,
-  onMarkerClick,
   cleanup
 }) => {
   const markerRef = useRef<google.maps.Marker | null>(null);
@@ -47,16 +45,14 @@ const DriveInMarkerCore: React.FC<DriveInMarkerCoreProps> = ({
       marker,
       updatePosition,
       handleMouseEnter,
-      handleMouseLeave,
-      onMarkerClick
+      handleMouseLeave
     });
 
-    // Add event listeners for hover and click
+    // Add only hover event listeners
     const mouseOverListener = marker.addListener('mouseover', eventHandlers.handleMouseOver);
     const mouseOutListener = marker.addListener('mouseout', eventHandlers.handleMouseOut);
-    const clickListener = marker.addListener('click', eventHandlers.handleClick);
 
-    listenersRef.current = [mouseOverListener, mouseOutListener, clickListener];
+    listenersRef.current = [mouseOverListener, mouseOutListener];
 
     // Update position when map changes
     const boundsListener = map.addListener('bounds_changed', eventHandlers.updateMarkerPosition);
