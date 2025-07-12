@@ -1,13 +1,10 @@
 
-import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAttractionHover } from './hooks/useAttractionHover';
-import { generateAttractionUrl } from '@/utils/slugUtils';
 import AttractionHoverPortal from './AttractionHoverPortal';
 import AttractionClickableCard from './AttractionClickableCard';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
 import { IconCreator } from '../RouteMarkers/IconCreator';
-import { MapHoverContext } from '@/components/Route66Map/GoogleMapsRoute66';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface AttractionCustomMarkerProps {
@@ -23,18 +20,6 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
   onAttractionClick,
   onWebsiteClick
 }) => {
-  const navigate = useNavigate();
-
-  const handleAttractionClick = (clickedAttraction: Route66Waypoint) => {
-    console.log(`🎢 Attraction clicked: ${clickedAttraction.name}`);
-    
-    if (onAttractionClick) {
-      onAttractionClick(clickedAttraction);
-    }
-    
-    const url = generateAttractionUrl(clickedAttraction);
-    navigate(url);
-  };
   const markerRef = useRef<google.maps.Marker | null>(null);
   const [isMarkerReady, setIsMarkerReady] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
@@ -46,18 +31,8 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
-    cleanup,
-    clearHover
+    cleanup
   } = useAttractionHover();
-  
-  const mapHoverContext = useContext(MapHoverContext);
-
-  // Register hover clear function with map
-  useEffect(() => {
-    if (mapHoverContext && clearHover) {
-      return mapHoverContext.registerHoverClear(clearHover);
-    }
-  }, [mapHoverContext, clearHover]);
 
   // Prevent hover card from disappearing when hovering over it
   const handleCardMouseEnter = useCallback(() => {
@@ -171,7 +146,9 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
         });
       }
       
-      handleAttractionClick(attraction);
+      setIsClicked(true);
+      handleMouseLeave(attraction.name); // Hide hover card
+      onAttractionClick(attraction);
     };
 
     // Add event listeners

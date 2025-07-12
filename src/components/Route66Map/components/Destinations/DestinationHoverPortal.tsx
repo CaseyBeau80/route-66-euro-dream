@@ -10,7 +10,6 @@ interface DestinationHoverPortalProps {
   isVisible: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
-  onClose?: () => void;
 }
 
 const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
@@ -18,8 +17,7 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   position,
   isVisible,
   onMouseEnter,
-  onMouseLeave,
-  onClose
+  onMouseLeave
 }) => {
   if (!isVisible) {
     console.log(`🚫 Hover card not visible for ${destination.name}`);
@@ -76,37 +74,28 @@ const DestinationHoverPortal: React.FC<DestinationHoverPortalProps> = ({
   });
 
   return createPortal(
-    <>
-      {/* Backdrop for mobile click-off functionality */}
-      <div
-        className="fixed inset-0 z-[99999] pointer-events-auto md:pointer-events-none"
-        onClick={onClose}
-      />
-      
-      {/* Hover card */}
-      <div
-        className="fixed pointer-events-auto z-[100000] transition-all duration-200"
-        style={{
-          left: `${adjustedX}px`,
-          top: `${adjustedY}px`,
-          opacity: isVisible ? 1 : 0,
-          transform: 'translateZ(0)',
-          willChange: 'opacity, transform',
-          maxHeight: '90vh',
-          overflow: 'visible'
-        }}
-        onMouseEnter={() => {
-          console.log(`🏛️ Mouse entered hover card for ${destination.name}`);
-          onMouseEnter?.();
-        }}
-        onMouseLeave={() => {
-          console.log(`🏛️ Mouse left hover card for ${destination.name}`);
-          onMouseLeave?.();
-        }}
-      >
-        <DestinationHoverCard destination={destination} onClose={onClose} />
-      </div>
-    </>,
+    <div
+      className="fixed pointer-events-auto z-[100000] transition-all duration-200"
+      style={{
+        left: `${adjustedX}px`,
+        top: `${adjustedY}px`,
+        opacity: isVisible ? 1 : 0,
+        transform: 'translateZ(0)',
+        willChange: 'opacity, transform',
+        maxHeight: '90vh',
+        overflow: 'visible'
+      }}
+      onMouseEnter={() => {
+        console.log(`🏛️ Mouse entered hover card for ${destination.name}`);
+        onMouseEnter?.();
+      }}
+      onMouseLeave={() => {
+        console.log(`🏛️ Mouse left hover card for ${destination.name}`);
+        onMouseLeave?.();
+      }}
+    >
+      <DestinationHoverCard destination={destination} />
+    </div>,
     portalRoot
   );
 };

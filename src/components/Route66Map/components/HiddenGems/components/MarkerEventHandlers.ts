@@ -8,7 +8,6 @@ interface MarkerEventHandlersConfig {
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (gemTitle: string) => void;
   handleMouseLeave: (gemTitle: string) => void;
-  onMarkerClick?: (gem: HiddenGem) => void;
 }
 
 export const createMarkerEventHandlers = ({
@@ -17,8 +16,7 @@ export const createMarkerEventHandlers = ({
   marker,
   updatePosition,
   handleMouseEnter,
-  handleMouseLeave,
-  onMarkerClick
+  handleMouseLeave
 }: MarkerEventHandlersConfig) => {
   
   const updateMarkerPosition = () => {
@@ -87,32 +85,9 @@ export const createMarkerEventHandlers = ({
     handleMouseLeave(gem.title);
   };
 
-  const handleClick = () => {
-    console.log(`💎 Click/Touch detected on hidden gem: ${gem.title}`);
-    
-    // Check if this is a mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      // On mobile, handle as tap to show/hide hover card
-      updateMarkerPosition();
-      if (onMarkerClick) {
-        onMarkerClick(gem);
-      }
-    } else {
-      // On desktop, show hover card
-      updateMarkerPosition();
-      handleMouseEnter(gem.title);
-      if (onMarkerClick) {
-        onMarkerClick(gem);
-      }
-    }
-  };
-
   return {
     handleMouseOver,
     handleMouseOut,
-    handleClick,
     updateMarkerPosition
   };
 };
