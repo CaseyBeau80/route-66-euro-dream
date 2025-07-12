@@ -14,6 +14,7 @@ interface HoverableMarkerProps {
 
 const HoverableMarker: React.FC<HoverableMarkerProps> = ({
   gem,
+  onMarkerClick,
   onWebsiteClick,
   map
 }) => {
@@ -50,6 +51,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
         updatePosition={updatePosition}
         handleMouseEnter={handleMouseEnter}
         handleMouseLeave={handleMouseLeave}
+        onMarkerClick={onMarkerClick}
         cleanup={cleanup}
       />
 

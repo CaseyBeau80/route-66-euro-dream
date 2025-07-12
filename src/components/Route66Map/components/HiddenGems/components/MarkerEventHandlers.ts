@@ -8,6 +8,7 @@ interface MarkerEventHandlersConfig {
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (gemTitle: string) => void;
   handleMouseLeave: (gemTitle: string) => void;
+  onMarkerClick?: (gem: HiddenGem) => void;
 }
 
 export const createMarkerEventHandlers = ({
@@ -16,7 +17,8 @@ export const createMarkerEventHandlers = ({
   marker,
   updatePosition,
   handleMouseEnter,
-  handleMouseLeave
+  handleMouseLeave,
+  onMarkerClick
 }: MarkerEventHandlersConfig) => {
   
   const updateMarkerPosition = () => {
@@ -85,9 +87,17 @@ export const createMarkerEventHandlers = ({
     handleMouseLeave(gem.title);
   };
 
+  const handleClick = () => {
+    console.log(`💎 Click detected on hidden gem: ${gem.title}`);
+    if (onMarkerClick) {
+      onMarkerClick(gem);
+    }
+  };
+
   return {
     handleMouseOver,
     handleMouseOut,
+    handleClick,
     updateMarkerPosition
   };
 };

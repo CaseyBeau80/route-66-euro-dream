@@ -1,10 +1,12 @@
 
 import React, { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDestinationHover } from './hooks/useDestinationHover';
 import DestinationHoverPortal from './DestinationHoverPortal';
 import { DestinationMarkerCreator } from './DestinationMarkerCreator';
 import { DestinationMarkerEvents } from './DestinationMarkerEvents';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
+import { generateDestinationUrl } from '@/utils/slugUtils';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface DestinationCustomMarkerProps {
@@ -18,7 +20,22 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   map,
   onDestinationClick
 }) => {
+  const navigate = useNavigate();
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
+
+  // Enhanced click handler with navigation
+  const handleDestinationClick = (destination: Route66Waypoint) => {
+    console.log(`🏛️ Destination clicked: ${destination.name}`);
+    
+    // Call the original callback if provided
+    if (onDestinationClick) {
+      onDestinationClick(destination);
+    }
+    
+    // Navigate to the detail page
+    const url = generateDestinationUrl(destination);
+    navigate(url);
+  };
   const {
     isHovered,
     hoverPosition,
@@ -109,7 +126,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
         enhancedMouseEnter,
         handleMouseLeave,
         updatePosition,
-        onDestinationClick
+        handleDestinationClick
       );
 
       if (isSantaFe) {
@@ -129,7 +146,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       markerRef.current = null;
       cleanup();
     };
-  }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup]);
+  }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, navigate]);
 
   // Handle hover card mouse events
   const handleHoverCardMouseEnter = () => {

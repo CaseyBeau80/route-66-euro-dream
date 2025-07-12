@@ -1,6 +1,8 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAttractionHover } from './hooks/useAttractionHover';
+import { generateAttractionUrl } from '@/utils/slugUtils';
 import AttractionHoverPortal from './AttractionHoverPortal';
 import AttractionClickableCard from './AttractionClickableCard';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
@@ -20,6 +22,18 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
   onAttractionClick,
   onWebsiteClick
 }) => {
+  const navigate = useNavigate();
+
+  const handleAttractionClick = (clickedAttraction: Route66Waypoint) => {
+    console.log(`🎢 Attraction clicked: ${clickedAttraction.name}`);
+    
+    if (onAttractionClick) {
+      onAttractionClick(clickedAttraction);
+    }
+    
+    const url = generateAttractionUrl(clickedAttraction);
+    navigate(url);
+  };
   const markerRef = useRef<google.maps.Marker | null>(null);
   const [isMarkerReady, setIsMarkerReady] = useState(false);
   const [isClicked, setIsClicked] = useState(false);
@@ -146,9 +160,7 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
         });
       }
       
-      setIsClicked(true);
-      handleMouseLeave(attraction.name); // Hide hover card
-      onAttractionClick(attraction);
+      handleAttractionClick(attraction);
     };
 
     // Add event listeners
