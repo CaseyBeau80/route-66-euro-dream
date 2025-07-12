@@ -3,26 +3,5 @@ import { useUnifiedMarkerHover } from '@/components/Route66Map/hooks/useUnifiedM
 import { useRef } from 'react';
 
 export const useDriveInMarkerHover = () => {
-  const isCardHoveredRef = useRef(false);
-  const baseHover = useUnifiedMarkerHover({ showDelay: 0, hideDelay: 300 });
-
-  const handleMouseEnter = baseHover.handleMouseEnter;
-  const handleMouseLeave = baseHover.handleMouseLeave;
-
-  const handleCardMouseEnter = baseHover.handleMouseEnter;
-  const handleCardMouseLeave = baseHover.handleMouseLeave;
-
-  return {
-    isHovered: baseHover.isHovered,
-    hoverPosition: baseHover.hoverPosition,
-    handleMouseEnter,
-    handleMouseLeave,
-    handleCardMouseEnter,
-    handleCardMouseLeave,
-    updatePosition: baseHover.updatePosition,
-    cleanup: baseHover.cleanup,
-    clearHover: baseHover.clearHover,
-    handleTap: baseHover.handleTap,
-    isMobile: baseHover.isMobile
-  };
+  return useUnifiedMarkerHover({ showDelay: 0, hideDelay: 300 });
 };
