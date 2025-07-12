@@ -88,7 +88,12 @@ export const createMarkerEventHandlers = ({
   };
 
   const handleClick = () => {
-    console.log(`💎 Click detected on hidden gem: ${gem.title}`);
+    console.log(`💎 Click/Touch detected on hidden gem: ${gem.title} - showing hover card`);
+    
+    // On mobile, clicking should show the hover card
+    updateMarkerPosition();
+    handleMouseEnter(gem.title);
+    
     if (onMarkerClick) {
       onMarkerClick(gem);
     }
