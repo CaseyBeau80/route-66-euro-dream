@@ -22,13 +22,16 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
 
   return (
     <div 
-      className="w-80 shadow-2xl rounded-lg overflow-hidden pointer-events-auto"
+      className="w-80 shadow-2xl rounded-lg overflow-hidden pointer-events-auto touch-manipulation"
       style={{ 
         border: `3px solid ${turquoiseColor}`,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        minHeight: '44px'
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
     >
       {/* Header */}
       <div 
@@ -120,9 +123,10 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
           {gem.website && (
             <button
               onClick={() => window.open(gem.website, '_blank', 'noopener,noreferrer')}
-              className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full"
+              className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full touch-manipulation"
               style={{ 
                 backgroundColor: turquoiseColor,
+                minHeight: '44px',
                 color: 'white',
                 border: `2px solid ${turquoiseColor}`
               }}

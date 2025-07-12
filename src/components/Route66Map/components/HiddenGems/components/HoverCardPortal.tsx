@@ -38,7 +38,7 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
 
   const cardContent = (
     <div
-      className="fixed pointer-events-auto z-50"
+      className="fixed pointer-events-auto z-50 touch-manipulation"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
@@ -46,6 +46,8 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
     >
       {isDriveIn ? (
         <DriveInHoverCard

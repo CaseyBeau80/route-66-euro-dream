@@ -36,12 +36,14 @@ const HiddenGemClickableCard: React.FC<HiddenGemClickableCardProps> = ({
 
   const cardContent = (
     <div
-      className="fixed pointer-events-auto z-50"
+      className="fixed pointer-events-auto z-50 touch-manipulation"
       style={{
         left: `${cardPosition.left}px`,
         top: `${cardPosition.top}px`,
-        zIndex: 55000
+        zIndex: 60000
       }}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
     >
       {isDriveIn ? (
         <DriveInCard

@@ -12,6 +12,8 @@ interface MarkerCoreProps {
   handleMouseEnter: (gemTitle: string) => void;
   handleMouseLeave: (gemTitle: string) => void;
   cleanup: () => void;
+  handleClick?: (gem: HiddenGem, position: { x: number; y: number }) => void;
+  isClicked?: boolean;
 }
 
 const MarkerCore: React.FC<MarkerCoreProps> = ({
@@ -20,7 +22,9 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
   updatePosition,
   handleMouseEnter,
   handleMouseLeave,
-  cleanup
+  cleanup,
+  handleClick,
+  isClicked = false
 }) => {
   const markerRef = useRef<google.maps.Marker | null>(null);
   const listenersRef = useRef<google.maps.MapsEventListener[]>([]);
@@ -73,14 +77,17 @@ const MarkerCore: React.FC<MarkerCoreProps> = ({
         marker,
         updatePosition,
         handleMouseEnter: enhancedMouseEnter,
-        handleMouseLeave
+        handleMouseLeave,
+        handleClick,
+        isClicked
       });
 
-      // Add only hover event listeners
+      // Add event listeners (including click for mobile support)
       const mouseOverListener = marker.addListener('mouseover', eventHandlers.handleMouseOver);
       const mouseOutListener = marker.addListener('mouseout', eventHandlers.handleMouseOut);
+      const clickListener = marker.addListener('click', eventHandlers.handleClickEvent);
 
-      listenersRef.current = [mouseOverListener, mouseOutListener];
+      listenersRef.current = [mouseOverListener, mouseOutListener, clickListener];
 
       // Update position when map changes
       const boundsListener = map.addListener('bounds_changed', eventHandlers.updateMarkerPosition);

@@ -17,19 +17,24 @@ const RegularGemCard: React.FC<RegularGemCardProps> = ({ gem, onClose, onWebsite
 
   return (
     <div 
-      className="w-87 shadow-2xl rounded-lg overflow-hidden"
+      className="w-87 shadow-2xl rounded-lg overflow-hidden touch-manipulation"
       style={{ 
         border: `3px solid ${turquoiseColor}`,
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        minHeight: '44px' // Ensure minimum touch target
       }}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
     >
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center transition-colors z-20 text-sm font-bold"
+        className="absolute top-3 right-3 w-11 h-11 rounded-full flex items-center justify-center transition-colors z-20 text-sm font-bold touch-manipulation"
         style={{ 
           backgroundColor: turquoiseColor,
-          color: 'white'
+          color: 'white',
+          minWidth: '44px',
+          minHeight: '44px'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = darkTurquoise;
@@ -131,11 +136,12 @@ const RegularGemCard: React.FC<RegularGemCardProps> = ({ gem, onClose, onWebsite
           {gem.website && (
             <button
               onClick={() => onWebsiteClick(gem.website!)}
-              className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full"
+              className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full touch-manipulation"
               style={{ 
                 backgroundColor: turquoiseColor,
                 color: 'white',
-                border: `2px solid ${turquoiseColor}`
+                border: `2px solid ${turquoiseColor}`,
+                minHeight: '44px'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = darkTurquoise;

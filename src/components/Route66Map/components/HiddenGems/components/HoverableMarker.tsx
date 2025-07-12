@@ -1,9 +1,11 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { HiddenGem } from '../types';
 import { useMarkerHover } from '../hooks/useMarkerHover';
+import { useIsMobile } from '@/hooks/use-mobile';
 import HoverCardPortal from './HoverCardPortal';
 import MarkerCore from './MarkerCore';
+import HiddenGemClickableCard from '../HiddenGemClickableCard';
 
 interface HoverableMarkerProps {
   gem: HiddenGem;
@@ -14,9 +16,14 @@ interface HoverableMarkerProps {
 
 const HoverableMarker: React.FC<HoverableMarkerProps> = ({
   gem,
+  onMarkerClick,
   onWebsiteClick,
   map
 }) => {
+  const isMobile = useIsMobile();
+  const [isClicked, setIsClicked] = useState(false);
+  const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
+
   const {
     isHovered,
     hoverPosition,
@@ -37,9 +44,31 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     handleMouseLeave(gem.title);
   }, [handleMouseLeave, gem.title]);
 
+  // Handle marker click for mobile and desktop
+  const handleMarkerClick = useCallback((gem: HiddenGem, position: { x: number; y: number }) => {
+    console.log(`💎 Clicked hidden gem: ${gem.title}`, { isMobile, position });
+    
+    if (isMobile) {
+      // On mobile, show clickable card
+      setClickPosition(position);
+      setIsClicked(true);
+      handleMouseLeave(gem.title); // Hide hover card
+    } else {
+      // On desktop, trigger the existing onMarkerClick behavior
+      onMarkerClick(gem);
+    }
+  }, [isMobile, onMarkerClick, handleMouseLeave, gem.title]);
+
+  // Handle closing the clickable card
+  const handleCloseClickableCard = useCallback(() => {
+    setIsClicked(false);
+  }, []);
+
   console.log(`🔍 HoverableMarker render - ${gem.title}:`, {
     isHovered,
-    shouldShowHover: isHovered
+    isClicked,
+    isMobile,
+    shouldShowHover: isHovered && !isClicked
   });
 
   return (
@@ -51,10 +80,12 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
         handleMouseEnter={handleMouseEnter}
         handleMouseLeave={handleMouseLeave}
         cleanup={cleanup}
+        handleClick={handleMarkerClick}
+        isClicked={isClicked}
       />
 
-      {/* Hover card - show when hovering */}
-      {isHovered && (
+      {/* Hover card - show when hovering and not clicked */}
+      {!isClicked && isHovered && (
         <HoverCardPortal
           gem={gem}
           isVisible={true}
@@ -64,6 +95,15 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
           onMouseLeave={handleCardMouseLeave}
         />
       )}
+
+      {/* Clickable card - show when clicked (primarily for mobile) */}
+      <HiddenGemClickableCard
+        gem={gem}
+        isVisible={isClicked}
+        position={clickPosition}
+        onClose={handleCloseClickableCard}
+        onWebsiteClick={onWebsiteClick}
+      />
     </>
   );
 };

@@ -8,6 +8,8 @@ interface MarkerEventHandlersConfig {
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (gemTitle: string) => void;
   handleMouseLeave: (gemTitle: string) => void;
+  handleClick?: (gem: HiddenGem, position: { x: number; y: number }) => void;
+  isClicked?: boolean;
 }
 
 export const createMarkerEventHandlers = ({
@@ -16,7 +18,9 @@ export const createMarkerEventHandlers = ({
   marker,
   updatePosition,
   handleMouseEnter,
-  handleMouseLeave
+  handleMouseLeave,
+  handleClick,
+  isClicked = false
 }: MarkerEventHandlersConfig) => {
   
   const updateMarkerPosition = () => {
@@ -74,20 +78,56 @@ export const createMarkerEventHandlers = ({
     }
   };
 
-  const handleMouseOver = () => {
-    console.log(`🐭 Mouse over marker: ${gem.title}`);
-    updateMarkerPosition();
-    handleMouseEnter(gem.title);
+  const handleMouseOver = (e: google.maps.MapMouseEvent) => {
+    if (!isClicked) {
+      console.log(`🐭 Mouse over marker: ${gem.title}`);
+      
+      // Update position if we have domEvent
+      if (e.domEvent && e.domEvent.target) {
+        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
+        updatePosition(rect.left + rect.width / 2, rect.top);
+      } else {
+        updateMarkerPosition();
+      }
+      
+      handleMouseEnter(gem.title);
+    }
   };
 
   const handleMouseOut = () => {
-    console.log(`🐭 Mouse out marker: ${gem.title}`);
-    handleMouseLeave(gem.title);
+    if (!isClicked) {
+      console.log(`🐭 Mouse out marker: ${gem.title}`);
+      handleMouseLeave(gem.title);
+    }
+  };
+
+  const handleClickEvent = (e: google.maps.MapMouseEvent) => {
+    console.log(`🖱️ Click hidden gem: ${gem.title}`);
+    
+    if (handleClick) {
+      let clickPosition = { x: 0, y: 0 };
+      
+      // Calculate click position
+      if (e.domEvent && e.domEvent.target) {
+        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
+        clickPosition = {
+          x: rect.left + rect.width / 2,
+          y: rect.top
+        };
+      } else {
+        // Fallback to calculated position
+        updateMarkerPosition();
+        clickPosition = { x: 0, y: 0 };
+      }
+      
+      handleClick(gem, clickPosition);
+    }
   };
 
   return {
     handleMouseOver,
     handleMouseOut,
+    handleClickEvent,
     updateMarkerPosition
   };
 };
