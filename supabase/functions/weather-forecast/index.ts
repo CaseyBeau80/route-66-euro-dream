@@ -1,87 +1,148 @@
+import { corsHeaders } from '../_shared/cors.ts'
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { WeatherRequestHandler } from './services/WeatherRequestHandler.ts';
-import { FallbackWeatherService } from './services/FallbackWeatherService.ts';
+interface WeatherRequest {
+  lat: number
+  lng: number
+  cityName: string
+  targetDate?: string
+}
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+interface OpenWeatherResponse {
+  main: {
+    temp: number
+    feels_like: number
+    humidity: number
+    pressure: number
+  }
+  weather: Array<{
+    main: string
+    description: string
+    icon: string
+  }>
+  wind: {
+    speed: number
+    deg?: number
+  }
+  visibility?: number
+  dt: number
+  name: string
+}
 
-serve(async (req) => {
+interface ForecastResponse {
+  list: Array<{
+    dt: number
+    main: {
+      temp: number
+      feels_like: number
+      humidity: number
+    }
+    weather: Array<{
+      main: string
+      description: string
+      icon: string
+    }>
+    wind: {
+      speed: number
+    }
+    dt_txt: string
+  }>
+  city: {
+    name: string
+  }
+}
+
+Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const requestBody = await req.json();
-    console.log('🌤️ Weather forecast request:', {
-      method: req.method,
-      cityName: requestBody?.cityName,
-      targetDate: requestBody?.targetDate
-    });
-
-    // Validate request
-    const cityName = requestBody?.cityName || requestBody?.city;
-    const targetDate = requestBody?.targetDate;
-    
-    if (!cityName) {
-      console.error('❌ Missing city name in request');
+    const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY')
+    if (!apiKey) {
+      console.error('❌ OPENWEATHERMAP_API_KEY not found in environment')
       return new Response(
-        JSON.stringify({ error: 'City name is required' }),
+        JSON.stringify({ error: 'Weather API key not configured' }),
         { 
-          status: 400, 
+          status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
-      );
+      )
     }
 
-    // Get API key
-    const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY');
+    const { lat, lng, cityName }: WeatherRequest = await req.json()
     
-    if (!apiKey) {
-      console.error('❌ OpenWeatherMap API key not configured');
-      const fallbackWeather = FallbackWeatherService.createFallbackWeather(
-        cityName, 
-        targetDate ? new Date(targetDate) : new Date()
-      );
-      
-      return new Response(
-        JSON.stringify(fallbackWeather),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    console.log(`🌤️ Weather request for ${cityName} (${lat}, ${lng})`)
+
+    // Get current weather
+    const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
+    const currentResponse = await fetch(currentUrl)
+    
+    if (!currentResponse.ok) {
+      throw new Error(`Current weather API error: ${currentResponse.status}`)
+    }
+    
+    const currentData: OpenWeatherResponse = await currentResponse.json()
+
+    // Get 5-day forecast
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
+    const forecastResponse = await fetch(forecastUrl)
+    
+    if (!forecastResponse.ok) {
+      throw new Error(`Forecast API error: ${forecastResponse.status}`)
+    }
+    
+    const forecastData: ForecastResponse = await forecastResponse.json()
+
+    // Process the data
+    const weather = {
+      current: {
+        temperature: Math.round(currentData.main.temp),
+        feelsLike: Math.round(currentData.main.feels_like),
+        humidity: currentData.main.humidity,
+        pressure: currentData.main.pressure,
+        windSpeed: Math.round(currentData.wind.speed),
+        windDirection: currentData.wind.deg,
+        visibility: currentData.visibility ? Math.round(currentData.visibility / 1609.34) : null, // Convert to miles
+        condition: currentData.weather[0].main,
+        description: currentData.weather[0].description,
+        icon: currentData.weather[0].icon,
+        cityName: currentData.name,
+        timestamp: currentData.dt
+      },
+      forecast: forecastData.list.slice(0, 8).map(item => ({
+        temperature: Math.round(item.main.temp),
+        feelsLike: Math.round(item.main.feels_like),
+        humidity: item.main.humidity,
+        windSpeed: Math.round(item.wind.speed),
+        condition: item.weather[0].main,
+        description: item.weather[0].description,
+        icon: item.weather[0].icon,
+        timestamp: item.dt,
+        dateTime: item.dt_txt
+      }))
     }
 
-    // Process weather request
-    const requestDate = targetDate ? new Date(targetDate) : new Date();
-    const handler = new WeatherRequestHandler(apiKey);
-    const weatherResponse = await handler.processWeatherRequest(cityName, requestDate);
-
-    console.log('🎯 Final weather response:', {
-      cityName,
-      temperature: weatherResponse.temperature,
-      source: weatherResponse.source,
-      isActualForecast: weatherResponse.isActualForecast
-    });
+    console.log(`✅ Weather data retrieved for ${cityName}`)
 
     return new Response(
-      JSON.stringify(weatherResponse),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      JSON.stringify(weather),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
 
   } catch (error) {
-    console.error('❌ Weather forecast error:', error);
-    
-    // Return fallback response
-    const fallbackWeather = FallbackWeatherService.createFallbackWeather(
-      'Unknown',
-      new Date()
-    );
-    
+    console.error('❌ Weather API error:', error)
     return new Response(
-      JSON.stringify(fallbackWeather),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      JSON.stringify({ 
+        error: 'Failed to fetch weather data',
+        details: error.message 
+      }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
-});
+})
