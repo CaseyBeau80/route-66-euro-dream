@@ -24,6 +24,27 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   const navigate = useNavigate();
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
 
+  // Handle marker click - use tap on mobile, hover on desktop
+  const handleMarkerInteraction = (destination: Route66Waypoint) => {
+    console.log(`🏛️ Destination marker interaction: ${destination.name} (mobile: ${isMobile})`);
+    
+    // Clear any existing hovers first to prevent duplicates
+    if (mapHoverContext) {
+      mapHoverContext.clearAllHovers();
+    }
+    
+    if (isMobile) {
+      handleTap(destination.name);
+    } else {
+      // Desktop behavior - click shows hover card
+      handleMouseEnter(destination.name);
+    }
+    
+    if (onDestinationClick) {
+      onDestinationClick(destination);
+    }
+  };
+
   // Enhanced click handler with navigation
   const handleDestinationClick = (destination: Route66Waypoint) => {
     console.log(`🏛️ Destination clicked: ${destination.name}`);
@@ -44,7 +65,9 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
     handleMouseLeave,
     updatePosition,
     cleanup,
-    clearHover
+    clearHover,
+    handleTap,
+    isMobile
   } = useDestinationHover();
   
   const mapHoverContext = useContext(MapHoverContext);
@@ -130,7 +153,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
         enhancedMouseEnter,
         handleMouseLeave,
         updatePosition,
-        handleDestinationClick
+        handleMarkerInteraction
       );
 
       if (isSantaFe) {
@@ -162,12 +185,12 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   // Handle hover card mouse events
   const handleHoverCardMouseEnter = () => {
     console.log(`🏛️ Mouse entered hover card for ${destination.name}`);
-    handleMouseEnter(destination.name);
+    if (!isMobile) handleMouseEnter(destination.name);
   };
 
   const handleHoverCardMouseLeave = () => {
     console.log(`🏛️ Mouse left hover card for ${destination.name}`);
-    handleMouseLeave(destination.name);
+    if (!isMobile) handleMouseLeave(destination.name);
   };
 
   return (
