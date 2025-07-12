@@ -37,6 +37,11 @@
     --route66-secondary: #dc2626;
     --route66-accent: #f59e0b;
     --route66-border: #e2e8f0;
+    
+    /* Hidden Gems Turquoise Colors */
+    --turquoise: 174 100% 56%; /* #40E0D0 */
+    --turquoise-dark: 174 100% 45%; /* #20B2AA */
+    --turquoise-light: 180 100% 97%; /* #F0FFFF */
   }
 
   .dark {

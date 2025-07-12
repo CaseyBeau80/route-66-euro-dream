@@ -53,6 +53,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Hidden Gems Colors
+        turquoise: {
+          DEFAULT: "hsl(var(--turquoise))",
+          dark: "hsl(var(--turquoise-dark))",
+          light: "hsl(var(--turquoise-light))",
+        },
         // Route 66 Nostalgic Color Palette - Bright Blue Theme
         "route66": {
           // Primary Brand Colors - Bright Blue from Ramble 66 Logo
