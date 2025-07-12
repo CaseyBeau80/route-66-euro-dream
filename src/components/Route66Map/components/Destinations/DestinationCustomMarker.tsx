@@ -153,7 +153,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
         enhancedMouseEnter,
         handleMouseLeave,
         updatePosition,
-        handleDestinationClick
+        handleMarkerInteraction
       );
 
       if (isSantaFe) {
