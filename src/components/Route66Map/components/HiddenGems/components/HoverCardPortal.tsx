@@ -13,6 +13,7 @@ interface HoverCardPortalProps {
   onWebsiteClick: (website: string) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClose?: () => void;
 }
 
 const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
@@ -21,7 +22,8 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
   position,
   onWebsiteClick,
   onMouseEnter,
-  onMouseLeave
+  onMouseLeave,
+  onClose
 }) => {
   const cardPosition = useCardPosition({
     isVisible,
@@ -37,16 +39,25 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
   if (!isVisible) return null;
 
   const cardContent = (
-    <div
-      className="fixed pointer-events-auto z-50"
-      style={{
-        left: `${cardPosition.left}px`,
-        top: `${cardPosition.top}px`,
-        zIndex: 45000
-      }}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
+    <>
+      {/* Backdrop for mobile click-off functionality */}
+      <div
+        className="fixed inset-0 z-40 pointer-events-auto md:pointer-events-none"
+        onClick={onClose}
+        style={{ zIndex: 44999 }}
+      />
+      
+      {/* Hover card */}
+      <div
+        className="fixed pointer-events-auto z-50"
+        style={{
+          left: `${cardPosition.left}px`,
+          top: `${cardPosition.top}px`,
+          zIndex: 45000
+        }}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
       {isDriveIn ? (
         <DriveInHoverCard
           gem={gem}
@@ -60,9 +71,11 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
           onWebsiteClick={onWebsiteClick}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          onClose={onClose}
         />
       )}
     </div>
+    </>
   );
 
   return createPortal(cardContent, document.body);

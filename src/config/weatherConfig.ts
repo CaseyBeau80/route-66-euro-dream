@@ -1,6 +1,6 @@
 
 // Weather API Configuration
-// Replace 'your_api_key_here' with your actual OpenWeatherMap API key
+// Replace 'your_api_key_here' with your actual OpenWeatherMap API key  
 export const WEATHER_API_KEY = 'your_api_key_here';
 
 // ⚠️ WARNING: Default placeholder API key detected!

@@ -37,11 +37,11 @@ serve(async (req) => {
       );
     }
 
-    // Get API key
+    // Get API key from environment variable
     const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY');
     
     if (!apiKey) {
-      console.error('❌ OpenWeatherMap API key not configured');
+      console.error('❌ OpenWeatherMap API key not configured in environment variables');
       const fallbackWeather = FallbackWeatherService.createFallbackWeather(
         cityName, 
         targetDate ? new Date(targetDate) : new Date()
