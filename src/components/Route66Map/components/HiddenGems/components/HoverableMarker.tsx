@@ -26,7 +26,9 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     handleMouseLeave,
     updatePosition,
     cleanup,
-    clearHover
+    clearHover,
+    handleTap,
+    isMobile
   } = useMarkerHover();
   
   const mapHoverContext = useContext(MapHoverContext);
@@ -38,16 +40,21 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     }
   }, [mapHoverContext, clearHover]);
 
-  // Prevent hover card from disappearing when hovering over it
-  const handleCardMouseEnter = useCallback(() => {
-    console.log(`🐭 Mouse entered hover card for: ${gem.title} - keeping card visible`);
-    handleMouseEnter(gem.title);
-  }, [handleMouseEnter, gem.title]);
-
-  const handleCardMouseLeave = useCallback(() => {
-    console.log(`🐭 Mouse left hover card for: ${gem.title} - starting hide delay`);
-    handleMouseLeave(gem.title);
-  }, [handleMouseLeave, gem.title]);
+  // Handle marker click - use tap on mobile, hover on desktop
+  const handleMarkerInteraction = useCallback((gem: HiddenGem) => {
+    console.log(`💎 Marker interaction: ${gem.title} (mobile: ${isMobile})`);
+    
+    if (isMobile) {
+      handleTap(gem.title);
+    } else {
+      // Desktop behavior - click shows hover card
+      handleMouseEnter(gem.title);
+    }
+    
+    if (onMarkerClick) {
+      onMarkerClick(gem);
+    }
+  }, [isMobile, handleTap, handleMouseEnter, onMarkerClick]);
 
   console.log(`🔍 HoverableMarker render - ${gem.title}:`, {
     isHovered,
@@ -62,7 +69,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
         updatePosition={updatePosition}
         handleMouseEnter={handleMouseEnter}
         handleMouseLeave={handleMouseLeave}
-        onMarkerClick={onMarkerClick}
+        onMarkerClick={handleMarkerInteraction}
         cleanup={cleanup}
       />
 
@@ -73,8 +80,8 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
           isVisible={true}
           position={hoverPosition}
           onWebsiteClick={onWebsiteClick}
-          onMouseEnter={handleCardMouseEnter}
-          onMouseLeave={handleCardMouseLeave}
+          onMouseEnter={() => !isMobile && handleMouseEnter(gem.title)}
+          onMouseLeave={() => !isMobile && handleMouseLeave(gem.title)}
         />
       )}
     </>

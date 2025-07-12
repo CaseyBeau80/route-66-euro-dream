@@ -88,14 +88,24 @@ export const createMarkerEventHandlers = ({
   };
 
   const handleClick = () => {
-    console.log(`💎 Click/Touch detected on hidden gem: ${gem.title} - showing hover card`);
+    console.log(`💎 Click/Touch detected on hidden gem: ${gem.title}`);
     
-    // On mobile, clicking should show the hover card
-    updateMarkerPosition();
-    handleMouseEnter(gem.title);
+    // Check if this is a mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    if (onMarkerClick) {
-      onMarkerClick(gem);
+    if (isMobile) {
+      // On mobile, handle as tap to show/hide hover card
+      updateMarkerPosition();
+      if (onMarkerClick) {
+        onMarkerClick(gem);
+      }
+    } else {
+      // On desktop, show hover card
+      updateMarkerPosition();
+      handleMouseEnter(gem.title);
+      if (onMarkerClick) {
+        onMarkerClick(gem);
+      }
     }
   };
 

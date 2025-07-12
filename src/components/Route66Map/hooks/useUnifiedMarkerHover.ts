@@ -10,6 +10,8 @@ interface UseUnifiedMarkerHoverProps {
   hideDelay?: number;
 }
 
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 export const useUnifiedMarkerHover = ({ 
   showDelay = 0, 
   hideDelay = 300 
@@ -34,13 +36,16 @@ export const useUnifiedMarkerHover = ({
       showTimeoutRef.current = null;
     }
 
-    if (showDelay > 0) {
-      console.log(`⏳ Starting hover delay for: ${itemName} (${showDelay}ms)`);
+    // On mobile, show immediately without delay for better UX
+    const actualDelay = isMobile ? 0 : showDelay;
+    
+    if (actualDelay > 0) {
+      console.log(`⏳ Starting hover delay for: ${itemName} (${actualDelay}ms)`);
       showTimeoutRef.current = setTimeout(() => {
         console.log(`✅ Hover activated for: ${itemName}`);
         setIsHovered(true);
         showTimeoutRef.current = null;
-      }, showDelay);
+      }, actualDelay);
     } else {
       setIsHovered(true);
     }
@@ -62,12 +67,15 @@ export const useUnifiedMarkerHover = ({
       hideTimeoutRef.current = null;
     }
     
+    // On mobile, hide immediately when leaving the marker area
+    const actualDelay = isMobile ? 100 : hideDelay;
+    
     // Add hide delay
     hideTimeoutRef.current = setTimeout(() => {
       console.log(`❌ Hover ended for: ${itemName}`);
       setIsHovered(false);
       hideTimeoutRef.current = null;
-    }, hideDelay);
+    }, actualDelay);
   }, [hideDelay]);
 
   const updatePosition = useCallback((x: number, y: number) => {
@@ -109,6 +117,18 @@ export const useUnifiedMarkerHover = ({
     clearHover();
   }, [clearHover]);
 
+  const handleTap = useCallback((itemName: string) => {
+    console.log(`📱 Mobile tap on: ${itemName}`);
+    
+    if (isHovered) {
+      // If already hovered, close it
+      clearHover();
+    } else {
+      // If not hovered, show it
+      handleMouseEnter(itemName);
+    }
+  }, [isHovered, clearHover, handleMouseEnter]);
+
   return {
     isHovered,
     hoverPosition,
@@ -116,6 +136,8 @@ export const useUnifiedMarkerHover = ({
     handleMouseLeave,
     updatePosition,
     clearHover,
-    cleanup
+    cleanup,
+    handleTap,
+    isMobile
   };
 };
