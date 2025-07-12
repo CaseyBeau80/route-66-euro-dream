@@ -132,16 +132,8 @@ const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapRea
     polylinesRef.current = [baseRoad, roadSurface, centerLine];
     hasRendered.current = true;
 
-    // Fit map to route bounds
-    const bounds = new google.maps.LatLngBounds();
-    routePoints.forEach(point => bounds.extend(point));
-    map.fitBounds(bounds);
-
-    // Zoom out slightly for better view
-    setTimeout(() => {
-      const currentZoom = map.getZoom() || 5;
-      map.setZoom(Math.max(4, currentZoom - 1));
-    }, 1000);
+    // Don't auto-fit bounds - let user control navigation
+    console.log('✅ Route rendered without auto-navigation - user maintains control');
 
     console.log('✅ Route 66 road with yellow striping created successfully');
 

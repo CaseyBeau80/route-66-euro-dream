@@ -36,19 +36,9 @@ export const useUnifiedMarkerHover = ({
       showTimeoutRef.current = null;
     }
 
-    // On mobile, show immediately without delay for better UX
-    const actualDelay = isMobile ? 0 : showDelay;
-    
-    if (actualDelay > 0) {
-      console.log(`⏳ Starting hover delay for: ${itemName} (${actualDelay}ms)`);
-      showTimeoutRef.current = setTimeout(() => {
-        console.log(`✅ Hover activated for: ${itemName}`);
-        setIsHovered(true);
-        showTimeoutRef.current = null;
-      }, actualDelay);
-    } else {
-      setIsHovered(true);
-    }
+    // Show immediately for better hover response
+    console.log(`✅ Hover activated immediately for: ${itemName}`);
+    setIsHovered(true);
   }, [showDelay]);
 
   const handleMouseLeave = useCallback((itemName: string) => {

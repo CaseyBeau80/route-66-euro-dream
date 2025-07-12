@@ -4,7 +4,7 @@ import { useRef } from 'react';
 
 export const useAttractionHover = () => {
   const isCardHoveredRef = useRef(false);
-  const baseHover = useUnifiedMarkerHover({ showDelay: 150, hideDelay: 300 });
+  const baseHover = useUnifiedMarkerHover({ showDelay: 0, hideDelay: 300 });
 
   const handleMouseEnter = baseHover.handleMouseEnter;
   const handleMouseLeave = baseHover.handleMouseLeave;
