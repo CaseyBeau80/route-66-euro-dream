@@ -119,7 +119,7 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
           
           {gem.website && (
             <button
-              onClick={() => onWebsiteClick(gem.website!)}
+              onClick={() => window.open(gem.website, '_blank', 'noopener,noreferrer')}
               className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full"
               style={{ 
                 backgroundColor: turquoiseColor,
