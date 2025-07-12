@@ -10,7 +10,7 @@ interface UseUnifiedMarkerHoverProps {
   hideDelay?: number;
 }
 
-const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 export const useUnifiedMarkerHover = ({ 
   showDelay = 0, 
