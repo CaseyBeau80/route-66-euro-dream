@@ -36,10 +36,16 @@ export const useUnifiedMarkerHover = ({
       showTimeoutRef.current = null;
     }
 
+    // Prevent duplicate hover activation
+    if (isHovered) {
+      console.log(`ℹ️ Hover already active for: ${itemName} - ignoring duplicate activation`);
+      return;
+    }
+
     // Show immediately for better hover response
     console.log(`✅ Hover activated immediately for: ${itemName}`);
     setIsHovered(true);
-  }, [showDelay]);
+  }, [showDelay, isHovered]);
 
   const handleMouseLeave = useCallback((itemName: string) => {
     console.log(`🐭 Mouse left marker for: ${itemName}`);

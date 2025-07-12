@@ -21,6 +21,8 @@ export const useAttractionHover = () => {
     handleCardMouseLeave,
     updatePosition: baseHover.updatePosition,
     cleanup: baseHover.cleanup,
-    clearHover: baseHover.clearHover
+    clearHover: baseHover.clearHover,
+    handleTap: baseHover.handleTap,
+    isMobile: baseHover.isMobile
   };
 };

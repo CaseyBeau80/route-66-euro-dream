@@ -44,6 +44,11 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
   const handleMarkerInteraction = useCallback((gem: HiddenGem) => {
     console.log(`💎 Marker interaction: ${gem.title} (mobile: ${isMobile})`);
     
+    // Clear any existing hovers first to prevent duplicates
+    if (mapHoverContext) {
+      mapHoverContext.clearAllHovers();
+    }
+    
     if (isMobile) {
       handleTap(gem.title);
     } else {
@@ -54,7 +59,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     if (onMarkerClick) {
       onMarkerClick(gem);
     }
-  }, [isMobile, handleTap, handleMouseEnter, onMarkerClick]);
+  }, [isMobile, handleTap, handleMouseEnter, onMarkerClick, mapHoverContext]);
 
   console.log(`🔍 HoverableMarker render - ${gem.title}:`, {
     isHovered,

@@ -17,6 +17,7 @@ import StateStyling from './components/StateStyling';
 // Context to share hover manager with all marker containers
 export const MapHoverContext = createContext<{
   registerHoverClear: (clearFunction: () => void) => () => void;
+  clearAllHovers: () => void;
 } | null>(null);
 
 interface GoogleMapsRoute66Props {
@@ -60,7 +61,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }
 
   return (
-    <MapHoverContext.Provider value={{ registerHoverClear }}>
+    <MapHoverContext.Provider value={{ registerHoverClear, clearAllHovers }}>
       <div className="relative w-full h-full">
         <InteractiveGoogleMap
           onMapLoad={handleMapLoad}
