@@ -10,7 +10,9 @@ export class DestinationMarkerEvents {
     handleMouseEnter: (destinationName?: string) => void,
     handleMouseLeave: (destinationName?: string) => void,
     updatePosition: (x: number, y: number) => void,
-    onDestinationClick: (destination: Route66Waypoint) => void
+    onDestinationClick: (destination: Route66Waypoint) => void,
+    handleTouchInteraction?: (destinationName?: string) => void,
+    isMobile?: boolean
   ): void {
     const handleMarkerMouseEnter = (event?: any) => {
       console.log(`🏛️ HOVER DETECTED: Mouse entered marker for ${destination.name}`);
@@ -31,7 +33,28 @@ export class DestinationMarkerEvents {
 
     const handleMarkerClick = () => {
       console.log(`🏛️ CLICK: Destination marker clicked: ${destination.name}`);
-      onDestinationClick(destination);
+      if (isMobile && handleTouchInteraction) {
+        console.log(`📱 Mobile click - triggering touch interaction`);
+        handleTouchInteraction(destination.name);
+      } else {
+        onDestinationClick(destination);
+      }
+    };
+
+    const handleTouchStart = (event: Event) => {
+      if (isMobile && handleTouchInteraction) {
+        console.log(`📱 TOUCH START: Destination touched: ${destination.name}`);
+        event.preventDefault();
+        event.stopPropagation();
+        
+        DestinationPositionCalculator.calculateHoverPosition(
+          destination,
+          map,
+          updatePosition
+        );
+        
+        handleTouchInteraction(destination.name);
+      }
     };
 
     // Ensure Google Maps API is available before checking marker types
@@ -58,6 +81,14 @@ export class DestinationMarkerEvents {
         element.addEventListener('mouseleave', handleMarkerMouseLeave, { passive: true });
         element.addEventListener('click', handleMarkerClick, { passive: true });
         
+        // Add mobile touch events
+        if (isMobile) {
+          element.addEventListener('touchstart', handleTouchStart, { passive: false });
+          element.style.cursor = 'pointer';
+          element.style.minHeight = '44px';
+          element.style.minWidth = '44px';
+        }
+        
         console.log(`✅ Events attached to AdvancedMarkerElement for ${destination.name}`);
       } else {
         console.warn(`⚠️ No content element found for AdvancedMarkerElement: ${destination.name}`);
@@ -74,6 +105,21 @@ export class DestinationMarkerEvents {
       marker.addListener('mouseover', handleMarkerMouseEnter);
       marker.addListener('mouseout', handleMarkerMouseLeave);
       marker.addListener('click', handleMarkerClick);
+      
+      // Add mobile touch handling for regular markers
+      if (isMobile) {
+        marker.addListener('touchstart', () => {
+          console.log(`📱 TOUCH START: Regular marker touched: ${destination.name}`);
+          if (handleTouchInteraction) {
+            DestinationPositionCalculator.calculateHoverPosition(
+              destination,
+              map,
+              updatePosition
+            );
+            handleTouchInteraction(destination.name);
+          }
+        });
+      }
       
       console.log(`✅ Events attached to regular Marker for ${destination.name}`);
     } else {

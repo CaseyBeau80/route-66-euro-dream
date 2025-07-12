@@ -1,7 +1,8 @@
 
 import React, { useEffect, useRef } from 'react';
-import { useDestinationHover } from './hooks/useDestinationHover';
+import { useDestinationMobile } from './hooks/useDestinationMobile';
 import DestinationHoverPortal from './DestinationHoverPortal';
+import DestinationClickableCard from './DestinationClickableCard';
 import { DestinationMarkerCreator } from './DestinationMarkerCreator';
 import { DestinationMarkerEvents } from './DestinationMarkerEvents';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
@@ -20,13 +21,19 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
 }) => {
   const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null);
   const {
+    isMobile,
+    isClicked,
+    clickPosition,
     isHovered,
     hoverPosition,
+    handleTouchInteraction,
+    handleClick,
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
+    closeClickable,
     cleanup
-  } = useDestinationHover();
+  } = useDestinationMobile();
 
   useEffect(() => {
     // Enhanced debugging for Santa Fe
@@ -109,7 +116,9 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
         enhancedMouseEnter,
         handleMouseLeave,
         updatePosition,
-        onDestinationClick
+        onDestinationClick,
+        handleTouchInteraction,
+        isMobile
       );
 
       if (isSantaFe) {
@@ -129,7 +138,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       markerRef.current = null;
       cleanup();
     };
-  }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup]);
+  }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, handleTouchInteraction, isMobile]);
 
   // Handle hover card mouse events
   const handleHoverCardMouseEnter = () => {
@@ -143,13 +152,28 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
   };
 
   return (
-    <DestinationHoverPortal
-      destination={destination}
-      position={hoverPosition}
-      isVisible={isHovered}
-      onMouseEnter={handleHoverCardMouseEnter}
-      onMouseLeave={handleHoverCardMouseLeave}
-    />
+    <>
+      {/* Hover card - only show when hovering and not on mobile */}
+      {!isMobile && (
+        <DestinationHoverPortal
+          destination={destination}
+          position={hoverPosition}
+          isVisible={isHovered}
+          onMouseEnter={handleHoverCardMouseEnter}
+          onMouseLeave={handleHoverCardMouseLeave}
+        />
+      )}
+      
+      {/* Clickable card - only show on mobile when tapped */}
+      {isMobile && (
+        <DestinationClickableCard
+          destination={destination}
+          isVisible={isClicked}
+          position={clickPosition}
+          onClose={closeClickable}
+        />
+      )}
+    </>
   );
 };
 
