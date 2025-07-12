@@ -177,6 +177,7 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       isVisible={isHovered}
       onMouseEnter={handleHoverCardMouseEnter}
       onMouseLeave={handleHoverCardMouseLeave}
+      onClose={clearHover}
     />
   );
 };

@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, X } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { generateCityUrl, extractCityName } from '@/utils/cityUrlUtils';
 import TileContainer from './tiles/TileContainer';
@@ -13,6 +13,7 @@ import WeatherTile from './tiles/WeatherTile';
 
 interface DestinationHoverCardProps {
   destination: Route66Waypoint;
+  onClose?: () => void;
 }
 
 // Population data for Route 66 cities
@@ -43,7 +44,7 @@ const cityPopulations: Record<string, string> = {
   'Santa Monica': '93,076'
 };
 
-const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination }) => {
+const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination, onClose }) => {
   const navigate = useNavigate();
   const cityName = extractCityName(destination.name);
   const stateName = destination.state;
@@ -62,7 +63,15 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
       <CardContent className="p-4 overflow-y-auto max-h-[calc(90vh-2rem)]">
         <div className="space-y-3">
           {/* City, State and Population Header */}
-          <div className="text-center py-3 px-4">
+          <div className="text-center py-3 px-4 relative">
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors"
+              >
+                <X className="h-4 w-4 text-black" />
+              </button>
+            )}
             <h4 className="text-2xl font-black text-black mb-1 uppercase tracking-wide">
               {cityName}, {stateName}
             </h4>

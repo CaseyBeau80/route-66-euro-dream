@@ -82,6 +82,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
           onWebsiteClick={onWebsiteClick}
           onMouseEnter={() => !isMobile && handleMouseEnter(gem.title)}
           onMouseLeave={() => !isMobile && handleMouseLeave(gem.title)}
+          onClose={clearHover}
         />
       )}
     </>

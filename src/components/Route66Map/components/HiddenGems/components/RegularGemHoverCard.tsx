@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, MapPin, ExternalLink, ArrowRight } from 'lucide-react';
+import { Star, MapPin, ExternalLink, ArrowRight, X } from 'lucide-react';
 import { HiddenGem } from '../types';
 import { generateHiddenGemUrl } from '@/utils/slugUtils';
 
@@ -10,13 +10,15 @@ interface RegularGemHoverCardProps {
   onWebsiteClick: (website: string) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClose?: () => void;
 }
 
 const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({ 
   gem, 
   onWebsiteClick,
   onMouseEnter,
-  onMouseLeave 
+  onMouseLeave,
+  onClose
 }) => {
   const navigate = useNavigate();
   const turquoiseColor = '#40E0D0';
@@ -74,14 +76,25 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
               Hidden Gem
             </span>
           </div>
-          <div 
-            className="text-xs font-bold px-2 py-1 rounded transform -rotate-2 shadow-sm"
-            style={{ 
-              backgroundColor: 'white',
-              color: turquoiseColor
-            }}
-          >
-            ROUTE 66
+          <div className="flex items-center gap-2">
+            <div 
+              className="text-xs font-bold px-2 py-1 rounded transform -rotate-2 shadow-sm"
+              style={{ 
+                backgroundColor: 'white',
+                color: turquoiseColor
+              }}
+            >
+              ROUTE 66
+            </div>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                style={{ color: 'white' }}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
