@@ -1,7 +1,8 @@
 
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useEffect, useState, createContext } from 'react';
 import { useGoogleMaps } from './hooks/useGoogleMaps';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMapHoverManager } from './hooks/useMapHoverManager';
 import MapLoadingStates from './components/MapLoadingStates';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
 import InteractiveMapLegend from '../InteractiveMap/components/InteractiveMapLegend';
@@ -12,6 +13,11 @@ import AttractionsContainer from './components/AttractionsContainer';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import DriveInsContainer from './components/DriveIns/DriveInsContainer';
 import StateStyling from './components/StateStyling';
+
+// Context to share hover manager with all marker containers
+export const MapHoverContext = createContext<{
+  registerHoverClear: (clearFunction: () => void) => () => void;
+} | null>(null);
 
 interface GoogleMapsRoute66Props {
   selectedState: string | null;
@@ -28,6 +34,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const { registerHoverClear, clearAllHovers } = useMapHoverManager();
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -39,8 +46,10 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }, []);
 
   const handleMapClick = useCallback(() => {
+    console.log('🗺️ Map clicked - clearing selection and all hover states');
+    clearAllHovers();
     onClearSelection();
-  }, [onClearSelection]);
+  }, [onClearSelection, clearAllHovers]);
 
   if (loadError) {
     return <MapLoadingStates loadError={loadError} isLoaded={false} />;
@@ -51,68 +60,70 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }
 
   return (
-    <div className="relative w-full h-full">
-      <InteractiveGoogleMap
-        onMapLoad={handleMapLoad}
-        onMapClick={handleMapClick}
-        center={{ lat: 35.0, lng: -98.0 }}
-        zoom={isMobile ? 4 : 5}
-        className="w-full h-full"
-        showDefaultZoomControls={false}
-      >
-        {/* Route 66 Content - Only render when map is ready */}
-        {mapRef.current && isMapReady && (
-          <>
-            {/* State Styling - Highlight Route 66 states */}
-            <StateStyling map={mapRef.current} />
-            
-            {/* SINGLE Route Renderer - This replaces all other route systems */}
-            <SingleRouteRenderer map={mapRef.current} isMapReady={true} />
-            
-            {/* Destination Cities - Route 66 shield markers */}
-            <DestinationCitiesContainer 
-              map={mapRef.current}
-              onDestinationClick={(destination) => {
-                console.log('🏛️ Destination clicked:', destination.name);
-              }}
-            />
-            
-            {/* Attractions - Red pin markers */}
-            <AttractionsContainer 
-              map={mapRef.current}
-              onAttractionClick={(attraction) => {
-                console.log('🎯 Attraction clicked:', attraction.name);
-              }}
-            />
-            
-            {/* Hidden Gems - Diamond markers */}
-            <HiddenGemsContainer 
-              map={mapRef.current}
-              onGemClick={(gem) => {
-                console.log('💎 Hidden gem clicked:', gem.title);
-              }}
-            />
-            
-            {/* Drive-In Theaters - Movie markers */}
-            <DriveInsContainer 
-              map={mapRef.current}
-              onDriveInClick={(driveIn) => {
-                console.log('🎬 Drive-in clicked:', driveIn.name);
-              }}
-            />
-          </>
-        )}
-      </InteractiveGoogleMap>
+    <MapHoverContext.Provider value={{ registerHoverClear }}>
+      <div className="relative w-full h-full">
+        <InteractiveGoogleMap
+          onMapLoad={handleMapLoad}
+          onMapClick={handleMapClick}
+          center={{ lat: 35.0, lng: -98.0 }}
+          zoom={isMobile ? 4 : 5}
+          className="w-full h-full"
+          showDefaultZoomControls={false}
+        >
+          {/* Route 66 Content - Only render when map is ready */}
+          {mapRef.current && isMapReady && (
+            <>
+              {/* State Styling - Highlight Route 66 states */}
+              <StateStyling map={mapRef.current} />
+              
+              {/* SINGLE Route Renderer - This replaces all other route systems */}
+              <SingleRouteRenderer map={mapRef.current} isMapReady={true} />
+              
+              {/* Destination Cities - Route 66 shield markers */}
+              <DestinationCitiesContainer 
+                map={mapRef.current}
+                onDestinationClick={(destination) => {
+                  console.log('🏛️ Destination clicked:', destination.name);
+                }}
+              />
+              
+              {/* Attractions - Red pin markers */}
+              <AttractionsContainer 
+                map={mapRef.current}
+                onAttractionClick={(attraction) => {
+                  console.log('🎯 Attraction clicked:', attraction.name);
+                }}
+              />
+              
+              {/* Hidden Gems - Diamond markers */}
+              <HiddenGemsContainer 
+                map={mapRef.current}
+                onGemClick={(gem) => {
+                  console.log('💎 Hidden gem clicked:', gem.title);
+                }}
+              />
+              
+              {/* Drive-In Theaters - Movie markers */}
+              <DriveInsContainer 
+                map={mapRef.current}
+                onDriveInClick={(driveIn) => {
+                  console.log('🎬 Drive-in clicked:', driveIn.name);
+                }}
+              />
+            </>
+          )}
+        </InteractiveGoogleMap>
 
-      {/* Map Legend - positioned to avoid conflicts */}
-      <InteractiveMapLegend />
+        {/* Map Legend - positioned to avoid conflicts */}
+        <InteractiveMapLegend />
 
-      {/* Custom Zoom Controls - positioned bottom-right */}
-      <GoogleMapsZoomControls 
-        map={mapRef.current} 
-        isMapReady={isMapReady} 
-      />
-    </div>
+        {/* Custom Zoom Controls - positioned bottom-right */}
+        <GoogleMapsZoomControls 
+          map={mapRef.current} 
+          isMapReady={isMapReady} 
+        />
+      </div>
+    </MapHoverContext.Provider>
   );
 };
 

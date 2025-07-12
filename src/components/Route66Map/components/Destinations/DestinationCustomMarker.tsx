@@ -1,7 +1,8 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDestinationHover } from './hooks/useDestinationHover';
+import { MapHoverContext } from '@/components/Route66Map/GoogleMapsRoute66';
 import DestinationHoverPortal from './DestinationHoverPortal';
 import { DestinationMarkerCreator } from './DestinationMarkerCreator';
 import { DestinationMarkerEvents } from './DestinationMarkerEvents';
@@ -42,8 +43,11 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
-    cleanup
+    cleanup,
+    clearHover
   } = useDestinationHover();
+  
+  const mapHoverContext = useContext(MapHoverContext);
 
   useEffect(() => {
     // Enhanced debugging for Santa Fe
@@ -147,6 +151,13 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       cleanup();
     };
   }, [map, destination, onDestinationClick, handleMouseEnter, handleMouseLeave, updatePosition, cleanup, navigate]);
+
+  // Register hover clear function with map
+  useEffect(() => {
+    if (mapHoverContext && clearHover) {
+      return mapHoverContext.registerHoverClear(clearHover);
+    }
+  }, [mapHoverContext, clearHover]);
 
   // Handle hover card mouse events
   const handleHoverCardMouseEnter = () => {

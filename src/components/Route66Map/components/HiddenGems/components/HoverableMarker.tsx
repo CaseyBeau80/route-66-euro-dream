@@ -1,7 +1,8 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext, useEffect } from 'react';
 import { HiddenGem } from '../types';
 import { useMarkerHover } from '../hooks/useMarkerHover';
+import { MapHoverContext } from '@/components/Route66Map/GoogleMapsRoute66';
 import HoverCardPortal from './HoverCardPortal';
 import MarkerCore from './MarkerCore';
 
@@ -24,8 +25,18 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
-    cleanup
+    cleanup,
+    clearHover
   } = useMarkerHover();
+  
+  const mapHoverContext = useContext(MapHoverContext);
+
+  // Register hover clear function with map
+  useEffect(() => {
+    if (mapHoverContext && clearHover) {
+      return mapHoverContext.registerHoverClear(clearHover);
+    }
+  }, [mapHoverContext, clearHover]);
 
   // Prevent hover card from disappearing when hovering over it
   const handleCardMouseEnter = useCallback(() => {
