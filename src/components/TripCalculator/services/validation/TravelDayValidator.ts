@@ -31,14 +31,35 @@ export class TravelDayValidator {
       const allStops = await Route66StopsService.getAllStops();
       const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
       
-      // Simple distance-based filtering for cities along the route
-      const routeDestinationCities = destinationCities.filter(city => {
-        // This is a simplified check - in production you'd want more sophisticated route validation
-        return true; // For now, allow all destination cities
-      });
+      // Find start and end cities
+      const startCity = destinationCities.find(city => 
+        city.name.toLowerCase() === startLocation.toLowerCase() ||
+        city.city_name.toLowerCase() === startLocation.toLowerCase()
+      );
+      const endCity = destinationCities.find(city => 
+        city.name.toLowerCase() === endLocation.toLowerCase() ||
+        city.city_name.toLowerCase() === endLocation.toLowerCase()
+      );
       
-      const maxDays = routeDestinationCities.length + 1; // +1 for the final day
-      console.log(`🏛️ Max days from destination cities: ${maxDays} (${routeDestinationCities.length} cities + 1 final day)`);
+      if (!startCity || !endCity) {
+        console.log(`🏛️ Could not find cities for ${startLocation} or ${endLocation}, using conservative estimate`);
+        return Math.min(8, this.ABSOLUTE_MAX_DAYS); // Conservative fallback
+      }
+      
+      // Count cities between start and end (inclusive)
+      // For Route 66, we'll use longitude as a rough ordering since it's east-west
+      const startLng = startCity.longitude;
+      const endLng = endCity.longitude;
+      const minLng = Math.min(startLng, endLng);
+      const maxLng = Math.max(startLng, endLng);
+      
+      const citiesAlongRoute = destinationCities.filter(city => 
+        city.longitude >= minLng && city.longitude <= maxLng
+      );
+      
+      // Maximum days = number of cities along route + 1 for the final day
+      const maxDays = citiesAlongRoute.length + 1;
+      console.log(`🏛️ Max days from destination cities: ${maxDays} (${citiesAlongRoute.length} cities between ${startLocation} and ${endLocation})`);
       
       return Math.min(maxDays, this.ABSOLUTE_MAX_DAYS);
     } catch (error) {
@@ -50,12 +71,12 @@ export class TravelDayValidator {
   /**
    * Validate travel days against route requirements with STRICT 10h enforcement
    */
-  static validateTravelDays(
+  static async validateTravelDays(
     startLocation: string,
     endLocation: string,
     requestedDays: number,
     styleConfig: TripStyleConfig
-  ): DayValidationResult {
+  ): Promise<DayValidationResult> {
     const issues: string[] = [];
     const recommendations: string[] = [];
     
@@ -67,15 +88,19 @@ export class TravelDayValidator {
       timestamp: new Date().toISOString()
     });
     
-    // CRITICAL: Hard enforcement of absolute bounds
+    // Get the ACTUAL maximum days based on destination cities along the route
+    const maxDaysFromCities = await this.getMaxDaysFromDestinationCities(startLocation, endLocation);
+    console.log(`🏛️ Maximum days from destination cities: ${maxDaysFromCities}`);
+    
+    // CRITICAL: Hard enforcement of bounds based on destination cities
     if (requestedDays < this.ABSOLUTE_MIN_DAYS) {
       issues.push(`Minimum ${this.ABSOLUTE_MIN_DAYS} day required for any Route 66 trip`);
       console.log('🔍 FULL DEBUG: Below minimum days');
     }
     
-    if (requestedDays > this.ABSOLUTE_MAX_DAYS) {
-      issues.push(`Maximum ${this.ABSOLUTE_MAX_DAYS} days supported by the planner - please reduce your trip duration`);
-      console.log('🔍 FULL DEBUG: Above maximum days');
+    if (requestedDays > maxDaysFromCities) {
+      issues.push(`Maximum ${maxDaysFromCities} days available for this route (based on destination cities)`);
+      console.log('🔍 FULL DEBUG: Above maximum days from destination cities');
     }
 
     // Get estimated distance
@@ -94,7 +119,7 @@ export class TravelDayValidator {
       return {
         isValid: false,
         minDaysRequired: this.ABSOLUTE_MIN_DAYS,
-        maxDaysRecommended: this.ABSOLUTE_MAX_DAYS,
+        maxDaysRecommended: maxDaysFromCities,
         currentDays: requestedDays,
         issues: ['Cannot calculate distance for this route'],
         recommendations: ['Please select valid start and end locations']
@@ -120,8 +145,8 @@ export class TravelDayValidator {
       calculation: `${adjustedDistance.toFixed(0)} miles / (${this.MAX_DAILY_DRIVE_HOURS} hours * ${this.ROUTE66_AVERAGE_SPEED} mph) = ${minDaysForAbsoluteSafety} days`
     });
     
-    // Calculate maximum recommended days (capped at 14 days)
-    const maxDaysRecommended = Math.min(this.ABSOLUTE_MAX_DAYS, Math.ceil(adjustedDistance / 100));
+    // Calculate maximum recommended days (capped by destination cities)
+    const maxDaysRecommended = Math.min(maxDaysFromCities, Math.ceil(adjustedDistance / 100));
     
     // CRITICAL FIX: Check if minimum days required is greater than requested days
     if (minDaysRequired > requestedDays) {
@@ -158,7 +183,7 @@ export class TravelDayValidator {
     
     // CRITICAL FIX: Trip is INVALID if it needs adjustment OR has hard limit violations
     const isValid = requestedDays >= this.ABSOLUTE_MIN_DAYS && 
-                   requestedDays <= this.ABSOLUTE_MAX_DAYS && 
+                   requestedDays <= maxDaysFromCities && 
                    requestedDays >= minDaysRequired; // MUST meet minimum requirement
     
     const result = {
@@ -182,30 +207,36 @@ export class TravelDayValidator {
   /**
    * Get quick validation status for form
    */
-  static isValidDayCount(
+  static async isValidDayCount(
     startLocation: string,
     endLocation: string,
     requestedDays: number,
     styleConfig: TripStyleConfig
-  ): boolean {
-    // Quick check: must be within absolute bounds
-    if (requestedDays < this.ABSOLUTE_MIN_DAYS || requestedDays > this.ABSOLUTE_MAX_DAYS) {
+  ): Promise<boolean> {
+    // Quick check: must be within absolute minimum
+    if (requestedDays < this.ABSOLUTE_MIN_DAYS) {
       return false;
     }
     
-    const result = this.validateTravelDays(startLocation, endLocation, requestedDays, styleConfig);
+    // Check against destination city count
+    const maxDaysFromCities = await this.getMaxDaysFromDestinationCities(startLocation, endLocation);
+    if (requestedDays > maxDaysFromCities) {
+      return false;
+    }
+    
+    const result = await this.validateTravelDays(startLocation, endLocation, requestedDays, styleConfig);
     return result.isValid;
   }
   
   /**
    * Get minimum days required for a route
    */
-  static getMinimumDays(
+  static async getMinimumDays(
     startLocation: string,
     endLocation: string,
     styleConfig: TripStyleConfig
-  ): number {
-    const result = this.validateTravelDays(startLocation, endLocation, 1, styleConfig);
+  ): Promise<number> {
+    const result = await this.validateTravelDays(startLocation, endLocation, 1, styleConfig);
     return result.minDaysRequired;
   }
 }

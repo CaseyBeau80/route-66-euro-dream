@@ -1,12 +1,34 @@
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { TripFormData } from '../types/tripCalculator';
-import { TravelDayValidator } from '../services/validation/TravelDayValidator';
+import { TravelDayValidator, DayValidationResult } from '../services/validation/TravelDayValidator';
 import { TripStyleLogic } from '../services/planning/TripStyleLogic';
 
 export const useFormValidation = (formData: TripFormData) => {
   const MAX_DAYS = 14;
   const MIN_DAYS = 1;
+  
+  const [validation, setValidation] = useState<DayValidationResult | null>(null);
+  
+  // Async validation effect
+  useEffect(() => {
+    const performValidation = async () => {
+      if (formData.startLocation && formData.endLocation) {
+        const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
+        const result = await TravelDayValidator.validateTravelDays(
+          formData.startLocation,
+          formData.endLocation,
+          formData.travelDays,
+          styleConfig
+        );
+        setValidation(result);
+      } else {
+        setValidation(null);
+      }
+    };
+    
+    performValidation();
+  }, [formData.startLocation, formData.endLocation, formData.travelDays, formData.tripStyle]);
 
   const validationResult = useMemo(() => {
     console.log('🔍 FULL DEBUG useFormValidation START:', {
@@ -37,19 +59,9 @@ export const useFormValidation = (formData: TripFormData) => {
     let recommendedDays = null;
 
     // THREE-CONDITION VALIDATION: Check min, max, and user preference
-    if (hasStartLocation && hasEndLocation) {
+    if (hasStartLocation && hasEndLocation && validation) {
       console.log('🔍 FULL DEBUG: Starting day adjustment check');
       
-      const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
-      console.log('🔍 FULL DEBUG: Style config:', styleConfig);
-      
-      const validation = TravelDayValidator.validateTravelDays(
-        formData.startLocation,
-        formData.endLocation,
-        formData.travelDays,
-        styleConfig
-      );
-
       console.log('🔍 FULL DEBUG: Validation result:', {
         isValid: validation.isValid,
         minDaysRequired: validation.minDaysRequired,

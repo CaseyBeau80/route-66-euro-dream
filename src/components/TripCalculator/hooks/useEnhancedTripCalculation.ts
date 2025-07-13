@@ -39,7 +39,7 @@ export const useEnhancedTripCalculation = () => {
   };
 
   // Enhanced validation with style-aware logic
-  const validateFormData = (): boolean => {
+  const validateFormData = async (): Promise<boolean> => {
     if (!formData.startLocation) {
       toast({
         title: "Missing Start Location",
@@ -78,7 +78,7 @@ export const useEnhancedTripCalculation = () => {
 
     // Enhanced day validation using new services
     const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
-    const validation = TravelDayValidator.validateTravelDays(
+    const validation = await TravelDayValidator.validateTravelDays(
       formData.startLocation,
       formData.endLocation,
       formData.travelDays,
@@ -101,7 +101,7 @@ export const useEnhancedTripCalculation = () => {
   const calculateTrip = async () => {
     console.log('🔄 Enhanced trip calculation started with:', formData);
     
-    if (!validateFormData()) {
+    if (!(await validateFormData())) {
       return;
     }
 
@@ -178,7 +178,7 @@ export const useEnhancedTripCalculation = () => {
     }));
     
     // If we have a trip plan, automatically re-calculate with new style
-    if (tripPlan && validateFormData()) {
+    if (tripPlan && (await validateFormData())) {
       console.log(`🔄 Re-calculating trip with ${style} style...`);
       
       toast({
@@ -192,7 +192,7 @@ export const useEnhancedTripCalculation = () => {
     }
   };
 
-  // Calculate if form is ready (with enhanced validation)
+  // Calculate if form is ready (basic check - detailed validation happens in calculateTrip)
   const isCalculateDisabled = (() => {
     if (!formData.startLocation || !formData.endLocation || !formData.tripStartDate) {
       return true;
@@ -200,19 +200,6 @@ export const useEnhancedTripCalculation = () => {
     
     if (formData.travelDays <= 0) {
       return true;
-    }
-    
-    // Check with enhanced validation
-    if (formData.startLocation && formData.endLocation && formData.travelDays > 0) {
-      const styleConfig = TripStyleLogic.getStyleConfig(formData.tripStyle);
-      const validation = TravelDayValidator.validateTravelDays(
-        formData.startLocation,
-        formData.endLocation,
-        formData.travelDays,
-        styleConfig
-      );
-      
-      return !validation.isValid;
     }
     
     return false;

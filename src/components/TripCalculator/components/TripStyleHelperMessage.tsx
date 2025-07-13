@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle, Clock, MapPin } from 'lucide-react';
-import { TravelDayValidator } from '../services/validation/TravelDayValidator';
+import { TravelDayValidator, DayValidationResult } from '../services/validation/TravelDayValidator';
 import { TripStyleLogic } from '../services/planning/TripStyleLogic';
 
 interface TripStyleHelperMessageProps {
@@ -17,13 +17,35 @@ const TripStyleHelperMessage: React.FC<TripStyleHelperMessageProps> = ({
   actualDays,
   tripStyle
 }) => {
-  const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
-  const validation = TravelDayValidator.validateTravelDays(
-    startLocation,
-    endLocation,
-    actualDays,
-    styleConfig
-  );
+  const [validation, setValidation] = useState<DayValidationResult | null>(null);
+  
+  useEffect(() => {
+    const performValidation = async () => {
+      if (startLocation && endLocation) {
+        const styleConfig = TripStyleLogic.getStyleConfig(tripStyle);
+        const result = await TravelDayValidator.validateTravelDays(
+          startLocation,
+          endLocation,
+          actualDays,
+          styleConfig
+        );
+        setValidation(result);
+      }
+    };
+    
+    performValidation();
+  }, [startLocation, endLocation, actualDays, tripStyle]);
+
+  if (!validation) {
+    return (
+      <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center gap-2">
+          <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+          <p className="text-sm text-gray-600">Validating trip parameters...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (validation.isValid && validation.issues.length === 0) {
     return (
