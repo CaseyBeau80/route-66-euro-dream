@@ -18,7 +18,9 @@ export const useIsMobile = () => {
         hasTouch,
         isSmallScreen,
         isMobileUserAgent,
-        isMobile: mobile
+        isMobile: mobile,
+        innerWidth: window.innerWidth,
+        actualUserAgent: navigator.userAgent
       });
       
       setIsMobile(mobile);
