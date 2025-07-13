@@ -34,12 +34,35 @@ export const useTripCalculation = () => {
     });
     
     // FORCE FRESH STATE: Clear any existing cached results
+    console.log('🧨 NUCLEAR RESET: Forcing complete state reset');
     setIsCalculating(true);
     setTripPlan(null);
     setPlanningResult(null);
     
-    // FORCE DELAY to ensure state is cleared
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // AGGRESSIVE CACHE CLEARING
+    try {
+      // Clear any potential trip caches in browser storage
+      Object.keys(localStorage).forEach(key => {
+        if (key.toLowerCase().includes('trip') || key.toLowerCase().includes('plan') || 
+            key.toLowerCase().includes('destination') || key.toLowerCase().includes('route')) {
+          console.log(`🧹 NUCLEAR: Clearing localStorage key: ${key}`);
+          localStorage.removeItem(key);
+        }
+      });
+      
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.toLowerCase().includes('trip') || key.toLowerCase().includes('plan') || 
+            key.toLowerCase().includes('destination') || key.toLowerCase().includes('route')) {
+          console.log(`🧹 NUCLEAR: Clearing sessionStorage key: ${key}`);
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch (error) {
+      console.warn('⚠️ Error during nuclear cache clearing:', error);
+    }
+    
+    // FORCE DELAY to ensure all state is cleared
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     try {
       // Enhanced pre-validation
@@ -293,10 +316,41 @@ export const useTripCalculation = () => {
   }, [formData]);
 
   const resetTrip = useCallback(() => {
-    console.log('🔄 Resetting enhanced trip calculation');
+    console.log('🔄 COMPREHENSIVE RESET: Clearing all caches and forcing fresh calculation');
+    
+    // Clear React state
     setTripPlan(null);
     setPlanningResult(null);
     setIsCalculating(false);
+    
+    // Force clear any potential browser storage
+    try {
+      // Clear any trip-related localStorage
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('trip') || key.includes('plan') || key.includes('destination')) {
+          console.log(`🧹 Clearing localStorage key: ${key}`);
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Clear any trip-related sessionStorage
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.includes('trip') || key.includes('plan') || key.includes('destination')) {
+          console.log(`🧹 Clearing sessionStorage key: ${key}`);
+          sessionStorage.removeItem(key);
+        }
+      });
+      
+      // Force garbage collection if available
+      if (window.gc) {
+        window.gc();
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ Error clearing storage:', error);
+    }
+    
+    console.log('✅ COMPREHENSIVE RESET completed - next calculation will be completely fresh');
   }, []);
 
   return {
