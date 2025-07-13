@@ -17,7 +17,11 @@ export class SegmentFactory {
     day: number,
     totalDistance: number
   ): DailySegment {
-    console.log(`🔨 STRICT: Creating Day ${day} segment: ${startStop.name} → ${endStop.name}`);
+    console.log(`🔨 STRICT: Creating Day ${day} segment: ${startStop.name} → ${endStop.name}`, {
+      startStopCategory: startStop.category,
+      endStopCategory: endStop.category,
+      availableStops: allStops.length
+    });
     
     // Calculate segment distance
     const segmentDistance = DistanceCalculationService.calculateDistance(

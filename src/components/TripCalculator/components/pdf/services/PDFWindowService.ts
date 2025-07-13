@@ -1,5 +1,6 @@
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
 import { PDFWeatherIntegrationService } from '../PDFWeatherIntegrationService';
+import { PDFAttractionEnrichmentService } from '../PDFAttractionEnrichmentService';
 
 export class PDFWindowService {
   private static pdfWindow: Window | null = null;
@@ -18,29 +19,41 @@ export class PDFWindowService {
         this.pdfWindow.close();
       }
 
-      // Enrich trip data with weather information
-      console.log('🌤️ Enriching trip data with weather information...');
+      // Enrich trip data with attractions and weather information
+      console.log('🎯 Enriching trip data with attraction information...');
       let enrichedTripPlan = { ...tripPlan };
       
-      if (tripStartDate && tripPlan.segments) {
+      if (tripPlan.segments) {
         try {
-          const enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
-            tripPlan.segments,
-            tripStartDate
-          );
+          // First enrich with attractions
+          const attractionEnrichedSegments = await PDFAttractionEnrichmentService.enrichSegmentsWithAttractions(tripPlan.segments);
+          console.log('✅ Attraction enrichment completed for PDF export');
+          
+          // Then enrich with weather if start date is provided
+          let finalEnrichedSegments = attractionEnrichedSegments;
+          if (tripStartDate) {
+            try {
+              finalEnrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+                attractionEnrichedSegments,
+                tripStartDate
+              );
+              console.log('✅ Weather enrichment completed for PDF export');
+              console.log('🌤️ Segments with weather data:', 
+                finalEnrichedSegments.filter(s => s.weather).length + '/' + finalEnrichedSegments.length
+              );
+            } catch (weatherError) {
+              console.warn('⚠️ Weather enrichment failed, proceeding with attraction data only:', weatherError);
+            }
+          }
           
           enrichedTripPlan = {
             ...tripPlan,
-            segments: enrichedSegments,
-            dailySegments: enrichedSegments
+            segments: finalEnrichedSegments,
+            dailySegments: finalEnrichedSegments
           };
           
-          console.log('✅ Weather enrichment completed for PDF export');
-          console.log('🌤️ Segments with weather data:', 
-            enrichedSegments.filter(s => s.weather).length + '/' + enrichedSegments.length
-          );
-        } catch (weatherError) {
-          console.warn('⚠️ Weather enrichment failed, proceeding without weather data:', weatherError);
+        } catch (error) {
+          console.warn('⚠️ Enrichment failed, proceeding with original data:', error);
         }
       }
 
@@ -168,12 +181,20 @@ export class PDFWindowService {
               <h4 class="attractions-title">📍 Recommended Stops</h4>
               <div class="attractions-grid">
                 ${(() => {
+                  console.log(`🖨️ PDF: Processing attractions for ${segment.endCity}:`, {
+                    attractions: segment.attractions?.length || 0,
+                    stops: segment.stops?.length || 0,
+                    recommendedStops: segment.recommendedStops?.length || 0
+                  });
+                  
                   // Check all possible attraction/stop properties
                   const allStops = [
                     ...(segment.attractions || []),
                     ...(segment.stops || []),
                     ...(segment.recommendedStops || [])
                   ];
+                  
+                  console.log(`🖨️ PDF: Total stops collected for ${segment.endCity}: ${allStops.length}`);
                   
                   // Remove duplicates based on name
                   const uniqueStops = allStops.reduce((acc, stop) => {
@@ -183,6 +204,8 @@ export class PDFWindowService {
                     }
                     return acc;
                   }, []);
+                  
+                  console.log(`🖨️ PDF: Unique stops for ${segment.endCity}: ${uniqueStops.length}`);
                   
                   return uniqueStops.map(stop => 
                     `<div class="attraction-item">

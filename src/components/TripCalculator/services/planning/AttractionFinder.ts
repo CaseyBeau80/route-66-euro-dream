@@ -13,7 +13,12 @@ export class AttractionFinder {
     allStops: TripStop[],
     maxAttractions: number
   ): TripStop[] {
-    console.log(`🔍 STRICT: Finding attractions for ${startStop.name} → ${endStop.name}`);
+    console.log(`🔍 STRICT: Finding attractions for ${startStop.name} → ${endStop.name}`, {
+      startStop: startStop.name,
+      endStop: endStop.name,
+      totalStopsAvailable: allStops.length,
+      maxAttractions
+    });
     
     const directDistance = DistanceCalculationService.calculateDistance(
       startStop.latitude, startStop.longitude, endStop.latitude, endStop.longitude
