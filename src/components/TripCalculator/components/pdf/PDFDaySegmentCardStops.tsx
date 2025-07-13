@@ -1,9 +1,6 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { GeographicAttractionService, NearbyAttraction } from '../../services/attractions/GeographicAttractionService';
-import { AttractionLimitingService } from '../../services/attractions/AttractionLimitingService';
-import { getDestinationCityWithState } from '../../utils/DestinationUtils';
 
 interface PDFDaySegmentCardStopsProps {
   segment: DailySegment;
@@ -19,98 +16,95 @@ const PDFDaySegmentCardStops: React.FC<PDFDaySegmentCardStopsProps> = ({
     return null;
   }
 
-  const context = `PDFDaySegmentCardStops-Day${segment.day}-${exportFormat}`;
-  
-  // Load attractions instead of showing destination city as a stop
-  const [attractions, setAttractions] = React.useState<NearbyAttraction[]>([]);
-  
-  React.useEffect(() => {
-    const loadAttractions = async () => {
-      if (!segment?.endCity) return;
-      
-      try {
-        const { city, state } = getDestinationCityWithState(segment.endCity);
-        const searchResult = await GeographicAttractionService.findAttractionsNearCity(
-          city, 
-          state, 
-          40 // 40 mile radius
-        );
-        
-        // Extract the attractions array from the search result
-        setAttractions(searchResult.attractions);
-      } catch (error) {
-        console.error('❌ Error loading attractions for PDF:', error);
-        setAttractions([]);
-      }
-    };
-    
-    loadAttractions();
-  }, [segment?.endCity]);
+  console.log('📄 PDFDaySegmentCardStops: Using existing recommendedStops data for', segment.endCity, {
+    recommendedStopsCount: segment.recommendedStops?.length || 0,
+    exportFormat,
+    hasData: !!segment.recommendedStops
+  });
 
-  if (attractions.length === 0) {
+  // Use existing recommendedStops data from the segment
+  const recommendedStops = segment.recommendedStops || [];
+
+  if (recommendedStops.length === 0) {
     return (
       <div className="pdf-stops-section mb-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">🎯 Attractions & Hidden Gems</h4>
-        <p className="text-sm text-gray-500">Loading attractions near {segment.endCity}...</p>
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">🎯 Recommended Stops</h4>
+        <p className="text-sm text-gray-500 italic">
+          No specific attractions listed for {segment.endCity}. Explore the area when you arrive!
+        </p>
       </div>
     );
   }
 
-  // Use centralized limiting based on export format
-  const requestedMax = exportFormat === 'summary' ? 3 : 6;
-  const limitResult = AttractionLimitingService.limitAttractions(
-    attractions,
-    context,
-    requestedMax
-  );
-  
-  // Validate the result
-  if (!AttractionLimitingService.validateAttractionLimit(limitResult.limitedAttractions, context)) {
-    console.error(`🚨 CRITICAL: PDF stops limit validation failed for ${context}`);
-    return (
-      <div className="pdf-stops-section mb-4">
-        <h4 className="text-sm font-semibold text-red-600 mb-3">⚠️ Stops Limit Error</h4>
-        <p className="text-xs text-red-500">Attraction limiting failed for this segment.</p>
-      </div>
-    );
-  }
+  // Limit stops based on export format
+  const maxStops = exportFormat === 'summary' ? 3 : 6;
+  const limitedStops = recommendedStops.slice(0, maxStops);
+  const hasMoreStops = recommendedStops.length > maxStops;
 
   return (
     <div className="pdf-stops-section mb-4">
       <h4 className="text-sm font-semibold text-gray-700 mb-3">
-        🎯 Attractions & Hidden Gems ({limitResult.hasMoreAttractions ? `${limitResult.limitedAttractions.length} of ${limitResult.totalAttractions}` : limitResult.limitedAttractions.length})
+        🎯 Recommended Stops ({hasMoreStops ? `${limitedStops.length} of ${recommendedStops.length}` : limitedStops.length})
       </h4>
       <div className="space-y-2">
-        {limitResult.limitedAttractions.map((attraction, index) => {
-          const icon = GeographicAttractionService.getAttractionIcon(attraction);
-          const typeLabel = GeographicAttractionService.getAttractionTypeLabel(attraction);
+        {limitedStops.map((stop, index) => {
+          // Handle both object and string formats
+          const stopName = typeof stop === 'string' ? stop : stop.name || 'Unknown Stop';
+          const stopDescription = typeof stop === 'object' && stop.description ? stop.description : null;
+          const stopCategory = typeof stop === 'object' && stop.category ? stop.category : 'attraction';
+          
+          // Get icon based on category
+          const getStopIcon = (category: string) => {
+            switch (category) {
+              case 'restaurant': return '🍽️';
+              case 'attraction': return '🎯';
+              case 'gas_station': return '⛽';
+              case 'lodging': return '🏨';
+              case 'route66_waypoint': return '🛣️';
+              case 'destination_city': return '🏙️';
+              case 'hidden_gem': return '💎';
+              default: return '📍';
+            }
+          };
+
+          const getCategoryLabel = (category: string) => {
+            switch (category) {
+              case 'restaurant': return 'Restaurant';
+              case 'attraction': return 'Attraction';
+              case 'gas_station': return 'Gas Station';
+              case 'lodging': return 'Lodging';
+              case 'route66_waypoint': return 'Route 66 Waypoint';
+              case 'destination_city': return 'City';
+              case 'hidden_gem': return 'Hidden Gem';
+              default: return 'Point of Interest';
+            }
+          };
           
           return (
             <div key={index} className="flex items-start gap-2 p-2 bg-gray-50 rounded text-sm">
-              <span className="text-gray-600 mt-0.5">{icon}</span>
+              <span className="text-gray-600 mt-0.5">{getStopIcon(stopCategory)}</span>
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-800 truncate">
-                  {attraction.name}
+                  {stopName}
                 </div>
-                {attraction.description && (
+                {stopDescription && (
                   <div className="text-gray-600 text-xs mt-1 line-clamp-2">
-                    {attraction.description}
+                    {stopDescription}
                   </div>
                 )}
                 <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
                   <span className="px-1 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-                    {typeLabel}
+                    {getCategoryLabel(stopCategory)}
                   </span>
-                  <span>{attraction.distanceFromCity.toFixed(1)} mi from {segment.endCity}</span>
                 </div>
               </div>
             </div>
           );
         })}
         
-        {limitResult.hasMoreAttractions && (
+        {hasMoreStops && (
           <div className="text-xs text-gray-500 text-center py-1">
-            + {limitResult.remainingCount} more attractions available
+            + {recommendedStops.length - limitedStops.length} more stops available
           </div>
         )}
       </div>
