@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { route66Towns } from '@/types/route66';
 import { TripFormData } from '../types/tripCalculator';
 import { TripPlan } from '../services/planning/TripPlanBuilder';
 import { UnifiedTripPlanningService } from '../services/planning/UnifiedTripPlanningService';
@@ -9,6 +8,7 @@ import { TravelDayValidator } from '../services/validation/TravelDayValidator';
 import { TripStyleLogic } from '../services/planning/TripStyleLogic';
 import { toast } from '@/hooks/use-toast';
 import { useItineraryLoading } from './useItineraryLoading';
+import { useDestinationCities } from '@/components/Route66Planner/hooks/useDestinationCities';
 
 export const useEnhancedTripCalculation = () => {
   const [formData, setFormData] = useState<TripFormData>({
@@ -25,9 +25,10 @@ export const useEnhancedTripCalculation = () => {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   
   const loadingState = useItineraryLoading();
+  const { destinationCities } = useDestinationCities();
 
-  // Get available end locations based on start location
-  const availableEndLocations = route66Towns.filter(town => town.name !== formData.startLocation);
+  // Get available end locations based on start location (using destination cities only)
+  const availableEndLocations = destinationCities.filter(city => city.name !== formData.startLocation);
 
   // Reset function
   const resetTrip = () => {

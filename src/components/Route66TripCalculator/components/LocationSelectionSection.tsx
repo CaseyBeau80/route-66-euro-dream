@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { MapPin } from 'lucide-react';
-import { route66Towns } from '@/types/route66';
+import { useDestinationCities } from '@/components/Route66Planner/hooks/useDestinationCities';
 
 interface LocationSelectionSectionProps {
   startLocation: string;
@@ -14,8 +14,10 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
   endLocation,
   onLocationChange
 }) => {
-  const availableEndLocations = route66Towns.filter(
-    town => town.name !== startLocation
+  const { destinationCities, isLoading } = useDestinationCities();
+  
+  const availableEndLocations = destinationCities.filter(
+    city => city.name !== startLocation
   );
 
   return (
@@ -31,11 +33,15 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
           className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent"
         >
           <option value="">Choose starting point</option>
-          {route66Towns.map((town) => (
-            <option key={town.name} value={town.name}>
-              {town.name}
-            </option>
-          ))}
+          {isLoading ? (
+            <option value="" disabled>Loading cities...</option>
+          ) : (
+            destinationCities.map((city) => (
+              <option key={city.id} value={city.name}>
+                {city.name}, {city.state}
+              </option>
+            ))
+          )}
         </select>
       </div>
 
@@ -51,11 +57,15 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
           className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         >
           <option value="">Choose destination</option>
-          {availableEndLocations.map((town) => (
-            <option key={town.name} value={town.name}>
-              {town.name}
-            </option>
-          ))}
+          {isLoading ? (
+            <option value="" disabled>Loading cities...</option>
+          ) : (
+            availableEndLocations.map((city) => (
+              <option key={city.id} value={city.name}>
+                {city.name}, {city.state}
+              </option>
+            ))
+          )}
         </select>
       </div>
     </div>
