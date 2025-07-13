@@ -76,7 +76,7 @@ export const useTripCalculation = () => {
 
       // ENHANCED: Use validation service to check trip feasibility
       console.log('🔍 Running enhanced trip validation...');
-      const validation = TripValidationService.validateTrip(
+      const validation = await TripValidationService.validateTrip(
         dataToUse.startLocation,
         dataToUse.endLocation,
         dataToUse.travelDays

@@ -1,6 +1,7 @@
 
 import { route66Towns } from '@/types/route66';
 import { DistanceEstimationService } from '../utils/DistanceEstimationService';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface TripValidationResult {
   isValid: boolean;
@@ -25,12 +26,15 @@ export class TripValidationService {
   private static readonly MIN_DAILY_DRIVE_HOURS = 2;
   private static readonly AVERAGE_SPEED_MPH = 55;
   private static readonly COMFORT_DRIVE_HOURS = 6;
+  
+  // Cache for database destination cities
+  private static destinationCitiesCache: any[] | null = null;
 
-  static validateTrip(
+  static async validateTrip(
     startLocation: string,
     endLocation: string,
     requestedDays: number
-  ): TripValidationResult {
+  ): Promise<TripValidationResult> {
     console.log('🔍 TripValidationService: Validating trip parameters:', {
       startLocation,
       endLocation,
@@ -46,9 +50,9 @@ export class TripValidationService {
       optimizationSuggestions: []
     };
 
-    // Check if locations exist in Route 66 towns
-    const startTown = this.findTownByName(startLocation);
-    const endTown = this.findTownByName(endLocation);
+    // Check if locations exist in Route 66 destination cities from database
+    const startTown = await this.findDestinationCityByName(startLocation);
+    const endTown = await this.findDestinationCityByName(endLocation);
 
     if (!startTown) {
       result.isValid = false;
@@ -170,22 +174,70 @@ export class TripValidationService {
     return result;
   }
 
-  private static findTownByName(cityName: string) {
+  private static async getDestinationCities() {
+    if (this.destinationCitiesCache) {
+      return this.destinationCitiesCache;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('destination_cities')
+        .select('*');
+
+      if (error) {
+        console.error('❌ Error fetching destination cities for validation:', error);
+        // Fallback to hardcoded towns if database fails
+        return route66Towns;
+      }
+
+      this.destinationCitiesCache = data || [];
+      console.log(`✅ TripValidationService: Loaded ${this.destinationCitiesCache.length} destination cities from database`);
+      return this.destinationCitiesCache;
+    } catch (error) {
+      console.error('❌ Exception fetching destination cities for validation:', error);
+      // Fallback to hardcoded towns if database fails
+      return route66Towns;
+    }
+  }
+
+  private static async findDestinationCityByName(cityName: string) {
+    const cities = await this.getDestinationCities();
     const normalizedName = cityName.toLowerCase().trim();
     
-    return route66Towns.find(town => {
-      const townName = town.name.toLowerCase();
+    console.log(`🔍 TripValidationService: Looking for "${cityName}" in ${cities.length} cities`);
+    
+    const foundCity = cities.find(city => {
+      const cityDisplayName = city.name ? `${city.name}, ${city.state}` : city.city_name || city.city || '';
+      const cityDisplayNameLower = cityDisplayName.toLowerCase();
+      const cityNameOnly = city.name?.toLowerCase() || city.city_name?.toLowerCase() || city.city?.toLowerCase() || '';
       
-      // Exact match
-      if (townName === normalizedName) return true;
+      // Exact match with full name (e.g., "Lebanon, MO")
+      if (cityDisplayNameLower === normalizedName) {
+        console.log(`✅ Exact match found: "${cityDisplayName}"`);
+        return true;
+      }
       
-      // Match city part (e.g., "Chicago" matches "Chicago, IL")
-      const cityPart = townName.split(',')[0].trim();
-      if (cityPart === normalizedName) return true;
+      // Match city name only (e.g., "Lebanon" matches "Lebanon, MO")
+      if (cityNameOnly === normalizedName) {
+        console.log(`✅ City name match found: "${cityDisplayName}"`);
+        return true;
+      }
       
       // Partial match
-      return townName.includes(normalizedName) || normalizedName.includes(cityPart);
+      if (cityDisplayNameLower.includes(normalizedName) || normalizedName.includes(cityNameOnly)) {
+        console.log(`✅ Partial match found: "${cityDisplayName}"`);
+        return true;
+      }
+      
+      return false;
     });
+    
+    if (!foundCity) {
+      console.log(`❌ No match found for "${cityName}"`);
+      console.log(`🔍 Available cities:`, cities.slice(0, 5).map(c => c.name ? `${c.name}, ${c.state}` : c.city_name || c.city));
+    }
+    
+    return foundCity;
   }
 
   static getDrivingTimeCategory(hours: number): 'short' | 'optimal' | 'long' | 'extreme' {
