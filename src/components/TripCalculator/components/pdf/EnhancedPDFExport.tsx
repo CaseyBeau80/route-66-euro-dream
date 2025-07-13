@@ -36,7 +36,7 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   }
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg px-6 py-5 bg-background border shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
         role="dialog"
