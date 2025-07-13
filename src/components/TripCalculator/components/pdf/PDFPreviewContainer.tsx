@@ -24,6 +24,25 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
   onClose,
   onPrint
 }) => {
+  // Add global escape key handler for PDF preview
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        console.log('🔄 PDF Preview closed via Escape key');
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.position = '';
+        document.body.removeAttribute('data-scroll-locked');
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   useEffect(() => {
     // Disable body scroll when preview is open
     document.body.style.overflow = 'hidden';
@@ -45,9 +64,17 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
     <div 
       className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center"
       onClick={(e) => {
-        // Close on backdrop click with scroll cleanup
-        if (e.target === e.currentTarget) {
-          console.log('🔄 PDF Preview backdrop clicked');
+        // Always log the click for debugging
+        console.log('🔄 PDF Backdrop area clicked', { 
+          target: e.target, 
+          currentTarget: e.currentTarget,
+          isBackdrop: e.target === e.currentTarget 
+        });
+        
+        // Close on backdrop click with scroll cleanup - be more permissive
+        if (e.target === e.currentTarget || 
+           (e.target instanceof HTMLElement && e.target.classList?.contains('pdf-backdrop-close'))) {
+          console.log('🔄 PDF Preview closing via backdrop');
           document.body.style.overflow = '';
           document.body.style.position = '';
           document.body.style.top = '';
@@ -58,7 +85,7 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
         }
       }}
     >
-      <div className="w-full h-full max-w-6xl bg-white rounded-lg shadow-2xl flex flex-col">
+      <div className="w-full h-full max-w-6xl bg-white rounded-lg shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Enhanced Preview Header */}
         <div className="flex items-center justify-between p-4 border-b bg-route66-primary text-white">
           <div className="flex items-center gap-3">
