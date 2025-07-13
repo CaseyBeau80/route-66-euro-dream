@@ -29,10 +29,14 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
 
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
-  // Cleanup PDF window on unmount
+  // Cleanup PDF window and scroll lock on unmount
   useEffect(() => {
     return () => {
       PDFWindowService.cleanup();
+      // Force unlock scroll in case it gets stuck
+      document.body.removeAttribute('data-scroll-locked');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
     };
   }, []);
 
@@ -67,6 +71,11 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       // Close the modal after successful export
       onClose();
       
+      // Force cleanup scroll lock
+      document.body.removeAttribute('data-scroll-locked');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      
     } catch (error) {
       console.error('❌ Error opening PDF window:', error);
       toast({
@@ -77,6 +86,10 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
     } finally {
       setIsExporting(false);
       setIsEnrichingWeather(false);
+      // Ensure scroll is always unlocked
+      document.body.removeAttribute('data-scroll-locked');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
     }
   };
 
