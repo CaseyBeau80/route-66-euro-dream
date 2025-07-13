@@ -31,6 +31,8 @@ const HiddenGemClickableCard: React.FC<HiddenGemClickableCardProps> = ({
 
   const cardId = `hidden-gem-${gem.id}`;
   
+  console.log(`💎 HiddenGemClickableCard render - ${gem.title}:`, { isVisible, cardId });
+  
   useMobileCardDismissal({
     isVisible,
     onClose,
@@ -52,8 +54,18 @@ const HiddenGemClickableCard: React.FC<HiddenGemClickableCardProps> = ({
         zIndex: 60000
       }}
       data-card-id={cardId}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
+      onTouchStart={(e) => {
+        console.log(`💎 Touch start on hidden gem card: ${gem.title}`);
+        // Only stop propagation for scrolling, not for tap detection
+      }}
+      onTouchEnd={(e) => {
+        console.log(`💎 Touch end on hidden gem card: ${gem.title}`);
+        // Only stop propagation for scrolling, not for tap detection  
+      }}
+      onClick={(e) => {
+        console.log(`💎 Click on hidden gem card: ${gem.title} - stopping propagation`);
+        e.stopPropagation();
+      }}
     >
       {isDriveIn ? (
         <DriveInCard
