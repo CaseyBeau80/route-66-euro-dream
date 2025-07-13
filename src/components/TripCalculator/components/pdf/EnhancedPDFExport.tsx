@@ -27,6 +27,13 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isEnrichingWeather, setIsEnrichingWeather] = useState(false);
 
+  // Force unlock scroll immediately on component mount
+  useEffect(() => {
+    document.body.removeAttribute('data-scroll-locked');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }, []);
+
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
   // Cleanup PDF window and scroll lock on unmount
