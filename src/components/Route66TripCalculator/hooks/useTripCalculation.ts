@@ -29,12 +29,17 @@ export const useTripCalculation = () => {
     
     console.log('🚗 ENHANCED TRIP CALCULATION: Starting with validation', { 
       formData: dataToUse,
-      hasGoogleMaps: GoogleMapsIntegrationService.isAvailable()
+      hasGoogleMaps: GoogleMapsIntegrationService.isAvailable(),
+      cacheBuster: Date.now()
     });
     
+    // FORCE FRESH STATE: Clear any existing cached results
     setIsCalculating(true);
     setTripPlan(null);
     setPlanningResult(null);
+    
+    // FORCE DELAY to ensure state is cleared
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
       // Enhanced pre-validation
@@ -154,8 +159,12 @@ export const useTripCalculation = () => {
         originalDays: dataToUse.travelDays,
         adjustedDays: adjustedTravelDays,
         validationScore: validation.feasibilityScore,
-        style: tripStyle
+        style: tripStyle,
+        cacheBuster: Date.now() // Force fresh calculation
       });
+      
+      // CACHE BUSTER: Add timestamp to force fresh trip calculation
+      console.log(`🔄 CACHE BUSTER: Forcing fresh trip calculation at ${new Date().toISOString()}`);
       
       const result = await Route66TripPlannerService.planTripWithAnalysis(
         adjustedFormData.startLocation,
