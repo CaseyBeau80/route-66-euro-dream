@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
 import { PDFWindowService } from '../services/PDFWindowService';
-import { useScrollLockCleanup } from './useScrollLockCleanup';
 
 interface UsePDFExportSimpleProps {
   tripPlan: TripPlan;
@@ -20,18 +19,24 @@ export const usePDFExportSimple = ({
   onClose 
 }: UsePDFExportSimpleProps) => {
   const [isExporting, setIsExporting] = useState(false);
-  const { forceScrollUnlock } = useScrollLockCleanup();
 
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
 
-  // Cleanup PDF window and scroll lock on unmount
+  // Cleanup function to safely unlock scroll
+  const unlockScroll = () => {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    document.documentElement.style.overflow = '';
+    document.body.removeAttribute('data-scroll-locked');
+  };
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       PDFWindowService.cleanup();
-      // Force unlock scroll in case it gets stuck
-      document.body.removeAttribute('data-scroll-locked');
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
+      unlockScroll();
     };
   }, []);
 
@@ -49,9 +54,6 @@ export const usePDFExportSimple = ({
     setIsExporting(true);
 
     try {
-      // Force unlock scroll BEFORE doing anything
-      forceScrollUnlock();
-      
       await PDFWindowService.openPrintWindow(
         tripPlan,
         tripStartDate,
@@ -65,7 +67,8 @@ export const usePDFExportSimple = ({
         variant: "default"
       });
       
-      // Close the modal immediately and unlock scroll
+      // Close the modal and ensure scroll is unlocked
+      unlockScroll();
       onClose();
       
     } catch (error) {
@@ -77,8 +80,7 @@ export const usePDFExportSimple = ({
       });
     } finally {
       setIsExporting(false);
-      // Final scroll unlock
-      forceScrollUnlock();
+      unlockScroll();
     }
   };
 
