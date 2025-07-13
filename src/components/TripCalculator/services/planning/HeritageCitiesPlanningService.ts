@@ -44,13 +44,16 @@ export class HeritageCitiesPlanningService {
 
     console.log(`🛣️ Found ${availableDestinations.length} destination cities along the route`);
 
-    // Check if we have enough destination cities for the requested days
+    // FIXED: Maximum days = available destinations along route (no complex logic)
     const maxPossibleDays = availableDestinations.length + 1; // +1 for end city
     const actualDays = Math.min(requestedDays, maxPossibleDays);
     
+    console.log(`🎯 SIMPLIFIED: Max possible days = ${maxPossibleDays} (${availableDestinations.length} destinations + end city)`);
+    console.log(`📅 Requested: ${requestedDays} days, Actual: ${actualDays} days`);
+    
     let adjustmentMessage: string | undefined;
     if (actualDays < requestedDays) {
-      adjustmentMessage = `Trip adjusted from ${requestedDays} to ${actualDays} days due to limited destination cities along this route.`;
+      adjustmentMessage = `Trip adjusted from ${requestedDays} to ${actualDays} days - maximum possible with available destination cities along this route.`;
       console.log(`⚠️ ${adjustmentMessage}`);
     }
 
@@ -154,26 +157,22 @@ export class HeritageCitiesPlanningService {
   }
 
   /**
-   * Select specific destinations for the requested number of days
+   * SIMPLIFIED: Just take the first N destinations in order (no complex selection)
    */
   private static selectDestinationsForDays(
     availableDestinations: TripStop[],
     daysNeeded: number
   ): TripStop[] {
     if (daysNeeded <= 0) return [];
-    if (daysNeeded >= availableDestinations.length) return availableDestinations;
     
-    // Evenly distribute destinations across the route
-    const interval = availableDestinations.length / daysNeeded;
-    const selectedDestinations: TripStop[] = [];
+    // SIMPLE: Just take the first N destinations in geographic order
+    const selectedDestinations = availableDestinations.slice(0, daysNeeded);
     
-    for (let i = 0; i < daysNeeded; i++) {
-      const index = Math.round(i * interval);
-      const clampedIndex = Math.min(index, availableDestinations.length - 1);
-      selectedDestinations.push(availableDestinations[clampedIndex]);
-    }
+    console.log(`📍 SIMPLIFIED: Taking first ${selectedDestinations.length} destinations in order:`);
+    selectedDestinations.forEach((dest, i) => {
+      console.log(`   ${i + 1}. ${dest.name}, ${dest.state}`);
+    });
     
-    console.log(`📍 Selected destinations:`, selectedDestinations.map(d => d.name));
     return selectedDestinations;
   }
 
