@@ -35,6 +35,9 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
     cleanup
   } = useDestinationMobile();
 
+  // Debug mobile detection
+  console.log(`🏛️ DestinationCustomMarker for ${destination.name} - isMobile:`, isMobile);
+
   useEffect(() => {
     // Enhanced debugging for Santa Fe
     const isSantaFe = destination.name.toLowerCase().includes('santa fe');
@@ -166,10 +169,11 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       
       {/* Clickable card - only show on mobile when tapped */}
       {isMobile && (
-        <DestinationHoverPortal
+        <DestinationClickableCard
           destination={destination}
           position={clickPosition}
           isVisible={isClicked}
+          onClose={closeClickable}
           onMouseEnter={() => {}}
           onMouseLeave={closeClickable}
         />
