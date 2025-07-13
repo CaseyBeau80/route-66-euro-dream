@@ -69,16 +69,19 @@ export class TripDestinationOptimizer {
     // Sort by distance from start to ensure progression
     destinationsWithDistance.sort((a, b) => a.distanceFromStart - b.distanceFromStart);
 
-    // Select destinations with even distribution
+    // CRITICAL FIX: Select exactly the required number of intermediate destinations
     const selectedDestinations: TripStop[] = [];
-    const maxDestinations = Math.max(1, requestedDays - 1);
+    const requiredIntermediateDestinations = requestedDays - 1; // For N days, need exactly N-1 intermediate stops
     const targetSegmentDistance = totalRouteDistance / requestedDays;
 
+    console.log(`🎯 FIXING OFF-BY-ONE: For ${requestedDays} days trip, need exactly ${requiredIntermediateDestinations} intermediate destinations`);
     console.log(`🎯 Target segment distance: ${targetSegmentDistance.toFixed(0)} miles`);
+    console.log(`📊 Available destination cities: ${destinationsWithDistance.length}`);
 
     let lastSelectedDistance = 0;
 
-    for (let i = 0; i < maxDestinations && selectedDestinations.length < destinationsWithDistance.length; i++) {
+    // FIXED LOOP: Only check if we have reached the required number, not available destinations
+    for (let i = 0; i < requiredIntermediateDestinations; i++) {
       const targetDistance = (i + 1) * targetSegmentDistance;
       
       // Find available destination cities that haven't been used
@@ -88,8 +91,8 @@ export class TripDestinationOptimizer {
       );
 
       if (availableDestinations.length === 0) {
-        console.log(`⚠️ No more available destination cities for day ${i + 2}`);
-        break;
+        console.log(`⚠️ No more available destination cities for day ${i + 2}. Selected ${selectedDestinations.length} out of ${requiredIntermediateDestinations} required destinations.`);
+        break; // Exit early if no more destinations available
       }
 
       // Find destination city closest to target distance
