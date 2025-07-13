@@ -1,22 +1,14 @@
-
-import { TripPlan, TripPlanBuilder, DailySegment } from './planning/TripPlanBuilder';
-import { TripPlan as TripPlanType } from './planning/TripPlanTypes';
+import { TripPlanBuilder } from './planning/TripPlanBuilder';
 import { TripDestinationOptimizer } from './planning/TripDestinationOptimizer';
 import { Route66StopsService } from './Route66StopsService';
 import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
+import { Route66CityFinderService } from './Route66CityFinderService';
+import { Route66RouteFilterService } from './Route66RouteFilterService';
+import { EnhancedTripPlanResult, TripPlanType } from './Route66TripPlannerTypes';
 import { TripStop } from '../types/TripStop';
-import { TripCompletionAnalysis } from './planning/TripCompletionService';
-
-export interface EnhancedTripPlanResult {
-  tripPlan: TripPlanType;
-  completionAnalysis?: TripCompletionAnalysis;
-  originalRequestedDays?: number;
-  warnings?: string[];
-  validationResults?: any;
-  debugInfo?: any;
-}
 
 export type { TripPlanType as TripPlan };
+export type { EnhancedTripPlanResult };
 
 export class Route66TripPlannerService {
   /**
@@ -44,49 +36,22 @@ export class Route66TripPlannerService {
       }
 
       // Find start and end cities from destination cities
-      const startStop = this.findDestinationCity(destinationCities, startCity);
-      const endStop = this.findDestinationCity(destinationCities, endCity);
+      const startStop = Route66CityFinderService.findDestinationCity(destinationCities, startCity);
+      const endStop = Route66CityFinderService.findDestinationCity(destinationCities, endCity);
       
       if (!startStop || !endStop) {
         throw new Error(`Start city "${startCity}" or end city "${endCity}" not found in destination cities`);
       }
 
-      // ULTRA-GENEROUS route filtering - include all reasonable waypoints
-      const routeDestinationCities = destinationCities.filter(city => {
-        // Skip start and end cities from intermediate destinations
-        if (city.id === startStop.id || city.id === endStop.id) return false;
-        
-        // Calculate distances using actual distance calculation service
-        const distanceFromStart = Math.sqrt(
-          Math.pow(city.latitude - startStop.latitude, 2) + 
-          Math.pow(city.longitude - startStop.longitude, 2)
-        );
-        const distanceFromEnd = Math.sqrt(
-          Math.pow(city.latitude - endStop.latitude, 2) + 
-          Math.pow(city.longitude - endStop.longitude, 2)
-        );
-        const directDistance = Math.sqrt(
-          Math.pow(endStop.latitude - startStop.latitude, 2) + 
-          Math.pow(endStop.longitude - startStop.longitude, 2)
-        );
-        
-        // ULTRA-GENEROUS: Allow cities within 4x direct distance to ensure enough destinations
-        // This is very permissive to prevent the 13-day limitation
-        const isReasonableWaypoint = (distanceFromStart + distanceFromEnd) <= (directDistance * 4.0);
-        
-        // DEBUG: Log filtering decisions
-        if (!isReasonableWaypoint) {
-          console.log(`🚫 FILTER: Excluding ${city.name}, ${city.state} - too far from route (${((distanceFromStart + distanceFromEnd) / directDistance).toFixed(1)}x direct distance)`);
-        } else {
-          console.log(`✅ FILTER: Including ${city.name}, ${city.state} - reasonable waypoint (${((distanceFromStart + distanceFromEnd) / directDistance).toFixed(1)}x direct distance)`);
-        }
-        
-        return isReasonableWaypoint;
-      });
+      // STEP 2: Filter to cities along the route
+      const routeDestinationCities = Route66RouteFilterService.filterDestinationCitiesAlongRoute(
+        destinationCities,
+        startStop,
+        endStop
+      );
       
       const maxPossibleDays = routeDestinationCities.length + 1; // +1 for end day
-      console.log(`🏛️ FIXED FILTER: Found ${routeDestinationCities.length} destination cities along route (was too restrictive before), max possible days: ${maxPossibleDays}`);
-      console.log(`📋 Available cities: ${routeDestinationCities.map(c => `${c.name}, ${c.state}`).join(' • ')}`);
+      console.log(`🏛️ ROUTE: Found ${routeDestinationCities.length} destination cities along route, max possible days: ${maxPossibleDays}`);
 
       // If still not enough cities, warn but don't artificially limit
       if (maxPossibleDays < requestedDays) {
@@ -100,7 +65,7 @@ export class Route66TripPlannerService {
       const { destinations, actualDays, limitMessage } = TripDestinationOptimizer.ensureMinimumViableTrip(
         startStop,
         endStop,
-        destinationCities,
+        routeDestinationCities, // Use filtered cities instead of all destination cities
         requestedDays // Use full requested days - no artificial cap
       );
 
@@ -112,7 +77,7 @@ export class Route66TripPlannerService {
         console.warn(`⚠️ DAYS MISMATCH: Requested ${requestedDays} days, but got ${actualDays} days. Destinations: ${destinations.length}`);
       }
 
-      // STEP 3: Build trip plan using only destination cities
+      // STEP 4: Build trip plan using only destination cities
       const tripPlan = TripPlanBuilder.buildTripPlan(
         startStop,
         endStop,
@@ -120,7 +85,7 @@ export class Route66TripPlannerService {
         tripStyle
       );
 
-      // STEP 4: Final validation - ensure all stops are destination cities
+      // STEP 5: Final validation - ensure all stops are destination cities
       const validation = TripPlanBuilder.validateTripPlan(tripPlan);
       if (!validation.isValid) {
         console.warn(`⚠️ STRICT: Trip plan validation warnings:`, validation.violations);
@@ -175,35 +140,6 @@ export class Route66TripPlannerService {
       console.error('❌ Enhanced trip planning failed:', error);
       throw error;
     }
-  }
-
-  /**
-   * Find destination city by name (case-insensitive)
-   */
-  private static findDestinationCity(destinationCities: TripStop[], cityName: string): TripStop | null {
-    const normalizedName = cityName.toLowerCase().trim();
-    
-    // Try exact match first
-    let found = destinationCities.find(city => 
-      city.name.toLowerCase().includes(normalizedName) ||
-      normalizedName.includes(city.name.toLowerCase())
-    );
-    
-    if (!found) {
-      // Try partial match
-      found = destinationCities.find(city => {
-        const cityNameLower = city.name.toLowerCase();
-        return cityNameLower.includes(normalizedName) || normalizedName.includes(cityNameLower);
-      });
-    }
-    
-    if (found) {
-      console.log(`✅ STRICT: Found destination city: ${found.name} for "${cityName}"`);
-    } else {
-      console.warn(`⚠️ STRICT: No destination city found for "${cityName}"`);
-    }
-    
-    return found || null;
   }
 
   /**
