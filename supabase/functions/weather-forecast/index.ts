@@ -1,8 +1,9 @@
 import { corsHeaders } from '../_shared/cors.ts'
+import { WeatherRequestHandler } from './services/WeatherRequestHandler.ts'
 
 interface WeatherRequest {
-  lat: number
-  lng: number
+  lat?: number
+  lng?: number
   cityName: string
   targetDate?: string
 }
@@ -70,67 +71,95 @@ Deno.serve(async (req) => {
       )
     }
 
-    const { lat, lng, cityName }: WeatherRequest = await req.json()
+    const requestBody: WeatherRequest = await req.json()
+    const { lat, lng, cityName, targetDate } = requestBody
     
-    console.log(`🌤️ Weather request for ${cityName} (${lat}, ${lng})`)
+    console.log(`🌤️ Weather request:`, { cityName, lat, lng, targetDate })
 
-    // Get current weather
-    const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
-    const currentResponse = await fetch(currentUrl)
-    
-    if (!currentResponse.ok) {
-      throw new Error(`Current weather API error: ${currentResponse.status}`)
-    }
-    
-    const currentData: OpenWeatherResponse = await currentResponse.json()
-
-    // Get 5-day forecast
-    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
-    const forecastResponse = await fetch(forecastUrl)
-    
-    if (!forecastResponse.ok) {
-      throw new Error(`Forecast API error: ${forecastResponse.status}`)
-    }
-    
-    const forecastData: ForecastResponse = await forecastResponse.json()
-
-    // Process the data
-    const weather = {
-      current: {
-        temperature: Math.round(currentData.main.temp),
-        feelsLike: Math.round(currentData.main.feels_like),
-        humidity: currentData.main.humidity,
-        pressure: currentData.main.pressure,
-        windSpeed: Math.round(currentData.wind.speed),
-        windDirection: currentData.wind.deg,
-        visibility: currentData.visibility ? Math.round(currentData.visibility / 1609.34) : null, // Convert to miles
-        condition: currentData.weather[0].main,
-        description: currentData.weather[0].description,
-        icon: currentData.weather[0].icon,
-        cityName: currentData.name,
-        timestamp: currentData.dt
-      },
-      forecast: forecastData.list.slice(0, 8).map(item => ({
-        temperature: Math.round(item.main.temp),
-        feelsLike: Math.round(item.main.feels_like),
-        humidity: item.main.humidity,
-        windSpeed: Math.round(item.wind.speed),
-        condition: item.weather[0].main,
-        description: item.weather[0].description,
-        icon: item.weather[0].icon,
-        timestamp: item.dt,
-        dateTime: item.dt_txt
-      }))
+    // If targetDate is provided, use the enhanced weather request handler
+    if (targetDate && cityName) {
+      console.log('🎯 Using enhanced weather handler for target date request')
+      
+      const weatherHandler = new WeatherRequestHandler(apiKey)
+      const targetDateObj = new Date(targetDate)
+      
+      const weatherResponse = await weatherHandler.processWeatherRequest(cityName, targetDateObj)
+      
+      console.log(`✅ Enhanced weather data retrieved for ${cityName}`)
+      
+      return new Response(
+        JSON.stringify(weatherResponse),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
-    console.log(`✅ Weather data retrieved for ${cityName}`)
-
-    return new Response(
-      JSON.stringify(weather),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    // Legacy support: if lat/lng provided, use original logic
+    if (lat && lng) {
+      console.log('🔄 Using legacy lat/lng weather logic')
+      
+      // Get current weather
+      const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
+      const currentResponse = await fetch(currentUrl)
+      
+      if (!currentResponse.ok) {
+        throw new Error(`Current weather API error: ${currentResponse.status}`)
       }
-    )
+      
+      const currentData: OpenWeatherResponse = await currentResponse.json()
+
+      // Get 5-day forecast
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
+      const forecastResponse = await fetch(forecastUrl)
+      
+      if (!forecastResponse.ok) {
+        throw new Error(`Forecast API error: ${forecastResponse.status}`)
+      }
+      
+      const forecastData: ForecastResponse = await forecastResponse.json()
+
+      // Process the data
+      const weather = {
+        current: {
+          temperature: Math.round(currentData.main.temp),
+          feelsLike: Math.round(currentData.main.feels_like),
+          humidity: currentData.main.humidity,
+          pressure: currentData.main.pressure,
+          windSpeed: Math.round(currentData.wind.speed),
+          windDirection: currentData.wind.deg,
+          visibility: currentData.visibility ? Math.round(currentData.visibility / 1609.34) : null, // Convert to miles
+          condition: currentData.weather[0].main,
+          description: currentData.weather[0].description,
+          icon: currentData.weather[0].icon,
+          cityName: currentData.name,
+          timestamp: currentData.dt
+        },
+        forecast: forecastData.list.slice(0, 8).map(item => ({
+          temperature: Math.round(item.main.temp),
+          feelsLike: Math.round(item.main.feels_like),
+          humidity: item.main.humidity,
+          windSpeed: Math.round(item.wind.speed),
+          condition: item.weather[0].main,
+          description: item.weather[0].description,
+          icon: item.weather[0].icon,
+          timestamp: item.dt,
+          dateTime: item.dt_txt
+        }))
+      }
+
+      console.log(`✅ Legacy weather data retrieved for ${cityName}`)
+
+      return new Response(
+        JSON.stringify(weather),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Invalid request
+    throw new Error('Must provide either (cityName + targetDate) or (lat + lng + cityName)')
 
   } catch (error) {
     console.error('❌ Weather API error:', error)
