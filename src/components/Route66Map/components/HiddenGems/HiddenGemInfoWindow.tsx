@@ -40,22 +40,22 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
       }}
     >
       <div 
-        className="vintage-roadside-sign w-[270px] max-w-[85vw] bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
+        className="vintage-roadside-sign w-[270px] max-w-[85vw] bg-white border-4 border-turquoise rounded-lg shadow-lg overflow-hidden"
         style={{
           maxHeight: '50vh',
           overflowY: 'auto'
         }}
       >
-        {/* Compact Header Banner - Black and white */}
-        <div className="bg-black text-white px-3 py-1.5 relative">
+        {/* Compact Header Banner - Turquoise */}
+        <div className="bg-turquoise text-white px-3 py-1.5 relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center border border-black shadow-sm">
-                <Star className="h-2 w-2 text-black" fill="currentColor" />
+              <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center border border-turquoise shadow-sm">
+                <Star className="h-2 w-2 text-turquoise" fill="currentColor" />
               </div>
               <span className="text-xs font-bold tracking-wide uppercase">Hidden Gem</span>
             </div>
-            <div className="text-xs font-bold bg-white text-black px-1.5 py-0.5 rounded transform -rotate-2 shadow-sm">
+            <div className="text-xs font-bold bg-white text-turquoise px-1.5 py-0.5 rounded transform -rotate-2 shadow-sm">
               ROUTE 66
             </div>
           </div>
@@ -65,19 +65,19 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
         <div className="p-2.5 bg-white">
           {/* Title Section */}
           <div className="mb-2 text-center">
-            <h3 className="font-black text-sm text-black leading-tight uppercase tracking-wide border-b-2 border-black pb-1 mb-1.5 break-words">
+            <h3 className="font-black text-sm text-turquoise leading-tight uppercase tracking-wide border-b-2 border-turquoise pb-1 mb-1.5 break-words">
               {gem.title}
             </h3>
-            <div className="flex items-center justify-center gap-1.5 text-gray-700">
-              <MapPin className="h-3 w-3 text-black flex-shrink-0" />
+            <div className="flex items-center justify-center gap-1.5 text-turquoise">
+              <MapPin className="h-3 w-3 text-turquoise flex-shrink-0" />
               <span className="text-xs font-bold uppercase tracking-wide">{gem.city_name}</span>
             </div>
           </div>
           
           {/* Compact Description */}
           {gem.description && (
-            <div className="mb-2 p-2 bg-gray-100 border border-dashed border-black rounded max-h-20 overflow-y-auto">
-              <p className="text-xs text-black leading-relaxed font-medium text-left break-words">
+            <div className="mb-2 p-2 bg-turquoise-light border border-dashed border-turquoise rounded max-h-20 overflow-y-auto">
+              <p className="text-xs text-turquoise-dark leading-relaxed font-medium text-left break-words">
                 {gem.description}
               </p>
             </div>
@@ -88,7 +88,7 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
             <div className="text-center mb-1">
               <button
                 onClick={() => onWebsiteClick(gem.website!)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white font-bold text-xs rounded-full border border-black hover:bg-gray-800 transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-turquoise text-white font-bold text-xs rounded-full border border-turquoise hover:bg-turquoise-dark transition-all duration-200 shadow transform hover:scale-105 uppercase tracking-wide"
               >
                 <ExternalLink className="h-2.5 w-2.5" />
                 Visit Website
@@ -96,17 +96,17 @@ const HiddenGemInfoWindow: React.FC<HiddenGemInfoWindowProps> = ({
             </div>
           )}
           
-          {/* Compact Bottom Banner - Black and white */}
-          <div className="bg-black text-white px-2 py-1.5 -mx-2.5 -mb-2.5 text-center rounded-b-lg">
+          {/* Compact Bottom Banner - Turquoise */}
+          <div className="bg-turquoise text-white px-2 py-1.5 -mx-2.5 -mb-2.5 text-center rounded-b-lg">
             <div className="flex items-center justify-center gap-1.5">
-              <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center border border-black">
-                <span className="text-xs font-black text-black">66</span>
+              <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center border border-turquoise">
+                <span className="text-xs font-black text-turquoise">66</span>
               </div>
               <span className="text-xs font-bold uppercase tracking-wider">
                 America's Main Street
               </span>
-              <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center border border-black">
-                <span className="text-xs font-black text-black">66</span>
+              <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center border border-turquoise">
+                <span className="text-xs font-black text-turquoise">66</span>
               </div>
             </div>
           </div>
