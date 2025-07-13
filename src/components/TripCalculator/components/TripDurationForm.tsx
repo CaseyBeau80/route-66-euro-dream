@@ -21,6 +21,13 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
 
   // Get maximum days based on destination cities for this specific route
   useEffect(() => {
+    console.log('🔍 TripDurationForm useEffect triggered:', {
+      startLocation: formData.startLocation,
+      endLocation: formData.endLocation,
+      hasStart: !!formData.startLocation,
+      hasEnd: !!formData.endLocation
+    });
+    
     const getMaxDaysForRoute = async () => {
       if (formData.startLocation && formData.endLocation) {
         setIsLoadingMaxDays(true);
