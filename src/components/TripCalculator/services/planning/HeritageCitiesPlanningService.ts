@@ -31,6 +31,9 @@ export class HeritageCitiesPlanningService {
 
     // Find start and end from destination cities
     console.log(`🔍 Finding start and end cities...`);
+    console.log(`🔍 [SPRINGFIELD FIX] Input startLocation: "${startLocation}"`);
+    console.log(`🔍 [SPRINGFIELD FIX] Input endLocation: "${endLocation}"`);
+    
     const startStop = SupabaseDataService.findBestMatchingStop(startLocation, destinationCities);
     const endStop = SupabaseDataService.findBestMatchingStop(endLocation, destinationCities);
 
@@ -40,8 +43,8 @@ export class HeritageCitiesPlanningService {
       throw new Error(error);
     }
 
-    console.log(`✅ Found start: ${startStop.name}, ${startStop.state}`);
-    console.log(`✅ Found end: ${endStop.name}, ${endStop.state}`);
+    console.log(`✅ [SPRINGFIELD FIX] Found start: ${startStop.name}, ${startStop.state}`);
+    console.log(`✅ [SPRINGFIELD FIX] Found end: ${endStop.name}, ${endStop.state}`);
 
     // Filter destination cities between start and end
     const availableDestinations = this.filterDestinationCitiesAlongRoute(
