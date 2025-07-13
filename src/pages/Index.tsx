@@ -3,8 +3,6 @@ import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
 import HeroSection from "../components/Hero/HeroSection";
-import HeroSectionMinimal from "../components/Hero/HeroSectionMinimal";
-import ErrorBoundary from "../components/ErrorBoundary";
 import InteractiveMapSection from "../components/InteractiveMap/InteractiveMapSection";
 import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
 import TripPlannerSection from "../components/TripPlannerSection";
@@ -19,9 +17,7 @@ const Index = () => {
     <MainLayout>
       {/* Hero Section - Full viewport height with two-column layout */}
       <section id="hero">
-        <ErrorBoundary fallback={<HeroSectionMinimal />}>
-          <HeroSection />
-        </ErrorBoundary>
+        <HeroSection />
       </section>
 
       {/* Interactive Map Section with fade-in */}

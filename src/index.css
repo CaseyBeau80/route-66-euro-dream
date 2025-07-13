@@ -42,14 +42,6 @@
     --turquoise: 174 100% 56%; /* #40E0D0 */
     --turquoise-dark: 174 100% 45%; /* #20B2AA */
     --turquoise-light: 180 100% 97%; /* #F0FFFF */
-    
-    /* Route 66 Component Colors */
-    --route66-primary-light: 217 71% 53%; /* #4A90E2 */
-    --route66-text-secondary: 210 11% 71%; /* #A0A0A0 */
-    --route66-background-section: 210 20% 98%; /* #F8FAFC */
-    --route66-background-alt: 210 20% 96%; /* #F1F5F9 */
-    --route66-accent-red: 0 84% 60%; /* #DC2626 */
-    --route66-orange: 25 95% 53%; /* #F59E0B */
   }
 
   .dark {
@@ -189,47 +181,6 @@
 
 .border-route66-border {
   border-color: var(--route66-border);
-}
-
-/* Additional Route 66 component utilities */
-.text-route66-primary-light {
-  color: hsl(var(--route66-primary-light));
-}
-
-.text-route66-text-secondary {
-  color: hsl(var(--route66-text-secondary));
-}
-
-.bg-route66-background-section {
-  background-color: hsl(var(--route66-background-section));
-}
-
-.bg-route66-background-alt {
-  background-color: hsl(var(--route66-background-alt));
-}
-
-.from-route66-background {
-  --tw-gradient-from: hsl(var(--route66-background-section)) var(--tw-gradient-from-position);
-}
-
-.via-route66-background-alt {
-  --tw-gradient-to: hsl(var(--route66-background-alt)) var(--tw-gradient-to-position);
-}
-
-.to-route66-background-section {
-  --tw-gradient-to: hsl(var(--route66-background-section)) var(--tw-gradient-to-position);
-}
-
-.from-route66-primary\/10 {
-  --tw-gradient-from: hsl(var(--route66-primary) / 0.1) var(--tw-gradient-from-position);
-}
-
-.via-route66-accent-red\/10 {
-  --tw-gradient-to: hsl(var(--route66-accent-red) / 0.1) var(--tw-gradient-to-position);
-}
-
-.to-route66-orange\/10 {
-  --tw-gradient-to: hsl(var(--route66-orange) / 0.1) var(--tw-gradient-to-position);
 }
 
 /* Touch optimization for mobile cards */

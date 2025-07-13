@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown, Check } from "lucide-react";
-// import cakeImage from "@/assets/route66-100th-cake-transparent.png"; // Commented out - missing asset
+import cakeImage from "@/assets/route66-100th-cake-transparent.png";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 
 
@@ -34,12 +34,8 @@ const heroContent = {
   }
 };
 const HeroSection: React.FC = () => {
-  console.log('🎯 HeroSection: Starting to render');
-  
-  try {
-    const content = heroContent.en; // Always use English
-    const { timeLeft, mounted } = useTimer();
-    console.log('✅ HeroSection: useTimer hook working, mounted:', mounted, 'timeLeft:', timeLeft);
+  const content = heroContent.en; // Always use English
+  const { timeLeft, mounted } = useTimer();
   const scrollToInteractiveMap = () => {
     const mapSection = document.getElementById('interactive-map');
     if (mapSection) {
@@ -137,9 +133,11 @@ const HeroSection: React.FC = () => {
                 <div className="relative">
                   <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
                   <div className="relative flex flex-col items-center text-center gap-3 p-4">
-                    <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-pink-300 to-pink-500 rounded-lg flex items-center justify-center">
-                      <span className="text-2xl">🎂</span>
-                    </div>
+                    <img 
+                      src={cakeImage} 
+                      alt="Route 66 100th Anniversary Celebration Cake" 
+                      className="w-20 h-20 lg:w-24 lg:h-24 object-contain rounded-lg"
+                    />
                     <div className="flex flex-col items-center">
                       <div className="flex items-baseline gap-2">
                         <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
@@ -178,10 +176,5 @@ const HeroSection: React.FC = () => {
       {/* Scroll Indicator */}
       
     </>;
-  } catch (error) {
-    console.error('❌ HeroSection: Error during render:', error);
-    throw error; // Re-throw so ErrorBoundary can catch it
-  }
 };
-
 export default HeroSection;
