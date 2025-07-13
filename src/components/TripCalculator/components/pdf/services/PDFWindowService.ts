@@ -19,41 +19,30 @@ export class PDFWindowService {
         this.pdfWindow.close();
       }
 
-      // Enrich trip data with attractions and weather information
-      console.log('🎯 Enriching trip data with attraction information...');
+      // Use existing trip data as-is (no need to recreate attractions)
+      console.log('🖨️ Using existing trip data for PDF generation');
       let enrichedTripPlan = { ...tripPlan };
       
-      if (tripPlan.segments) {
+      // Only enrich with weather if start date is provided
+      if (tripStartDate && tripPlan.segments) {
         try {
-          // First enrich with attractions
-          const attractionEnrichedSegments = await PDFAttractionEnrichmentService.enrichSegmentsWithAttractions(tripPlan.segments);
-          console.log('✅ Attraction enrichment completed for PDF export');
-          
-          // Then enrich with weather if start date is provided
-          let finalEnrichedSegments = attractionEnrichedSegments;
-          if (tripStartDate) {
-            try {
-              finalEnrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
-                attractionEnrichedSegments,
-                tripStartDate
-              );
-              console.log('✅ Weather enrichment completed for PDF export');
-              console.log('🌤️ Segments with weather data:', 
-                finalEnrichedSegments.filter(s => s.weather).length + '/' + finalEnrichedSegments.length
-              );
-            } catch (weatherError) {
-              console.warn('⚠️ Weather enrichment failed, proceeding with attraction data only:', weatherError);
-            }
-          }
+          const enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
+            tripPlan.segments,
+            tripStartDate
+          );
           
           enrichedTripPlan = {
             ...tripPlan,
-            segments: finalEnrichedSegments,
-            dailySegments: finalEnrichedSegments
+            segments: enrichedSegments,
+            dailySegments: enrichedSegments
           };
           
-        } catch (error) {
-          console.warn('⚠️ Enrichment failed, proceeding with original data:', error);
+          console.log('✅ Weather enrichment completed for PDF export');
+          console.log('🌤️ Segments with weather data:', 
+            enrichedSegments.filter(s => s.weather).length + '/' + enrichedSegments.length
+          );
+        } catch (weatherError) {
+          console.warn('⚠️ Weather enrichment failed, proceeding without weather data:', weatherError);
         }
       }
 
@@ -174,46 +163,16 @@ export class PDFWindowService {
             </div>
           ` : ''}
 
-          ${(segment.attractions && segment.attractions.length > 0) || 
-            (segment.stops && segment.stops.length > 0) || 
-            (segment.recommendedStops && segment.recommendedStops.length > 0) ? `
+          ${segment.recommendedStops && segment.recommendedStops.length > 0 ? `
             <div class="attractions-section">
-              <h4 class="attractions-title">📍 Recommended Stops</h4>
+              <h4 class="attractions-title">📍 Recommended Stops (${segment.recommendedStops.length})</h4>
               <div class="attractions-grid">
-                ${(() => {
-                  console.log(`🖨️ PDF: Processing attractions for ${segment.endCity}:`, {
-                    attractions: segment.attractions?.length || 0,
-                    stops: segment.stops?.length || 0,
-                    recommendedStops: segment.recommendedStops?.length || 0
-                  });
-                  
-                  // Check all possible attraction/stop properties
-                  const allStops = [
-                    ...(segment.attractions || []),
-                    ...(segment.stops || []),
-                    ...(segment.recommendedStops || [])
-                  ];
-                  
-                  console.log(`🖨️ PDF: Total stops collected for ${segment.endCity}: ${allStops.length}`);
-                  
-                  // Remove duplicates based on name
-                  const uniqueStops = allStops.reduce((acc, stop) => {
-                    const name = stop.name || stop.title || stop.attraction || 'Unnamed Stop';
-                    if (!acc.find(existing => existing.name === name)) {
-                      acc.push({ name, ...stop });
-                    }
-                    return acc;
-                  }, []);
-                  
-                  console.log(`🖨️ PDF: Unique stops for ${segment.endCity}: ${uniqueStops.length}`);
-                  
-                  return uniqueStops.map(stop => 
-                    `<div class="attraction-item">
-                       <span class="attraction-icon">🎯</span>
-                       <span class="attraction-name">${stop.name || stop.title || stop.attraction || 'Unnamed Stop'}</span>
-                     </div>`
-                  ).join('');
-                })()}
+                ${segment.recommendedStops.map(stop => 
+                  `<div class="attraction-item">
+                     <span class="attraction-icon">🎯</span>
+                     <span class="attraction-name">${stop.name}</span>
+                   </div>`
+                ).join('')}
               </div>
             </div>
           ` : `
