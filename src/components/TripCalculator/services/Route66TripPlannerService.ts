@@ -51,7 +51,7 @@ export class Route66TripPlannerService {
         throw new Error(`Start city "${startCity}" or end city "${endCity}" not found in destination cities`);
       }
 
-      // FIXED: More generous route filtering - cities must be reasonable waypoints
+      // ULTRA-GENEROUS route filtering - include all reasonable waypoints
       const routeDestinationCities = destinationCities.filter(city => {
         // Skip start and end cities from intermediate destinations
         if (city.id === startStop.id || city.id === endStop.id) return false;
@@ -70,13 +70,15 @@ export class Route66TripPlannerService {
           Math.pow(endStop.longitude - startStop.longitude, 2)
         );
         
-        // FIXED: Much more generous filter - allow cities within 2.5x direct distance
-        // This ensures we don't artificially limit available destinations
-        const isReasonableWaypoint = (distanceFromStart + distanceFromEnd) <= (directDistance * 2.5);
+        // ULTRA-GENEROUS: Allow cities within 4x direct distance to ensure enough destinations
+        // This is very permissive to prevent the 13-day limitation
+        const isReasonableWaypoint = (distanceFromStart + distanceFromEnd) <= (directDistance * 4.0);
         
-        // DEBUG: Log filtering decisions for problematic cases
+        // DEBUG: Log filtering decisions
         if (!isReasonableWaypoint) {
           console.log(`🚫 FILTER: Excluding ${city.name}, ${city.state} - too far from route (${((distanceFromStart + distanceFromEnd) / directDistance).toFixed(1)}x direct distance)`);
+        } else {
+          console.log(`✅ FILTER: Including ${city.name}, ${city.state} - reasonable waypoint (${((distanceFromStart + distanceFromEnd) / directDistance).toFixed(1)}x direct distance)`);
         }
         
         return isReasonableWaypoint;

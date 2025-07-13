@@ -80,19 +80,38 @@ export class TripDestinationOptimizer {
 
     let lastSelectedDistance = 0;
 
-    // FIXED LOOP: Only check if we have reached the required number, not available destinations
+    // FIXED LOOP: Select destinations with fallback logic to prevent 13-day limitation
     for (let i = 0; i < requiredIntermediateDestinations; i++) {
       const targetDistance = (i + 1) * targetSegmentDistance;
       
       // Find available destination cities that haven't been used
-      const availableDestinations = destinationsWithDistance.filter(dest => 
+      let availableDestinations = destinationsWithDistance.filter(dest => 
         !selectedDestinations.find(selected => selected.id === dest.stop.id) &&
         dest.distanceFromStart > lastSelectedDistance + 50 // Ensure minimum 50-mile progression
       );
 
+      // FALLBACK 1: If no destinations with 50-mile progression, reduce minimum to 25 miles
       if (availableDestinations.length === 0) {
-        console.log(`⚠️ No more available destination cities for day ${i + 2}. Selected ${selectedDestinations.length} out of ${requiredIntermediateDestinations} required destinations.`);
-        break; // Exit early if no more destinations available
+        console.log(`🔄 FALLBACK 1: Reducing minimum progression to 25 miles for day ${i + 2}`);
+        availableDestinations = destinationsWithDistance.filter(dest => 
+          !selectedDestinations.find(selected => selected.id === dest.stop.id) &&
+          dest.distanceFromStart > lastSelectedDistance + 25
+        );
+      }
+
+      // FALLBACK 2: If still no destinations, remove progression requirement entirely
+      if (availableDestinations.length === 0) {
+        console.log(`🔄 FALLBACK 2: Removing progression requirement for day ${i + 2}`);
+        availableDestinations = destinationsWithDistance.filter(dest => 
+          !selectedDestinations.find(selected => selected.id === dest.stop.id)
+        );
+      }
+
+      // FINAL CHECK: If absolutely no destinations available, log and break
+      if (availableDestinations.length === 0) {
+        console.log(`⚠️ ABSOLUTE LIMIT: No more destination cities available for day ${i + 2}. Selected ${selectedDestinations.length} out of ${requiredIntermediateDestinations} required destinations.`);
+        console.log(`🔍 DIAGNOSIS: Total destinations in database: ${destinationsWithDistance.length}, already selected: ${selectedDestinations.length}`);
+        break; // Exit only as absolute last resort
       }
 
       // Find destination city closest to target distance
