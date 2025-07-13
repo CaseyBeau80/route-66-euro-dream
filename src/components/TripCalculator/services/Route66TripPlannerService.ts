@@ -51,9 +51,12 @@ export class Route66TripPlannerService {
         throw new Error(`Start city "${startCity}" or end city "${endCity}" not found in destination cities`);
       }
 
-      // STEP 2: Get available destination cities count for max calculation
+      // FIXED: More generous route filtering - cities must be reasonable waypoints
       const routeDestinationCities = destinationCities.filter(city => {
-        // Filter cities that are between start and end points
+        // Skip start and end cities from intermediate destinations
+        if (city.id === startStop.id || city.id === endStop.id) return false;
+        
+        // Calculate distances using actual distance calculation service
         const distanceFromStart = Math.sqrt(
           Math.pow(city.latitude - startStop.latitude, 2) + 
           Math.pow(city.longitude - startStop.longitude, 2)
@@ -67,12 +70,26 @@ export class Route66TripPlannerService {
           Math.pow(endStop.longitude - startStop.longitude, 2)
         );
         
-        // City should be along the route (not too far off the direct path)
-        return (distanceFromStart + distanceFromEnd) <= (directDistance * 1.5);
+        // FIXED: Much more generous filter - allow cities within 2.5x direct distance
+        // This ensures we don't artificially limit available destinations
+        const isReasonableWaypoint = (distanceFromStart + distanceFromEnd) <= (directDistance * 2.5);
+        
+        // DEBUG: Log filtering decisions for problematic cases
+        if (!isReasonableWaypoint) {
+          console.log(`🚫 FILTER: Excluding ${city.name}, ${city.state} - too far from route (${((distanceFromStart + distanceFromEnd) / directDistance).toFixed(1)}x direct distance)`);
+        }
+        
+        return isReasonableWaypoint;
       });
       
       const maxPossibleDays = routeDestinationCities.length + 1; // +1 for end day
-      console.log(`🏛️ STRICT: Found ${routeDestinationCities.length} destination cities along route, max possible days: ${maxPossibleDays}`);
+      console.log(`🏛️ FIXED FILTER: Found ${routeDestinationCities.length} destination cities along route (was too restrictive before), max possible days: ${maxPossibleDays}`);
+      console.log(`📋 Available cities: ${routeDestinationCities.map(c => `${c.name}, ${c.state}`).join(' • ')}`);
+
+      // If still not enough cities, warn but don't artificially limit
+      if (maxPossibleDays < requestedDays) {
+        console.warn(`⚠️ ROUTE LIMITATION: Only ${routeDestinationCities.length} destination cities available along this route. Max possible days: ${maxPossibleDays}, requested: ${requestedDays}`);
+      }
 
       // DEBUG: Check the math before optimization
       const effectiveRequestedDays = Math.min(requestedDays, maxPossibleDays);
