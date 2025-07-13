@@ -22,18 +22,26 @@ export class HeritageCitiesPlanningService {
     allStops: TripStop[]
   ): Promise<TripPlan> {
     console.log(`🏛️ SIMPLIFIED HERITAGE CITIES PLANNING: ${startLocation} → ${endLocation}, ${requestedDays} days`);
+    console.log(`🚀 DEBUG: HeritageCitiesPlanningService.planHeritageCitiesTrip called!`);
 
     // Get ONLY destination cities from the database
+    console.log(`🔍 Fetching destination cities from database...`);
     const destinationCities = await SupabaseDataService.getDestinationCities();
     console.log(`🏙️ Found ${destinationCities.length} destination cities available`);
 
     // Find start and end from destination cities
+    console.log(`🔍 Finding start and end cities...`);
     const startStop = SupabaseDataService.findBestMatchingStop(startLocation, destinationCities);
     const endStop = SupabaseDataService.findBestMatchingStop(endLocation, destinationCities);
 
     if (!startStop || !endStop) {
-      throw new Error(`Could not find destination cities for: ${!startStop ? startLocation : endLocation}`);
+      const error = `Could not find destination cities for: ${!startStop ? startLocation : endLocation}`;
+      console.error(`❌ ${error}`);
+      throw new Error(error);
     }
+
+    console.log(`✅ Found start: ${startStop.name}, ${startStop.state}`);
+    console.log(`✅ Found end: ${endStop.name}, ${endStop.state}`);
 
     // Filter destination cities between start and end
     const availableDestinations = this.filterDestinationCitiesAlongRoute(

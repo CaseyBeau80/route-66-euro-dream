@@ -21,9 +21,12 @@ export class UnifiedTripPlanningService {
     tripStyle: 'destination-focused'
   ): Promise<UnifiedPlanningResult> {
     console.log(`🎯 UnifiedTripPlanningService: Planning ${tripStyle} trip`);
+    console.log(`📍 Route: ${startLocation} → ${endLocation}, ${travelDays} days`);
+    console.log(`🚀 DEBUG: UnifiedTripPlanningService.planTrip called!`);
     
     try {
       // Since we only support destination-focused, use HeritageCitiesPlanningService
+      console.log(`🏛️ Calling HeritageCitiesPlanningService...`);
       const tripPlan = await HeritageCitiesPlanningService.planHeritageCitiesTrip(
         startLocation,
         endLocation,
@@ -31,6 +34,7 @@ export class UnifiedTripPlanningService {
         [] // Empty stops array - service will fetch its own
       );
 
+      console.log(`✅ HeritageCitiesPlanningService completed successfully`);
       return {
         success: true,
         tripPlan,
