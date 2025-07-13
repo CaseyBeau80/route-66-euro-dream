@@ -133,13 +133,22 @@ export class SupabaseDataService {
    * Find best matching stop by location name
    */
   static findBestMatchingStop(locationName: string, allStops: TripStop[]): TripStop | null {
-    console.log(`🔍 Finding best matching stop for: ${locationName}`);
+    console.log(`🔍 [SPRINGFIELD DEBUG] Finding best matching stop for: "${locationName}"`);
     
     const normalizedSearch = locationName.toLowerCase().trim();
+    console.log(`🔍 [SPRINGFIELD DEBUG] normalizedSearch: "${normalizedSearch}"`);
+    
+    // Debug: Show all Springfield stops available
+    const springfieldStops = allStops.filter(stop => 
+      stop.name.toLowerCase().includes('springfield') ||
+      (stop as any).city_name?.toLowerCase().includes('springfield')
+    );
+    console.log(`🔍 [SPRINGFIELD DEBUG] Available Springfield stops:`, springfieldStops.map(s => `${s.name || (s as any).city_name}, ${s.state}`));
     
     // FIXED: Handle "City, State" format first
     if (normalizedSearch.includes(',')) {
       const [cityPart, statePart] = normalizedSearch.split(',').map(s => s.trim());
+      console.log(`🔍 [SPRINGFIELD DEBUG] Parsed city: "${cityPart}", state: "${statePart}"`);
       
       // Try exact city + state match
       let match = allStops.find(stop => 
@@ -148,8 +157,14 @@ export class SupabaseDataService {
       );
       
       if (match) {
-        console.log(`✅ Found exact city + state match: ${match.name}, ${match.state}`);
+        console.log(`✅ [SPRINGFIELD DEBUG] Found exact city + state match: ${match.name}, ${match.state}`);
         return match;
+      } else {
+        console.log(`❌ [SPRINGFIELD DEBUG] No exact city + state match found for: "${cityPart}", "${statePart}"`);
+        // Debug: Show what we're comparing against
+        allStops.filter(stop => stop.name.toLowerCase().includes(cityPart)).forEach(stop => {
+          console.log(`🔍 [SPRINGFIELD DEBUG] Checking: "${stop.name.toLowerCase().trim()}" === "${cityPart}" && "${stop.state.toLowerCase().trim()}" === "${statePart}"`);
+        });
       }
       
       // Try city_name + state match if available
