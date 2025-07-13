@@ -36,7 +36,7 @@ export const useFormValidation = (formData: TripFormData) => {
     let dayAdjustmentInfo = null;
     let recommendedDays = null;
 
-    // FIXED: Always check day adjustment when we have the required data, regardless of current travel days
+    // THREE-CONDITION VALIDATION: Check min, max, and user preference
     if (hasStartLocation && hasEndLocation) {
       console.log('🔍 FULL DEBUG: Starting day adjustment check');
       
@@ -59,21 +59,32 @@ export const useFormValidation = (formData: TripFormData) => {
         recommendations: validation.recommendations
       });
 
-      // CRITICAL: Always create dayAdjustmentInfo when we have minimum days calculation
-      if (validation.minDaysRequired) {
+      // FIXED: Only create dayAdjustmentInfo when user days are OUTSIDE valid bounds
+      if (validation.minDaysRequired && formData.travelDays < validation.minDaysRequired) {
+        // User requested days are BELOW minimum - need to increase
         dayAdjustmentInfo = {
           requested: formData.travelDays,
           minimum: validation.minDaysRequired,
-          reason: `Safety limit: Your ${formData.travelDays}-day trip would require ${Math.round((validation.minDaysRequired * 300) / formData.travelDays)} miles per day, which exceeds our 300-mile daily safety limit. We've adjusted it to ${validation.minDaysRequired} days for comfortable ${Math.round((validation.minDaysRequired * 300) / validation.minDaysRequired)} miles per day.`
+          reason: `Safety limit: Your ${formData.travelDays}-day trip would require ${Math.round((validation.minDaysRequired * 300) / formData.travelDays)} miles per day, which exceeds our 300-mile daily safety limit. We've adjusted it to ${validation.minDaysRequired} days for comfortable driving.`
         };
         recommendedDays = validation.minDaysRequired;
         
-        console.log('🔥 FULL DEBUG: DAY ADJUSTMENT INFO CREATED:', {
+        console.log('🔥 FULL DEBUG: DAY ADJUSTMENT INFO CREATED (BELOW MIN):', {
           dayAdjustmentInfo, 
-          needsAdjustment: validation.minDaysRequired > formData.travelDays
+          userDays: formData.travelDays,
+          minRequired: validation.minDaysRequired,
+          needsAdjustment: true
+        });
+      } else if (validation.minDaysRequired && formData.travelDays >= validation.minDaysRequired && formData.travelDays <= validation.maxDaysRecommended) {
+        // User requested days are WITHIN valid range - respect their choice
+        console.log('🔍 FULL DEBUG: User days within valid range - respecting user choice:', {
+          userDays: formData.travelDays,
+          minRequired: validation.minDaysRequired,
+          maxRecommended: validation.maxDaysRecommended,
+          withinBounds: true
         });
       } else {
-        console.log('🔍 FULL DEBUG: No minimum days calculated');
+        console.log('🔍 FULL DEBUG: No adjustment needed or no minimum days calculated');
       }
     } else {
       console.log('🔍 FULL DEBUG: Skipping day adjustment check - missing required data:', {

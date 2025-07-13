@@ -51,12 +51,35 @@ export class Route66TripPlannerService {
         throw new Error(`Start city "${startCity}" or end city "${endCity}" not found in destination cities`);
       }
 
-      // STEP 2: Select optimal destination cities for the trip
+      // STEP 2: Get available destination cities count for max calculation
+      const routeDestinationCities = destinationCities.filter(city => {
+        // Filter cities that are between start and end points
+        const distanceFromStart = Math.sqrt(
+          Math.pow(city.latitude - startStop.latitude, 2) + 
+          Math.pow(city.longitude - startStop.longitude, 2)
+        );
+        const distanceFromEnd = Math.sqrt(
+          Math.pow(city.latitude - endStop.latitude, 2) + 
+          Math.pow(city.longitude - endStop.longitude, 2)
+        );
+        const directDistance = Math.sqrt(
+          Math.pow(endStop.latitude - startStop.latitude, 2) + 
+          Math.pow(endStop.longitude - startStop.longitude, 2)
+        );
+        
+        // City should be along the route (not too far off the direct path)
+        return (distanceFromStart + distanceFromEnd) <= (directDistance * 1.5);
+      });
+      
+      const maxPossibleDays = routeDestinationCities.length + 1; // +1 for end day
+      console.log(`🏛️ STRICT: Found ${routeDestinationCities.length} destination cities along route, max possible days: ${maxPossibleDays}`);
+
+      // STEP 3: Select optimal destination cities respecting user choice within bounds
       const { destinations, actualDays, limitMessage } = TripDestinationOptimizer.ensureMinimumViableTrip(
         startStop,
         endStop,
         destinationCities,
-        requestedDays
+        Math.min(requestedDays, maxPossibleDays) // Respect user choice up to max available
       );
 
       console.log(`🎯 STRICT: Selected ${destinations.length} intermediate destination cities for ${actualDays} days`);

@@ -1,6 +1,8 @@
 
 import { DistanceEstimationService } from '../utils/DistanceEstimationService';
 import { TripStyleConfig } from '../planning/TripStyleLogic';
+import { Route66StopsService } from '../Route66StopsService';
+import { StrictDestinationCityEnforcer } from '../planning/StrictDestinationCityEnforcer';
 
 export interface DayValidationResult {
   isValid: boolean;
@@ -18,6 +20,33 @@ export class TravelDayValidator {
   private static readonly ROUTE66_AVERAGE_SPEED = 45; // More realistic Route 66 speed (was 50)
   private static readonly SAFETY_BUFFER = 1.15; // 15% safety buffer for Route 66 conditions
   
+  /**
+   * Get maximum days based on destination cities along route
+   */
+  static async getMaxDaysFromDestinationCities(
+    startLocation: string,
+    endLocation: string
+  ): Promise<number> {
+    try {
+      const allStops = await Route66StopsService.getAllStops();
+      const destinationCities = StrictDestinationCityEnforcer.filterToDestinationCitiesOnly(allStops);
+      
+      // Simple distance-based filtering for cities along the route
+      const routeDestinationCities = destinationCities.filter(city => {
+        // This is a simplified check - in production you'd want more sophisticated route validation
+        return true; // For now, allow all destination cities
+      });
+      
+      const maxDays = routeDestinationCities.length + 1; // +1 for the final day
+      console.log(`🏛️ Max days from destination cities: ${maxDays} (${routeDestinationCities.length} cities + 1 final day)`);
+      
+      return Math.min(maxDays, this.ABSOLUTE_MAX_DAYS);
+    } catch (error) {
+      console.error('Error calculating max days from destination cities:', error);
+      return this.ABSOLUTE_MAX_DAYS;
+    }
+  }
+
   /**
    * Validate travel days against route requirements with STRICT 10h enforcement
    */
