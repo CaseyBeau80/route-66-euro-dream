@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Share2, Download, Link2, Mail } from 'lucide-react';
 import { TripPlan } from '../services/planning/TripPlanTypes';
+import { TripService } from '../services/TripService';
 import ShareTripModal from './ShareTripModal';
 import EnhancedPDFExport from './pdf/EnhancedPDFExport';
 import { toast } from '@/hooks/use-toast';
@@ -39,8 +40,28 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
 
   const handleCopyLink = async () => {
     if (!currentShareUrl) {
-      // If no share URL exists, open the modal to generate one
-      setIsShareModalOpen(true);
+      // Generate share URL directly without opening modal
+      try {
+        const shareCode = await TripService.saveTrip(tripPlan, tripTitle);
+        const generatedShareUrl = TripService.getShareUrl(shareCode);
+        setCurrentShareUrl(generatedShareUrl);
+        
+        // Copy to clipboard
+        await navigator.clipboard.writeText(generatedShareUrl);
+        
+        toast({
+          title: "Link Generated & Copied!",
+          description: "Your trip link has been generated and copied to clipboard.",
+          variant: "default"
+        });
+      } catch (error) {
+        console.error('Failed to generate and copy link:', error);
+        toast({
+          title: "Generation Failed",
+          description: "Could not generate share link. Please try again.",
+          variant: "destructive"
+        });
+      }
       return;
     }
     
@@ -61,10 +82,40 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
     }
   };
 
-  const handleShareViaEmail = () => {
+  const handleShareViaEmail = async () => {
     if (!currentShareUrl) {
-      // If no share URL exists, open the modal to generate one
-      setIsShareModalOpen(true);
+      // Generate share URL directly without opening modal
+      try {
+        const shareCode = await TripService.saveTrip(tripPlan, tripTitle);
+        const generatedShareUrl = TripService.getShareUrl(shareCode);
+        setCurrentShareUrl(generatedShareUrl);
+        
+        // Open email with the generated URL
+        const emailSubject = encodeURIComponent(`Check out my Route 66 trip plan: ${tripTitle}`);
+        const emailBody = encodeURIComponent(
+          `Hi!\n\nI've planned an amazing Route 66 trip and wanted to share it with you!\n\n` +
+          `Trip: ${tripTitle}\n` +
+          `${tripPlan.totalDays} days, ${Math.round(tripPlan.totalDistance)} miles\n\n` +
+          `View the complete itinerary here: ${generatedShareUrl}\n\n` +
+          `Planned with Ramble 66 - The ultimate Route 66 trip planner\n` +
+          `Visit ramble66.com to plan your own adventure!`
+        );
+        
+        window.open(`mailto:?subject=${emailSubject}&body=${emailBody}`, '_blank');
+        
+        toast({
+          title: "Link Generated & Email Opened!",
+          description: "Your trip link has been generated and email client opened.",
+          variant: "default"
+        });
+      } catch (error) {
+        console.error('Failed to generate link for email:', error);
+        toast({
+          title: "Generation Failed",
+          description: "Could not generate share link. Please try again.",
+          variant: "destructive"
+        });
+      }
       return;
     }
 
