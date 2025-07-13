@@ -9,6 +9,7 @@ import { TripSegmentValidator } from './TripSegmentValidator';
 import { DriveTimeBalancingService } from './DriveTimeBalancingService';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { CityDisplayService } from '../utils/CityDisplayService';
+import { DirectionEnforcerService } from './DirectionEnforcerService';
 
 export class HeritageCitiesPlanningService {
   /**
@@ -116,39 +117,40 @@ export class HeritageCitiesPlanningService {
 
   /**
    * Filter destination cities that are along the route between start and end
+   * FIXED: Uses DirectionEnforcerService to prevent ping-ponging
    */
   private static filterDestinationCitiesAlongRoute(
     destinationCities: TripStop[],
     startStop: TripStop,
     endStop: TripStop
   ): TripStop[] {
-    console.log(`🔍 Filtering destination cities between ${startStop.name} and ${endStop.name}`);
+    console.log(`🔍 FIXED: Filtering destination cities with anti-ping-pong logic`);
+    console.log(`   Route: ${startStop.name}, ${startStop.state} → ${endStop.name}, ${endStop.state}`);
     
-    // For Route 66, we'll use longitude as the primary ordering (west to east)
-    const startLon = startStop.longitude;
-    const endLon = endStop.longitude;
+    // Exclude start and end cities
+    const candidateCities = destinationCities.filter(city => 
+      city.id !== startStop.id && city.id !== endStop.id
+    );
     
-    // Determine direction (east or west)
-    const isEastbound = endLon > startLon;
+    console.log(`🎯 Found ${candidateCities.length} candidate cities to filter`);
+
+    // Use DirectionEnforcerService to filter for forward-progressing destinations only
+    const forwardProgressingCities = DirectionEnforcerService.filterForwardDestinations(
+      startStop,
+      candidateCities,
+      endStop,
+      'moderate' // Use moderate strictness for good coverage
+    );
+
+    console.log(`✅ ANTI-PING-PONG: Filtered to ${forwardProgressingCities.length} forward-progressing cities`);
     
-    const filteredCities = destinationCities.filter(city => {
-      // Exclude start and end cities
-      if (city.id === startStop.id || city.id === endStop.id) {
-        return false;
-      }
-      
-      // Filter based on direction
-      if (isEastbound) {
-        return city.longitude > startLon && city.longitude < endLon;
-      } else {
-        return city.longitude < startLon && city.longitude > endLon;
-      }
+    // Log the selected cities for debugging
+    forwardProgressingCities.forEach((city, index) => {
+      const score = DirectionEnforcerService.calculateProgressionScore(startStop, city, endStop);
+      console.log(`   ${index + 1}. ${city.name}, ${city.state} (score: ${score.toFixed(1)})`);
     });
 
-    // Sort by longitude (route order)
-    return filteredCities.sort((a, b) => 
-      isEastbound ? a.longitude - b.longitude : b.longitude - a.longitude
-    );
+    return forwardProgressingCities;
   }
 
   /**
