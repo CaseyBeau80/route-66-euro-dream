@@ -74,15 +74,25 @@ export class Route66TripPlannerService {
       const maxPossibleDays = routeDestinationCities.length + 1; // +1 for end day
       console.log(`🏛️ STRICT: Found ${routeDestinationCities.length} destination cities along route, max possible days: ${maxPossibleDays}`);
 
+      // DEBUG: Check the math before optimization
+      const effectiveRequestedDays = Math.min(requestedDays, maxPossibleDays);
+      console.log(`🔍 DEBUG: Original requested: ${requestedDays}, max possible: ${maxPossibleDays}, effective: ${effectiveRequestedDays}`);
+
       // STEP 3: Select optimal destination cities respecting user choice within bounds
       const { destinations, actualDays, limitMessage } = TripDestinationOptimizer.ensureMinimumViableTrip(
         startStop,
         endStop,
         destinationCities,
-        Math.min(requestedDays, maxPossibleDays) // Respect user choice up to max available
+        effectiveRequestedDays // Use effective days for clarity
       );
 
       console.log(`🎯 STRICT: Selected ${destinations.length} intermediate destination cities for ${actualDays} days`);
+      console.log(`🔍 DEBUG: Expected ${effectiveRequestedDays - 1} intermediate destinations, got ${destinations.length}`);
+      
+      // DEBUG: Verify the math
+      if (destinations.length !== (effectiveRequestedDays - 1)) {
+        console.error(`❌ OFF-BY-ONE BUG DETECTED: For ${effectiveRequestedDays} days, expected ${effectiveRequestedDays - 1} intermediate destinations, but got ${destinations.length}`);
+      }
 
       // STEP 3: Build trip plan using only destination cities
       const tripPlan = TripPlanBuilder.buildTripPlan(
