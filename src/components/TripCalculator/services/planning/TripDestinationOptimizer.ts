@@ -105,7 +105,11 @@ export class TripDestinationOptimizer {
       console.log(`✅ Selected destination city: ${bestDestination.stop.name}, ${bestDestination.stop.state} for day ${i + 2} (${bestDestination.distanceFromStart.toFixed(0)} miles from start)`);
     }
 
+    // Calculate actual days based on segments that will be created
+    // Each segment = 1 day, segments = selectedDestinations.length + 1 (for final segment to end)
     const actualDays = selectedDestinations.length + 1;
+    
+    console.log(`🎯 DESTINATION SELECTION SUMMARY: Requested ${requestedDays} days, selected ${selectedDestinations.length} intermediate destinations, will create ${actualDays} travel days`);
 
     // FINAL VALIDATION: Ensure all selected are destination cities
     const finalValidation = StrictDestinationCityEnforcer.validateAllAreDestinationCities(selectedDestinations);
