@@ -129,8 +129,8 @@ export class PDFWindowService {
             <div class="stat-item">
               <span class="stat-icon">⏰</span>
               <span class="stat-value">${segment.driveTimeHours ? 
-                `${Math.round(segment.driveTimeHours * 10) / 10}H ${Math.round((segment.driveTimeHours % 1) * 60)}MIN` :
-                `${Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10}H`
+                `${Math.floor(segment.driveTimeHours)}H ${Math.round((segment.driveTimeHours % 1) * 60)}MIN` :
+                `${Math.floor((segment.distance || segment.approximateMiles || 0) / 55)}H`
               }</span>
               <span class="stat-label">Drive Time</span>
             </div>
