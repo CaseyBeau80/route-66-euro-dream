@@ -137,7 +137,36 @@ export class SupabaseDataService {
     
     const normalizedSearch = locationName.toLowerCase().trim();
     
-    // Try exact name match first
+    // FIXED: Handle "City, State" format first
+    if (normalizedSearch.includes(',')) {
+      const [cityPart, statePart] = normalizedSearch.split(',').map(s => s.trim());
+      
+      // Try exact city + state match
+      let match = allStops.find(stop => 
+        stop.name.toLowerCase().trim() === cityPart && 
+        stop.state.toLowerCase().trim() === statePart
+      );
+      
+      if (match) {
+        console.log(`✅ Found exact city + state match: ${match.name}, ${match.state}`);
+        return match;
+      }
+      
+      // Try city_name + state match if available
+      if (allStops[0] && 'city_name' in allStops[0]) {
+        match = allStops.find(stop => 
+          (stop as any).city_name?.toLowerCase().trim() === cityPart && 
+          stop.state.toLowerCase().trim() === statePart
+        );
+        
+        if (match) {
+          console.log(`✅ Found city_name + state match: ${(match as any).city_name}, ${match.state}`);
+          return match;
+        }
+      }
+    }
+    
+    // Try exact name match
     let match = allStops.find(stop => 
       stop.name.toLowerCase().trim() === normalizedSearch
     );
@@ -147,28 +176,30 @@ export class SupabaseDataService {
       return match;
     }
     
-    // Try city name match
-    match = allStops.find(stop => 
-      stop.city_name.toLowerCase().trim() === normalizedSearch ||
-      stop.city.toLowerCase().trim() === normalizedSearch
-    );
-    
-    if (match) {
-      console.log(`✅ Found city match: ${match.name} in ${match.city}`);
-      return match;
+    // Try city_name match if available
+    if (allStops[0] && 'city_name' in allStops[0]) {
+      match = allStops.find(stop => 
+        (stop as any).city_name?.toLowerCase().trim() === normalizedSearch
+      );
+      
+      if (match) {
+        console.log(`✅ Found city_name match: ${(match as any).city_name}`);
+        return match;
+      }
     }
     
-    // Try partial matches
-    match = allStops.find(stop => 
-      stop.name.toLowerCase().includes(normalizedSearch) ||
-      stop.city_name.toLowerCase().includes(normalizedSearch) ||
-      normalizedSearch.includes(stop.name.toLowerCase()) ||
-      normalizedSearch.includes(stop.city_name.toLowerCase())
-    );
-    
-    if (match) {
-      console.log(`✅ Found partial match: ${match.name}`);
-      return match;
+    // Try partial matches (but be more careful with ambiguous cities like Springfield)
+    if (!normalizedSearch.includes('springfield')) {
+      match = allStops.find(stop => 
+        stop.name.toLowerCase().includes(normalizedSearch) ||
+        (allStops[0] && 'city_name' in allStops[0] && (stop as any).city_name?.toLowerCase().includes(normalizedSearch)) ||
+        normalizedSearch.includes(stop.name.toLowerCase())
+      );
+      
+      if (match) {
+        console.log(`✅ Found partial match: ${match.name}`);
+        return match;
+      }
     }
     
     console.log(`❌ No matching stop found for: ${locationName}`);
