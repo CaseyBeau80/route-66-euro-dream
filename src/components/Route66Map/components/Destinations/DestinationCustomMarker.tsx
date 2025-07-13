@@ -166,11 +166,12 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
       
       {/* Clickable card - only show on mobile when tapped */}
       {isMobile && (
-        <DestinationClickableCard
+        <DestinationHoverPortal
           destination={destination}
-          isVisible={isClicked}
           position={clickPosition}
-          onClose={closeClickable}
+          isVisible={isClicked}
+          onMouseEnter={() => {}}
+          onMouseLeave={closeClickable}
         />
       )}
     </>
