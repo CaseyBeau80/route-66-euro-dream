@@ -91,24 +91,23 @@ export class Route66TripPlannerService {
         console.warn(`⚠️ ROUTE LIMITATION: Only ${routeDestinationCities.length} destination cities available along this route. Max possible days: ${maxPossibleDays}, requested: ${requestedDays}`);
       }
 
-      // DEBUG: Check the math before optimization
-      const effectiveRequestedDays = Math.min(requestedDays, maxPossibleDays);
-      console.log(`🔍 DEBUG: Original requested: ${requestedDays}, max possible: ${maxPossibleDays}, effective: ${effectiveRequestedDays}`);
+      // REMOVED ARTIFICIAL LIMITATION: Don't cap at maxPossibleDays - let the optimizer handle it
+      console.log(`🔍 FIXED: Using full requested days: ${requestedDays} (no artificial Math.min cap)`);
 
-      // STEP 3: Select optimal destination cities respecting user choice within bounds
+      // STEP 3: Select optimal destination cities - let the optimizer handle limitations naturally
       const { destinations, actualDays, limitMessage } = TripDestinationOptimizer.ensureMinimumViableTrip(
         startStop,
         endStop,
         destinationCities,
-        effectiveRequestedDays // Use effective days for clarity
+        requestedDays // Use full requested days - no artificial cap
       );
 
       console.log(`🎯 STRICT: Selected ${destinations.length} intermediate destination cities for ${actualDays} days`);
-      console.log(`🔍 DEBUG: Expected ${effectiveRequestedDays - 1} intermediate destinations, got ${destinations.length}`);
+      console.log(`🔍 DEBUG: Requested ${requestedDays} days, got ${destinations.length} intermediate destinations, actual days: ${actualDays}`);
       
       // DEBUG: Verify the math
-      if (destinations.length !== (effectiveRequestedDays - 1)) {
-        console.error(`❌ OFF-BY-ONE BUG DETECTED: For ${effectiveRequestedDays} days, expected ${effectiveRequestedDays - 1} intermediate destinations, but got ${destinations.length}`);
+      if (actualDays !== requestedDays) {
+        console.warn(`⚠️ DAYS MISMATCH: Requested ${requestedDays} days, but got ${actualDays} days. Destinations: ${destinations.length}`);
       }
 
       // STEP 3: Build trip plan using only destination cities
