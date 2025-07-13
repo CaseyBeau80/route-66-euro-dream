@@ -27,9 +27,10 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
   useEffect(() => {
     // Disable body scroll when preview is open
     document.body.style.overflow = 'hidden';
+    console.log('🔒 PDFPreviewContainer: Scroll locked for preview');
     
     return () => {
-      // Comprehensive scroll unlock
+      // Simple, guaranteed scroll unlock on unmount
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
@@ -40,31 +41,23 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
     };
   }, []);
 
-  // Emergency cleanup effect - ensures scroll is always unlocked
-  useEffect(() => {
-    const unlockScroll = () => {
-      // Only unlock if we're not in the PDF preview context
-      if (!document.getElementById('pdf-export-content')) {
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.documentElement.style.overflow = '';
-        document.documentElement.style.position = '';
-        document.body.removeAttribute('data-scroll-locked');
-      }
-    };
-
-    // Set up interval to ensure scroll is never permanently locked
-    const interval = setInterval(unlockScroll, 500);
-    
-    return () => {
-      clearInterval(interval);
-      unlockScroll();
-    };
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center">
+    <div 
+      className="fixed inset-0 z-[10000] bg-black bg-opacity-50 flex items-center justify-center"
+      onClick={(e) => {
+        // Close on backdrop click with scroll cleanup
+        if (e.target === e.currentTarget) {
+          console.log('🔄 PDF Preview backdrop clicked');
+          document.body.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.documentElement.style.overflow = '';
+          document.documentElement.style.position = '';
+          document.body.removeAttribute('data-scroll-locked');
+          onClose();
+        }
+      }}
+    >
       <div className="w-full h-full max-w-6xl bg-white rounded-lg shadow-2xl flex flex-col">
         {/* Enhanced Preview Header */}
         <div className="flex items-center justify-between p-4 border-b bg-route66-primary text-white">
@@ -95,7 +88,17 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
               Print / Save PDF
             </Button>
             <Button
-              onClick={onClose}
+              onClick={() => {
+                console.log('🔄 PDF Preview close button clicked');
+                // Force scroll unlock before closing
+                document.body.style.overflow = '';
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.documentElement.style.overflow = '';
+                document.documentElement.style.position = '';
+                document.body.removeAttribute('data-scroll-locked');
+                onClose();
+              }}
               variant="ghost"
               className="text-white hover:bg-route66-primary-dark"
             >
