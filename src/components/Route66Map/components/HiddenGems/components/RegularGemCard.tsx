@@ -11,9 +11,11 @@ interface RegularGemCardProps {
 }
 
 const RegularGemCard: React.FC<RegularGemCardProps> = ({ gem, onClose, onWebsiteClick }) => {
+  console.log(`💎 RegularGemCard rendering for ${gem.title} - checking colors`);
+  
   return (
     <div 
-      className="w-87 shadow-2xl rounded-lg overflow-hidden touch-manipulation border-3 border-turquoise bg-white relative"
+      className="w-87 shadow-2xl rounded-lg overflow-hidden touch-manipulation border-4 border-turquoise bg-white relative"
       style={{ 
         minHeight: '44px' // Ensure minimum touch target
       }}

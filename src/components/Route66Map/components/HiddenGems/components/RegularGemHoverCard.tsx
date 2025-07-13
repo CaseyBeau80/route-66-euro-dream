@@ -16,9 +16,11 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
   onMouseEnter,
   onMouseLeave 
 }) => {
+  console.log(`💎 RegularGemHoverCard rendering for ${gem.title} - checking colors`);
+  
   return (
     <div 
-      className="w-80 shadow-2xl rounded-lg overflow-hidden pointer-events-auto touch-manipulation border-3 border-turquoise bg-white"
+      className="w-80 shadow-2xl rounded-lg overflow-hidden pointer-events-auto touch-manipulation border-4 border-turquoise bg-white"
       style={{ 
         minHeight: '44px'
       }}

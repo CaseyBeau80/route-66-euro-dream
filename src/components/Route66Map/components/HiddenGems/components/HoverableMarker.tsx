@@ -47,14 +47,22 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
   // Handle marker click for mobile and desktop
   const handleMarkerClick = useCallback((gem: HiddenGem, position: { x: number; y: number }) => {
     console.log(`💎 Clicked hidden gem: ${gem.title}`, { isMobile, position });
+    console.log(`💎 Device detection details:`, {
+      isMobile,
+      hasTouch: 'ontouchstart' in window,
+      isSmallScreen: window.innerWidth <= 768,
+      userAgent: navigator.userAgent.includes('Mobile')
+    });
     
-    if (isMobile) {
-      // On mobile, show clickable card
-      setClickPosition(position);
-      setIsClicked(true);
-      handleMouseLeave(gem.title); // Hide hover card
-    } else {
-      // On desktop, trigger the existing onMarkerClick behavior
+    // Always show clickable card when clicked (for testing both mobile and desktop)
+    console.log(`💎 CLICKED: Setting clickable card visible for ${gem.title}`);
+    setClickPosition(position);
+    setIsClicked(true);
+    handleMouseLeave(gem.title); // Hide hover card
+    
+    // Also trigger the original onMarkerClick for desktop functionality
+    if (!isMobile) {
+      console.log(`🖥️ DESKTOP: Also triggering onMarkerClick for ${gem.title}`);
       onMarkerClick(gem);
     }
   }, [isMobile, onMarkerClick, handleMouseLeave, gem.title]);
