@@ -7,7 +7,7 @@ import { CalendarExportService } from '../../services/CalendarExportService';
 import { toast } from '@/hooks/use-toast';
 import ShareTripOptions from './ShareTripOptions';
 import SharedTripContentRenderer from './SharedTripContentRenderer';
-import { Calendar, Download, ExternalLink } from 'lucide-react';
+import { Calendar, Download, ExternalLink, Share2, Link, Mail, Loader2 } from 'lucide-react';
 
 interface ShareTripModalContentProps {
   tripPlan: TripPlan;
@@ -177,6 +177,71 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
                   <p className="text-amber-800 font-medium text-sm">
                     Please set a trip start date to enable calendar export
                   </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Share URL Section - Streamlined for dropdown functionality */}
+          <div className="bg-gradient-to-br from-green-50 to-blue-50 border border-green-200 p-6 rounded-xl mt-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg">
+                <Share2 className="h-5 w-5 text-green-600" />
+              </div>
+              <h3 className="font-bold text-green-800 text-lg">
+                🔗 Share Your Trip
+              </h3>
+            </div>
+
+            <p className="text-green-700 text-sm mb-4">
+              Generate a shareable link to share your Route 66 adventure with friends and family
+            </p>
+
+            {!currentShareUrl ? (
+              <Button
+                onClick={onGenerateLink}
+                disabled={isGeneratingLink}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 h-auto text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+              >
+                {isGeneratingLink ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                    Generating Share Link...
+                  </>
+                ) : (
+                  <>
+                    <Link className="h-5 w-5 mr-3" />
+                    Generate Share Link
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-white border border-green-200 p-4 rounded-lg">
+                  <p className="text-green-800 font-medium text-sm mb-2">Your shareable link is ready!</p>
+                  <p className="text-green-600 text-xs break-all font-mono bg-green-50 p-2 rounded">
+                    {currentShareUrl}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    onClick={onCopyLink}
+                    variant="outline"
+                    className="py-3 h-auto border border-green-300 hover:bg-green-50 hover:border-green-400 text-green-700 hover:text-green-800 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+                  >
+                    <Link className="h-5 w-5 mr-2" />
+                    Copy Link
+                  </Button>
+                  
+                  <Button
+                    onClick={onShareViaEmail}
+                    variant="outline"
+                    className="py-3 h-auto border border-green-300 hover:bg-green-50 hover:border-green-400 text-green-700 hover:text-green-800 text-base font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+                  >
+                    <Mail className="h-5 w-5 mr-2" />
+                    Share via Email
+                  </Button>
                 </div>
               </div>
             )}
