@@ -3,6 +3,8 @@ import { TripStop } from '../../types/TripStop';
 import { DistanceCalculationService } from '../utils/DistanceCalculationService';
 import { StopFilteringService } from './StopFilteringService';
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
+import { DirectionEnforcerService } from './DirectionEnforcerService';
+import { GeographicProgressionService } from './GeographicProgressionService';
 
 export class TripDestinationOptimizer {
   /**
@@ -69,6 +71,12 @@ export class TripDestinationOptimizer {
     // Sort by distance from start to ensure progression
     destinationsWithDistance.sort((a, b) => a.distanceFromStart - b.distanceFromStart);
 
+    // Create geographic progression constraints
+    const progressionConstraints = GeographicProgressionService.createProgressionConstraints(
+      startStop, endStop, requestedDays
+    );
+    console.log(`🧭 Created progression constraints: ${progressionConstraints.preferredDirection} direction`);
+
     // CRITICAL FIX: Select exactly the required number of intermediate destinations
     const selectedDestinations: TripStop[] = [];
     const requiredIntermediateDestinations = requestedDays - 1; // For N days, need exactly N-1 intermediate stops
@@ -84,10 +92,15 @@ export class TripDestinationOptimizer {
     for (let i = 0; i < requiredIntermediateDestinations; i++) {
       const targetDistance = (i + 1) * targetSegmentDistance;
       
-      // Find available destination cities that haven't been used
+      // Find available destination cities that haven't been used and maintain forward progression
       let availableDestinations = destinationsWithDistance.filter(dest => 
         !selectedDestinations.find(selected => selected.id === dest.stop.id) &&
-        dest.distanceFromStart > lastSelectedDistance + 50 // Ensure minimum 50-mile progression
+        dest.distanceFromStart > lastSelectedDistance + 50 && // Ensure minimum 50-mile progression
+        DirectionEnforcerService.isForwardProgression(
+          selectedDestinations.length > 0 ? selectedDestinations[selectedDestinations.length - 1] : startStop,
+          dest.stop,
+          endStop
+        )
       );
 
       // FALLBACK 1: If no destinations with 50-mile progression, reduce minimum to 25 miles
@@ -114,11 +127,29 @@ export class TripDestinationOptimizer {
         break; // Exit only as absolute last resort
       }
 
-      // Find destination city closest to target distance
+      // Find destination city closest to target distance with progression scoring
       const bestDestination = availableDestinations.reduce((best, current) => {
-        const bestDiff = Math.abs(best.distanceFromStart - targetDistance);
-        const currentDiff = Math.abs(current.distanceFromStart - targetDistance);
-        return currentDiff < bestDiff ? current : best;
+        const currentStop = selectedDestinations.length > 0 ? selectedDestinations[selectedDestinations.length - 1] : startStop;
+        
+        // Distance score (how close to target distance)
+        const bestDistanceDiff = Math.abs(best.distanceFromStart - targetDistance);
+        const currentDistanceDiff = Math.abs(current.distanceFromStart - targetDistance);
+        const bestDistanceScore = Math.max(0, 100 - bestDistanceDiff / 10);
+        const currentDistanceScore = Math.max(0, 100 - currentDistanceDiff / 10);
+        
+        // Geographic progression score
+        const bestProgressionScore = DirectionEnforcerService.calculateProgressionScore(
+          currentStop, best.stop, endStop
+        );
+        const currentProgressionScore = DirectionEnforcerService.calculateProgressionScore(
+          currentStop, current.stop, endStop
+        );
+        
+        // Combined score (60% distance, 40% progression)
+        const bestTotalScore = bestDistanceScore * 0.6 + bestProgressionScore * 0.4;
+        const currentTotalScore = currentDistanceScore * 0.6 + currentProgressionScore * 0.4;
+        
+        return currentTotalScore > bestTotalScore ? current : best;
       });
 
       selectedDestinations.push(bestDestination.stop);
@@ -142,7 +173,25 @@ export class TripDestinationOptimizer {
     console.log(`✅ STRICT SELECTION COMPLETE: ${selectedDestinations.length} destination cities for ${actualDays} days:`, 
       selectedDestinations.map(d => `${d.name}, ${d.state}`));
 
-    return { destinations: selectedDestinations, actualDays };
+    // Optimize the order of selected destinations for better geographic flow
+    const optimizedDestinations = GeographicProgressionService.optimizeDestinationOrder(
+      startStop, endStop, selectedDestinations
+    );
+    console.log(`🔄 Optimized destination order for better geographic progression`);
+
+    // Validate geographic progression
+    const progressionValidation = GeographicProgressionService.validateProgressionConstraints(
+      [startStop, ...optimizedDestinations, endStop]
+    );
+    
+    if (!progressionValidation.isValid) {
+      console.warn(`⚠️ Geographic progression issues:`, progressionValidation.violations);
+      console.log(`💡 Suggestions:`, progressionValidation.suggestions);
+    } else {
+      console.log(`✅ Geographic progression validated - Score: ${progressionValidation.score}%`);
+    }
+
+    return { destinations: optimizedDestinations, actualDays };
   }
 
   /**
