@@ -124,19 +124,23 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
     return null;
   }
 
+  const handleClose = () => {
+    console.log('🔄 Enhanced PDF Export dialog closing');
+    // Simple cleanup
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.documentElement.style.overflow = '';
+    document.documentElement.style.position = '';
+    document.body.removeAttribute('data-scroll-locked');
+    onClose();
+  };
+
   return (
-    <Dialog open={true} onOpenChange={() => {
-      console.log('🔄 Enhanced PDF Export dialog force closing');
-      // Emergency unlock everything
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.documentElement.style.overflow = '';
-      document.documentElement.style.position = '';
-      document.body.removeAttribute('data-scroll-locked');
-      document.body.removeAttribute('style');
-      document.documentElement.removeAttribute('style');
-      onClose();
+    <Dialog open={true} onOpenChange={(open) => {
+      if (!open) {
+        handleClose();
+      }
     }}>
       <DialogContent 
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg px-6 py-5 bg-white shadow-2xl rounded-xl max-h-[90vh] overflow-y-auto"
@@ -150,7 +154,10 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <DialogClose className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200">
+        <DialogClose 
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors duration-200"
+          onClick={handleClose}
+        >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogClose>
