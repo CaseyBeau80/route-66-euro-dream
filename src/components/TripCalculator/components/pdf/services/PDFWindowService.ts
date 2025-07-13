@@ -18,6 +18,60 @@ export class PDFWindowService {
         this.pdfWindow.close();
       }
 
+      // IMPORTANT: Open window immediately to avoid popup blocker
+      this.pdfWindow = window.open('', '_blank', 
+        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no'
+      );
+
+      if (!this.pdfWindow) {
+        throw new Error('Failed to open new window. Please check popup blocker settings or allow popups for this site.');
+      }
+
+      // Set loading content immediately
+      this.pdfWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Loading Trip Plan...</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              height: 100vh; 
+              margin: 0; 
+              background: #f8fafc;
+            }
+            .loader { 
+              text-align: center; 
+              color: #374151;
+            }
+            .spinner {
+              border: 3px solid #e5e7eb;
+              border-top: 3px solid #3b82f6;
+              border-radius: 50%;
+              width: 40px;
+              height: 40px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 20px;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="loader">
+            <div class="spinner"></div>
+            <h2>Preparing Your Trip Plan...</h2>
+            <p>Fetching live weather data for each destination</p>
+          </div>
+        </body>
+        </html>
+      `);
+
       // Enrich trip data with weather information
       console.log('🌤️ Enriching trip data with weather information...');
       let enrichedTripPlan = { ...tripPlan };
@@ -44,22 +98,16 @@ export class PDFWindowService {
         }
       }
 
-      // Create new window with proper configuration
-      this.pdfWindow = window.open('', '_blank', 
-        'width=1200,height=800,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=no,status=no'
-      );
-
-      if (!this.pdfWindow) {
-        throw new Error('Failed to open new window. Please check popup blocker settings.');
+      // Check if window is still open
+      if (!this.pdfWindow || this.pdfWindow.closed) {
+        throw new Error('PDF window was closed before content could be loaded.');
       }
-
-      // Set a proper title for the window
-      this.pdfWindow.document.title = `${enrichedTripPlan.segments?.[0]?.startCity || 'Chicago'} to ${enrichedTripPlan.segments?.[enrichedTripPlan.segments.length - 1]?.endCity || 'Los Angeles'} - Route 66 Trip Plan`;
 
       // Generate HTML content for the PDF with enriched data
       const htmlContent = this.generatePrintHTML(enrichedTripPlan, tripStartDate, exportOptions, shareUrl);
       
-      // Write content to new window
+      // Replace the loading content with the actual trip plan
+      this.pdfWindow.document.open();
       this.pdfWindow.document.write(htmlContent);
       this.pdfWindow.document.close();
 
