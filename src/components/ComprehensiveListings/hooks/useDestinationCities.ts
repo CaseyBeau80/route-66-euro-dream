@@ -11,15 +11,23 @@ export const useDestinationCities = () => {
   useEffect(() => {
     const fetchDestinationCities = async () => {
       try {
-        console.log('🏙️ Fetching destination cities with images...');
+        console.log('🏙️ [DEBUG] Starting to fetch destination cities with images...');
+        console.log('🔗 [DEBUG] Supabase client status:', !!supabase);
         
         const { data: cities, error } = await supabase
           .from('destination_cities')
           .select('*')
           .limit(6);
+        
+        console.log('📊 [DEBUG] Supabase response:', { cities, error, count: cities?.length });
 
         if (!error && cities) {
-          console.log(`🏙️ Fetched ${cities.length} destination cities with images`);
+          console.log(`🏙️ [DEBUG] Successfully fetched ${cities.length} destination cities`);
+          console.log('🏙️ [DEBUG] City names:', cities.map(c => `${c.name}, ${c.state}`));
+          
+          const springfieldMO = cities.find(c => c.name === 'Springfield' && c.state === 'MO');
+          console.log('🔍 [DEBUG] Springfield, MO found:', !!springfieldMO, springfieldMO);
+          
           setItems(cities.map(city => ({
             id: city.id,
             name: city.name,
@@ -36,9 +44,11 @@ export const useDestinationCities = () => {
             founded_year: city.founded_year,
             featured: city.featured
           })));
+        } else {
+          console.error('❌ [DEBUG] Supabase error or empty data:', error);
         }
       } catch (error) {
-        console.error('❌ Error fetching destination cities:', error);
+        console.error('❌ [DEBUG] Exception fetching destination cities:', error);
       } finally {
         setLoading(false);
       }

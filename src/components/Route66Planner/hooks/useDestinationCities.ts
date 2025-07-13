@@ -11,23 +11,30 @@ export const useDestinationCities = () => {
   useEffect(() => {
     const fetchDestinationCities = async () => {
       try {
-        console.log("🏛️ Fetching destination cities for planner...");
+        console.log("🏛️ [DEBUG] Starting to fetch destination cities for planner...");
+        console.log('🔗 [DEBUG] Supabase client status:', !!supabase);
         
         const { data, error } = await supabase
           .from('destination_cities')
           .select('*');
+          
+        console.log('📊 [DEBUG] Route66Planner Supabase response:', { data, error, count: data?.length });
 
         if (error) {
-          console.error("❌ Error fetching destination cities:", error);
+          console.error("❌ [DEBUG] Route66Planner error fetching destination cities:", error);
           setError(error.message);
           return;
         }
 
         if (!data || data.length === 0) {
-          console.log("❌ No destination cities found");
+          console.log("❌ [DEBUG] Route66Planner: No destination cities found in database");
           setError("No destination cities found");
           return;
         }
+        
+        console.log('🏙️ [DEBUG] Route66Planner: Found cities:', data.map(c => `${c.name}, ${c.state}`));
+        const springfieldMO = data.find(c => c.name === 'Springfield' && c.state === 'MO');
+        console.log('🔍 [DEBUG] Route66Planner: Springfield, MO found:', !!springfieldMO, springfieldMO);
 
         // Define Route 66 order from Chicago to Santa Monica
         const route66Order = [
@@ -59,10 +66,11 @@ export const useDestinationCities = () => {
           return a.name.localeCompare(b.name);
         });
 
-        console.log(`✅ Fetched ${sortedCities.length} destination cities in Route 66 order`);
+        console.log(`✅ [DEBUG] Route66Planner: Successfully fetched and sorted ${sortedCities.length} destination cities`);
+        console.log('🏙️ [DEBUG] Route66Planner: Final sorted cities:', sortedCities.map(c => `${c.name}, ${c.state}`));
         setDestinationCities(sortedCities);
       } catch (err) {
-        console.error("❌ Error fetching destination cities:", err);
+        console.error("❌ [DEBUG] Route66Planner: Exception fetching destination cities:", err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setIsLoading(false);

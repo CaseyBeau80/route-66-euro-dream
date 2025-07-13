@@ -2,6 +2,7 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
 import { useDestinationCities } from '@/components/Route66Planner/hooks/useDestinationCities';
+import { SupabaseConnectionTest } from '@/services/SupabaseConnectionTest';
 
 interface LocationSelectionSectionProps {
   startLocation: string;
@@ -15,6 +16,34 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
   onLocationChange
 }) => {
   const { destinationCities, isLoading } = useDestinationCities();
+  
+  // Run connection test on component mount
+  React.useEffect(() => {
+    const runConnectionTest = async () => {
+      console.log('🧪 [DEBUG] Running connection test...');
+      const result = await SupabaseConnectionTest.testConnection();
+      
+      if (!result.success) {
+        console.error('❌ [DEBUG] Connection test failed:', result.error);
+      } else if (!result.data?.hasSpringfieldMO) {
+        console.log('⚠️ [DEBUG] Springfield, MO missing, testing migration...');
+        await SupabaseConnectionTest.testSpecificMigration();
+      }
+    };
+    
+    runConnectionTest();
+  }, []);
+  
+  console.log('🎯 [DEBUG] LocationSelectionSection render:', {
+    destinationCitiesCount: destinationCities.length,
+    isLoading,
+    startLocation,
+    endLocation,
+    cities: destinationCities.map(c => `${c.name}, ${c.state}`)
+  });
+  
+  const springfieldMO = destinationCities.find(c => c.name === 'Springfield' && c.state === 'MO');
+  console.log('🔍 [DEBUG] LocationSelectionSection: Springfield, MO in dropdown:', !!springfieldMO, springfieldMO);
   
   const availableEndLocations = destinationCities.filter(
     city => city.name !== startLocation
