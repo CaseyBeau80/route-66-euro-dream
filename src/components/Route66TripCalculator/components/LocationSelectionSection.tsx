@@ -46,7 +46,7 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
   console.log('🔍 [DEBUG] LocationSelectionSection: Springfield, MO in dropdown:', !!springfieldMO, springfieldMO);
   
   const availableEndLocations = destinationCities.filter(
-    city => city.name !== startLocation
+    city => `${city.name}, ${city.state}` !== startLocation
   );
 
   return (
@@ -66,7 +66,7 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
             <option value="" disabled>Loading cities...</option>
           ) : (
             destinationCities.map((city) => (
-              <option key={city.id} value={city.name}>
+              <option key={city.id} value={`${city.name}, ${city.state}`}>
                 {city.name}, {city.state}
               </option>
             ))
@@ -90,7 +90,7 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
             <option value="" disabled>Loading cities...</option>
           ) : (
             availableEndLocations.map((city) => (
-              <option key={city.id} value={city.name}>
+              <option key={city.id} value={`${city.name}, ${city.state}`}>
                 {city.name}, {city.state}
               </option>
             ))
