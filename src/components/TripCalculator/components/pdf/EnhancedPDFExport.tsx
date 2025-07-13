@@ -75,8 +75,18 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         variant: "destructive"
       });
     } finally {
+      // Always reset state to prevent freezing
       setIsExporting(false);
       setIsEnrichingWeather(false);
+      
+      // Force cleanup of any scroll locks
+      setTimeout(() => {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        const scrollLockElements = document.querySelectorAll('[data-scroll-locked]');
+        scrollLockElements.forEach(el => el.removeAttribute('data-scroll-locked'));
+        console.log('🔧 Cleaned up scroll locks and reset body overflow');
+      }, 100);
     }
   };
 

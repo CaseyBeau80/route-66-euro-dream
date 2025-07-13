@@ -130,10 +130,12 @@ export class PDFWindowService {
             </div>
             <div class="stat-item">
               <span class="stat-icon">⏰</span>
-              <span class="stat-value">${segment.driveTimeHours ? 
-                `${Math.round(segment.driveTimeHours * 10) / 10}H ${Math.round((segment.driveTimeHours % 1) * 60)}MIN` :
-                `${Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10}H`
-              }</span>
+              <span class="stat-value">${(() => {
+                const driveHours = segment.driveTimeHours || (segment.distance || segment.approximateMiles || 0) / 55;
+                const hours = Math.floor(driveHours);
+                const minutes = Math.round((driveHours % 1) * 60);
+                return minutes > 0 ? `${hours}H ${minutes}MIN` : `${hours}H`;
+              })()}</span>
               <span class="stat-label">Drive Time</span>
             </div>
           </div>
