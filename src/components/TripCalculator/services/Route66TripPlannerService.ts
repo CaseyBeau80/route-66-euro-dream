@@ -4,6 +4,7 @@ import { TripPlan as TripPlanType } from './planning/TripPlanTypes';
 import { TripDestinationOptimizer } from './planning/TripDestinationOptimizer';
 import { Route66StopsService } from './Route66StopsService';
 import { StrictDestinationCityEnforcer } from './planning/StrictDestinationCityEnforcer';
+import { SegmentFactory } from './planning/SegmentFactory';
 import { TripStop } from '../types/TripStop';
 import { TripCompletionAnalysis } from './planning/TripCompletionService';
 
@@ -84,11 +85,12 @@ export class Route66TripPlannerService {
 
       console.log(`🎯 STRICT: Selected ${destinations.length} intermediate destination cities for ${actualDays} days`);
 
-      // STEP 3: Build trip plan using only destination cities
-      const tripPlan = TripPlanBuilder.buildTripPlan(
+      // STEP 3: Build trip plan using enhanced planning with attractions
+      const tripPlan = await this.buildEnhancedTripPlan(
         startStop,
         endStop,
         destinations,
+        allStops,
         tripStyle
       );
 
@@ -176,6 +178,65 @@ export class Route66TripPlannerService {
     }
     
     return found || null;
+  }
+
+  /**
+   * Build enhanced trip plan with attractions using SegmentFactory
+   */
+  private static async buildEnhancedTripPlan(
+    startStop: TripStop,
+    endStop: TripStop,
+    destinations: TripStop[],
+    allStops: TripStop[],
+    tripStyle: 'balanced' | 'destination-focused'
+  ): Promise<TripPlanType> {
+    console.log(`🏗️ ENHANCED: Building trip plan with attractions for ${destinations.length} destinations`);
+    
+    // Create route points: start → destinations → end
+    const routePoints = [startStop, ...destinations, endStop];
+    const segments: DailySegment[] = [];
+    let totalDistance = 0;
+
+    // Build segments between consecutive destination cities using SegmentFactory
+    for (let i = 0; i < routePoints.length - 1; i++) {
+      const currentPoint = routePoints[i];
+      const nextPoint = routePoints[i + 1];
+      
+      const segment = SegmentFactory.createStrictSegment(
+        currentPoint,
+        nextPoint,
+        allStops,
+        i + 1,
+        totalDistance
+      );
+      
+      segments.push(segment);
+      totalDistance += segment.distance;
+      
+      console.log(`✅ ENHANCED: Day ${i + 1} segment created with ${segment.recommendedStops.length} recommended stops`);
+    }
+
+    const tripPlan: TripPlanType = {
+      id: `trip-${Date.now()}`,
+      title: `${startStop.name} to ${endStop.name} Road Trip`,
+      startCity: startStop.name,
+      endCity: endStop.name,
+      startLocation: `${startStop.name}, ${startStop.state}`,
+      endLocation: `${endStop.name}, ${endStop.state}`,
+      startDate: new Date(),
+      totalDays: segments.length,
+      totalDistance,
+      totalMiles: Math.round(totalDistance),
+      totalDrivingTime: segments.reduce((total, seg) => total + (seg.driveTimeHours || 0), 0),
+      segments,
+      dailySegments: segments,
+      stops: [...routePoints], // Add the required stops array
+      tripStyle: tripStyle, // Add the required tripStyle
+      lastUpdated: new Date() // Add the required lastUpdated
+    };
+
+    console.log(`✅ ENHANCED: Trip plan completed with ${segments.length} segments and ${segments.reduce((total, seg) => total + seg.recommendedStops.length, 0)} total recommended stops`);
+    return tripPlan;
   }
 
   /**
