@@ -1,9 +1,9 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TripFormData } from '../types/tripCalculator';
 import { useFormValidation } from '../hooks/useFormValidation';
+import { TravelDayValidator } from '../services/validation/TravelDayValidator';
 import ActionableDayAdjustmentMessage from './ActionableDayAdjustmentMessage';
 
 interface TripDurationFormProps {
@@ -16,16 +16,55 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
   setFormData
 }) => {
   const { dayAdjustmentInfo, isFormValid } = useFormValidation(formData);
+  const [maxDaysForRoute, setMaxDaysForRoute] = useState<number>(14); // Default fallback
+  const [isLoadingMaxDays, setIsLoadingMaxDays] = useState<boolean>(false);
+
+  // Get maximum days based on destination cities for this specific route
+  useEffect(() => {
+    const getMaxDaysForRoute = async () => {
+      if (formData.startLocation && formData.endLocation) {
+        setIsLoadingMaxDays(true);
+        try {
+          const maxDays = await TravelDayValidator.getMaxDaysFromDestinationCities(
+            formData.startLocation,
+            formData.endLocation
+          );
+          setMaxDaysForRoute(maxDays);
+          console.log(`🏛️ Maximum days for ${formData.startLocation} → ${formData.endLocation}: ${maxDays}`);
+          
+          // Auto-adjust if current selection exceeds maximum
+          if (formData.travelDays > maxDays) {
+            console.log(`📅 Auto-adjusting days from ${formData.travelDays} to ${maxDays} (route limit)`);
+            setFormData({
+              ...formData,
+              travelDays: maxDays
+            });
+          }
+        } catch (error) {
+          console.error('Error getting max days for route:', error);
+          setMaxDaysForRoute(14); // Conservative fallback
+        } finally {
+          setIsLoadingMaxDays(false);
+        }
+      } else {
+        setMaxDaysForRoute(14); // Reset to default when no route selected
+      }
+    };
+
+    getMaxDaysForRoute();
+  }, [formData.startLocation, formData.endLocation]);
 
   const handleDurationChange = (value: string) => {
+    const days = parseInt(value);
+    console.log(`📅 Travel days selection: ${days} (max allowed: ${maxDaysForRoute})`);
     setFormData({
       ...formData,
-      travelDays: parseInt(value)
+      travelDays: days
     });
   };
 
-  // Generate dropdown options
-  const durationOptions = Array.from({ length: 14 }, (_, i) => i + 1);
+  // Generate dropdown options - FIXED: Limited by actual destination cities
+  const durationOptions = Array.from({ length: maxDaysForRoute }, (_, i) => i + 1);
 
   // FIXED: Compare minimum required against CURRENT form value, not the originally requested value
   const shouldShowActionableMessage = dayAdjustmentInfo && 
@@ -39,6 +78,7 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     currentFormDays: formData.travelDays,
     originalRequestedDays: dayAdjustmentInfo?.requested,
     shouldShow: shouldShowActionableMessage,
+    maxDaysForRoute,
     comparison: `${dayAdjustmentInfo?.minimum} > ${formData.travelDays} = ${dayAdjustmentInfo?.minimum > formData.travelDays}`
   });
 
@@ -54,7 +94,10 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Calendar className="h-5 w-5 text-route66-primary" />
-        <h3 className="text-lg font-semibold text-route66-text">Travel Days (1-14 days)</h3>
+        <h3 className="text-lg font-semibold text-route66-text">
+          Travel Days (1-{maxDaysForRoute} days)
+          {isLoadingMaxDays && <span className="text-sm text-gray-500 ml-2">calculating...</span>}
+        </h3>
       </div>
       
       <div className="space-y-2">
@@ -87,6 +130,11 @@ const TripDurationForm: React.FC<TripDurationFormProps> = ({
         
         <p className="text-sm text-route66-text-secondary">
           Choose how many days you want to spend on your Route 66 adventure
+          {formData.startLocation && formData.endLocation && (
+            <span className="block text-xs text-gray-500 mt-1">
+              Maximum {maxDaysForRoute} days available for {formData.startLocation} → {formData.endLocation}
+            </span>
+          )}
         </p>
       </div>
     </div>
