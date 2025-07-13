@@ -12,6 +12,8 @@ interface DriveInHoverCardPortalProps {
   onWebsiteClick: (website: string) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClose?: () => void;
+  cardId?: string;
 }
 
 const DriveInHoverCardPortal: React.FC<DriveInHoverCardPortalProps> = ({
@@ -20,7 +22,9 @@ const DriveInHoverCardPortal: React.FC<DriveInHoverCardPortalProps> = ({
   position,
   onWebsiteClick,
   onMouseEnter,
-  onMouseLeave
+  onMouseLeave,
+  onClose,
+  cardId
 }) => {
   const cardPosition = useDriveInCardPosition({
     isVisible,
@@ -39,6 +43,7 @@ const DriveInHoverCardPortal: React.FC<DriveInHoverCardPortalProps> = ({
         top: `${cardPosition.top}px`,
         zIndex: 45000
       }}
+      data-card-id={cardId}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
@@ -47,6 +52,7 @@ const DriveInHoverCardPortal: React.FC<DriveInHoverCardPortalProps> = ({
         onWebsiteClick={onWebsiteClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
+        onClose={onClose}
       />
     </div>
   );

@@ -1,22 +1,26 @@
 
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, Star, ExternalLink } from 'lucide-react';
+import { MapPin, Star, ExternalLink, X } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AttractionHoverCardProps {
   attraction: Route66Waypoint;
   onWebsiteClick?: (website: string) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClose?: () => void;
 }
 
 const AttractionHoverCard: React.FC<AttractionHoverCardProps> = ({
   attraction,
   onWebsiteClick,
   onMouseEnter,
-  onMouseLeave
+  onMouseLeave,
+  onClose
 }) => {
+  const isMobile = useIsMobile();
   // Use direct website field from attraction data
   const attractionWebsite = attraction.website || null;
 
@@ -26,6 +30,17 @@ const AttractionHoverCard: React.FC<AttractionHoverCardProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
+      {/* Close button for mobile */}
+      {isMobile && onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center hover:bg-red-700 transition-colors z-10 text-xs font-bold touch-manipulation"
+          style={{ minHeight: '44px', minWidth: '44px' }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+
       {/* Vintage Route 66 decorative border */}
       <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-red-600 via-white via-blue-600 to-red-600"></div>
       <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-red-600 via-white via-blue-600 to-red-600"></div>

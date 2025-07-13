@@ -2,6 +2,7 @@
 import React, { useCallback } from 'react';
 import { DriveInData } from './hooks/useDriveInsData';
 import { useDriveInMobile } from './hooks/useDriveInMobile';
+import { useMobileCardDismissal } from '@/hooks/useMobileCardDismissal';
 import DriveInHoverCardPortal from './DriveInHoverCardPortal';
 import DriveInMarkerCore from './DriveInMarkerCore';
 
@@ -31,6 +32,14 @@ const DriveInHoverableMarker: React.FC<DriveInHoverableMarkerProps> = ({
     closeClickable,
     cleanup
   } = useDriveInMobile();
+
+  const cardId = `drive-in-${driveIn.id}`;
+  
+  useMobileCardDismissal({
+    isVisible: isMobile && isClicked,
+    onClose: closeClickable,
+    cardId
+  });
 
   // Prevent hover card from disappearing when hovering over it
   const handleCardMouseEnter = useCallback(() => {
@@ -71,6 +80,7 @@ const DriveInHoverableMarker: React.FC<DriveInHoverableMarkerProps> = ({
           onWebsiteClick={onWebsiteClick}
           onMouseEnter={handleCardMouseEnter}
           onMouseLeave={handleCardMouseLeave}
+          cardId={cardId}
         />
       )}
       
@@ -83,6 +93,8 @@ const DriveInHoverableMarker: React.FC<DriveInHoverableMarkerProps> = ({
           onWebsiteClick={onWebsiteClick}
           onMouseEnter={() => {}}
           onMouseLeave={closeClickable}
+          onClose={closeClickable}
+          cardId={cardId}
         />
       )}
     </>

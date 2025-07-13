@@ -1,22 +1,26 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, ExternalLink, Calendar, Users, Monitor } from 'lucide-react';
+import { MapPin, ExternalLink, Calendar, Users, Monitor, X } from 'lucide-react';
 import { DriveInData } from './hooks/useDriveInsData';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DriveInTheaterHoverCardProps {
   driveIn: DriveInData;
   onWebsiteClick: (website: string) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onClose?: () => void;
 }
 
 const DriveInTheaterHoverCard: React.FC<DriveInTheaterHoverCardProps> = ({ 
-  driveIn, 
+  driveIn,
   onWebsiteClick,
   onMouseEnter,
-  onMouseLeave 
+  onMouseLeave,
+  onClose
 }) => {
+  const isMobile = useIsMobile();
   const isActive = driveIn.status === 'active' || driveIn.status === 'open';
   const statusColor = isActive ? 'text-green-600' : 'text-red-600';
   const statusBg = isActive ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
@@ -27,6 +31,17 @@ const DriveInTheaterHoverCard: React.FC<DriveInTheaterHoverCardProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
+      {/* Close button for mobile */}
+      {isMobile && onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors z-10 text-xs font-bold touch-manipulation"
+          style={{ minHeight: '44px', minWidth: '44px' }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+
       {/* Enhanced film strip decorations */}
       <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-r from-amber-800 via-yellow-600 to-amber-800"></div>
       <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r from-amber-800 via-yellow-600 to-amber-800"></div>

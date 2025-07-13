@@ -3,6 +3,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { HiddenGem } from './types';
 import { useCardPosition } from './hooks/useCardPosition';
+import { useMobileCardDismissal } from '@/hooks/useMobileCardDismissal';
 import DriveInCard from './components/DriveInCard';
 import RegularGemCard from './components/RegularGemCard';
 
@@ -28,6 +29,14 @@ const HiddenGemClickableCard: React.FC<HiddenGemClickableCardProps> = ({
     cardHeight: 280
   });
 
+  const cardId = `hidden-gem-${gem.id}`;
+  
+  useMobileCardDismissal({
+    isVisible,
+    onClose,
+    cardId
+  });
+
   // Only show drive-in styling for actual drive-in theaters from the drive_ins table
   // Hidden gems with "drive-in" in the name should use regular gem styling
   const isDriveIn = false; // Hidden gems always use regular gem styling
@@ -42,6 +51,7 @@ const HiddenGemClickableCard: React.FC<HiddenGemClickableCardProps> = ({
         top: `${cardPosition.top}px`,
         zIndex: 60000
       }}
+      data-card-id={cardId}
       onTouchStart={(e) => e.stopPropagation()}
       onTouchEnd={(e) => e.stopPropagation()}
     >

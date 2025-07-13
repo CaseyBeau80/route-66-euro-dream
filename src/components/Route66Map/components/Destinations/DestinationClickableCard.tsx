@@ -5,6 +5,7 @@ import { MapPin, Building2, ExternalLink, X, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { generateCityUrl, extractCityName } from '@/utils/cityUrlUtils';
+import { useMobileCardDismissal } from '@/hooks/useMobileCardDismissal';
 
 interface DestinationClickableCardProps {
   destination: Route66Waypoint;
@@ -24,6 +25,13 @@ const DestinationClickableCard: React.FC<DestinationClickableCardProps> = ({
   onMouseLeave
 }) => {
   const navigate = useNavigate();
+  const cardId = `destination-${destination.id}`;
+  
+  useMobileCardDismissal({
+    isVisible,
+    onClose,
+    cardId
+  });
 
   const cardPosition = useMemo(() => {
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
@@ -77,6 +85,7 @@ const DestinationClickableCard: React.FC<DestinationClickableCardProps> = ({
         top: `${cardPosition.top}px`,
         zIndex: 60000
       }}
+      data-card-id={cardId}
     >
       <Card 
         className="w-80 border-2 border-blue-600 bg-white shadow-2xl"

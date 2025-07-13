@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Route, ExternalLink, X } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
+import { useMobileCardDismissal } from '@/hooks/useMobileCardDismissal';
 
 interface AttractionClickableCardProps {
   attraction: Route66Waypoint;
@@ -20,6 +21,14 @@ const AttractionClickableCard: React.FC<AttractionClickableCardProps> = ({
   onClose,
   onWebsiteClick
 }) => {
+  const cardId = `attraction-${attraction.id}`;
+  
+  useMobileCardDismissal({
+    isVisible,
+    onClose,
+    cardId
+  });
+
   const cardPosition = useMemo(() => {
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
 
@@ -68,6 +77,7 @@ const AttractionClickableCard: React.FC<AttractionClickableCardProps> = ({
         top: `${cardPosition.top}px`,
         zIndex: 50000
       }}
+      data-card-id={cardId}
     >
       <Card className="w-80 border-2 border-red-600 bg-white shadow-2xl">
         {/* Close button */}

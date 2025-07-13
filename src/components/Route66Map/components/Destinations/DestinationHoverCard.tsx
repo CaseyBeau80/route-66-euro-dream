@@ -3,9 +3,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, X } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { generateCityUrl, extractCityName } from '@/utils/cityUrlUtils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import TileContainer from './tiles/TileContainer';
 import FunFactsTile from './tiles/FunFactsTile';
 import EventsCalendarTile from './tiles/EventsCalendarTile';
@@ -13,7 +14,9 @@ import WeatherTile from './tiles/WeatherTile';
 
 interface DestinationHoverCardProps {
   destination: Route66Waypoint;
+  onClose?: () => void;
 }
+
 
 // Population data for Route 66 cities
 const cityPopulations: Record<string, string> = {
@@ -43,8 +46,9 @@ const cityPopulations: Record<string, string> = {
   'Santa Monica': '93,076'
 };
 
-const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination }) => {
+const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination, onClose }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const cityName = extractCityName(destination.name);
   const stateName = destination.state;
   
@@ -58,7 +62,17 @@ const DestinationHoverCard: React.FC<DestinationHoverCardProps> = ({ destination
   };
 
   return (
-    <Card className="w-80 max-w-sm shadow-xl border-4 border-black bg-amber-50 max-h-[90vh] overflow-hidden">
+    <Card className="w-80 max-w-sm shadow-xl border-4 border-black bg-amber-50 max-h-[90vh] overflow-hidden relative">
+      {/* Close button for mobile */}
+      {isMobile && onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors z-10 text-xs font-bold touch-manipulation"
+          style={{ minHeight: '44px', minWidth: '44px' }}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
       <CardContent className="p-4 overflow-y-auto max-h-[calc(90vh-2rem)]">
         <div className="space-y-3">
           {/* City, State and Population Header */}
