@@ -1,6 +1,5 @@
 import { TripPlan } from '../../../services/planning/TripPlanBuilder';
 import { PDFWeatherIntegrationService } from '../PDFWeatherIntegrationService';
-import { PDFAttractionEnrichmentService } from '../PDFAttractionEnrichmentService';
 
 export class PDFWindowService {
   private static pdfWindow: Window | null = null;
@@ -19,11 +18,10 @@ export class PDFWindowService {
         this.pdfWindow.close();
       }
 
-      // Use existing trip data as-is (no need to recreate attractions)
-      console.log('🖨️ Using existing trip data for PDF generation');
+      // Enrich trip data with weather information
+      console.log('🌤️ Enriching trip data with weather information...');
       let enrichedTripPlan = { ...tripPlan };
       
-      // Only enrich with weather if start date is provided
       if (tripStartDate && tripPlan.segments) {
         try {
           const enrichedSegments = await PDFWeatherIntegrationService.enrichSegmentsWithWeather(
@@ -130,12 +128,10 @@ export class PDFWindowService {
             </div>
             <div class="stat-item">
               <span class="stat-icon">⏰</span>
-              <span class="stat-value">${(() => {
-                const driveHours = segment.driveTimeHours || (segment.distance || segment.approximateMiles || 0) / 55;
-                const hours = Math.floor(driveHours);
-                const minutes = Math.round((driveHours % 1) * 60);
-                return minutes > 0 ? `${hours}H ${minutes}MIN` : `${hours}H`;
-              })()}</span>
+              <span class="stat-value">${segment.driveTimeHours ? 
+                `${Math.round(segment.driveTimeHours * 10) / 10}H ${Math.round((segment.driveTimeHours % 1) * 60)}MIN` :
+                `${Math.round((segment.distance || segment.approximateMiles || 0) / 55 * 10) / 10}H`
+              }</span>
               <span class="stat-label">Drive Time</span>
             </div>
           </div>
@@ -165,16 +161,36 @@ export class PDFWindowService {
             </div>
           ` : ''}
 
-          ${segment.recommendedStops && segment.recommendedStops.length > 0 ? `
+          ${(segment.attractions && segment.attractions.length > 0) || 
+            (segment.stops && segment.stops.length > 0) || 
+            (segment.recommendedStops && segment.recommendedStops.length > 0) ? `
             <div class="attractions-section">
-              <h4 class="attractions-title">📍 Recommended Stops (${segment.recommendedStops.length})</h4>
+              <h4 class="attractions-title">📍 Recommended Stops</h4>
               <div class="attractions-grid">
-                ${segment.recommendedStops.map(stop => 
-                  `<div class="attraction-item">
-                     <span class="attraction-icon">🎯</span>
-                     <span class="attraction-name">${stop.name}</span>
-                   </div>`
-                ).join('')}
+                ${(() => {
+                  // Check all possible attraction/stop properties
+                  const allStops = [
+                    ...(segment.attractions || []),
+                    ...(segment.stops || []),
+                    ...(segment.recommendedStops || [])
+                  ];
+                  
+                  // Remove duplicates based on name
+                  const uniqueStops = allStops.reduce((acc, stop) => {
+                    const name = stop.name || stop.title || stop.attraction || 'Unnamed Stop';
+                    if (!acc.find(existing => existing.name === name)) {
+                      acc.push({ name, ...stop });
+                    }
+                    return acc;
+                  }, []);
+                  
+                  return uniqueStops.map(stop => 
+                    `<div class="attraction-item">
+                       <span class="attraction-icon">🎯</span>
+                       <span class="attraction-name">${stop.name || stop.title || stop.attraction || 'Unnamed Stop'}</span>
+                     </div>`
+                  ).join('');
+                })()}
               </div>
             </div>
           ` : `
