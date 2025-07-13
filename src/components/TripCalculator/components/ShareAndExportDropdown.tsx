@@ -108,7 +108,7 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
             className="rounded-lg hover:bg-blue-50 py-3 px-4 cursor-pointer"
           >
             <Share2 className="mr-3 h-5 w-5 text-blue-600" />
-            <span className="font-medium">Open Share Modal</span>
+            <span className="font-medium">Add to Calendar</span>
           </DropdownMenuItem>
           
           <DropdownMenuSeparator className="my-2" />

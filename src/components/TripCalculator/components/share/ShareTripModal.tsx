@@ -79,7 +79,7 @@ const ShareTripModal: React.FC<ShareTripModalProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
           <DialogTitle className="text-2xl font-bold text-gray-800">
-            Share Your Route 66 Adventure
+            Add Your Route 66 Adventure to Calendar
           </DialogTitle>
           <Button
             variant="ghost"

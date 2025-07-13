@@ -134,16 +134,7 @@ const ShareTripModalContent: React.FC<ShareTripModalContentProps> = ({
       {/* Sharing Options - Only show in modal, not in shared view */}
       {!isSharedView && (
         <div className="mt-8 pt-6 border-t border-gray-200 bg-white">
-          <ShareTripOptions
-            tripPlan={tripPlan}
-            currentShareUrl={currentShareUrl}
-            isGeneratingLink={isGeneratingLink}
-            onGenerateLink={onGenerateLink}
-            onCopyLink={onCopyLink}
-            onShareViaEmail={onShareViaEmail}
-          />
-
-          {/* Calendar Export Section - Improved styling */}
+        {/* Calendar Export Section - Improved styling */}
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 p-6 rounded-xl mt-6 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
