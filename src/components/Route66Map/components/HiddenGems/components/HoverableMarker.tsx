@@ -93,7 +93,7 @@ const HoverableMarker: React.FC<HoverableMarkerProps> = ({
       />
 
       {/* Hover card - show when hovering and not clicked */}
-      {!isClicked && isHovered && (
+      {!isClicked && isHovered && !isMobile && (
         <HoverCardPortal
           gem={gem}
           isVisible={true}
