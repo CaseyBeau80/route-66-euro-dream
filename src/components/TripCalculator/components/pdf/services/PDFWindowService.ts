@@ -115,18 +115,11 @@ export class PDFWindowService {
       this.pdfWindow.onload = () => {
         setTimeout(() => {
           if (this.pdfWindow && !this.pdfWindow.closed) {
-            this.pdfWindow.focus(); // Focus the window
-            console.log('🖨️ Triggering print dialog in new window');
-            this.pdfWindow.print();
-            
-            // Optional: close window after printing (user can cancel)
-            setTimeout(() => {
-              if (this.pdfWindow && !this.pdfWindow.closed) {
-                this.pdfWindow.close();
-              }
-            }, 1000);
+            console.log('🖨️ PDF content loaded in new window');
+            // Don't auto-focus or auto-close to prevent parent window freeze
+            // Let user manually print and close
           }
-        }, 800); // Slightly longer delay to ensure everything loads
+        }, 500);
       };
 
     } catch (error) {
