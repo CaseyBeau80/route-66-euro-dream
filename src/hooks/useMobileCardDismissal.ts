@@ -9,9 +9,12 @@ interface UseMobileCardDismissalProps {
 
 export const useMobileCardDismissal = ({ isVisible, onClose, cardId }: UseMobileCardDismissalProps) => {
   const isMobile = useIsMobile();
+  
+  console.log(`📱 useMobileCardDismissal - ${cardId}:`, { isMobile, isVisible });
 
   // Handle map tap dismissal on mobile
   useEffect(() => {
+    console.log(`📱 useMobileCardDismissal effect - ${cardId}:`, { isMobile, isVisible });
     if (!isMobile || !isVisible) return;
 
     const handleMapClick = (event: Event) => {

@@ -12,7 +12,9 @@ interface HoverPosition {
 
 export const useDriveInMobile = () => {
   const [isMobile, setIsMobile] = useState(() => {
-    return window.innerWidth <= 768;
+    const mobile = window.innerWidth <= 768;
+    console.log(`📱 useDriveInMobile - isMobile detected:`, mobile);
+    return mobile;
   });
   
   const [isClicked, setIsClicked] = useState(false);
