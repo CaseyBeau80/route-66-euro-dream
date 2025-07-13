@@ -27,11 +27,27 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isEnrichingWeather, setIsEnrichingWeather] = useState(false);
 
-  // Force unlock scroll immediately on component mount
+  // Emergency scroll unlock - runs every 100ms to ensure scroll is never locked
   useEffect(() => {
-    document.body.removeAttribute('data-scroll-locked');
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
+    const unlockScroll = () => {
+      document.body.removeAttribute('data-scroll-locked');
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.documentElement.style.position = '';
+    };
+
+    // Immediate unlock
+    unlockScroll();
+    
+    // Set up interval to continuously unlock scroll
+    const interval = setInterval(unlockScroll, 100);
+    
+    return () => {
+      clearInterval(interval);
+      unlockScroll();
+    };
   }, []);
 
   const isTripComplete = tripPlan && tripPlan.segments && tripPlan.segments.length > 0;
