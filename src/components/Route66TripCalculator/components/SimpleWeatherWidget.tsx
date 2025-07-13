@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { DailySegment } from '../../TripCalculator/services/planning/TripPlanBuilder';
-import { CentralizedWeatherService, WeatherFetchResult } from '@/services/CentralizedWeatherService';
+import { SimpleWeatherFetcher } from '../../TripCalculator/components/weather/SimpleWeatherFetcher';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import EnhancedWeatherDisplay from './EnhancedWeatherDisplay';
 
 interface SimpleWeatherWidgetProps {
@@ -13,7 +14,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   segment,
   tripStartDate
 }) => {
-  const [weatherResult, setWeatherResult] = useState<WeatherFetchResult | null>(null);
+  const [weather, setWeather] = useState<ForecastWeatherData | null>(null);
   const [loading, setLoading] = useState(false);
 
   console.log('🔧 SIMPLE WEATHER WIDGET: Component render with props:', {
@@ -49,58 +50,47 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return targetDate;
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // Fetch weather using centralized service
+  // Fetch weather using unified SimpleWeatherFetcher
   const fetchWeather = React.useCallback(async () => {
-    console.log('🌤️ SIMPLE WEATHER: Starting weather fetch for', segment.endCity, {
+    console.log('🌤️ UNIFIED SIMPLE WEATHER: Starting weather fetch for', segment.endCity, {
       segmentDate: segmentDate.toISOString(),
-      isValidDate: !isNaN(segmentDate.getTime())
+      isValidDate: !isNaN(segmentDate.getTime()),
+      unifiedFetcher: true
     });
     
     setLoading(true);
 
     try {
-      const result = await CentralizedWeatherService.fetchWeatherForCity(
-        segment.endCity,
-        segmentDate
-      );
-
-      console.log('✅ SIMPLE WEATHER: Weather fetch completed for', segment.endCity, {
-        success: result.success,
-        source: result.source,
-        temperature: result.weather?.temperature,
-        hasWeatherData: !!result.weather,
-        fetchTime: result.fetchTime
+      const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
+        cityName: segment.endCity,
+        targetDate: segmentDate,
+        hasApiKey: true, // Let SimpleWeatherFetcher determine this
+        isSharedView: false,
+        segmentDay: segment.day
       });
 
-      // Always set the result, even if there's an error - the service provides fallback
-      setWeatherResult(result);
+      if (weatherData) {
+        console.log('✅ UNIFIED SIMPLE WEATHER: Weather fetch successful for', segment.endCity, {
+          temperature: weatherData.temperature,
+          source: weatherData.source,
+          isActualForecast: weatherData.isActualForecast,
+          unifiedFetcher: true
+        });
+        setWeather(weatherData);
+      } else {
+        console.log('⚠️ UNIFIED SIMPLE WEATHER: No weather data returned');
+        setWeather(createBasicFallback(segment.endCity, segmentDate));
+      }
     } catch (error) {
-      console.error('❌ SIMPLE WEATHER: Weather fetch failed for', segment.endCity, error);
-      
-      // Create a basic fallback result with seasonal data
-      const fallbackResult: WeatherFetchResult = {
-        success: true,
-        weather: createBasicFallback(segment.endCity, segmentDate),
-        source: 'seasonal_fallback',
-        fetchTime: 0,
-        debugInfo: {
-          apiKeyAvailable: false,
-          cityName: segment.endCity,
-          targetDate: segmentDate.toISOString().split('T')[0],
-          daysFromToday: 0,
-          withinForecastRange: false,
-          fallbackReason: 'fetch_error'
-        }
-      };
-      
-      setWeatherResult(fallbackResult);
+      console.error('❌ UNIFIED SIMPLE WEATHER: Weather fetch failed for', segment.endCity, error);
+      setWeather(createBasicFallback(segment.endCity, segmentDate));
     } finally {
       setLoading(false);
     }
   }, [segment.endCity, segmentDate]);
 
   // Create a basic fallback weather object
-  const createBasicFallback = (cityName: string, targetDate: Date) => {
+  const createBasicFallback = (cityName: string, targetDate: Date): ForecastWeatherData => {
     const month = targetDate.getMonth();
     
     // Seasonal temperature data
@@ -118,16 +108,15 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
       highTemp: temperature + 8,
       lowTemp: temperature - 8,
       description: 'Partly Cloudy',
-      icon: '🌤️',
+      icon: '02d',
       humidity: 60,
       windSpeed: 8,
       precipitationChance: 20,
       cityName,
-      source: 'seasonal_fallback' as const,
+      source: 'historical_fallback',
       isActualForecast: false,
-      confidence: 'low' as const,
       forecastDate: targetDate,
-      daysFromToday
+      forecast: []
     };
   };
 
@@ -153,10 +142,10 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
   }
 
   // Show weather result
-  if (weatherResult && weatherResult.weather) {
+  if (weather) {
     return (
       <EnhancedWeatherDisplay
-        weatherResult={weatherResult}
+        weather={weather}
         segmentDate={segmentDate}
         cityName={segment.endCity}
         onRetry={fetchWeather}

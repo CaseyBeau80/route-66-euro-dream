@@ -4,7 +4,7 @@ import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { WeatherUtilityService } from './services/WeatherUtilityService';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 import SimpleWeatherDisplay from './SimpleWeatherDisplay';
-import { SecureWeatherService } from '@/services/SecureWeatherService';
+import { SimpleWeatherFetcher } from './SimpleWeatherFetcher';
 
 interface SimpleWeatherWidgetProps {
   segment: DailySegment;
@@ -31,7 +31,7 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     return null;
   }, [tripStartDate, segment.day]);
 
-  // Fetch weather data using secure service
+  // Fetch weather data using unified SimpleWeatherFetcher
   const fetchWeather = React.useCallback(async () => {
     if (!segmentDate) return;
 
@@ -39,16 +39,19 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
     setError(null);
 
     try {
-      console.log('🌤️ SECURE WEATHER: Fetching via Supabase Edge Function for:', segment.endCity, segmentDate);
+      console.log('🌤️ UNIFIED SIMPLE WEATHER: Fetching for:', segment.endCity, segmentDate);
       
-      const weatherData = await SecureWeatherService.fetchWeatherForecast(
-        segment.endCity,
-        segmentDate
-      );
+      const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
+        cityName: segment.endCity,
+        targetDate: segmentDate,
+        hasApiKey: true, // Let SimpleWeatherFetcher determine this
+        isSharedView: isSharedView,
+        segmentDay: segment.day
+      });
 
       if (weatherData) {
         setWeather(weatherData);
-        console.log('✅ SECURE WEATHER: Data received from Edge Function:', {
+        console.log('✅ UNIFIED SIMPLE WEATHER: Data received:', {
           city: segment.endCity,
           temperature: weatherData.temperature,
           source: weatherData.source,
@@ -58,12 +61,12 @@ const SimpleWeatherWidget: React.FC<SimpleWeatherWidgetProps> = ({
         setError('Weather data unavailable');
       }
     } catch (err) {
-      console.error('❌ SECURE WEATHER: Edge Function fetch failed:', err);
+      console.error('❌ UNIFIED SIMPLE WEATHER: Fetch failed:', err);
       setError(err instanceof Error ? err.message : 'Weather fetch failed');
     } finally {
       setLoading(false);
     }
-  }, [segment.endCity, segmentDate]);
+  }, [segment.endCity, segmentDate, isSharedView, segment.day]);
 
   // Fetch weather when component mounts or dependencies change
   React.useEffect(() => {

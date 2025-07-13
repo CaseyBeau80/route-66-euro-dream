@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
-import { SecureWeatherService } from '@/services/SecureWeatherService';
+import { SimpleWeatherFetcher } from './SimpleWeatherFetcher';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface UnifiedWeatherWidgetProps {
@@ -52,36 +52,44 @@ const UnifiedWeatherWidget: React.FC<UnifiedWeatherWidgetProps> = ({
     return segmentDate;
   }, [tripStartDate, segment.day, segment.endCity]);
 
-  // Fetch weather
+  // Fetch weather using unified SimpleWeatherFetcher
   const fetchWeather = React.useCallback(async () => {
-    console.log('🌤️ UnifiedWeatherWidget: Starting weather fetch for', segment.endCity);
+    console.log('🌤️ UNIFIED UnifiedWeatherWidget: Starting weather fetch for', segment.endCity, {
+      segmentDate: segmentDate.toISOString(),
+      unifiedFetcher: true
+    });
     setLoading(true);
     setError(null);
 
     try {
-      const weatherData = await SecureWeatherService.fetchWeatherForecast(
-        segment.endCity,
-        segmentDate
-      );
+      const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
+        cityName: segment.endCity,
+        targetDate: segmentDate,
+        hasApiKey: true, // Let SimpleWeatherFetcher determine this
+        isSharedView: isSharedView,
+        segmentDay: segment.day
+      });
 
       if (weatherData) {
-        console.log('✅ UnifiedWeatherWidget: Weather fetch successful:', {
+        console.log('✅ UNIFIED UnifiedWeatherWidget: Weather fetch successful:', {
           city: segment.endCity,
           temperature: weatherData.temperature,
-          source: weatherData.source
+          source: weatherData.source,
+          isActualForecast: weatherData.isActualForecast,
+          unifiedFetcher: true
         });
         setWeather(weatherData);
       } else {
-        console.log('⚠️ UnifiedWeatherWidget: No weather data returned');
+        console.log('⚠️ UNIFIED UnifiedWeatherWidget: No weather data returned');
         setError('Weather data unavailable');
       }
     } catch (error) {
-      console.error('❌ UnifiedWeatherWidget: Weather fetch failed:', error);
+      console.error('❌ UNIFIED UnifiedWeatherWidget: Weather fetch failed:', error);
       setError('Failed to load weather');
     } finally {
       setLoading(false);
     }
-  }, [segment.endCity, segmentDate]);
+  }, [segment.endCity, segmentDate, isSharedView, segment.day]);
 
   // Fetch weather when component mounts or dependencies change
   React.useEffect(() => {

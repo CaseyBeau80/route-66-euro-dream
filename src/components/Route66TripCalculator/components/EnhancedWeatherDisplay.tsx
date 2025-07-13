@@ -1,22 +1,19 @@
-
 import React from 'react';
-import { WeatherData, WeatherFetchResult } from '@/services/CentralizedWeatherService';
+import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
 
 interface EnhancedWeatherDisplayProps {
-  weatherResult: WeatherFetchResult;
+  weather: ForecastWeatherData;
   segmentDate: Date;
   cityName: string;
   onRetry?: () => void;
 }
 
 const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
-  weatherResult,
+  weather,
   segmentDate,
   cityName,
   onRetry
 }) => {
-  const { weather, source, debugInfo, fetchTime } = weatherResult;
-
   if (!weather) {
     return (
       <div className="bg-red-50 border border-red-200 rounded p-3 text-center">
@@ -42,7 +39,7 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
     });
   };
 
-  const isLive = source === 'live_api' && weather.isActualForecast;
+  const isLive = weather.source === 'live_forecast' && weather.isActualForecast;
   const containerClass = isLive
     ? "bg-gradient-to-br from-green-50 to-green-100 border-green-200"
     : "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200";
@@ -121,28 +118,6 @@ const EnhancedWeatherDisplay: React.FC<EnhancedWeatherDisplayProps> = ({
           <div>{weather.precipitationChance}%</div>
         </div>
       </div>
-
-      {/* Debug info (only show in development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <details className="text-xs text-gray-500 pt-2 border-t border-gray-200">
-          <summary className="cursor-pointer hover:text-gray-700">Debug Info</summary>
-          <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono">
-            <div>API Key Available: {debugInfo.apiKeyAvailable ? '✅' : '❌'}</div>
-            <div>Days from Today: {debugInfo.daysFromToday}</div>
-            <div>Within Forecast Range: {debugInfo.withinForecastRange ? '✅' : '❌'}</div>
-            <div>Fetch Time: {fetchTime}ms</div>
-            {debugInfo.geoSuccess !== undefined && (
-              <div>Geocoding: {debugInfo.geoSuccess ? '✅' : '❌'}</div>
-            )}
-            {debugInfo.apiCallSuccess !== undefined && (
-              <div>API Call: {debugInfo.apiCallSuccess ? '✅' : '❌'}</div>
-            )}
-            {debugInfo.fallbackReason && (
-              <div>Fallback Reason: {debugInfo.fallbackReason}</div>
-            )}
-          </div>
-        </details>
-      )}
     </div>
   );
 };

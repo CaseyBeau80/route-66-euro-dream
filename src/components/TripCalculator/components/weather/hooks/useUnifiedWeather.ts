@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { SecureWeatherService } from '@/services/SecureWeatherService';
+import { SimpleWeatherFetcher } from '../SimpleWeatherFetcher';
 import { WeatherService } from '@/components/Route66Map/services/WeatherService';
 
 interface UseUnifiedWeatherProps {
@@ -50,27 +50,31 @@ export const useUnifiedWeather = ({
     setError(null);
 
     try {
-      // Try secure weather service first (uses Supabase Edge Function)
-      const weatherData = await SecureWeatherService.fetchWeatherForecast(
+      // Use unified SimpleWeatherFetcher
+      const weatherData = await SimpleWeatherFetcher.fetchWeatherForCity({
         cityName,
-        segmentDate
-      );
+        targetDate: segmentDate,
+        hasApiKey,
+        isSharedView: false,
+        segmentDay
+      });
 
       if (weatherData) {
-        console.log('✅ FIXED: Weather data received for', cityName, {
+        console.log('✅ UNIFIED: Weather data received for', cityName, {
           source: weatherData.source,
           temperature: weatherData.temperature,
-          isActualForecast: weatherData.isActualForecast
+          isActualForecast: weatherData.isActualForecast,
+          unifiedFetcher: true
         });
         setWeather(weatherData);
         setError(null);
       } else {
-        console.warn('⚠️ FIXED: No weather data returned for', cityName);
+        console.warn('⚠️ UNIFIED: No weather data returned for', cityName);
         setError('Weather data unavailable');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Weather fetch failed';
-      console.error('❌ FIXED: Weather fetch error for', cityName, err);
+      console.error('❌ UNIFIED: Weather fetch error for', cityName, err);
       setError(errorMessage);
     } finally {
       setLoading(false);
