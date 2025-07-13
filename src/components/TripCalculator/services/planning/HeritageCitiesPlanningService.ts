@@ -216,7 +216,7 @@ export class HeritageCitiesPlanningService {
       // Create simplified segment
       const segment: DailySegment = {
         day,
-        title: `Day ${day}: ${currentStop.name} to ${nextStop.name}`,
+        title: `Day ${day}: ${currentStop.name}, ${currentStop.state} to ${nextStop.name}, ${nextStop.state}`,
         startCity: `${currentStop.name}, ${currentStop.state}`,
         endCity: `${nextStop.name}, ${nextStop.state}`,
         distance: segmentDistance,
