@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { UnitProvider } from "@/contexts/UnitContext";
+import EmergencyScrollUnlock from "@/components/TripCalculator/components/EmergencyScrollUnlock";
 import Index from "./pages/Index";
 import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
@@ -28,6 +29,7 @@ function App() {
       <HelmetProvider>
         <UnitProvider>
           <TooltipProvider>
+            <EmergencyScrollUnlock />
             <Toaster />
             <Sonner />
             <BrowserRouter>
