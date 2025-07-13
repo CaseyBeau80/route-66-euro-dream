@@ -6,6 +6,38 @@ import { useNavigate } from 'react-router-dom';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { generateCityUrl, extractCityName } from '@/utils/cityUrlUtils';
 import { useMobileCardDismissal } from '@/hooks/useMobileCardDismissal';
+import TileContainer from './tiles/TileContainer';
+import FunFactsTile from './tiles/FunFactsTile';
+import EventsCalendarTile from './tiles/EventsCalendarTile';
+import WeatherTile from './tiles/WeatherTile';
+
+// Population data for Route 66 cities
+const cityPopulations: Record<string, string> = {
+  'Chicago': '2,746,388',
+  'Joliet': '150,362',
+  'Pontiac': '11,150',
+  'Springfield, IL': '114,394',
+  'St. Louis': '300,576',
+  'Springfield, MO': '169,176',
+  'Joplin': '51,762',
+  'Tulsa': '413,066',
+  'Oklahoma City': '695,724',
+  'Elk City': '11,544',
+  'Amarillo': '200,393',
+  'Tucumcari': '4,976',
+  'Albuquerque': '564,559',
+  'Gallup': '22,580',
+  'Holbrook': '5,053',
+  'Flagstaff': '76,831',
+  'Seligman': '456',
+  'Kingman': '32,689',
+  'Needles': '4,931',
+  'Barstow': '25,415',
+  'San Bernardino': '222,101',
+  'Pasadena': '138,699',
+  'Los Angeles': '3,898,747',
+  'Santa Monica': '93,076'
+};
 
 interface DestinationClickableCardProps {
   destination: Route66Waypoint;
@@ -37,7 +69,7 @@ const DestinationClickableCard: React.FC<DestinationClickableCardProps> = ({
     if (!isVisible) return { left: 0, top: 0, display: 'none' };
 
     const cardWidth = 320;
-    const cardHeight = 280;
+    const cardHeight = 500; // Increased height for rich content
     const padding = 20;
     const topOffset = 80;
 
@@ -116,46 +148,49 @@ const DestinationClickableCard: React.FC<DestinationClickableCardProps> = ({
           </div>
         </div>
         
-        <CardContent className="p-4">
-          {/* Title */}
-          <h3 className="font-bold text-xl text-blue-900 mb-3">
-            {extractCityName(destination.name)}
-          </h3>
-          
-          {/* Location */}
-          <div className="flex items-center gap-2 text-blue-700 mb-4">
-            <MapPin className="h-4 w-4" />
-            <span className="text-sm font-medium">{destination.state}</span>
-            {destination.highway_designation && (
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">
-                {destination.highway_designation}
-              </span>
-            )}
-          </div>
-          
-          {/* Description */}
-          {destination.description && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <p className="text-sm text-blue-800 leading-relaxed">
-                {destination.description}
+        <CardContent className="p-4 overflow-y-auto max-h-[calc(90vh-2rem)]">
+          <div className="space-y-3">
+            {/* City, State and Population Header */}
+            <div className="text-center py-3 px-4">
+              <h4 className="text-2xl font-black text-black mb-1 uppercase tracking-wide">
+                {extractCityName(destination.name)}, {destination.state}
+              </h4>
+              <p className="text-black font-bold text-lg uppercase tracking-wider">
+                Population: {cityPopulations[extractCityName(destination.name)] || 'Unknown'}
               </p>
             </div>
-          )}
 
-          {/* Coordinates */}
-          <div className="text-xs text-gray-600 mb-4">
-            <strong>Location:</strong> {destination.latitude.toFixed(4)}, {destination.longitude.toFixed(4)}
+            {/* Description */}
+            {destination.description && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  {destination.description}
+                </p>
+              </div>
+            )}
+
+            {/* Coordinates */}
+            <div className="text-xs text-gray-600 mb-4">
+              <strong>Location:</strong> {destination.latitude.toFixed(4)}, {destination.longitude.toFixed(4)}
+            </div>
+
+            {/* Tiles Container */}
+            <TileContainer>
+              <FunFactsTile destination={destination} />
+              <EventsCalendarTile destination={destination} />
+              <WeatherTile destination={destination} />
+            </TileContainer>
+
+            {/* Navigation button with minimum tap target */}
+            <button
+              onClick={handleNavigateToCity}
+              className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 touch-manipulation"
+              style={{ minHeight: '44px' }}
+            >
+              <Navigation className="h-4 w-4" />
+              Explore {extractCityName(destination.name)}
+            </button>
           </div>
-
-          {/* Navigation button with minimum tap target */}
-          <button
-            onClick={handleNavigateToCity}
-            className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 touch-manipulation"
-            style={{ minHeight: '44px' }}
-          >
-            <Navigation className="h-4 w-4" />
-            Explore {extractCityName(destination.name)}
-          </button>
         </CardContent>
       </Card>
     </div>
