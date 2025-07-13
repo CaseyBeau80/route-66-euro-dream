@@ -53,12 +53,36 @@ const Route66TripCalculator: React.FC = () => {
     setOriginalRequestedDays(travelDays);
 
     try {
-      console.log('🚗 Route66TripCalculator: Planning trip with params:', {
+      console.log('🧨 NUCLEAR RESET (INDEX): Forcing complete cache clear and fresh calculation');
+      
+      // Clear any potential trip caches
+      try {
+        Object.keys(localStorage).forEach(key => {
+          if (key.toLowerCase().includes('trip') || key.toLowerCase().includes('plan') || 
+              key.toLowerCase().includes('destination') || key.toLowerCase().includes('route')) {
+            console.log(`🧹 INDEX NUCLEAR: Clearing localStorage key: ${key}`);
+            localStorage.removeItem(key);
+          }
+        });
+        
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.toLowerCase().includes('trip') || key.toLowerCase().includes('plan') || 
+              key.toLowerCase().includes('destination') || key.toLowerCase().includes('route')) {
+            console.log(`🧹 INDEX NUCLEAR: Clearing sessionStorage key: ${key}`);
+            sessionStorage.removeItem(key);
+          }
+        });
+      } catch (error) {
+        console.warn('⚠️ Error during index cache clearing:', error);
+      }
+      
+      console.log('🚗 Route66TripCalculator (INDEX): Planning trip with params:', {
         startLocation,
         endLocation,
         travelDays,
         tripStyle,
-        tripStartDate: tripStartDate.toISOString()
+        tripStartDate: tripStartDate.toISOString(),
+        cacheBuster: Date.now()
       });
 
       const result = await Route66TripPlannerService.planTrip(
