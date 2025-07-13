@@ -38,7 +38,11 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   const [currentShareUrl, setCurrentShareUrl] = useState<string | null>(shareUrl || null);
 
   const handleCopyLink = async () => {
-    if (!currentShareUrl) return;
+    if (!currentShareUrl) {
+      // If no share URL exists, open the modal to generate one
+      setIsShareModalOpen(true);
+      return;
+    }
     
     try {
       await navigator.clipboard.writeText(currentShareUrl);
@@ -58,7 +62,11 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
   };
 
   const handleShareViaEmail = () => {
-    if (!currentShareUrl) return;
+    if (!currentShareUrl) {
+      // If no share URL exists, open the modal to generate one
+      setIsShareModalOpen(true);
+      return;
+    }
 
     const emailSubject = encodeURIComponent(`Check out my Route 66 trip plan: ${tripTitle}`);
     const emailBody = encodeURIComponent(
@@ -113,27 +121,27 @@ const ShareAndExportDropdown: React.FC<ShareAndExportDropdownProps> = ({
           
           <DropdownMenuSeparator className="my-2" />
           
-          {currentShareUrl && (
-            <>
-              <DropdownMenuItem 
-                onClick={handleCopyLink}
-                className="rounded-lg hover:bg-green-50 py-3 px-4 cursor-pointer"
-              >
-                <Link2 className="mr-3 h-5 w-5 text-green-600" />
-                <span className="font-medium">Copy Link</span>
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem 
-                onClick={handleShareViaEmail}
-                className="rounded-lg hover:bg-orange-50 py-3 px-4 cursor-pointer"
-              >
-                <Mail className="mr-3 h-5 w-5 text-orange-600" />
-                <span className="font-medium">Share via Email</span>
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator className="my-2" />
-            </>
-          )}
+          <DropdownMenuItem 
+            onClick={handleCopyLink}
+            className="rounded-lg hover:bg-green-50 py-3 px-4 cursor-pointer"
+          >
+            <Link2 className="mr-3 h-5 w-5 text-green-600" />
+            <span className="font-medium">
+              {currentShareUrl ? "Copy Link" : "Generate & Copy Link"}
+            </span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem 
+            onClick={handleShareViaEmail}
+            className="rounded-lg hover:bg-orange-50 py-3 px-4 cursor-pointer"
+          >
+            <Mail className="mr-3 h-5 w-5 text-orange-600" />
+            <span className="font-medium">
+              {currentShareUrl ? "Share via Email" : "Generate & Share via Email"}
+            </span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuSeparator className="my-2" />
           
           <DropdownMenuItem 
             onClick={() => setIsPDFExportOpen(true)}
