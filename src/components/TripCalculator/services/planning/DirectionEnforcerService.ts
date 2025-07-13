@@ -139,7 +139,7 @@ export class DirectionEnforcerService {
   /**
    * Simple distance calculation between two points
    */
-  private static calculateDistance(from: TripStop, to: TripStop): number {
+  static calculateDistance(from: TripStop, to: TripStop): number {
     if (!from.latitude || !from.longitude || !to.latitude || !to.longitude) {
       return 0;
     }

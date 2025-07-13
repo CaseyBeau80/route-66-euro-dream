@@ -4,6 +4,8 @@ import { PlannerFormData, TripItinerary, DestinationCity, DaySegment } from '../
 import { useDestinationCities } from './useDestinationCities';
 import { supabase } from '@/integrations/supabase/client';
 import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
+import { DirectionEnforcerService } from '@/components/TripCalculator/services/planning/DirectionEnforcerService';
+import { GeographicProgressionService } from '@/components/TripCalculator/services/planning/GeographicProgressionService';
 
 export const usePlannerService = () => {
   const { destinationCities } = useDestinationCities();
@@ -126,13 +128,13 @@ export const usePlannerService = () => {
 
       console.log(`📅 Planning for EXACTLY ${tripDays} days using destination cities as overnight stops`);
 
-      // SIMPLIFIED: Create daily segments using destination cities as overnight stops
+      // SIMPLIFIED: Create daily segments using destination cities as overnight stops with GEOGRAPHIC PROGRESSION
       const dailySegments: DaySegment[] = [];
       
-      // Select specific destination cities for each day
-      const selectedStops = selectDestinationCitiesForDays(routeStops, tripDays);
+      // Select specific destination cities for each day using geographic progression
+      const selectedStops = selectDestinationCitiesWithProgression(routeStops, tripDays);
       
-      console.log(`🏙️ Selected ${selectedStops.length} destination cities:`, selectedStops.map(s => s.name));
+      console.log(`🏙️ Selected ${selectedStops.length} destination cities with geographic progression:`, selectedStops.map(s => s.name));
 
       for (let day = 1; day <= tripDays; day++) {
         const startCity = selectedStops[day - 1];
@@ -206,28 +208,111 @@ export const usePlannerService = () => {
     }
   };
 
-  // Helper function to select destination cities for each day
-  const selectDestinationCitiesForDays = (routeStops: DestinationCity[], tripDays: number): DestinationCity[] => {
+  // Helper function to select destination cities with geographic progression
+  const selectDestinationCitiesWithProgression = (routeStops: DestinationCity[], tripDays: number): DestinationCity[] => {
     if (tripDays <= 1) return routeStops;
     if (tripDays >= routeStops.length) return routeStops;
     
-    const selectedStops: DestinationCity[] = [routeStops[0]]; // Start city
+    console.log(`🧭 Using geographic progression for ${tripDays} days from ${routeStops.length} cities`);
     
-    // Calculate interval to evenly distribute cities
-    const interval = (routeStops.length - 1) / (tripDays - 1);
+    // Convert to TripStop format for geographic services
+    const tripStops = routeStops.map(city => ({
+      id: city.name.toLowerCase().replace(/\s+/g, '-'),
+      name: city.name,
+      city: city.name,
+      city_name: city.name,
+      state: city.state,
+      latitude: city.latitude,
+      longitude: city.longitude,
+      description: `${city.name}, ${city.state}`,
+      category: 'destination'
+    }));
+
+    const startStop = tripStops[0];
+    const endStop = tripStops[tripStops.length - 1];
     
-    for (let i = 1; i < tripDays; i++) {
-      const index = Math.round(i * interval);
-      const clampedIndex = Math.min(index, routeStops.length - 1);
-      selectedStops.push(routeStops[clampedIndex]);
+    if (tripDays === 2) {
+      // Just start and end for 2-day trip
+      return [routeStops[0], routeStops[routeStops.length - 1]];
+    }
+
+    // Need (tripDays - 2) intermediate stops
+    const neededIntermediateStops = tripDays - 2;
+    const availableIntermediateStops = tripStops.slice(1, -1); // Exclude start and end
+    
+    console.log(`🎯 Need ${neededIntermediateStops} intermediate stops from ${availableIntermediateStops.length} available`);
+    
+    if (availableIntermediateStops.length <= neededIntermediateStops) {
+      // Use all available intermediate stops
+      console.log(`✅ Using all ${availableIntermediateStops.length} available intermediate stops`);
+      return routeStops;
     }
     
-    // Ensure the last stop is the end city
-    if (selectedStops[selectedStops.length - 1].name !== routeStops[routeStops.length - 1].name) {
-      selectedStops[selectedStops.length - 1] = routeStops[routeStops.length - 1];
+    // Use geographic progression to select optimal intermediate stops
+    const selectedIntermediateStops: typeof tripStops = [];
+    const totalDistance = DirectionEnforcerService.calculateDistance(startStop, endStop);
+    
+    // Calculate target distances for even distribution
+    const segmentDistance = totalDistance / (tripDays - 1);
+    let currentStop = startStop;
+    
+    for (let day = 1; day < tripDays - 1; day++) {
+      const targetDistanceFromStart = segmentDistance * day;
+      
+      // Filter available stops for forward progression
+      const progressionFiltered = DirectionEnforcerService.filterForwardDestinations(
+        currentStop, availableIntermediateStops, endStop, 'moderate'
+      );
+      
+      console.log(`📍 Day ${day + 1}: ${progressionFiltered.length} cities maintain forward progression`);
+      
+      // Use progression-filtered stops, fallback to all if none available
+      const candidateStops = progressionFiltered.length > 0 ? progressionFiltered : availableIntermediateStops;
+      
+      // Find best stop based on target distance and progression score
+      let bestStop = candidateStops[0];
+      let bestScore = -Infinity;
+      
+      for (const candidate of candidateStops) {
+        // Skip if already selected
+        if (selectedIntermediateStops.find(s => s.id === candidate.id)) continue;
+        
+        const distanceFromStart = DirectionEnforcerService.calculateDistance(startStop, candidate);
+        const distanceScore = Math.max(0, 100 - Math.abs(distanceFromStart - targetDistanceFromStart) / 10);
+        const progressionScore = DirectionEnforcerService.calculateProgressionScore(currentStop, candidate, endStop);
+        
+        // Combined score (60% distance, 40% progression)
+        const totalScore = distanceScore * 0.6 + progressionScore * 0.4;
+        
+        if (totalScore > bestScore) {
+          bestScore = totalScore;
+          bestStop = candidate;
+        }
+      }
+      
+      selectedIntermediateStops.push(bestStop);
+      currentStop = bestStop;
+      
+      // Remove selected stop from available options
+      const index = availableIntermediateStops.findIndex(s => s.id === bestStop.id);
+      if (index > -1) {
+        availableIntermediateStops.splice(index, 1);
+      }
+      
+      console.log(`✅ Selected ${bestStop.name} for day ${day + 1} (score: ${bestScore.toFixed(1)})`);
     }
     
-    return selectedStops;
+    // Convert back to DestinationCity format and create final sequence
+    const finalSequence = [
+      routeStops[0], // Start city
+      ...selectedIntermediateStops.map(stop => 
+        routeStops.find(city => city.name === stop.name)!
+      ),
+      routeStops[routeStops.length - 1] // End city
+    ];
+    
+    console.log(`🔄 Final sequence selected with geographic progression`);
+    return finalSequence;
   };
 
   // Helper function for Haversine distance calculation
