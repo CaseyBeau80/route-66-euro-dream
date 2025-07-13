@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { ForecastWeatherData } from '@/components/Route66Map/services/weather/WeatherForecastService';
-import { WeatherFetchCoordinator } from '../services/WeatherFetchCoordinator';
+import { SimpleWeatherFetcher } from '../SimpleWeatherFetcher';
 import { WeatherDebugService } from '../services/WeatherDebugService';
 
 interface UseSegmentWeatherProps {
@@ -72,15 +72,19 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     });
 
     try {
-      await WeatherFetchCoordinator.fetchWeatherForSegment(
-        segmentEndCity,
-        segmentDate,
-        {
-          onLoadingChange: setLoading,
-          onError: setError,
-          onWeatherSet: setWeather
-        }
-      );
+      setLoading(true);
+      setError(null);
+      
+      const weather = await SimpleWeatherFetcher.fetchWeatherForCity({
+        cityName: segmentEndCity,
+        targetDate: segmentDate,
+        hasApiKey,
+        isSharedView: false,
+        segmentDay: 1
+      });
+
+      setWeather(weather);
+      setLoading(false);
     } catch (error) {
       console.error('❌ PLAN: Enhanced useSegmentWeather: Fetch failed for', segmentEndCity, error);
       setError(error instanceof Error ? error.message : 'Weather fetch failed');
@@ -103,15 +107,12 @@ export const useSegmentWeather = (props: UseSegmentWeatherProps) => {
     }
   }, [hasApiKey, segmentDate, fetchWeather, segmentEndCity]);
 
-  // PLAN: Enhanced cleanup effect to cancel requests when component unmounts
+  // PLAN: Enhanced cleanup effect (SimpleWeatherFetcher doesn't need cleanup)
   React.useEffect(() => {
     return () => {
-      if (segmentDate) {
-        WeatherFetchCoordinator.cancelRequest(segmentEndCity, segmentDate);
-        console.log('🔧 PLAN: Enhanced cleanup - cancelled request for', segmentEndCity);
-      }
+      console.log('🔧 PLAN: Enhanced cleanup for', segmentEndCity);
     };
-  }, [segmentEndCity, segmentDate]);
+  }, [segmentEndCity]);
 
   const handleApiKeySet = React.useCallback(() => {
     console.log('🔧 PLAN: Enhanced useSegmentWeather: handleApiKeySet called for', segmentEndCity);

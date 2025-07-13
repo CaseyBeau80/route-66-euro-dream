@@ -104,7 +104,6 @@ const TripCalculatorForm: React.FC<TripCalculatorFormProps> = ({
       <LocationSelectionForm 
         formData={formData}
         setFormData={setFormData}
-        availableEndLocations={availableEndLocations}
       />
 
       {/* Heritage Cities Experience Info - Fixed and Simplified */}

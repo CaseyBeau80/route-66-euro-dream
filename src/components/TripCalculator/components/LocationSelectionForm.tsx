@@ -3,19 +3,22 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TripFormData } from '../types/tripCalculator';
-import { route66Towns } from '@/types/route66';
+import { useDestinationCities } from '@/components/Route66Planner/hooks/useDestinationCities';
 
 interface LocationSelectionFormProps {
   formData: TripFormData;
   setFormData: (data: TripFormData) => void;
-  availableEndLocations: typeof route66Towns;
 }
 
 const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
   formData,
-  setFormData,
-  availableEndLocations
+  setFormData
 }) => {
+  const { destinationCities, isLoading } = useDestinationCities();
+  
+  const availableEndLocations = destinationCities.filter(city => 
+    city.name !== formData.startLocation
+  );
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Starting City */}
@@ -32,11 +35,18 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
             <SelectValue placeholder="Choose your starting point" />
           </SelectTrigger>
           <SelectContent>
-            {route66Towns.map((town) => (
-              <SelectItem key={town.name} value={town.name}>
-                {town.name}
-              </SelectItem>
-            ))}
+            {isLoading ? (
+              <SelectItem value="" disabled>Loading cities...</SelectItem>
+            ) : (
+              destinationCities.map((city) => (
+                <SelectItem key={city.id} value={city.name}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{city.name}</span>
+                    <span className="text-sm text-muted-foreground">{city.state}</span>
+                  </div>
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -55,11 +65,18 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
             <SelectValue placeholder="Choose your destination" />
           </SelectTrigger>
           <SelectContent>
-            {availableEndLocations.map((town) => (
-              <SelectItem key={town.name} value={town.name}>
-                {town.name}
-              </SelectItem>
-            ))}
+            {isLoading ? (
+              <SelectItem value="" disabled>Loading cities...</SelectItem>
+            ) : (
+              availableEndLocations.map((city) => (
+                <SelectItem key={city.id} value={city.name}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{city.name}</span>
+                    <span className="text-sm text-muted-foreground">{city.state}</span>
+                  </div>
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
