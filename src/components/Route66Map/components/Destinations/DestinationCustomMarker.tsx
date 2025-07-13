@@ -155,11 +155,10 @@ const DestinationCustomMarker: React.FC<DestinationCustomMarkerProps> = ({
     <>
       {/* Hover card - only show when hovering and not on mobile */}
       {!isMobile && (
-        <DestinationClickableCard
+        <DestinationHoverPortal
           destination={destination}
           position={hoverPosition}
           isVisible={isHovered}
-          onClose={handleMouseLeave}
           onMouseEnter={handleHoverCardMouseEnter}
           onMouseLeave={handleHoverCardMouseLeave}
         />
