@@ -27,26 +27,26 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isEnrichingWeather, setIsEnrichingWeather] = useState(false);
 
-  // Emergency scroll unlock - runs every 100ms to ensure scroll is never locked
+  // Emergency scroll unlock - runs immediately and clears everything
   useEffect(() => {
-    const unlockScroll = () => {
-      document.body.removeAttribute('data-scroll-locked');
-      document.documentElement.style.overflow = '';
+    const forceUnlock = () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
+      document.documentElement.style.overflow = '';
       document.documentElement.style.position = '';
+      document.body.removeAttribute('data-scroll-locked');
     };
 
     // Immediate unlock
-    unlockScroll();
+    forceUnlock();
     
-    // Set up interval to continuously unlock scroll
-    const interval = setInterval(unlockScroll, 100);
+    // Also set up a single interval for safety
+    const interval = setInterval(forceUnlock, 1000);
     
     return () => {
       clearInterval(interval);
-      unlockScroll();
+      forceUnlock();
     };
   }, []);
 
@@ -73,11 +73,18 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       return;
     }
 
-    console.log('🖨️ Starting PDF export to new window with weather enrichment');
+    console.log('🖨️ Starting simplified PDF export');
     setIsExporting(true);
-    setIsEnrichingWeather(true);
 
     try {
+      // Force unlock scroll BEFORE doing anything
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.position = '';
+      document.body.removeAttribute('data-scroll-locked');
+      
       await PDFWindowService.openPrintWindow(
         tripPlan,
         tripStartDate,
@@ -91,13 +98,8 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
         variant: "default"
       });
       
-      // Close the modal after successful export
+      // Close the modal immediately and unlock scroll
       onClose();
-      
-      // Force cleanup scroll lock
-      document.body.removeAttribute('data-scroll-locked');
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
       
     } catch (error) {
       console.error('❌ Error opening PDF window:', error);
@@ -108,11 +110,13 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
       });
     } finally {
       setIsExporting(false);
-      setIsEnrichingWeather(false);
-      // Ensure scroll is always unlocked
-      document.body.removeAttribute('data-scroll-locked');
-      document.documentElement.style.overflow = '';
+      // Final scroll unlock
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.position = '';
+      document.body.removeAttribute('data-scroll-locked');
     }
   };
 
@@ -122,14 +126,16 @@ const EnhancedPDFExport: React.FC<EnhancedPDFExportProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={() => {
-      console.log('🔄 Enhanced PDF Export dialog closing');
-      // Force scroll unlock when dialog closes
+      console.log('🔄 Enhanced PDF Export dialog force closing');
+      // Emergency unlock everything
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
       document.documentElement.style.overflow = '';
       document.documentElement.style.position = '';
       document.body.removeAttribute('data-scroll-locked');
+      document.body.removeAttribute('style');
+      document.documentElement.removeAttribute('style');
       onClose();
     }}>
       <DialogContent 
