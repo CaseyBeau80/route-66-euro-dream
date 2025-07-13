@@ -67,6 +67,45 @@ export class AttractionFinder {
     });
     
     const selectedAttractions = sortedAttractions.slice(0, maxAttractions);
+    
+    // If no attractions found along route, try to find nearby attractions in destination city
+    if (selectedAttractions.length === 0) {
+      console.log(`🔍 STRICT: No route attractions found, searching for nearby attractions in ${endStop.name}`);
+      
+      const nearbyAttractions = validStops.filter((stop: TripStop) => {
+        // Skip start and end stops
+        if (stop.id === startStop.id || stop.id === endStop.id) return false;
+        
+        // Don't use destination cities as attractions
+        if (StrictDestinationCityEnforcer.isDestinationCity(stop)) return false;
+        
+        // Find attractions within reasonable distance of destination city (50 miles)
+        const distToDestination = DistanceCalculationService.calculateDistance(
+          stop.latitude, stop.longitude, endStop.latitude, endStop.longitude
+        );
+        
+        return distToDestination <= 50 && (
+          stop.category === 'attraction' || 
+          stop.category === 'historic_site' ||
+          stop.category === 'hidden_gems'
+        );
+      }).sort((a: TripStop, b: TripStop) => {
+        // Sort by distance to destination
+        const distA = DistanceCalculationService.calculateDistance(
+          a.latitude, a.longitude, endStop.latitude, endStop.longitude
+        );
+        const distB = DistanceCalculationService.calculateDistance(
+          b.latitude, b.longitude, endStop.latitude, endStop.longitude
+        );
+        return distA - distB;
+      }).slice(0, maxAttractions);
+      
+      if (nearbyAttractions.length > 0) {
+        console.log(`🎯 STRICT: Found ${nearbyAttractions.length} nearby attractions: ${nearbyAttractions.map(stop => stop.name).join(', ')}`);
+        return nearbyAttractions;
+      }
+    }
+    
     console.log(`🎯 STRICT: Selected ${selectedAttractions.length} attractions: ${selectedAttractions.map(stop => stop.name).join(', ')}`);
     
     return selectedAttractions;
