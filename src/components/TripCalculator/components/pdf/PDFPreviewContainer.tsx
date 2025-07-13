@@ -29,7 +29,37 @@ const PDFPreviewContainer: React.FC<PDFPreviewContainerProps> = ({
     document.body.style.overflow = 'hidden';
     
     return () => {
+      // Comprehensive scroll unlock
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.position = '';
+      document.body.removeAttribute('data-scroll-locked');
+      console.log('🧹 PDFPreviewContainer: Scroll unlocked on cleanup');
+    };
+  }, []);
+
+  // Emergency cleanup effect - ensures scroll is always unlocked
+  useEffect(() => {
+    const unlockScroll = () => {
+      // Only unlock if we're not in the PDF preview context
+      if (!document.getElementById('pdf-export-content')) {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.position = '';
+        document.body.removeAttribute('data-scroll-locked');
+      }
+    };
+
+    // Set up interval to ensure scroll is never permanently locked
+    const interval = setInterval(unlockScroll, 500);
+    
+    return () => {
+      clearInterval(interval);
+      unlockScroll();
     };
   }, []);
 
