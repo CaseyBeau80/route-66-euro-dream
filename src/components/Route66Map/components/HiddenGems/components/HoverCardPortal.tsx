@@ -44,10 +44,9 @@ const HoverCardPortal: React.FC<HoverCardPortalProps> = ({
         top: `${cardPosition.top}px`,
         zIndex: 45000
       }}
+      data-card-id={`hidden-gem-hover-${gem.id}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
     >
       {isDriveIn ? (
         <DriveInHoverCard

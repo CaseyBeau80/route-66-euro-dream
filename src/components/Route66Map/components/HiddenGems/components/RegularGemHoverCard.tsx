@@ -18,26 +18,24 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
 }) => {
   return (
     <div 
-      className="w-80 shadow-2xl rounded-lg overflow-hidden pointer-events-auto touch-manipulation border-3 border-turquoise bg-white"
+      className="w-80 shadow-2xl rounded-lg overflow-hidden pointer-events-auto touch-manipulation border-3 border-teal-500 bg-white"
       style={{ 
         minHeight: '44px'
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
     >
       {/* Header */}
       <div 
-        className="px-4 py-3 bg-turquoise text-white"
+        className="px-4 py-3 bg-teal-500 text-white"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div 
-              className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm bg-white border border-turquoise"
+              className="w-6 h-6 rounded-full flex items-center justify-center shadow-sm bg-white border border-teal-500"
             >
               <Star 
-                className="h-3 w-3 text-turquoise" 
+                className="h-3 w-3 text-teal-500" 
                 fill="currentColor" 
               />
             </div>
@@ -48,7 +46,7 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
             </span>
           </div>
           <div 
-            className="text-xs font-bold px-2 py-1 rounded transform -rotate-2 shadow-sm bg-white text-turquoise"
+            className="text-xs font-bold px-2 py-1 rounded transform -rotate-2 shadow-sm bg-white text-teal-500"
           >
             ROUTE 66
           </div>
@@ -58,17 +56,17 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
       <div className="p-5">
         <div className="text-center">
           <h3 
-            className="font-black text-xl leading-tight uppercase tracking-wide pb-3 mb-4 text-turquoise border-b-2 border-turquoise"
+            className="font-black text-xl leading-tight uppercase tracking-wide pb-3 mb-4 text-teal-600 border-b-2 border-teal-500"
           >
             {gem.title}
           </h3>
           
           <div className="flex items-center justify-center gap-2 mb-4">
             <MapPin 
-              className="h-4 w-4 text-turquoise" 
+              className="h-4 w-4 text-teal-500" 
             />
             <span 
-              className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide shadow-lg bg-turquoise text-white"
+              className="px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wide shadow-lg bg-teal-500 text-white"
             >
               {gem.city_name}
             </span>
@@ -76,10 +74,10 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
           
           {gem.description && (
             <div 
-              className="rounded-lg p-4 mb-4 shadow-inner bg-turquoise-light border-2 border-dashed border-turquoise"
+              className="rounded-lg p-4 mb-4 shadow-inner bg-teal-50 border-2 border-dashed border-teal-300"
             >
               <p 
-                className="text-sm leading-relaxed font-medium text-turquoise-dark"
+                className="text-sm leading-relaxed font-medium text-teal-700"
               >
                 {gem.description}
               </p>
@@ -88,8 +86,8 @@ const RegularGemHoverCard: React.FC<RegularGemHoverCardProps> = ({
           
           {gem.website && (
             <button
-              onClick={() => window.open(gem.website, '_blank', 'noopener,noreferrer')}
-              className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full touch-manipulation bg-turquoise text-white border-2 border-turquoise hover:bg-turquoise-dark"
+              onClick={() => onWebsiteClick(gem.website!)}
+              className="px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full touch-manipulation bg-teal-500 text-white border-2 border-teal-500 hover:bg-teal-600"
               style={{ 
                 minHeight: '44px'
               }}
