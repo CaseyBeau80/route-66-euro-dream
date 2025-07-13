@@ -1,7 +1,7 @@
 
 import React, { useCallback } from 'react';
 import { DriveInData } from './hooks/useDriveInsData';
-import { useDriveInMarkerHover } from './hooks/useDriveInMarkerHover';
+import { useDriveInMobile } from './hooks/useDriveInMobile';
 import DriveInHoverCardPortal from './DriveInHoverCardPortal';
 import DriveInMarkerCore from './DriveInMarkerCore';
 
@@ -18,13 +18,19 @@ const DriveInHoverableMarker: React.FC<DriveInHoverableMarkerProps> = ({
   map
 }) => {
   const {
+    isMobile,
+    isClicked,
+    clickPosition,
     isHovered,
     hoverPosition,
+    handleTouchInteraction,
+    handleClick,
     handleMouseEnter,
     handleMouseLeave,
     updatePosition,
+    closeClickable,
     cleanup
-  } = useDriveInMarkerHover();
+  } = useDriveInMobile();
 
   // Prevent hover card from disappearing when hovering over it
   const handleCardMouseEnter = useCallback(() => {
@@ -50,11 +56,14 @@ const DriveInHoverableMarker: React.FC<DriveInHoverableMarkerProps> = ({
         updatePosition={updatePosition}
         handleMouseEnter={handleMouseEnter}
         handleMouseLeave={handleMouseLeave}
+        handleTouchInteraction={handleTouchInteraction}
+        handleClick={handleClick}
+        isMobile={isMobile}
         cleanup={cleanup}
       />
 
-      {/* Hover card - show when hovering */}
-      {isHovered && (
+      {/* Hover card - only show when hovering and not on mobile */}
+      {!isMobile && isHovered && (
         <DriveInHoverCardPortal
           driveIn={driveIn}
           isVisible={true}
@@ -62,6 +71,18 @@ const DriveInHoverableMarker: React.FC<DriveInHoverableMarkerProps> = ({
           onWebsiteClick={onWebsiteClick}
           onMouseEnter={handleCardMouseEnter}
           onMouseLeave={handleCardMouseLeave}
+        />
+      )}
+      
+      {/* Clickable card - only show on mobile when tapped */}
+      {isMobile && isClicked && (
+        <DriveInHoverCardPortal
+          driveIn={driveIn}
+          isVisible={true}
+          position={clickPosition}
+          onWebsiteClick={onWebsiteClick}
+          onMouseEnter={() => {}}
+          onMouseLeave={closeClickable}
         />
       )}
     </>

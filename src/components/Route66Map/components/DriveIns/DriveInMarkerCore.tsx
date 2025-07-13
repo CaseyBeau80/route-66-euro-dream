@@ -10,6 +10,9 @@ interface DriveInMarkerCoreProps {
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (driveInName: string) => void;
   handleMouseLeave: (driveInName: string) => void;
+  handleTouchInteraction?: (x: number, y: number) => void;
+  handleClick?: (driveInName: string) => void;
+  isMobile?: boolean;
   cleanup: () => void;
 }
 
@@ -19,6 +22,9 @@ const DriveInMarkerCore: React.FC<DriveInMarkerCoreProps> = ({
   updatePosition,
   handleMouseEnter,
   handleMouseLeave,
+  handleTouchInteraction,
+  handleClick,
+  isMobile = false,
   cleanup
 }) => {
   const markerRef = useRef<google.maps.Marker | null>(null);
@@ -45,14 +51,27 @@ const DriveInMarkerCore: React.FC<DriveInMarkerCoreProps> = ({
       marker,
       updatePosition,
       handleMouseEnter,
-      handleMouseLeave
+      handleMouseLeave,
+      handleTouchInteraction,
+      handleClick,
+      isMobile
     });
 
-    // Add only hover event listeners
-    const mouseOverListener = marker.addListener('mouseover', eventHandlers.handleMouseOver);
-    const mouseOutListener = marker.addListener('mouseout', eventHandlers.handleMouseOut);
+    // Add appropriate event listeners based on device type
+    let listeners: google.maps.MapsEventListener[] = [];
+    
+    if (isMobile) {
+      // Mobile: Add click listener for touch interactions
+      const clickListener = marker.addListener('click', eventHandlers.handleClick);
+      listeners = [clickListener];
+    } else {
+      // Desktop: Add hover listeners
+      const mouseOverListener = marker.addListener('mouseover', eventHandlers.handleMouseOver);
+      const mouseOutListener = marker.addListener('mouseout', eventHandlers.handleMouseOut);
+      listeners = [mouseOverListener, mouseOutListener];
+    }
 
-    listenersRef.current = [mouseOverListener, mouseOutListener];
+    listenersRef.current = listeners;
 
     // Update position when map changes
     const boundsListener = map.addListener('bounds_changed', eventHandlers.updateMarkerPosition);

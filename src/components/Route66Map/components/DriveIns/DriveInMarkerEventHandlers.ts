@@ -8,6 +8,9 @@ interface DriveInMarkerEventHandlersConfig {
   updatePosition: (x: number, y: number) => void;
   handleMouseEnter: (driveInName: string) => void;
   handleMouseLeave: (driveInName: string) => void;
+  handleTouchInteraction?: (x: number, y: number) => void;
+  handleClick?: (driveInName: string) => void;
+  isMobile?: boolean;
 }
 
 export const createDriveInMarkerEventHandlers = ({
@@ -16,7 +19,10 @@ export const createDriveInMarkerEventHandlers = ({
   marker,
   updatePosition,
   handleMouseEnter,
-  handleMouseLeave
+  handleMouseLeave,
+  handleTouchInteraction,
+  handleClick,
+  isMobile = false
 }: DriveInMarkerEventHandlersConfig) => {
   
   const updateMarkerPosition = () => {
@@ -85,9 +91,46 @@ export const createDriveInMarkerEventHandlers = ({
     handleMouseLeave(driveIn.name);
   };
 
+  const handleMarkerClick = () => {
+    console.log(`🖱️ Drive-in marker clicked: ${driveIn.name}`);
+    updateMarkerPosition();
+    
+    if (isMobile && handleTouchInteraction) {
+      // For mobile, trigger touch interaction which opens the card
+      const position = marker.getPosition();
+      if (position) {
+        // Get click position in pixel coordinates
+        const mapDiv = map.getDiv();
+        const bounds = map.getBounds();
+        
+        if (mapDiv && bounds) {
+          const ne = bounds.getNorthEast();
+          const sw = bounds.getSouthWest();
+          const lat = position.lat();
+          const lng = position.lng();
+          
+          const mapWidth = mapDiv.offsetWidth;
+          const mapHeight = mapDiv.offsetHeight;
+          
+          const x = ((lng - sw.lng()) / (ne.lng() - sw.lng())) * mapWidth;
+          const y = ((ne.lat() - lat) / (ne.lat() - sw.lat())) * mapHeight;
+          
+          if (isFinite(x) && isFinite(y)) {
+            handleTouchInteraction(x, y);
+          }
+        }
+      }
+    }
+    
+    if (handleClick) {
+      handleClick(driveIn.name);
+    }
+  };
+
   return {
     handleMouseOver,
     handleMouseOut,
+    handleClick: handleMarkerClick,
     updateMarkerPosition
   };
 };
