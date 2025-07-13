@@ -11,13 +11,17 @@ interface DestinationClickableCardProps {
   isVisible: boolean;
   position: { x: number; y: number };
   onClose: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const DestinationClickableCard: React.FC<DestinationClickableCardProps> = ({
   destination,
   isVisible,
   position,
-  onClose
+  onClose,
+  onMouseEnter,
+  onMouseLeave
 }) => {
   const navigate = useNavigate();
 
@@ -74,7 +78,11 @@ const DestinationClickableCard: React.FC<DestinationClickableCardProps> = ({
         zIndex: 60000
       }}
     >
-      <Card className="w-80 border-2 border-blue-600 bg-white shadow-2xl">
+      <Card 
+        className="w-80 border-2 border-blue-600 bg-white shadow-2xl"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
         {/* Close button with minimum tap target */}
         <button
           onClick={onClose}
