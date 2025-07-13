@@ -57,9 +57,19 @@ export class TravelDayValidator {
         city.longitude >= minLng && city.longitude <= maxLng
       );
       
-      // Maximum days = number of cities along route + 1 for the final day
-      const maxDays = citiesAlongRoute.length + 1;
-      console.log(`🏛️ Max days from destination cities: ${maxDays} (${citiesAlongRoute.length} cities between ${startLocation} and ${endLocation})`);
+      console.log(`🏛️ DEBUG: Cities along route from ${startLocation} to ${endLocation}:`, 
+        citiesAlongRoute.map(c => `${c.name} (${c.longitude})`));
+      console.log(`🏛️ DEBUG: Start lng: ${startLng}, End lng: ${endLng}, Min: ${minLng}, Max: ${maxLng}`);
+      
+      // FIXED: For adjacent cities, maximum should be 1 day
+      // Count unique stops BETWEEN start and end (exclusive of endpoints)
+      const stopsExcludingEndpoints = citiesAlongRoute.filter(city => 
+        city.longitude !== startLng && city.longitude !== endLng
+      );
+      
+      // Maximum days = intermediate stops + 1 (for the journey itself)
+      const maxDays = Math.max(1, stopsExcludingEndpoints.length + 1);
+      console.log(`🏛️ Max days from destination cities: ${maxDays} (${stopsExcludingEndpoints.length} intermediate stops between ${startLocation} and ${endLocation})`);
       
       return Math.min(maxDays, this.ABSOLUTE_MAX_DAYS);
     } catch (error) {
