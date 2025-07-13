@@ -19,11 +19,20 @@ export const useMobileCardDismissal = ({ isVisible, onClose, cardId }: UseMobile
 
     const handleMapClick = (event: Event) => {
       const target = event.target as HTMLElement;
+      console.log(`📱 Map click detected for ${cardId}:`, { target: target.className, cardId });
       
       // Check if the click was outside any card
-      const isCardClick = target.closest(`[data-card-id="${cardId}"]`) !== null;
-      const isMarkerClick = target.closest('.gm-style') !== null && 
-                           target.closest('[data-card-id]') === null;
+      const clickedCard = target.closest(`[data-card-id]`);
+      const isCardClick = clickedCard?.getAttribute('data-card-id') === cardId;
+      const isAnyCardClick = clickedCard !== null;
+      const isMarkerClick = target.closest('.gm-style img') !== null;
+      
+      console.log(`📱 Click analysis for ${cardId}:`, { 
+        isCardClick, 
+        isAnyCardClick, 
+        isMarkerClick,
+        clickedCardId: clickedCard?.getAttribute('data-card-id')
+      });
       
       if (!isCardClick && !isMarkerClick) {
         console.log(`📱 Map tap detected - closing card: ${cardId}`);
@@ -33,6 +42,7 @@ export const useMobileCardDismissal = ({ isVisible, onClose, cardId }: UseMobile
 
     // Add event listener with a small delay to avoid immediate dismissal
     const timeoutId = setTimeout(() => {
+      console.log(`📱 Adding click listener for ${cardId}`);
       document.addEventListener('click', handleMapClick, true);
     }, 100);
 

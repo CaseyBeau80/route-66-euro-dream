@@ -94,7 +94,11 @@ const DestinationClickableCard: React.FC<DestinationClickableCardProps> = ({
       >
         {/* Close button with minimum tap target */}
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log(`🚫 Close button clicked for destination: ${destination.name}`);
+            onClose();
+          }}
           className="absolute top-2 right-2 w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors z-10 text-xs font-bold touch-manipulation"
           style={{ minHeight: '44px', minWidth: '44px' }}
         >
