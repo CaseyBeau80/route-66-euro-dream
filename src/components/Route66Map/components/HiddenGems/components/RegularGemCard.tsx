@@ -13,16 +13,18 @@ interface RegularGemCardProps {
 const RegularGemCard: React.FC<RegularGemCardProps> = ({ gem, onClose, onWebsiteClick }) => {
   return (
     <div 
-      className="w-87 shadow-2xl rounded-lg overflow-hidden touch-manipulation border-3 border-turquoise bg-white"
+      className="w-87 shadow-2xl rounded-lg overflow-hidden touch-manipulation border-3 border-turquoise bg-white relative"
       style={{ 
         minHeight: '44px' // Ensure minimum touch target
       }}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchEnd={(e) => e.stopPropagation()}
     >
       {/* Close button */}
       <button
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log(`💎 Close button clicked for hidden gem: ${gem.title}`);
+          onClose();
+        }}
         className="absolute top-3 right-3 w-11 h-11 rounded-full flex items-center justify-center transition-colors z-20 text-sm font-bold touch-manipulation bg-turquoise text-white hover:bg-turquoise-dark"
         style={{ 
           minWidth: '44px',

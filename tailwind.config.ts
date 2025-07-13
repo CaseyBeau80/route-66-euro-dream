@@ -53,7 +53,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Hidden Gems Colors
+        // Hidden Gems Turquoise Theme
         turquoise: {
           DEFAULT: "hsl(var(--turquoise))",
           dark: "hsl(var(--turquoise-dark))",

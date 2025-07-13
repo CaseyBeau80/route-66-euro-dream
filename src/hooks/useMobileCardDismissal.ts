@@ -19,7 +19,12 @@ export const useMobileCardDismissal = ({ isVisible, onClose, cardId }: UseMobile
 
     const handleMapClick = (event: Event) => {
       const target = event.target as HTMLElement;
-      console.log(`📱 Map click detected for ${cardId}:`, { target: target.className, cardId });
+      console.log(`📱 Map click detected for ${cardId}:`, { 
+        target: target.className, 
+        cardId,
+        targetTag: target.tagName,
+        targetParent: target.parentElement?.className
+      });
       
       // Check if the click was outside any card
       const clickedCard = target.closest(`[data-card-id]`);
@@ -31,8 +36,19 @@ export const useMobileCardDismissal = ({ isVisible, onClose, cardId }: UseMobile
         isCardClick, 
         isAnyCardClick, 
         isMarkerClick,
-        clickedCardId: clickedCard?.getAttribute('data-card-id')
+        clickedCardId: clickedCard?.getAttribute('data-card-id'),
+        targetPath: target.className
       });
+      
+      // Special case for Hidden Gems - be more specific about click detection
+      if (cardId.startsWith('hidden-gem-')) {
+        console.log(`💎 Special Hidden Gem analysis for ${cardId}:`, {
+          isDirectCardClick: isCardClick,
+          isAnyCard: isAnyCardClick,
+          isMarker: isMarkerClick,
+          shouldClose: !isCardClick && !isMarkerClick
+        });
+      }
       
       if (!isCardClick && !isMarkerClick) {
         console.log(`📱 Map tap detected - closing card: ${cardId}`);

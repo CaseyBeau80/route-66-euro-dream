@@ -54,18 +54,6 @@ const HiddenGemClickableCard: React.FC<HiddenGemClickableCardProps> = ({
         zIndex: 60000
       }}
       data-card-id={cardId}
-      onTouchStart={(e) => {
-        console.log(`💎 Touch start on hidden gem card: ${gem.title}`);
-        // Only stop propagation for scrolling, not for tap detection
-      }}
-      onTouchEnd={(e) => {
-        console.log(`💎 Touch end on hidden gem card: ${gem.title}`);
-        // Only stop propagation for scrolling, not for tap detection  
-      }}
-      onClick={(e) => {
-        console.log(`💎 Click on hidden gem card: ${gem.title} - stopping propagation`);
-        e.stopPropagation();
-      }}
     >
       {isDriveIn ? (
         <DriveInCard
