@@ -28,7 +28,7 @@ export const useEnhancedTripCalculation = () => {
   const { destinationCities } = useDestinationCities();
 
   // Get available end locations based on start location (using destination cities only)
-  const availableEndLocations = destinationCities.filter(city => city.name !== formData.startLocation);
+  const availableEndLocations = destinationCities.filter(city => `${city.name}, ${city.state}` !== formData.startLocation);
 
   // Reset function
   const resetTrip = () => {
