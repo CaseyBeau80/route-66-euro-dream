@@ -76,6 +76,22 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
   console.log('🚨 [FINAL RESULTS DEBUG] tripPlan.endLocation:', tripPlan.endLocation);
   console.log('🚨 [FINAL RESULTS DEBUG] tripPlan.summary:', tripPlan.summary);
   console.log('🚨 [FINAL RESULTS DEBUG] standardizedSummary.endLocation:', standardizedSummary.endLocation);
+  
+  // VALIDATION: Check for Springfield issue
+  if (tripPlan.endCity?.includes('Springfield')) {
+    console.log('🚨 [SPRINGFIELD VALIDATION] Springfield detected in endCity!');
+    console.log('🚨 [SPRINGFIELD VALIDATION] endCity value:', tripPlan.endCity);
+    console.log('🚨 [SPRINGFIELD VALIDATION] endLocation value:', tripPlan.endLocation);
+    console.log('🚨 [SPRINGFIELD VALIDATION] Expected format: "Springfield, MO" or "Springfield, IL"');
+    
+    // Alert if we don't have the state
+    if (!tripPlan.endCity.includes(',') || !tripPlan.endCity.includes('MO') && !tripPlan.endCity.includes('IL')) {
+      console.error('❌ [SPRINGFIELD VALIDATION] Springfield without proper state detected!');
+      console.error('❌ [SPRINGFIELD VALIDATION] This indicates the city matching bug is still present');
+    } else {
+      console.log('✅ [SPRINGFIELD VALIDATION] Springfield has proper state - bug appears to be fixed');
+    }
+  }
 
   return (
     <div className="space-y-6">

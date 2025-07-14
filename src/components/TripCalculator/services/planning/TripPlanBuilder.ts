@@ -4,6 +4,7 @@ import { DistanceCalculationService } from '../utils/DistanceCalculationService'
 import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { DirectionEnforcerService } from './DirectionEnforcerService';
 import { GeographicProgressionService } from './GeographicProgressionService';
+import { CityDisplayService } from '../utils/CityDisplayService';
 import { TripPlan, DailySegment, RecommendedStop, DriveTimeCategory, DestinationInfo } from './TripPlanTypes';
 
 // Re-export types so other files can import them from here
@@ -57,11 +58,15 @@ export class TripPlanBuilder {
       const driveTimeHours = segmentDistance / 60; // Assume 60 mph average
       totalDistance += segmentDistance;
 
+      // CRITICAL FIX: Use CityDisplayService for consistent segment formatting
+      const currentCityDisplay = CityDisplayService.formatCityDisplay(currentPoint);
+      const nextCityDisplay = CityDisplayService.formatCityDisplay(nextPoint);
+
       const segment: DailySegment = {
         day: i + 1,
-        title: `Day ${i + 1}: ${currentPoint.name} to ${nextPoint.name}`,
-        startCity: currentPoint.name,
-        endCity: nextPoint.name,
+        title: `Day ${i + 1}: ${currentCityDisplay} to ${nextCityDisplay}`,
+        startCity: currentCityDisplay,
+        endCity: nextCityDisplay,
         distance: segmentDistance,
         approximateMiles: Math.round(segmentDistance),
         driveTimeHours: driveTimeHours,
@@ -88,13 +93,23 @@ export class TripPlanBuilder {
       segments.push(segment);
     }
 
+    // CRITICAL FIX: Use CityDisplayService for consistent formatting
+    const startCityDisplay = CityDisplayService.formatCityDisplay(startStop);
+    const endCityDisplay = CityDisplayService.formatCityDisplay(endStop);
+    
+    console.log(`🚨 [SPRINGFIELD FIX] Trip plan creation:`);
+    console.log(`   startStop:`, startStop);
+    console.log(`   endStop:`, endStop);
+    console.log(`   startCityDisplay:`, startCityDisplay);
+    console.log(`   endCityDisplay:`, endCityDisplay);
+
     const tripPlan: TripPlan = {
       id: `trip-${Date.now()}`,
-      title: `${startStop.name} to ${endStop.name} Road Trip`,
-      startCity: startStop.name,
-      endCity: endStop.name,
-      startLocation: `${startStop.name}, ${startStop.state}`,
-      endLocation: `${endStop.name}, ${endStop.state}`,
+      title: `${startCityDisplay} to ${endCityDisplay} Road Trip`,
+      startCity: startCityDisplay,
+      endCity: endCityDisplay,
+      startLocation: startCityDisplay,
+      endLocation: endCityDisplay,
       startDate: new Date(),
       totalDays: segments.length,
       totalDistance,
@@ -106,14 +121,21 @@ export class TripPlanBuilder {
       tripStyle: tripStyle,
       lastUpdated: new Date(),
       summary: {
-        startLocation: `${startStop.name}, ${startStop.state}`,
-        endLocation: `${endStop.name}, ${endStop.state}`,
+        startLocation: startCityDisplay,
+        endLocation: endCityDisplay,
         totalDriveTime: segments.reduce((total, seg) => total + (seg.driveTimeHours || 0), 0),
         totalDays: segments.length,
         totalDistance: Math.round(totalDistance),
         tripStyle: tripStyle
       }
     };
+    
+    console.log(`🚨 [SPRINGFIELD FIX] Final trip plan:`, {
+      startCity: tripPlan.startCity,
+      endCity: tripPlan.endCity,
+      startLocation: tripPlan.startLocation,
+      endLocation: tripPlan.endLocation
+    });
 
     console.log(`✅ STRICT: Trip plan built with ${segments.length} days, all destinations are cities`);
     

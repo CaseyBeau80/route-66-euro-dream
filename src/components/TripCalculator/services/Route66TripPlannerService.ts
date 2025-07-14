@@ -35,11 +35,17 @@ export class Route66TripPlannerService {
         throw new Error('No destination cities found in database');
       }
 
-      // Find start and end cities from destination cities
+      // CRITICAL FIX: Enhanced logging and validation for start/end city finding
+      console.log(`🚨 [SPRINGFIELD FIX] Looking for start city: "${startCity}"`);
       const startStop = Route66CityFinderService.findDestinationCity(destinationCities, startCity);
+      console.log(`🚨 [SPRINGFIELD FIX] Found start stop:`, startStop);
+      
+      console.log(`🚨 [SPRINGFIELD FIX] Looking for end city: "${endCity}"`);
       const endStop = Route66CityFinderService.findDestinationCity(destinationCities, endCity);
+      console.log(`🚨 [SPRINGFIELD FIX] Found end stop:`, endStop);
       
       if (!startStop || !endStop) {
+        console.error(`❌ [SPRINGFIELD FIX] City not found - Start: ${startStop ? 'FOUND' : 'MISSING'}, End: ${endStop ? 'FOUND' : 'MISSING'}`);
         throw new Error(`Start city "${startCity}" or end city "${endCity}" not found in destination cities`);
       }
 
