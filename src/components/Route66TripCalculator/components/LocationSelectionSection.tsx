@@ -81,7 +81,11 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
         </label>
         <select
           value={endLocation}
-          onChange={(e) => onLocationChange('end', e.target.value)}
+          onChange={(e) => {
+            console.log('🔍 [DROPDOWN DEBUG] User selected end location from dropdown:', e.target.value);
+            console.log('🔍 [DROPDOWN DEBUG] This should be the exact value passed to form state');
+            onLocationChange('end', e.target.value);
+          }}
           disabled={!startLocation}
           className="w-full p-3 border border-route66-border rounded-lg focus:ring-2 focus:ring-route66-primary focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         >

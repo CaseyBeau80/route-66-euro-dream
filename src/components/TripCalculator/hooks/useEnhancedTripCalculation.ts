@@ -100,6 +100,11 @@ export const useEnhancedTripCalculation = () => {
   // Enhanced trip calculation
   const calculateTrip = async () => {
     console.log('🔄 Enhanced trip calculation started with:', formData);
+    console.log('🔍 [CRITICAL DEBUG] EXACT form data values being sent to trip planner:');
+    console.log(`   startLocation: "${formData.startLocation}"`);
+    console.log(`   endLocation: "${formData.endLocation}"`);
+    console.log(`   travelDays: ${formData.travelDays}`);
+    console.log(`   tripStyle: "${formData.tripStyle}"`);
     
     if (!(await validateFormData())) {
       return;
@@ -110,6 +115,11 @@ export const useEnhancedTripCalculation = () => {
     
     try {
       loadingState.updateProgress('Analyzing your route preferences...', 20);
+      
+      // CRITICAL: Log exactly what we're passing to the trip planner
+      console.log('🚨 [CRITICAL] About to call UnifiedTripPlanningService.planTrip with:');
+      console.log(`   startLocation parameter: "${formData.startLocation}"`);
+      console.log(`   endLocation parameter: "${formData.endLocation}"`);
       
       // Use static method call instead of instance method
       const result = await UnifiedTripPlanningService.planTrip(

@@ -43,10 +43,20 @@ const Route66TripCalculator: React.FC = () => {
   };
 
   const handleLocationChange = (type: 'start' | 'end', location: string) => {
-    setFormData(prev => ({
-      ...prev,
+    console.log('🔍 [FORM STATE DEBUG] handleLocationChange called:');
+    console.log(`   type: "${type}"`);
+    console.log(`   location: "${location}"`);
+    
+    const newFormData = {
+      ...formData,
       [type === 'start' ? 'startLocation' : 'endLocation']: location
-    }));
+    };
+    
+    console.log('🔍 [FORM STATE DEBUG] New form data will be:');
+    console.log(`   startLocation: "${newFormData.startLocation}"`);
+    console.log(`   endLocation: "${newFormData.endLocation}"`);
+    
+    setFormData(newFormData);
   };
 
   const handleStartDateChange = (date: Date | undefined) => {
