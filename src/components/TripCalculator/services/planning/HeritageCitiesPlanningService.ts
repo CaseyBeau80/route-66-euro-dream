@@ -47,6 +47,12 @@ export class HeritageCitiesPlanningService {
       throw new Error(error);
     }
 
+    // BULLETPROOF VERIFICATION: Ensure we have the correct Springfield
+    if (endLocation.toLowerCase().includes('springfield, mo') && endStop.state !== 'MO') {
+      console.error(`🚨 CRITICAL ERROR: Expected Springfield, MO but got:`, endStop);
+      throw new Error(`Database returned wrong Springfield: expected MO, got ${endStop.state}`);
+    }
+
     console.log(`✅ [SPRINGFIELD FIX] Found start: ${startStop.name}, ${startStop.state}`);
     console.log(`✅ [SPRINGFIELD FIX] Found end: ${endStop.name}, ${endStop.state}`);
 

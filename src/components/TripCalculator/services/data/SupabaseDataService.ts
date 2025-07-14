@@ -130,128 +130,63 @@ export class SupabaseDataService {
   }
 
   /**
-   * Find best matching stop by location name - ENHANCED FOR STRICT CITY+STATE MATCHING
+   * Find best matching stop by location name - BULLETPROOF EXACT MATCHING
    */
   static findBestMatchingStop(locationName: string, allStops: TripStop[]): TripStop | null {
-    console.log(`🔍 [ENHANCED] Finding best matching stop for: "${locationName}"`);
-    console.log(`🔍 [ENHANCED] Total stops available: ${allStops.length}`);
+    console.log(`🔍 [BULLETPROOF] Finding stop for: "${locationName}"`);
     
     if (!locationName || !allStops || allStops.length === 0) {
-      console.log(`❌ [ENHANCED] Invalid input - locationName: "${locationName}", stops: ${allStops?.length}`);
+      console.log(`❌ [BULLETPROOF] Invalid input`);
       return null;
     }
     
     const normalizedSearch = locationName.toLowerCase().trim();
-    console.log(`🔍 [ENHANCED] Normalized search: "${normalizedSearch}"`);
     
-    // STEP 1: STRICT CITY+STATE MATCHING (Primary approach)
+    // BULLETPROOF: If it contains a comma, it MUST be exact city+state match
     if (normalizedSearch.includes(',')) {
       const [cityPart, statePart] = normalizedSearch.split(',').map(s => s.trim());
-      console.log(`🔍 [ENHANCED] Parsing "City, State" format - City: "${cityPart}", State: "${statePart}"`);
+      console.log(`🔍 [BULLETPROOF] Exact matching for: "${cityPart}, ${statePart}"`);
       
-      // CRITICAL DEBUG: Log all Springfield entries before matching
-      if (cityPart === 'springfield') {
-        const allSpringfieldStops = allStops.filter(stop => 
-          stop.name.toLowerCase().includes('springfield') ||
-          (stop as any).city_name?.toLowerCase().includes('springfield') ||
-          stop.city?.toLowerCase().includes('springfield')
-        );
-        console.log(`🔍 [SPRINGFIELD CRITICAL] All Springfield stops in database:`, allSpringfieldStops.map(s => ({
-          id: s.id,
-          name: s.name,
-          city_name: (s as any).city_name,
-          city: s.city,
-          state: s.state,
-          category: s.category
-        })));
-      }
-      
-      // Find exact city+state match with comprehensive field checking
-      for (const stop of allStops) {
+      // Find EXACT match with ALL possible field combinations
+      const exactMatch = allStops.find(stop => {
         const stopName = (stop.name || '').toLowerCase().trim();
         const stopCityName = ((stop as any).city_name || '').toLowerCase().trim();
         const stopCity = (stop.city || '').toLowerCase().trim();
         const stopState = (stop.state || '').toLowerCase().trim();
         
-        // Check all possible city field combinations
         const cityMatches = stopName === cityPart || stopCityName === cityPart || stopCity === cityPart;
         const stateMatches = stopState === statePart;
         
-        if (cityMatches && stateMatches) {
-          console.log(`✅ [ENHANCED] EXACT CITY+STATE MATCH FOUND!`);
-          console.log(`✅ [ENHANCED] Matched stop:`, {
-            id: stop.id,
-            name: stop.name,
-            city_name: (stop as any).city_name,
-            city: stop.city,
-            state: stop.state,
-            category: stop.category,
-            searchedFor: locationName
-          });
-          console.log(`🚨 [SPRINGFIELD CRITICAL] RETURNING THIS STOP FOR "${locationName}":`, stop);
-          return stop;
-        }
-      }
+        return cityMatches && stateMatches;
+      });
       
-      console.log(`❌ [ENHANCED] No exact city+state match found for: "${cityPart}, ${statePart}"`);
-      console.log(`🚨 [SPRINGFIELD CRITICAL] This means either:`);
-      console.log(`   1. Database doesn't contain Springfield, MO`);
-      console.log(`   2. Springfield, MO has different field values than expected`);
-      console.log(`   3. There's a data mismatch in name/city_name/city fields`);
-      return null; // Strict enforcement - no fallback for city+state format
+      if (exactMatch) {
+        console.log(`✅ [BULLETPROOF] EXACT MATCH FOUND:`, exactMatch);
+        return exactMatch;
+      } else {
+        console.log(`❌ [BULLETPROOF] NO EXACT MATCH - This should not happen if data exists`);
+        // Log all Springfield entries for debugging
+        const springfieldEntries = allStops.filter(stop => 
+          stop.name?.toLowerCase().includes('springfield') ||
+          (stop as any).city_name?.toLowerCase().includes('springfield') ||
+          stop.city?.toLowerCase().includes('springfield')
+        );
+        console.log(`🔍 [BULLETPROOF] All Springfield entries:`, springfieldEntries);
+        return null;
+      }
     }
     
-    // STEP 2: SINGLE FIELD MATCHING (only for non-comma separated input)
-    console.log(`🔍 [ENHANCED] Using single field matching for: "${normalizedSearch}"`);
-    
-    // Try exact name match
-    let match = allStops.find(stop => 
+    // For non-comma input, try exact name match
+    const exactNameMatch = allStops.find(stop => 
       stop.name.toLowerCase().trim() === normalizedSearch
     );
     
-    if (match) {
-      console.log(`✅ [ENHANCED] Found exact name match: ${match.name}, ${match.state}`);
-      return match;
+    if (exactNameMatch) {
+      console.log(`✅ [BULLETPROOF] Found exact name match:`, exactNameMatch);
+      return exactNameMatch;
     }
     
-    // Try city_name match
-    match = allStops.find(stop => 
-      (stop as any).city_name?.toLowerCase().trim() === normalizedSearch
-    );
-    
-    if (match) {
-      console.log(`✅ [ENHANCED] Found city_name match: ${(match as any).city_name}, ${match.state}`);
-      return match;
-    }
-    
-    // Try city match
-    match = allStops.find(stop => 
-      stop.city?.toLowerCase().trim() === normalizedSearch
-    );
-    
-    if (match) {
-      console.log(`✅ [ENHANCED] Found city match: ${match.city}, ${match.state}`);
-      return match;
-    }
-    
-    // STEP 3: PARTIAL MATCHING (with caution for ambiguous cities like Springfield)
-    if (!normalizedSearch.includes('springfield')) {
-      match = allStops.find(stop => 
-        stop.name.toLowerCase().includes(normalizedSearch) ||
-        (stop as any).city_name?.toLowerCase().includes(normalizedSearch) ||
-        stop.city?.toLowerCase().includes(normalizedSearch) ||
-        normalizedSearch.includes(stop.name.toLowerCase())
-      );
-      
-      if (match) {
-        console.log(`✅ [ENHANCED] Found partial match: ${match.name}, ${match.state}`);
-        return match;
-      }
-    } else {
-      console.log(`⚠️ [ENHANCED] Springfield detected without state - cannot resolve ambiguity`);
-    }
-    
-    console.log(`❌ [ENHANCED] No matching stop found for: ${locationName}`);
+    console.log(`❌ [BULLETPROOF] No match found for: ${locationName}`);
     return null;
   }
 
