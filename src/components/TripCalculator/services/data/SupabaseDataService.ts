@@ -150,32 +150,32 @@ export class SupabaseDataService {
       const [cityPart, statePart] = normalizedSearch.split(',').map(s => s.trim());
       console.log(`🔍 [SPRINGFIELD DEBUG] Parsed city: "${cityPart}", state: "${statePart}"`);
       
-      // Try exact city + state match
-      let match = allStops.find(stop => 
-        stop.name.toLowerCase().trim() === cityPart && 
-        stop.state.toLowerCase().trim() === statePart
-      );
+      // Try exact city + state match - FIXED: Use exact string matching
+      let match = allStops.find(stop => {
+        const cityMatches = stop.name.toLowerCase().trim() === cityPart;
+        const stateMatches = stop.state.toLowerCase().trim() === statePart;
+        console.log(`🔍 [SPRINGFIELD DEBUG] Comparing "${stop.name}, ${stop.state}": city=${cityMatches}, state=${stateMatches}`);
+        return cityMatches && stateMatches;
+      });
       
       if (match) {
         console.log(`✅ [SPRINGFIELD DEBUG] Found exact city + state match: ${match.name}, ${match.state}`);
         return match;
       } else {
         console.log(`❌ [SPRINGFIELD DEBUG] No exact city + state match found for: "${cityPart}", "${statePart}"`);
-        // Debug: Show what we're comparing against
-        allStops.filter(stop => stop.name.toLowerCase().includes(cityPart)).forEach(stop => {
-          console.log(`🔍 [SPRINGFIELD DEBUG] Checking: "${stop.name.toLowerCase().trim()}" === "${cityPart}" && "${stop.state.toLowerCase().trim()}" === "${statePart}"`);
-        });
       }
       
       // Try city_name + state match if available
       if (allStops[0] && 'city_name' in allStops[0]) {
-        match = allStops.find(stop => 
-          (stop as any).city_name?.toLowerCase().trim() === cityPart && 
-          stop.state.toLowerCase().trim() === statePart
-        );
+        match = allStops.find(stop => {
+          const cityMatches = (stop as any).city_name?.toLowerCase().trim() === cityPart;
+          const stateMatches = stop.state.toLowerCase().trim() === statePart;
+          console.log(`🔍 [SPRINGFIELD DEBUG] Comparing city_name "${(stop as any).city_name}, ${stop.state}": city=${cityMatches}, state=${stateMatches}`);
+          return cityMatches && stateMatches;
+        });
         
         if (match) {
-          console.log(`✅ Found city_name + state match: ${(match as any).city_name}, ${match.state}`);
+          console.log(`✅ [SPRINGFIELD DEBUG] Found city_name + state match: ${(match as any).city_name}, ${match.state}`);
           return match;
         }
       }
