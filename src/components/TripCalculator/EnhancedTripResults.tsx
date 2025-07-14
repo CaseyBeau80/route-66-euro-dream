@@ -70,6 +70,13 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
     preferences: preferences.distance
   });
 
+  // CRITICAL DEBUG: Log the EXACT tripPlan object being passed in
+  console.log('🚨 [FINAL RESULTS DEBUG] ENTIRE tripPlan object:', tripPlan);
+  console.log('🚨 [FINAL RESULTS DEBUG] tripPlan.endCity:', tripPlan.endCity);
+  console.log('🚨 [FINAL RESULTS DEBUG] tripPlan.endLocation:', tripPlan.endLocation);
+  console.log('🚨 [FINAL RESULTS DEBUG] tripPlan.summary:', tripPlan.summary);
+  console.log('🚨 [FINAL RESULTS DEBUG] standardizedSummary.endLocation:', standardizedSummary.endLocation);
+
   return (
     <div className="space-y-6">
       {/* Debug Panel - Show if there are warnings or validation issues */}
