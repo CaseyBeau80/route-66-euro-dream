@@ -149,6 +149,23 @@ export class SupabaseDataService {
       const [cityPart, statePart] = normalizedSearch.split(',').map(s => s.trim());
       console.log(`🔍 [ENHANCED] Parsing "City, State" format - City: "${cityPart}", State: "${statePart}"`);
       
+      // CRITICAL DEBUG: Log all Springfield entries before matching
+      if (cityPart === 'springfield') {
+        const allSpringfieldStops = allStops.filter(stop => 
+          stop.name.toLowerCase().includes('springfield') ||
+          (stop as any).city_name?.toLowerCase().includes('springfield') ||
+          stop.city?.toLowerCase().includes('springfield')
+        );
+        console.log(`🔍 [SPRINGFIELD CRITICAL] All Springfield stops in database:`, allSpringfieldStops.map(s => ({
+          id: s.id,
+          name: s.name,
+          city_name: (s as any).city_name,
+          city: s.city,
+          state: s.state,
+          category: s.category
+        })));
+      }
+      
       // Find exact city+state match with comprehensive field checking
       for (const stop of allStops) {
         const stopName = (stop.name || '').toLowerCase().trim();
@@ -171,11 +188,16 @@ export class SupabaseDataService {
             category: stop.category,
             searchedFor: locationName
           });
+          console.log(`🚨 [SPRINGFIELD CRITICAL] RETURNING THIS STOP FOR "${locationName}":`, stop);
           return stop;
         }
       }
       
       console.log(`❌ [ENHANCED] No exact city+state match found for: "${cityPart}, ${statePart}"`);
+      console.log(`🚨 [SPRINGFIELD CRITICAL] This means either:`);
+      console.log(`   1. Database doesn't contain Springfield, MO`);
+      console.log(`   2. Springfield, MO has different field values than expected`);
+      console.log(`   3. There's a data mismatch in name/city_name/city fields`);
       return null; // Strict enforcement - no fallback for city+state format
     }
     
