@@ -3,7 +3,7 @@ import { TripStop } from '../../types/TripStop';
 
 export class CityDisplayService {
   /**
-   * Get standardized city display name from a TripStop
+   * Get standardized city display name from a TripStop - ALWAYS include state
    */
   static getCityDisplayName(stop: TripStop): string {
     if (!stop) {
@@ -13,15 +13,18 @@ export class CityDisplayService {
     const city = stop.city_name || stop.city || stop.name;
     const state = stop.state;
     
-    if (state && state !== 'Unknown') {
+    // ENHANCED: Always include state for consistency and clarity
+    if (state && state !== 'Unknown' && state.trim() !== '') {
       return `${city}, ${state}`;
     }
     
+    // Fallback: city only if no valid state
+    console.warn(`⚠️ CityDisplayService: No valid state for city "${city}" - displaying city only`);
     return city;
   }
 
   /**
-   * Format city display string from a TripStop
+   * Format city display string from a TripStop - ALWAYS include state
    */
   static formatCityDisplay(stop: TripStop): string {
     if (!stop) {
@@ -31,25 +34,31 @@ export class CityDisplayService {
     const city = stop.city_name || stop.city || stop.name;
     const state = stop.state;
     
-    if (state && state !== 'Unknown') {
+    // ENHANCED: Always include state for consistency and clarity
+    if (state && state !== 'Unknown' && state.trim() !== '') {
       return `${city}, ${state}`;
     }
     
+    // Fallback: city only if no valid state
+    console.warn(`⚠️ CityDisplayService: No valid state for city "${city}" - displaying city only`);
     return city;
   }
 
   /**
-   * Format city display string from city and state
+   * Format city display string from city and state - ALWAYS include state
    */
   static formatCityStateDisplay(city: string, state?: string): string {
     if (!city) {
       return 'Unknown Location';
     }
     
-    if (state && state !== 'Unknown') {
+    // ENHANCED: Always include state for consistency and clarity
+    if (state && state !== 'Unknown' && state.trim() !== '') {
       return `${city}, ${state}`;
     }
     
+    // Fallback: city only if no valid state
+    console.warn(`⚠️ CityDisplayService: No valid state for city "${city}" - displaying city only`);
     return city;
   }
 

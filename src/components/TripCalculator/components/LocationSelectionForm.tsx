@@ -17,7 +17,7 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
   const { destinationCities, isLoading } = useDestinationCities();
   
   const availableEndLocations = destinationCities.filter(city => 
-    city.name !== formData.startLocation
+    `${city.name}, ${city.state}` !== formData.startLocation
   );
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -39,7 +39,7 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
               <SelectItem value="" disabled>Loading cities...</SelectItem>
             ) : (
               destinationCities.map((city) => (
-                <SelectItem key={city.id} value={city.name}>
+                <SelectItem key={city.id} value={`${city.name}, ${city.state}`}>
                   <div className="flex flex-col">
                     <span className="font-medium">{city.name}</span>
                     <span className="text-sm text-muted-foreground">{city.state}</span>
@@ -69,7 +69,7 @@ const LocationSelectionForm: React.FC<LocationSelectionFormProps> = ({
               <SelectItem value="" disabled>Loading cities...</SelectItem>
             ) : (
               availableEndLocations.map((city) => (
-                <SelectItem key={city.id} value={city.name}>
+                <SelectItem key={city.id} value={`${city.name}, ${city.state}`}>
                   <div className="flex flex-col">
                     <span className="font-medium">{city.name}</span>
                     <span className="text-sm text-muted-foreground">{city.state}</span>

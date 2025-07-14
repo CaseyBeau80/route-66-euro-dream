@@ -221,16 +221,16 @@ export class HeritageCitiesPlanningService {
       // Create simplified segment
       const segment: DailySegment = {
         day,
-        title: `Day ${day}: ${currentStop.name}, ${currentStop.state} to ${nextStop.name}, ${nextStop.state}`,
-        startCity: `${currentStop.name}, ${currentStop.state}`,
-        endCity: `${nextStop.name}, ${nextStop.state}`,
+        title: `Day ${day}: ${CityDisplayService.formatCityDisplay(currentStop)} to ${CityDisplayService.formatCityDisplay(nextStop)}`,
+        startCity: CityDisplayService.formatCityDisplay(currentStop),
+        endCity: CityDisplayService.formatCityDisplay(nextStop),
         distance: segmentDistance,
         approximateMiles: Math.round(segmentDistance),
         driveTimeHours,
         drivingTime: driveTimeHours,
         destination: {
           city: nextStop.name,
-          state: nextStop.state
+          state: nextStop.state || 'Unknown'
         },
         recommendedStops: [], // No intermediate stops, just destination cities
         isGoogleMapsData: false,
