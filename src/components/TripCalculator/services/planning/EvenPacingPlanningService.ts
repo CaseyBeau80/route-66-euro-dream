@@ -23,8 +23,12 @@ export class EvenPacingPlanningService {
     console.log(`⚖️ EVEN PACING PLANNING: ${startLocation} → ${endLocation}, ${totalDays} days`);
 
     // Find start and end stops
+    console.log(`🔍 [SPRINGFIELD DEBUG] EvenPacing - Input startLocation: "${startLocation}"`);
+    console.log(`🔍 [SPRINGFIELD DEBUG] EvenPacing - Input endLocation: "${endLocation}"`);
     const startStop = SupabaseDataService.findBestMatchingStop(startLocation, allStops);
     const endStop = SupabaseDataService.findBestMatchingStop(endLocation, allStops);
+    console.log(`✅ [SPRINGFIELD DEBUG] EvenPacing - Found start: ${startStop?.name}, ${startStop?.state}`);
+    console.log(`✅ [SPRINGFIELD DEBUG] EvenPacing - Found end: ${endStop?.name}, ${endStop?.state}`);
 
     if (!startStop || !endStop) {
       throw new Error(`Could not find Route 66 stops for: ${!startStop ? startLocation : endLocation}`);

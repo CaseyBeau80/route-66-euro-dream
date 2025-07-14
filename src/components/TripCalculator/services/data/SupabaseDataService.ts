@@ -130,10 +130,11 @@ export class SupabaseDataService {
   }
 
   /**
-   * Find best matching stop by location name
+   * Find best matching stop by location name - COMPLETELY REWRITTEN FOR ACCURACY
    */
   static findBestMatchingStop(locationName: string, allStops: TripStop[]): TripStop | null {
     console.log(`🔍 [SPRINGFIELD DEBUG] Finding best matching stop for: "${locationName}"`);
+    console.log(`🔍 [SPRINGFIELD DEBUG] Total stops available: ${allStops.length}`);
     
     const normalizedSearch = locationName.toLowerCase().trim();
     console.log(`🔍 [SPRINGFIELD DEBUG] normalizedSearch: "${normalizedSearch}"`);
@@ -143,43 +144,77 @@ export class SupabaseDataService {
       stop.name.toLowerCase().includes('springfield') ||
       (stop as any).city_name?.toLowerCase().includes('springfield')
     );
-    console.log(`🔍 [SPRINGFIELD DEBUG] Available Springfield stops:`, springfieldStops.map(s => `${s.name || (s as any).city_name}, ${s.state}`));
+    console.log(`🔍 [SPRINGFIELD DEBUG] Available Springfield stops:`, springfieldStops.map(s => ({
+      name: s.name,
+      city_name: (s as any).city_name,
+      state: s.state,
+      category: s.category
+    })));
     
-    // FIXED: Handle "City, State" format first
+    // CRITICAL FIX: Handle "City, State" format with precise matching
     if (normalizedSearch.includes(',')) {
       const [cityPart, statePart] = normalizedSearch.split(',').map(s => s.trim());
-      console.log(`🔍 [SPRINGFIELD DEBUG] Parsed city: "${cityPart}", state: "${statePart}"`);
+      console.log(`🔍 [SPRINGFIELD DEBUG] Parsed - City: "${cityPart}", State: "${statePart}"`);
       
-      // Try exact city + state match - FIXED: Use exact string matching
+      // Method 1: Direct name + state match
       let match = allStops.find(stop => {
-        const cityMatches = stop.name.toLowerCase().trim() === cityPart;
-        const stateMatches = stop.state.toLowerCase().trim() === statePart;
-        console.log(`🔍 [SPRINGFIELD DEBUG] Comparing "${stop.name}, ${stop.state}": city=${cityMatches}, state=${stateMatches}`);
-        return cityMatches && stateMatches;
+        const nameMatch = stop.name.toLowerCase().trim() === cityPart;
+        const stateMatch = stop.state.toLowerCase().trim() === statePart;
+        
+        if (cityPart === 'springfield') {
+          console.log(`🔍 [SPRINGFIELD DEBUG] Testing ${stop.name}, ${stop.state}: nameMatch=${nameMatch}, stateMatch=${stateMatch}`);
+        }
+        
+        return nameMatch && stateMatch;
       });
       
       if (match) {
-        console.log(`✅ [SPRINGFIELD DEBUG] Found exact city + state match: ${match.name}, ${match.state}`);
+        console.log(`✅ [SPRINGFIELD DEBUG] FOUND via direct name+state: ${match.name}, ${match.state}`);
         return match;
-      } else {
-        console.log(`❌ [SPRINGFIELD DEBUG] No exact city + state match found for: "${cityPart}", "${statePart}"`);
       }
       
-      // Try city_name + state match if available
-      if (allStops[0] && 'city_name' in allStops[0]) {
-        match = allStops.find(stop => {
-          const cityMatches = (stop as any).city_name?.toLowerCase().trim() === cityPart;
-          const stateMatches = stop.state.toLowerCase().trim() === statePart;
-          console.log(`🔍 [SPRINGFIELD DEBUG] Comparing city_name "${(stop as any).city_name}, ${stop.state}": city=${cityMatches}, state=${stateMatches}`);
-          return cityMatches && stateMatches;
-        });
+      // Method 2: city_name + state match (for different data structures)
+      match = allStops.find(stop => {
+        const cityNameMatch = (stop as any).city_name?.toLowerCase().trim() === cityPart;
+        const stateMatch = stop.state.toLowerCase().trim() === statePart;
         
-        if (match) {
-          console.log(`✅ [SPRINGFIELD DEBUG] Found city_name + state match: ${(match as any).city_name}, ${match.state}`);
-          return match;
+        if (cityPart === 'springfield') {
+          console.log(`🔍 [SPRINGFIELD DEBUG] Testing city_name ${(stop as any).city_name}, ${stop.state}: cityNameMatch=${cityNameMatch}, stateMatch=${stateMatch}`);
+        }
+        
+        return cityNameMatch && stateMatch;
+      });
+      
+      if (match) {
+        console.log(`✅ [SPRINGFIELD DEBUG] FOUND via city_name+state: ${(match as any).city_name}, ${match.state}`);
+        return match;
+      }
+      
+      // Method 3: Comprehensive search for the specific case
+      for (const stop of allStops) {
+        const stopName = (stop.name || '').toLowerCase().trim();
+        const stopCityName = ((stop as any).city_name || '').toLowerCase().trim();
+        const stopState = (stop.state || '').toLowerCase().trim();
+        
+        const nameMatches = stopName === cityPart || stopCityName === cityPart;
+        const stateMatches = stopState === statePart;
+        
+        if (nameMatches && stateMatches) {
+          console.log(`✅ [SPRINGFIELD DEBUG] FOUND via comprehensive search: ${stop.name || (stop as any).city_name}, ${stop.state}`);
+          return stop;
+        }
+        
+        if (cityPart === 'springfield') {
+          console.log(`🔍 [SPRINGFIELD DEBUG] Comprehensive check - Stop: "${stopName}"/"${stopCityName}", ${stopState} | Looking for: "${cityPart}", "${statePart}" | Matches: name=${nameMatches}, state=${stateMatches}`);
         }
       }
+      
+      console.log(`❌ [SPRINGFIELD DEBUG] NO MATCH FOUND for: "${cityPart}, ${statePart}"`);
+      return null;
     }
+    
+    // For non-comma separated searches, use simpler logic
+    console.log(`🔍 [SPRINGFIELD DEBUG] Using simple search for: "${normalizedSearch}"`);
     
     // Try exact name match
     let match = allStops.find(stop => 
@@ -192,22 +227,20 @@ export class SupabaseDataService {
     }
     
     // Try city_name match if available
-    if (allStops[0] && 'city_name' in allStops[0]) {
-      match = allStops.find(stop => 
-        (stop as any).city_name?.toLowerCase().trim() === normalizedSearch
-      );
-      
-      if (match) {
-        console.log(`✅ Found city_name match: ${(match as any).city_name}`);
-        return match;
-      }
+    match = allStops.find(stop => 
+      (stop as any).city_name?.toLowerCase().trim() === normalizedSearch
+    );
+    
+    if (match) {
+      console.log(`✅ Found city_name match: ${(match as any).city_name}`);
+      return match;
     }
     
-    // Try partial matches (but be more careful with ambiguous cities like Springfield)
+    // Try partial matches (exclude Springfield to avoid ambiguity)
     if (!normalizedSearch.includes('springfield')) {
       match = allStops.find(stop => 
         stop.name.toLowerCase().includes(normalizedSearch) ||
-        (allStops[0] && 'city_name' in allStops[0] && (stop as any).city_name?.toLowerCase().includes(normalizedSearch)) ||
+        (stop as any).city_name?.toLowerCase().includes(normalizedSearch) ||
         normalizedSearch.includes(stop.name.toLowerCase())
       );
       
@@ -225,7 +258,7 @@ export class SupabaseDataService {
    * Get destination cities specifically
    */
   static async getDestinationCities(): Promise<TripStop[]> {
-    console.log('🏛️ Fetching destination cities from Supabase');
+    console.log('🏛️ [SPRINGFIELD DEBUG] Fetching destination cities from Supabase');
     
     try {
       const { data, error } = await supabase
@@ -243,19 +276,43 @@ export class SupabaseDataService {
         return [];
       }
 
-      const destinationStops = data.map(city => ({
-        id: city.id,
-        name: city.name,
-        description: city.description || '',
-        category: 'destination_city',
-        city_name: city.name,
-        city: city.name,
-        state: city.state,
-        latitude: parseFloat(city.latitude?.toString() || '0'),
-        longitude: parseFloat(city.longitude?.toString() || '0')
-      }));
+      // Enhanced debugging for Springfield entries
+      console.log('🔍 [SPRINGFIELD DEBUG] Raw data from destination_cities table:', data);
+      
+      const springfieldEntries = data.filter(city => 
+        city.name?.toLowerCase().includes('springfield')
+      );
+      console.log('🔍 [SPRINGFIELD DEBUG] Springfield entries found in database:', springfieldEntries);
+
+      const destinationStops = data.map(city => {
+        const stop = {
+          id: city.id,
+          name: city.name,
+          description: city.description || '',
+          category: 'destination_city',
+          city_name: city.name,
+          city: city.name,
+          state: city.state,
+          latitude: parseFloat(city.latitude?.toString() || '0'),
+          longitude: parseFloat(city.longitude?.toString() || '0')
+        };
+        
+        // Debug Springfield specifically
+        if (city.name?.toLowerCase().includes('springfield')) {
+          console.log('🔍 [SPRINGFIELD DEBUG] Mapped Springfield stop:', stop);
+        }
+        
+        return stop;
+      });
 
       console.log(`✅ Successfully fetched ${destinationStops.length} destination cities`);
+      
+      // Final debug of Springfield in the result
+      const springfieldStops = destinationStops.filter(stop => 
+        stop.name.toLowerCase().includes('springfield')
+      );
+      console.log('🔍 [SPRINGFIELD DEBUG] Springfield stops in final result:', springfieldStops);
+      
       return destinationStops;
 
     } catch (error) {

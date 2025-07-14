@@ -84,6 +84,7 @@ const LocationSelectionSection: React.FC<LocationSelectionSectionProps> = ({
           onChange={(e) => {
             console.log('🔍 [DROPDOWN DEBUG] User selected end location from dropdown:', e.target.value);
             console.log('🔍 [DROPDOWN DEBUG] This should be the exact value passed to form state');
+            console.log('🔍 [DROPDOWN DEBUG] Available cities in dropdown:', destinationCities.map(c => `${c.name}, ${c.state}`));
             onLocationChange('end', e.target.value);
           }}
           disabled={!startLocation}

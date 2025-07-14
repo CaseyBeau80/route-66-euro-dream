@@ -34,7 +34,9 @@ export class HeritageCitiesPlanningService {
     console.log(`🔍 [SPRINGFIELD FIX] Input startLocation: "${startLocation}"`);
     console.log(`🔍 [SPRINGFIELD FIX] Input endLocation: "${endLocation}"`);
     
+    console.log(`🔍 [SPRINGFIELD FIX] Calling findBestMatchingStop for start: "${startLocation}"`);
     const startStop = SupabaseDataService.findBestMatchingStop(startLocation, destinationCities);
+    console.log(`🔍 [SPRINGFIELD FIX] Calling findBestMatchingStop for end: "${endLocation}"`);
     const endStop = SupabaseDataService.findBestMatchingStop(endLocation, destinationCities);
 
     if (!startStop || !endStop) {
