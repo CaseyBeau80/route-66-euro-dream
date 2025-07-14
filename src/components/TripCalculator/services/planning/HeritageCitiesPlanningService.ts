@@ -99,6 +99,14 @@ export class HeritageCitiesPlanningService {
     const actualTotalDriveTime = dailySegments.reduce((sum, segment) => sum + (segment.driveTimeHours || 0), 0);
 
     // Create trip plan
+    console.log(`🚨 [FINAL DEBUG] About to create trip plan with:`);
+    console.log(`   startStop object:`, startStop);
+    console.log(`   endStop object:`, endStop);
+    console.log(`   startLocation param:`, startLocation);
+    console.log(`   endLocation param:`, endLocation);
+    console.log(`   CityDisplayService.formatCityDisplay(startStop):`, CityDisplayService.formatCityDisplay(startStop));
+    console.log(`   CityDisplayService.formatCityDisplay(endStop):`, CityDisplayService.formatCityDisplay(endStop));
+    
     const tripPlan: TripPlan = {
       id: `heritage-${Date.now()}`,
       title: `${startLocation} to ${endLocation} Heritage Cities Adventure`,
@@ -127,6 +135,14 @@ export class HeritageCitiesPlanningService {
         originalRequestedDays: requestedDays !== actualDays ? requestedDays : undefined
       })
     };
+
+    console.log(`🚨 [FINAL DEBUG] Created trip plan object with:`);
+    console.log(`   tripPlan.startCity: "${tripPlan.startCity}"`);
+    console.log(`   tripPlan.endCity: "${tripPlan.endCity}"`);
+    console.log(`   tripPlan.startLocation: "${tripPlan.startLocation}"`);
+    console.log(`   tripPlan.endLocation: "${tripPlan.endLocation}"`);
+    console.log(`   tripPlan.title: "${tripPlan.title}"`);
+    console.log(`   tripPlan.description: "${tripPlan.description}"`);
 
     console.log(`✅ Heritage Cities trip planned: ${actualDays} days, ${Math.round(actualTotalDistance)} miles, ${actualTotalDriveTime.toFixed(1)}h total drive time`);
     
