@@ -49,6 +49,15 @@ const EnhancedTripResults: React.FC<EnhancedTripResultsProps> = ({
       startLocation: tripPlan.summary?.startLocation || tripPlan.startLocation || 'Start Location',
       endLocation: tripPlan.summary?.endLocation || tripPlan.endLocation || 'End Location'
     };
+    
+    // CRITICAL DEBUG: Log what we're actually displaying
+    console.log(`🚨 [DISPLAY DEBUG] standardizedSummary created:`, {
+      startLocation: tripPlan.summary?.startLocation || tripPlan.startLocation || 'Start Location',
+      endLocation: tripPlan.summary?.endLocation || tripPlan.endLocation || 'End Location',
+      'tripPlan.summary?.endLocation': tripPlan.summary?.endLocation,
+      'tripPlan.endLocation': tripPlan.endLocation,
+      'final endLocation used': tripPlan.summary?.endLocation || tripPlan.endLocation || 'End Location'
+    });
   }, [tripPlan, preferences]);
 
   console.log('📊 STANDARDIZED: EnhancedTripResults using unified formatting:', {
