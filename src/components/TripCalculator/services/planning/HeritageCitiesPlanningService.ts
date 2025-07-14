@@ -38,6 +38,8 @@ export class HeritageCitiesPlanningService {
     const startStop = SupabaseDataService.findBestMatchingStop(startLocation, destinationCities);
     console.log(`🔍 [SPRINGFIELD FIX] Calling findBestMatchingStop for end: "${endLocation}"`);
     const endStop = SupabaseDataService.findBestMatchingStop(endLocation, destinationCities);
+    console.log(`🔍 [SPRINGFIELD FIX] START STOP RESULT:`, startStop);
+    console.log(`🔍 [SPRINGFIELD FIX] END STOP RESULT:`, endStop);
 
     if (!startStop || !endStop) {
       const error = `Could not find destination cities for: ${!startStop ? startLocation : endLocation}`;
@@ -103,8 +105,8 @@ export class HeritageCitiesPlanningService {
       description: adjustmentMessage ? 
         `${adjustmentMessage} This ${actualDays}-day journey focuses on Route 66's most significant heritage cities.` : 
         `A ${actualDays}-day journey through Route 66's most significant heritage cities.`,
-      startCity: startLocation,
-      endCity: endLocation,
+      startCity: CityDisplayService.formatCityDisplay(startStop),
+      endCity: CityDisplayService.formatCityDisplay(endStop),
       startLocation: CityDisplayService.formatCityDisplay(startStop),
       endLocation: CityDisplayService.formatCityDisplay(endStop),
       startDate: new Date(),

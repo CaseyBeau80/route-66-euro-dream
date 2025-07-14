@@ -24,9 +24,20 @@ export class UnifiedTripPlanningService {
     console.log(`📍 Route: ${startLocation} → ${endLocation}, ${travelDays} days`);
     console.log(`🚀 DEBUG: UnifiedTripPlanningService.planTrip called!`);
     
+    // CRITICAL DEBUG: Log the EXACT parameters being passed
+    console.log(`🚨 [UNIFIED DEBUG] EXACT parameters received:`);
+    console.log(`   startLocation: "${startLocation}"`);
+    console.log(`   endLocation: "${endLocation}"`);
+    console.log(`   travelDays: ${travelDays}`);
+    console.log(`   tripStyle: "${tripStyle}"`);
+    
     try {
       // Since we only support destination-focused, use HeritageCitiesPlanningService
       console.log(`🏛️ Calling HeritageCitiesPlanningService...`);
+      console.log(`🚨 [UNIFIED DEBUG] About to call HeritageCitiesPlanningService.planHeritageCitiesTrip with:`);
+      console.log(`   startLocation parameter: "${startLocation}"`);
+      console.log(`   endLocation parameter: "${endLocation}"`);
+      
       const tripPlan = await HeritageCitiesPlanningService.planHeritageCitiesTrip(
         startLocation,
         endLocation,
