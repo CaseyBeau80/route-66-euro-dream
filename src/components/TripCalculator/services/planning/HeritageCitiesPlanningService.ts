@@ -174,13 +174,9 @@ export class HeritageCitiesPlanningService {
     
     console.log(`🎯 Found ${candidateCities.length} candidate cities to filter`);
 
-    // Use DirectionEnforcerService to filter for forward-progressing destinations only
-    const forwardProgressingCities = DirectionEnforcerService.filterForwardDestinations(
-      startStop,
-      candidateCities,
-      endStop,
-      'moderate' // Use moderate strictness for good coverage
-    );
+    // TEMPORARY BYPASS: Don't filter destinations to test Springfield issue
+    console.log(`🚨 [SPRINGFIELD TEST] BYPASSING DirectionEnforcerService filtering`);
+    const forwardProgressingCities = candidateCities; // Use all candidates without filtering
 
     console.log(`✅ ANTI-PING-PONG: Filtered to ${forwardProgressingCities.length} forward-progressing cities`);
     
