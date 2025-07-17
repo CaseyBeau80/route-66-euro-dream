@@ -10,7 +10,7 @@ import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 const heroContent = {
   en: {
     title: "Plan <span class='underline'>Your</span> Route 66 Vacation 👇",
-    painPoints: ["Too much time spent spinning your Route 66 wheels?", "Are you bouncing between websites, still unsure where or how to start your Route 66 trip? Planning shouldn't feel like guesswork.", "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?", "Here. You come right here (and it's all free)."],
+    painPoints: ["Too much time spent spinning your Route 66 wheels?", "Are you bouncing between websites, still unsure where or how to start your Route 66 trip?", "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?", "Here. You come right here (and it's all free)."],
     ctaButton: "Start Exploring",
     mascotAlt: "Big Bo Ramble - Route 66 Mascot"
   },
