@@ -59,7 +59,7 @@ const HeroSection: React.FC = () => {
             <div className="space-y-4">
               {/* Title - Bold, uppercase, bright blue */}
               <h1 className="text-3xl lg:text-4xl xl:text-5xl font-route66 font-bold uppercase leading-tight text-route66-primary">
-                Route 66 Starts Here — Plan Your Journey Now
+                Plan Your Route 66 Road Trip – Hidden Gems, Classic Diners & Must-See Stops
               </h1>
 
               {/* Pain Points - Tightly stacked with blue text */}
