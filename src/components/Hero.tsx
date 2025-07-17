@@ -56,6 +56,13 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
         {/* Light dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/50"></div>
         
+        {/* Fun overlapping yellow caption */}
+        <div className="absolute top-8 right-8 z-30 transform rotate-12">
+          <div className="bg-yellow-400 text-black font-bold px-6 py-3 rounded-lg shadow-lg border-2 border-yellow-500 text-lg">
+            Plan your Route 66 trip. Big Bo says so.
+          </div>
+        </div>
+        
         {/* Content overlay - positioned further down above the Route 66 shield */}
         <div className="relative z-20 flex flex-col items-center justify-start pt-56 h-full text-center px-4 max-w-6xl mx-auto">
           {/* Enhanced typography with better contrast */}
