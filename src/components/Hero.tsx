@@ -56,6 +56,15 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
         {/* Light dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/50"></div>
         
+        {/* Big Bo overlapping image */}
+        <div className="absolute top-4 left-4 z-30 transform -rotate-6">
+          <img 
+            src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
+            alt="Big Bo - Route 66 Mascot" 
+            className="w-32 h-40 object-cover rounded-lg shadow-2xl border-4 border-white"
+          />
+        </div>
+        
         {/* Fun overlapping yellow caption */}
         <div className="absolute top-8 right-8 z-30 transform rotate-12">
           <div className="bg-yellow-400 text-black font-bold px-6 py-3 rounded-lg shadow-lg border-2 border-yellow-500 text-lg">
