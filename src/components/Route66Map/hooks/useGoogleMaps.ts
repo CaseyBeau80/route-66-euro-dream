@@ -7,12 +7,10 @@ import { useMapLoading } from './useMapLoading';
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  // Always use the hardcoded API key to prevent loader option conflicts
-  const apiKey = useMemo(() => {
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-    console.log('🔑 Using consistent hardcoded API key');
-    return hardcodedApiKey;
-  }, []);
+  // Use a completely stable API key - no conditional logic
+  const STABLE_API_KEY = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+  
+  console.log('🔑 Using stable hardcoded API key for loader consistency');
 
   // Enhanced validation - check if key looks like a real Google Maps API key
   const isValidGoogleMapsKey = (key: string): boolean => {
@@ -57,12 +55,12 @@ export const useGoogleMaps = () => {
     return false;
   };
 
-  const shouldLoadApi = isValidGoogleMapsKey(apiKey);
+  const shouldLoadApi = isValidGoogleMapsKey(STABLE_API_KEY);
   
   console.log('🗺️ Google Maps loader config:', {
     shouldLoadApi,
-    apiKeyLength: apiKey.length,
-    apiKeyPrefix: apiKey.substring(0, 10) + '...',
+    apiKeyLength: STABLE_API_KEY.length,
+    apiKeyPrefix: STABLE_API_KEY.substring(0, 10) + '...',
     isValidKey: shouldLoadApi,
     libraries: GOOGLE_MAPS_LIBRARIES
   });
@@ -70,7 +68,7 @@ export const useGoogleMaps = () => {
   // Always use the same loader configuration to prevent option conflicts
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey, // Always use the consistent API key
+    googleMapsApiKey: STABLE_API_KEY, // Always use the stable API key
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
