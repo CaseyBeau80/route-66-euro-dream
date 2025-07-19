@@ -20,7 +20,7 @@ export const useZoomHandlers = ({ map, isMapReady, isZooming, setIsZooming }: Us
     }
 
     const currentMapZoom = map.getZoom();
-    if (currentMapZoom === undefined || currentMapZoom >= 18) {
+    if (currentMapZoom === undefined || currentMapZoom >= 16) { // Updated max zoom
       console.log('🎮 ZoomControls: Already at maximum zoom');
       return false;
     }
@@ -29,7 +29,7 @@ export const useZoomHandlers = ({ map, isMapReady, isZooming, setIsZooming }: Us
     setIsZooming(true);
     
     try {
-      const newZoom = Math.min(currentMapZoom + 1, 18);
+      const newZoom = Math.min(currentMapZoom + 1, 16); // Updated max zoom
       console.log('🎮 ZoomControls: Setting new zoom to:', newZoom);
       
       // Use Google Maps setZoom method directly

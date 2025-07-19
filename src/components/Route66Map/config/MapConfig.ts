@@ -1,6 +1,4 @@
 
-
-
 // Map configuration constants
 
 // Styling for the Google Map
@@ -42,7 +40,7 @@ export const createMapOptions = (isMobile: boolean): google.maps.MapOptions => (
   fullscreenControl: true,
   restriction: mapRestrictions,
   minZoom: 4, // Increased minimum zoom for Route 66 focus
-  maxZoom: 12, // Reasonable maximum zoom for route exploration
+  maxZoom: 16, // Enhanced maximum zoom for detailed viewing
   // Device-aware gesture handling:
   // Desktop: 'cooperative' requires Ctrl+scroll to zoom  
   // Mobile: 'greedy' allows normal touch gestures
@@ -101,4 +99,3 @@ export const polylineOptions = {
   visible: true,
   zIndex: 1,
 };
-

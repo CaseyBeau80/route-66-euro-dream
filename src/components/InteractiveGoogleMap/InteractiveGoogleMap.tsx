@@ -1,3 +1,4 @@
+
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -82,7 +83,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
         strictBounds: true
       },
       minZoom: 4, // Focused minimum zoom for Route 66
-      maxZoom: 12, // Reasonable maximum for route exploration
+      maxZoom: 16, // Enhanced maximum zoom for detailed viewing
       
       // Map styling focused on Route 66
       styles: [

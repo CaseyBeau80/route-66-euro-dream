@@ -53,14 +53,14 @@ const GoogleMapsZoomControls: React.FC<GoogleMapsZoomControlsProps> = ({
     }
 
     const currentMapZoom = map.getZoom();
-    if (currentMapZoom === undefined || currentMapZoom >= 12) {
+    if (currentMapZoom === undefined || currentMapZoom >= 16) { // Enhanced max zoom
       console.log('🔍 Zoom in blocked - at maximum zoom:', currentMapZoom);
       return;
     }
 
     console.log('🔍 Custom zoom in from:', currentMapZoom, 'to:', currentMapZoom + 1);
     setIsZooming(true);
-    const newZoom = Math.min(currentMapZoom + 1, 12);
+    const newZoom = Math.min(currentMapZoom + 1, 16); // Enhanced max zoom
     
     // Force the zoom change through the map instance
     map.setZoom(newZoom);
@@ -98,7 +98,7 @@ const GoogleMapsZoomControls: React.FC<GoogleMapsZoomControlsProps> = ({
     return null;
   }
 
-  const isZoomInDisabled = currentZoom >= 12 || isZooming;
+  const isZoomInDisabled = currentZoom >= 16 || isZooming; // Enhanced max zoom
   const isZoomOutDisabled = currentZoom <= 4 || isZooming;
 
   return (

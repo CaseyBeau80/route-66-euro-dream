@@ -25,10 +25,10 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({ map, isMapReady }) => {
     return null;
   }
 
-  const isZoomInDisabled = currentZoom >= 12 || isZooming; // Updated max zoom for Route 66 focus
+  const isZoomInDisabled = currentZoom >= 16 || isZooming; // Updated max zoom for detailed viewing
   const isZoomOutDisabled = currentZoom <= 4 || isZooming; // Updated min zoom for Route 66 focus
 
-  console.log('🎮 ZoomControls: Rendering with Route 66 focused zoom:', currentZoom);
+  console.log('🎮 ZoomControls: Rendering with enhanced zoom range:', currentZoom);
 
   return (
     <div 
