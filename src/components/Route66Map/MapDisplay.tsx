@@ -3,7 +3,7 @@ import React from 'react';
 import MapLoadingStates from './components/MapLoadingStates';
 import GoogleMapsRoute66 from './GoogleMapsRoute66';
 import ApiKeyInput from './components/ApiKeyInput';
-import ApiKeyManager from './components/ApiKeyManager';
+
 import { useGoogleMapsContext } from './components/GoogleMapsProvider';
 
 interface MapDisplayProps {
@@ -91,14 +91,6 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
         onStateClick={onStateClick}
         onClearSelection={onClearSelection}
       />
-      
-      {/* Add API Key Manager for easy access */}
-      <div className="absolute top-4 right-4 z-50">
-        <ApiKeyManager 
-          onApiKeyUpdate={setApiKey}
-          currentApiKey={localStorage.getItem('google_maps_api_key') || undefined}
-        />
-      </div>
     </div>
   );
 };
