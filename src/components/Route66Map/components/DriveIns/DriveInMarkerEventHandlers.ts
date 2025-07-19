@@ -1,5 +1,6 @@
 
 import { DriveInData } from './hooks/useDriveInsData';
+import { openExternalLinkWithHistory, createReturnToMapUrl } from '@/utils/externalLinkUtils';
 
 interface DriveInMarkerEventHandlersConfig {
   driveIn: DriveInData;
@@ -127,10 +128,21 @@ export const createDriveInMarkerEventHandlers = ({
     }
   };
 
+  // Enhanced website opening with external link handling
+  const handleWebsiteClick = (website: string) => {
+    console.log(`🌐 Opening drive-in website: ${driveIn.name} - ${website}`);
+    openExternalLinkWithHistory(website, driveIn.name, {
+      returnUrl: createReturnToMapUrl(),
+      linkSource: 'drive-in-marker',
+      showReturnButton: true
+    });
+  };
+
   return {
     handleMouseOver,
     handleMouseOut,
     handleClick: handleMarkerClick,
-    updateMarkerPosition
+    updateMarkerPosition,
+    handleWebsiteClick
   };
 };

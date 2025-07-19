@@ -1,5 +1,6 @@
 
 import { EventSource } from '../data/cityEventLinks';
+import { openExternalLinkWithHistory, createReturnToMapUrl } from '@/utils/externalLinkUtils';
 
 export const getEventSourceIcon = (type: EventSource['type']): string => {
   switch (type) {
@@ -41,12 +42,13 @@ export const getEventSourceBadgeClass = (type: EventSource['type']): string => {
 
 export const openEventLink = (url: string, sourceName: string): void => {
   try {
-    // Ensure URL has protocol
-    const formattedUrl = url.startsWith('http') ? url : `https://${url}`;
+    console.log(`🔗 Opening event source: ${sourceName} - ${url}`);
     
-    console.log(`🔗 Opening event source: ${sourceName} - ${formattedUrl}`);
-    
-    window.open(formattedUrl, '_blank', 'noopener,noreferrer');
+    openExternalLinkWithHistory(url, sourceName, {
+      returnUrl: createReturnToMapUrl(),
+      linkSource: 'events',
+      showReturnButton: true
+    });
   } catch (error) {
     console.error('Error opening event link:', error);
   }

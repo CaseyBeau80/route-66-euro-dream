@@ -1,9 +1,11 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { MapPin, ExternalLink, Calendar, Users, Monitor, X } from 'lucide-react';
+import { MapPin, Calendar, Users, Monitor, X } from 'lucide-react';
 import { DriveInData } from './hooks/useDriveInsData';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ExternalLinkButton } from '@/components/ui/ExternalLinkButton';
+import { ExternalLinkTooltip } from '@/components/ui/ExternalLinkTooltip';
 
 interface DriveInTheaterHoverCardProps {
   driveIn: DriveInData;
@@ -124,20 +126,18 @@ const DriveInTheaterHoverCard: React.FC<DriveInTheaterHoverCardProps> = ({
             </div>
           )}
           
-          {/* Website button */}
+          {/* Enhanced website button with external link indicator */}
           {driveIn.website && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`🌐 Clicking drive-in website for ${driveIn.name}: ${driveIn.website}`);
-                onWebsiteClick(driveIn.website!);
-              }}
-              className="bg-gradient-to-r from-red-600 to-red-700 text-yellow-200 px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg border-2 border-yellow-400 hover:from-red-700 hover:to-red-800 hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 w-full pointer-events-auto"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Visit Theater Website
-            </button>
+            <ExternalLinkTooltip siteName={driveIn.name} showWarning={true}>
+              <ExternalLinkButton
+                url={driveIn.website}
+                siteName={driveIn.name}
+                linkSource="drive-in-card"
+                className="bg-gradient-to-r from-red-600 to-red-700 text-yellow-200 px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wide shadow-lg border-2 border-yellow-400 hover:from-red-700 hover:to-red-800 hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full pointer-events-auto"
+              >
+                Visit Theater Website
+              </ExternalLinkButton>
+            </ExternalLinkTooltip>
           )}
         </div>
       </CardContent>
