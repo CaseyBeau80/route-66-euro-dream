@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { GoogleMapsProvider } from './components/GoogleMapsProvider';
 import MapDisplay from './MapDisplay';
 
 const Route66Map: React.FC = () => {
@@ -16,13 +17,15 @@ const Route66Map: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full">
-      <MapDisplay
-        selectedState={selectedState}
-        onStateClick={handleStateClick}
-        onClearSelection={handleClearSelection}
-      />
-    </div>
+    <GoogleMapsProvider>
+      <div className="w-full h-full">
+        <MapDisplay
+          selectedState={selectedState}
+          onStateClick={handleStateClick}
+          onClearSelection={handleClearSelection}
+        />
+      </div>
+    </GoogleMapsProvider>
   );
 };
 

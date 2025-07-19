@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import MapLoadingStates from './components/MapLoadingStates';
 import GoogleMapsRoute66 from './GoogleMapsRoute66';
 import ApiKeyInput from './components/ApiKeyInput';
-import { useGoogleMaps } from './hooks/useGoogleMaps';
+import { useGoogleMapsContext } from './components/GoogleMapsProvider';
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -24,7 +24,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     localStorage.setItem('google_maps_api_key', hardcodedApiKey);
   }
   
-  const { isLoaded, loadError } = useGoogleMaps();
+  const { isLoaded, loadError } = useGoogleMapsContext();
   
   // NEVER check hasApiKey - always assume it's available
   const hasApiKey = true; // FORCED to true
