@@ -32,13 +32,6 @@ export class GoogleMapsIntegrationService {
   }
 
   static getApiKey(): string | null {
-    // Use hardcoded API key for production
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-    
-    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
-      return hardcodedApiKey.trim();
-    }
-    
     try {
       return localStorage.getItem(this.STORAGE_KEY);
     } catch (error) {

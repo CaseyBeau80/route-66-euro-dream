@@ -16,6 +16,15 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onStateClick, 
   onClearSelection 
 }) => {
+  // Clear any invalid cached API key
+  React.useEffect(() => {
+    const storedKey = localStorage.getItem('google_maps_api_key');
+    if (storedKey === 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8') {
+      console.log('🧹 Clearing invalid cached API key');
+      localStorage.removeItem('google_maps_api_key');
+    }
+  }, []);
+
   const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
   const [userApiKey, setUserApiKey] = useState<string>('');
   
