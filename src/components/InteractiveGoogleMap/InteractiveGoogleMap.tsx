@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useGoogleMaps } from '@/components/Route66Map/hooks/useGoogleMaps';
+import { useGoogleMapsContext } from '@/components/Route66Map/components/GoogleMapsProvider';
 
 interface InteractiveGoogleMapProps {
   onMapLoad?: (map: google.maps.Map) => void;
@@ -48,8 +48,8 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   console.log('🚨 INTERACTIVE GOOGLE MAP RENDERING - NEW VERSION WITH DEVICE DETECTION');
   console.log('🚨 Device detection result:', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
 
-  // Use the same Google Maps hook as the main map to avoid loader conflicts
-  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
+  // Use context instead of direct hook to avoid loader conflicts
+  const { isLoaded, loadError } = useGoogleMapsContext();
 
   // Map options with device-aware wheel zoom handling
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
@@ -155,21 +155,6 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
       onMapClick();
     }
   }, [onMapClick]);
-
-  if (!hasApiKey) {
-    return (
-      <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}>
-        <div className="text-center p-8">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">
-            Google Maps API Key Required
-          </h3>
-          <p className="text-gray-600 text-sm">
-            Please add your Google Maps API key to display the map
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   if (loadError) {
     return (
