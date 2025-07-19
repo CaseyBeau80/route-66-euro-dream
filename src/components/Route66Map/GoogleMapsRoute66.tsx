@@ -59,7 +59,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }
 
   return (
-    <div className="relative w-full h-full" style={{ minHeight: '750px' }}>
+    <div className="relative w-full h-full bg-gray-100" style={{ minHeight: '750px', height: '750px' }}>
       <InteractiveGoogleMap
         onMapLoad={handleMapLoad}
         onMapClick={handleMapClick}

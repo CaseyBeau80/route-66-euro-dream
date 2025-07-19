@@ -185,9 +185,22 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   console.log('🚨 ABOUT TO RENDER GOOGLE MAP COMPONENT', { isLoaded, center, zoom, className });
 
   return (
-    <div className={className} style={{ width: '100%', height: '100%', minHeight: '400px' }}>
+    <div 
+      className={`${className} bg-blue-100`} 
+      style={{ 
+        width: '100%', 
+        height: '100%', 
+        minHeight: '750px',
+        position: 'relative',
+        border: '2px solid red' // Debug border to see container
+      }}
+    >
       <GoogleMap
-        mapContainerStyle={mapContainerStyle}
+        mapContainerStyle={{
+          width: '100%',
+          height: '100%',
+          minHeight: '750px'
+        }}
         center={center}
         zoom={zoom}
         options={mapOptions}
