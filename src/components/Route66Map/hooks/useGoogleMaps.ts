@@ -1,34 +1,45 @@
 
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define libraries as a constant to prevent recreating the array - using only maps library
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  // Memoize the API key to prevent it from changing between renders
-  const apiKey = useMemo(() => {
-    const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const storedApiKey = localStorage.getItem('google_maps_api_key');
-    
-    console.log('🔑 DEBUG: API Key check:', { 
-      hasEnvKey: !!envApiKey, 
-      hasStoredKey: !!storedApiKey,
-      storedKeyLength: storedApiKey?.length || 0,
-      finalChoice: storedApiKey ? 'stored' : envApiKey ? 'env' : 'none'
-    });
-    
-    if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
-      console.log('🔑 DEBUG: Using stored API key');
-      return storedApiKey.trim();
-    } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
-      console.log('🔑 DEBUG: Using environment API key');
-      return envApiKey.trim();
-    }
-    
-    console.log('🔑 DEBUG: No valid API key found');
-    return '';
+  const [apiKey, setApiKey] = useState<string>('');
+  const [keyLoaded, setKeyLoaded] = useState(false);
+
+  // Fetch API key from Supabase edge function
+  useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        console.log('🔑 Fetching Google Maps API key from Supabase...');
+        
+        const { data, error } = await supabase.functions.invoke('get-google-maps-key');
+        
+        if (error) {
+          console.error('❌ Error fetching API key:', error);
+          setKeyLoaded(true);
+          return;
+        }
+
+        if (data?.apiKey) {
+          console.log('✅ Google Maps API key retrieved successfully');
+          setApiKey(data.apiKey);
+          localStorage.setItem('google_maps_api_key', data.apiKey);
+        } else {
+          console.error('❌ No API key in response');
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch API key:', error);
+      } finally {
+        setKeyLoaded(true);
+      }
+    };
+
+    fetchApiKey();
   }, []);
 
   // Enhanced validation - check if key looks like a real Google Maps API key
@@ -109,10 +120,9 @@ export const useGoogleMaps = () => {
     setActiveMarker(null);
   }, []);
 
-  // If no API key is available or the key is clearly invalid, return appropriate state
-  if (!shouldLoadApi) {
-    console.log('🔑 DEBUG: No valid Google Maps API key available - showing input form');
-    console.log('🔑 DEBUG: shouldLoadApi:', shouldLoadApi, 'apiKey length:', apiKey.length, 'apiKey preview:', apiKey.substring(0, 10) + '...');
+  // If key hasn't loaded yet or no API key is available, return appropriate state
+  if (!keyLoaded || !shouldLoadApi) {
+    console.log('🔑 DEBUG: API key loading state:', { keyLoaded, shouldLoadApi, apiKeyLength: apiKey.length });
     
     return {
       isLoaded: false,

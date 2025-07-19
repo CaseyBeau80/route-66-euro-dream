@@ -16,40 +16,17 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onStateClick, 
   onClearSelection 
 }) => {
-  // Clear any invalid cached API key
-  React.useEffect(() => {
-    const storedKey = localStorage.getItem('google_maps_api_key');
-    if (storedKey === 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8') {
-      console.log('🧹 Clearing invalid cached API key');
-      localStorage.removeItem('google_maps_api_key');
-    }
-  }, []);
-
   const { isLoaded, loadError } = useGoogleMapsContext();
-  const [userApiKey, setUserApiKey] = useState<string>('');
   
   const handleApiKeySet = (apiKey: string) => {
     console.log('🔑 API key set:', apiKey.substring(0, 10) + '...');
-    setUserApiKey(apiKey);
   };
 
   console.log('🗺️ MapDisplay render state:', { 
     isLoaded, 
     hasError: !!loadError, 
-    hasApiKey: localStorage.getItem('google_maps_api_key') ? true : false,
     errorMessage: loadError?.message
   });
-
-  const hasApiKey = localStorage.getItem('google_maps_api_key') ? true : false;
-
-  if (!hasApiKey) {
-    console.log('🔑 No API key available, showing input form');
-    return (
-      <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
-        <ApiKeyInput onApiKeySet={handleApiKeySet} />
-      </div>
-    );
-  }
 
   // If there's a loading error, show error message instead of input form
   if (loadError) {
