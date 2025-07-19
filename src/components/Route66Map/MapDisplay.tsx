@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import MapLoadingStates from './components/MapLoadingStates';
 import GoogleMapsRoute66 from './GoogleMapsRoute66';
 import ApiKeyInput from './components/ApiKeyInput';
-import { useGoogleMaps } from './hooks/useGoogleMaps';
+import { useGoogleMapsContext } from './components/GoogleMapsProvider';
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -25,7 +25,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     }
   }, []);
 
-  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
+  const { isLoaded, loadError } = useGoogleMapsContext();
   const [userApiKey, setUserApiKey] = useState<string>('');
   
   const handleApiKeySet = (apiKey: string) => {
@@ -36,9 +36,11 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   console.log('🗺️ MapDisplay render state:', { 
     isLoaded, 
     hasError: !!loadError, 
-    hasApiKey,
+    hasApiKey: localStorage.getItem('google_maps_api_key') ? true : false,
     errorMessage: loadError?.message
   });
+
+  const hasApiKey = localStorage.getItem('google_maps_api_key') ? true : false;
 
   if (!hasApiKey) {
     console.log('🔑 No API key available, showing input form');
