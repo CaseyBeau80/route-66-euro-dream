@@ -105,6 +105,14 @@ export const useGoogleMaps = () => {
     window.location.reload();
   }, []);
 
+  console.log('🗺️ Google Maps loading state:', {
+    isLoaded: hasApiKey ? isLoaded : false,
+    loadError: hasApiKey ? loadError : null,
+    hasValidApiKey: hasApiKey,
+    actualIsLoaded: isLoaded,
+    actualLoadError: loadError
+  });
+
   // Log any loading errors
   if (loadError) {
     console.error('❌ Google Maps loading error:', loadError);
