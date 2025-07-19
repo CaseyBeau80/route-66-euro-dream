@@ -1,7 +1,12 @@
+
+import { Link } from "react-router-dom";
 import LogoImage from "./shared/LogoImage";
+
 const Footer = () => {
-  console.log('🏁 Footer: Rendering with LogoImage component');
-  return <footer className="bg-route66-dark text-white">
+  console.log('🏁 Footer: Rendering with React Router Link components');
+  
+  return (
+    <footer className="bg-route66-dark text-white">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Logo & Description */}
@@ -22,14 +27,14 @@ const Footer = () => {
             <h3 className="font-bold mb-4 text-lg text-white">Explore</h3>
             <ul className="space-y-2">
               <li>
-                <a href="/" className="text-white/70 hover:text-white transition-colors text-sm">
+                <Link to="/" className="text-white/70 hover:text-white transition-colors text-sm">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/about" className="text-white/70 hover:text-white transition-colors text-sm">
+                <Link to="/about" className="text-white/70 hover:text-white transition-colors text-sm">
                   About Route 66
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -37,14 +42,11 @@ const Footer = () => {
           {/* Contact */}
           <div className="col-span-1">
             <h3 className="font-bold mb-4 text-lg text-white">
-              <a href="/contact" className="text-white hover:text-route66-red transition-colors">
+              <Link to="/contact" className="text-white hover:text-route66-red transition-colors">
                 Contact
-              </a>
+              </Link>
             </h3>
             <ul className="space-y-2">
-              <li>
-                
-              </li>
               <li>
                 <a href="mailto:info@ramble66.com" className="text-white/70 hover:text-white transition-colors text-sm">
                   info@ramble66.com
@@ -61,12 +63,14 @@ const Footer = () => {
             © 2025 Ramble66 | Contact: <a href="mailto:info@ramble66.com" className="text-white/70 hover:text-white transition-colors">info@ramble66.com</a>
           </div>
           <div>
-            <a href="#" className="text-white/60 text-sm hover:text-white transition-colors">
+            <Link to="#" className="text-white/60 text-sm hover:text-white transition-colors">
               Terms & Privacy
-            </a>
+            </Link>
           </div>
         </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
+
 export default Footer;

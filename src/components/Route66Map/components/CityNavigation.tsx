@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Map, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
 import { extractCityName } from '@/utils/cityUrlUtils';
 
@@ -63,7 +62,8 @@ const CityNavigation: React.FC = () => {
     const cityName = extractCityName(waypoint.name);
     const citySlug = cityName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     console.log('🏛️ City clicked, navigating to:', citySlug);
-    navigate(`/city/${citySlug}`);
+    // Use React Router navigation instead of direct navigation
+    navigate(`/city/${citySlug}`, { replace: false });
   };
 
   if (isLoading) {
