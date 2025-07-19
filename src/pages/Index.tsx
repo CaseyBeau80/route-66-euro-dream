@@ -9,12 +9,15 @@ import TripPlannerSection from "../components/TripPlannerSection";
 import SocialSection from "../components/SocialSection/SocialSection";
 import TollRoads from "../components/TollRoads";
 import FunSection from "../components/FunSection/FunSection";
+import SocialMetaTags from "../components/shared/SocialMetaTags";
 
 const Index = () => {
   console.log("🏠 Index page: Rendering with restored directory view");
 
   return (
     <MainLayout>
+      <SocialMetaTags />
+      
       {/* Hero Section - Full viewport height with two-column layout */}
       <section id="hero">
         <HeroSection />
