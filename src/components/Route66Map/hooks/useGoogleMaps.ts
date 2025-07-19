@@ -100,9 +100,8 @@ export const useGoogleMaps = () => {
   const setApiKeyAndReload = useCallback((newApiKey: string) => {
     const trimmedKey = newApiKey.trim();
     localStorage.setItem('google_maps_api_key', trimmedKey);
-    setApiKey(trimmedKey);
     console.log('🔑 API key updated, page will reload to initialize Google Maps');
-    // Reload the page to reinitialize Google Maps with new API key
+    // Reload the page immediately to reinitialize Google Maps with new API key
     window.location.reload();
   }, []);
 
