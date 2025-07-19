@@ -7,10 +7,11 @@ import { useMapLoading } from './useMapLoading';
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  // Get API key from localStorage only - no hardcoded keys
+  // Get API key from localStorage or use demo key
   const getStoredApiKey = (): string => {
     const storedKey = localStorage.getItem('google_maps_api_key');
-    return storedKey?.trim() || '';
+    // Use a demo key if no stored key is available
+    return storedKey?.trim() || 'AIzaSyBjsINSWPx5SC1nxnqwCb_7ByVKFps7t1A';
   };
 
   const [apiKey, setApiKey] = useState<string>(getStoredApiKey());
