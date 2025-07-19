@@ -22,7 +22,10 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     isLoaded, 
     hasError: !!loadError, 
     hasApiKey,
-    errorMessage: loadError?.message
+    errorMessage: loadError?.message,
+    selectedState,
+    onStateClick: !!onStateClick,
+    onClearSelection: !!onClearSelection
   });
 
   // Show API key input if no valid API key is available

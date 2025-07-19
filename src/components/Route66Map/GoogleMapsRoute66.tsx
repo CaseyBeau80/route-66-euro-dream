@@ -29,6 +29,14 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
 
+  console.log('🗺️ GoogleMapsRoute66 render state:', {
+    isLoaded,
+    hasLoadError: !!loadError,
+    errorMessage: loadError?.message,
+    isMapReady,
+    selectedState
+  });
+
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     
@@ -51,7 +59,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" style={{ minHeight: '750px' }}>
       <InteractiveGoogleMap
         onMapLoad={handleMapLoad}
         onMapClick={handleMapClick}
