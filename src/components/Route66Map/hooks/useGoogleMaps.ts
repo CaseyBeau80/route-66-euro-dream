@@ -1,28 +1,25 @@
 
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
 
-// Define libraries as a constant to prevent recreating the array - using only maps library
+// Define libraries as a constant to prevent recreating the array
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  // Use a completely stable API key - no conditional logic
-  const STABLE_API_KEY = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-  
-  console.log('🔑 Using stable hardcoded API key for loader consistency');
+  // Get API key from localStorage only - no hardcoded keys
+  const getStoredApiKey = (): string => {
+    const storedKey = localStorage.getItem('google_maps_api_key');
+    return storedKey?.trim() || '';
+  };
 
+  const [apiKey, setApiKey] = useState<string>(getStoredApiKey());
+  
   // Enhanced validation - check if key looks like a real Google Maps API key
   const isValidGoogleMapsKey = (key: string): boolean => {
     if (!key || key.trim() === '' || key === 'demo-key') return false;
     
-    // Accept our hardcoded key immediately
-    if (key === 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8') {
-      console.log('🔑 Hardcoded API key validated');
-      return true;
-    }
-    
-    // Check if key starts with common test/placeholder text (but NOT AIzaSy which is valid)
+    // Check if key starts with common test/placeholder text
     const invalidPrefixes = ['What do yo', 'I am tryin', 'your_', 'demo', 'test', 'placeholder', 'YOUR_API_KEY', 'enter_your'];
     const keyLower = key.toLowerCase();
     
@@ -55,25 +52,27 @@ export const useGoogleMaps = () => {
     return false;
   };
 
-  const shouldLoadApi = isValidGoogleMapsKey(STABLE_API_KEY);
+  const hasApiKey = isValidGoogleMapsKey(apiKey);
   
   console.log('🗺️ Google Maps loader config:', {
-    shouldLoadApi,
-    apiKeyLength: STABLE_API_KEY.length,
-    apiKeyPrefix: STABLE_API_KEY.substring(0, 10) + '...',
-    isValidKey: shouldLoadApi,
+    hasApiKey,
+    apiKeyLength: apiKey.length,
+    apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'none',
+    isValidKey: hasApiKey,
     libraries: GOOGLE_MAPS_LIBRARIES
   });
 
-  // Always use the same loader configuration to prevent option conflicts
+  // Only load Google Maps if we have a valid API key
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: STABLE_API_KEY, // Always use the stable API key
+    googleMapsApiKey: apiKey,
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
     region: 'US',
-    preventGoogleFontsLoading: true
+    preventGoogleFontsLoading: true,
+    // Only load if we have a valid API key
+    ...(hasApiKey ? {} : { googleMapsApiKey: '' })
   });
 
   const {
@@ -97,14 +96,23 @@ export const useGoogleMaps = () => {
     setActiveMarker(null);
   }, []);
 
+  const setApiKeyAndReload = useCallback((newApiKey: string) => {
+    const trimmedKey = newApiKey.trim();
+    localStorage.setItem('google_maps_api_key', trimmedKey);
+    setApiKey(trimmedKey);
+    console.log('🔑 API key updated, page will reload to initialize Google Maps');
+    // Reload the page to reinitialize Google Maps with new API key
+    window.location.reload();
+  }, []);
+
   // Log any loading errors
   if (loadError) {
     console.error('❌ Google Maps loading error:', loadError);
   }
 
   return {
-    isLoaded: shouldLoadApi ? isLoaded : false,
-    loadError: shouldLoadApi ? loadError : null,
+    isLoaded: hasApiKey ? isLoaded : false,
+    loadError: hasApiKey ? loadError : null,
     activeMarker,
     currentZoom,
     isDragging,
@@ -113,6 +121,7 @@ export const useGoogleMaps = () => {
     handleMapClick,
     setCurrentZoom,
     setIsDragging,
-    hasApiKey: shouldLoadApi
+    hasApiKey,
+    setApiKey: setApiKeyAndReload
   };
 };

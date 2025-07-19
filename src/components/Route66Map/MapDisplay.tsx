@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import MapLoadingStates from './components/MapLoadingStates';
 import GoogleMapsRoute66 from './GoogleMapsRoute66';
 import ApiKeyInput from './components/ApiKeyInput';
@@ -16,54 +16,50 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onStateClick, 
   onClearSelection 
 }) => {
-  // FORCE the API key to always be available - bypass all validation
-  const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+  const { isLoaded, loadError, hasApiKey, setApiKey } = useGoogleMapsContext();
   
-  // Store the API key if it's not already there
-  if (!localStorage.getItem('google_maps_api_key')) {
-    localStorage.setItem('google_maps_api_key', hardcodedApiKey);
-  }
-  
-  const { isLoaded, loadError } = useGoogleMapsContext();
-  
-  // NEVER check hasApiKey - always assume it's available
-  const hasApiKey = true; // FORCED to true
-  
-  console.log('🗺️ MapDisplay render state (NUCLEAR OVERRIDE):', { 
+  console.log('🗺️ MapDisplay render state:', { 
     isLoaded, 
     hasError: !!loadError, 
-    hasApiKey: true, // Always forced to true
-    hardcodedApiKey: hardcodedApiKey.substring(0, 10) + '...',
-    errorMessage: loadError?.message,
-    bypassValidation: true
+    hasApiKey,
+    errorMessage: loadError?.message
   });
 
-  // COMPLETELY REMOVED: Never show API key input
-  // The following section is PERMANENTLY DISABLED:
-  /*
+  // Show API key input if no valid API key is available
   if (!hasApiKey) {
-    console.log('🔑 No API key available, showing input form');
+    console.log('🔑 No valid API key available, showing input form');
     return (
       <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
-        <ApiKeyInput onApiKeySet={handleApiKeySet} />
+        <ApiKeyInput 
+          onApiKeySet={setApiKey}
+          error={loadError?.message}
+        />
       </div>
     );
   }
-  */
 
-  // If there's a loading error, show error message instead of input form
+  // If there's a loading error, show error message
   if (loadError) {
     console.error('❌ Google Maps API failed to load:', loadError);
     return (
       <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg flex items-center justify-center bg-gray-100">
         <div className="text-center p-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Map Loading Error</h3>
-          <p className="text-gray-600 text-sm">
-            Google Maps failed to load. Please refresh the page to try again.
+          <p className="text-gray-600 text-sm mb-4">
+            {loadError.message.includes('RefererNotAllowed') 
+              ? 'Your API key is restricted to certain domains. Please update your API key restrictions in Google Cloud Console to allow this domain.'
+              : `Google Maps failed to load: ${loadError.message}`
+            }
           </p>
-          <p className="text-gray-500 text-xs mt-2">
-            Error: {loadError.message}
-          </p>
+          <button
+            onClick={() => {
+              localStorage.removeItem('google_maps_api_key');
+              window.location.reload();
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Try Different API Key
+          </button>
         </div>
       </div>
     );
@@ -82,7 +78,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     );
   }
 
-  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 successfully (NUCLEAR SUCCESS)');
+  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 successfully');
 
   return (
     <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
