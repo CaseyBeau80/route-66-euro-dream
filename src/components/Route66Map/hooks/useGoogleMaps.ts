@@ -67,9 +67,10 @@ export const useGoogleMaps = () => {
     libraries: GOOGLE_MAPS_LIBRARIES
   });
 
+  // Always use the same loader configuration to prevent option conflicts
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: shouldLoadApi ? apiKey : '',
+    googleMapsApiKey: apiKey, // Always use the consistent API key
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
@@ -97,32 +98,6 @@ export const useGoogleMaps = () => {
     console.log('🗺️ Map clicked - clearing active marker');
     setActiveMarker(null);
   }, []);
-
-  // If no API key is available or the key is clearly invalid, return appropriate state
-  if (!shouldLoadApi) {
-    console.log('🔑 DEBUG: No valid Google Maps API key available - showing input form');
-    console.log('🔑 DEBUG: shouldLoadApi:', shouldLoadApi, 'apiKey length:', apiKey.length, 'apiKey preview:', apiKey.substring(0, 10) + '...');
-    
-    // FORCE hasApiKey to true if we have our hardcoded key
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-    const forceHasKey = apiKey === hardcodedApiKey;
-    
-    console.log('🔑 DEBUG: Force override check:', { forceHasKey, isHardcodedKey: apiKey === hardcodedApiKey });
-    
-    return {
-      isLoaded: false,
-      loadError: null,
-      activeMarker,
-      currentZoom,
-      isDragging,
-      mapRef,
-      handleMarkerClick,
-      handleMapClick,
-      setCurrentZoom,
-      setIsDragging,
-      hasApiKey: forceHasKey // Override this to true if we have hardcoded key
-    };
-  }
 
   // Log any loading errors
   if (loadError) {
