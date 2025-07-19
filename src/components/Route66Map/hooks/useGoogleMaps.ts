@@ -10,30 +10,36 @@ const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 export const useGoogleMaps = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [keyLoaded, setKeyLoaded] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Fetch API key from Supabase edge function
   useEffect(() => {
     const fetchApiKey = async () => {
       try {
-        console.log('🔑 Fetching Google Maps API key from Supabase...');
+        console.log('🔑 Starting API key fetch from edge function...');
         
         const { data, error } = await supabase.functions.invoke('get-google-maps-key');
         
+        console.log('🔑 Edge function response:', { data, error });
+        
         if (error) {
-          console.error('❌ Error fetching API key:', error);
+          console.error('❌ Edge function error:', error);
+          setFetchError(`Edge function error: ${error.message}`);
           setKeyLoaded(true);
           return;
         }
 
         if (data?.apiKey) {
-          console.log('✅ Google Maps API key retrieved successfully');
+          console.log('✅ Google Maps API key retrieved successfully, length:', data.apiKey.length);
           setApiKey(data.apiKey);
           localStorage.setItem('google_maps_api_key', data.apiKey);
         } else {
-          console.error('❌ No API key in response');
+          console.error('❌ No API key in response:', data);
+          setFetchError('No API key returned from server');
         }
       } catch (error) {
         console.error('❌ Failed to fetch API key:', error);
+        setFetchError(`Fetch failed: ${error.message}`);
       } finally {
         setKeyLoaded(true);
       }

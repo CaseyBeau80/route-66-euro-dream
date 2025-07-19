@@ -16,17 +16,34 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onStateClick, 
   onClearSelection 
 }) => {
-  const { isLoaded, loadError } = useGoogleMapsContext();
+  const { isLoaded, loadError, hasApiKey } = useGoogleMapsContext();
   
-  const handleApiKeySet = (apiKey: string) => {
-    console.log('🔑 API key set:', apiKey.substring(0, 10) + '...');
-  };
-
   console.log('🗺️ MapDisplay render state:', { 
     isLoaded, 
     hasError: !!loadError, 
+    hasApiKey,
     errorMessage: loadError?.message
   });
+
+  // If no API key is available, show a message asking user to check Supabase secrets
+  if (!hasApiKey) {
+    return (
+      <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg flex items-center justify-center bg-gray-100">
+        <div className="text-center p-8">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Google Maps API Key Required</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            Please make sure your Google Maps API key is properly configured in Supabase secrets.
+          </p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // If there's a loading error, show error message instead of input form
   if (loadError) {
