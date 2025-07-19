@@ -32,13 +32,20 @@
     --chart-5: 27 87% 67%;
 
     /* Route 66 Theme Colors */
-    --route66-background: #f8fafc;
-    --route66-primary: #1e40af;
-    --route66-secondary: #dc2626;
-    --route66-accent: #f59e0b;
-    --route66-border: #e2e8f0;
+    --route66-background: 0 0% 97%;
+    --route66-primary: 213 77% 36%;
+    --route66-secondary: 0 74% 42%; 
+    --route66-accent: 43 96% 56%;
+    --route66-border: 214 32% 91%;
     
-    /* Hidden Gems Turquoise Colors */
+    /* Hidden Gems New Color System */
+    --hidden-gem-background: 166 76% 92%; /* #E0F2F1 - Soft mint green */
+    --hidden-gem-text: 0 0% 13%;         /* #212121 - Dark gray for high contrast */
+    --hidden-gem-accent: 174 100% 24%;   /* #00796B - Deep teal */
+    --hidden-gem-accent-hover: 174 100% 15%; /* #004D40 - Darker teal for hover */
+    --hidden-gem-border: 166 59% 83%;    /* #B2DFDB - Light teal border */
+    
+    /* Legacy Hidden Gems Turquoise Colors (for backward compatibility) */
     --turquoise: 174 100% 56%; /* #40E0D0 */
     --turquoise-dark: 174 100% 45%; /* #20B2AA */
     --turquoise-light: 180 100% 97%; /* #F0FFFF */
@@ -69,6 +76,13 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Hidden Gems Dark Mode */
+    --hidden-gem-background: 166 30% 15%; /* Darker mint green */
+    --hidden-gem-text: 0 0% 95%;         /* Light text for dark mode */
+    --hidden-gem-accent: 174 80% 40%;    /* Lighter teal for dark mode */
+    --hidden-gem-accent-hover: 174 90% 50%; /* Even lighter for hover */
+    --hidden-gem-border: 166 40% 25%;    /* Darker border for dark mode */
   }
 }
 
@@ -138,8 +152,8 @@
 
 /* Route 66 themed loading spinner */
 .route66-spinner {
-  border: 3px solid #f3f4f6;
-  border-top: 3px solid #dc2626;
+  border: 3px solid hsl(var(--muted));
+  border-top: 3px solid hsl(var(--route66-secondary));
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -164,23 +178,23 @@
 
 /* Route 66 brand colors as utilities */
 .bg-route66-background {
-  background-color: var(--route66-background);
+  background-color: hsl(var(--route66-background));
 }
 
 .text-route66-primary {
-  color: var(--route66-primary);
+  color: hsl(var(--route66-primary));
 }
 
 .text-route66-secondary {
-  color: var(--route66-secondary);
+  color: hsl(var(--route66-secondary));
 }
 
 .text-route66-accent {
-  color: var(--route66-accent);
+  color: hsl(var(--route66-accent));
 }
 
 .border-route66-border {
-  border-color: var(--route66-border);
+  border-color: hsl(var(--route66-border));
 }
 
 /* Touch optimization for mobile cards */

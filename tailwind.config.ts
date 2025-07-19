@@ -53,7 +53,15 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Hidden Gems Turquoise Theme
+        // Hidden Gems New Color System
+        "hidden-gem": {
+          background: "hsl(var(--hidden-gem-background))",  // #E0F2F1
+          text: "hsl(var(--hidden-gem-text))",              // #212121
+          accent: "hsl(var(--hidden-gem-accent))",          // #00796B
+          "accent-hover": "hsl(var(--hidden-gem-accent-hover))", // #004D40
+          border: "hsl(var(--hidden-gem-border))",          // #B2DFDB
+        },
+        // Legacy Hidden Gems Turquoise Colors (kept for backward compatibility)
         turquoise: {
           DEFAULT: "hsl(var(--turquoise))",
           dark: "hsl(var(--turquoise-dark))",
@@ -162,6 +170,9 @@ const config: Config = {
         'nostalgic': '0 8px 16px rgba(27, 96, 163, 0.12)',
         'americana': '0 6px 12px rgba(220, 38, 38, 0.15)',
         'shield': '0 4px 8px rgba(27, 96, 163, 0.2)',
+        // Hidden Gem specific shadows
+        'hidden-gem': '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
+        'hidden-gem-border': '0 0 0 1px rgba(178, 223, 219, 0.3)',
       },
       backgroundImage: {
         // Strategic gradient usage - updated to bright blue
@@ -185,7 +196,6 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        // Route 66 nostalgic animations - updated to bright blue
         "nostalgic-glow": {
           "0%, 100%": {
             filter: "drop-shadow(0 0 10px rgba(27, 96, 163, 0.3))"
