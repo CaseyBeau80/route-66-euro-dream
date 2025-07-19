@@ -186,13 +186,12 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
 
   return (
     <div 
-      className={`${className} bg-blue-100`} 
+      className={className} 
       style={{ 
         width: '100%', 
         height: '100%', 
         minHeight: '750px',
-        position: 'relative',
-        border: '2px solid red' // Debug border to see container
+        position: 'relative'
       }}
     >
       <GoogleMap
