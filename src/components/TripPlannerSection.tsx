@@ -6,6 +6,18 @@ import Route66TripCalculator from './Route66TripCalculator';
 const TripPlannerSection = () => {
   return <section className="py-10 bg-route66-background">
       <div className="container mx-auto px-4">
+        {/* SEO-Friendly Section Header */}
+        <div className="text-center mb-12">
+          <div className="bg-route66-background-alt rounded-xl p-6 border-4 border-route66-primary shadow-xl max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-route66 text-route66-primary font-bold uppercase mb-4 tracking-wide">
+              Plan Your Custom Route 66 Trip
+            </h2>
+            <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed">
+              Create your perfect Route 66 adventure with our intelligent trip planner featuring time estimates, budget calculations, and must-see destinations
+            </p>
+          </div>
+        </div>
+
         {/* Trip Calculator - Exact copy from dedicated page */}
         <div className="max-w-4xl mx-auto">
           {/* Feature Cards - Updated to include Shareable */}
