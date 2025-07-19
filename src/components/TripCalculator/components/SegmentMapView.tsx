@@ -1,6 +1,6 @@
-
 import React, { useCallback, useRef } from 'react';
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap } from '@react-google-maps/api';
+import { useGoogleMapsContext } from '@/components/Route66Map/components/GoogleMapsProvider';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navigation } from 'lucide-react';
@@ -17,30 +17,8 @@ interface SegmentMapViewProps {
 const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) => {
   const mapRef = useRef<google.maps.Map | null>(null);
 
-  // Get API key from environment or localStorage
-  const apiKey = React.useMemo(() => {
-    // Use hardcoded API key for production
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-    const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const storedApiKey = localStorage.getItem('google_maps_api_key');
-    
-    // Always use hardcoded key first
-    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
-      return hardcodedApiKey.trim();
-    } else if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
-      return storedApiKey.trim();
-    } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
-      return envApiKey.trim();
-    }
-    
-    return '';
-  }, []);
-
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'segment-map-script',
-    googleMapsApiKey: apiKey,
-    libraries: ['maps'] as const,
-  });
+  // Use context instead of separate loader to prevent conflicts
+  const { isLoaded, loadError, hasApiKey } = useGoogleMapsContext();
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -99,7 +77,7 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
 
   if (!isExpanded) return null;
 
-  if (!apiKey) {
+  if (!hasApiKey) {
     return <MapNoApiKey />;
   }
 
