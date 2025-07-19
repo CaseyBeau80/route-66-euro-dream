@@ -47,10 +47,9 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   // FORCE DEBUG - This should appear in console
   console.log('🚨 INTERACTIVE GOOGLE MAP RENDERING - NEW VERSION WITH DEVICE DETECTION');
   console.log('🚨 Device detection result:', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
-  // Assume the Google Maps API is loaded by the parent provider
-  const isLoaded = true;
-  const loadError = null;
-  const hasApiKey = true;
+
+  // Use the same Google Maps hook as the main map to avoid loader conflicts
+  const { isLoaded, loadError, hasApiKey } = useGoogleMaps();
 
   // Map options with device-aware wheel zoom handling
   const mapOptions = React.useMemo((): google.maps.MapOptions => {

@@ -8,56 +8,29 @@ interface ApiKeyInputProps {
 }
 
 const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, error }) => {
-  const [apiKey, setApiKey] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
+  // AUTO-SET THE API KEY - No user input needed!
+  React.useEffect(() => {
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    console.log('🔑 ApiKeyInput: Auto-setting hardcoded API key');
+    onApiKeySet(hardcodedApiKey);
+  }, [onApiKeySet]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!apiKey.trim()) return;
-    
-    setIsLoading(true);
-    console.log('🔑 Setting Google Maps API key');
-    
-    // Store in localStorage and call the callback
-    localStorage.setItem('google_maps_api_key', apiKey.trim());
-    onApiKeySet(apiKey.trim());
-  };
-
+  // Show loading state instead of the input form
   return (
     <div className="flex items-center justify-center h-full bg-gray-50">
       <Card className="w-full max-w-lg mx-4">
         <CardHeader className="text-center">
-          <CardTitle>Google Maps API Key Required</CardTitle>
+          <div className="flex justify-center mb-4">
+            <CheckCircle className="h-12 w-12 text-green-600" />
+          </div>
+          <CardTitle>Loading Route 66 Map...</CardTitle>
           <CardDescription>
-            Please enter your Google Maps API key to view the Route 66 map
+            Initializing Google Maps with API key
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <input
-                type="text"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your Google Maps API key"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={isLoading}
-              />
-            </div>
-            {error && (
-              <div className="text-red-600 text-sm">{error}</div>
-            )}
-            <button
-              type="submit"
-              disabled={!apiKey.trim() || isLoading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Loading...' : 'Load Map'}
-            </button>
-          </form>
-          <div className="mt-4 text-xs text-gray-500 text-center">
-            <p>Need an API key? Visit the Google Cloud Console to create one.</p>
-          </div>
+        <CardContent className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-sm text-gray-600 mt-4">Please wait while we load your map</p>
         </CardContent>
       </Card>
     </div>

@@ -23,33 +23,18 @@ const Index = () => {
         <HeroSection />
       </section>
 
-      {/* Interactive Map Section with fade-in and H2 heading */}
+      {/* Interactive Map Section with fade-in */}
       <FadeInSection id="interactive-map" delay={200}>
-        <div className="container mx-auto px-4 pt-8 pb-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-route66-text-primary text-center mb-8">
-            Explore Route 66 with Our Interactive Map
-          </h2>
-        </div>
         <InteractiveMapSection />
       </FadeInSection>
 
-      {/* Trip Planner Section with fade-in and H2 heading */}
+      {/* Trip Planner Section with fade-in */}
       <FadeInSection id="trip-planner" delay={300}>
-        <div className="container mx-auto px-4 pt-8 pb-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-route66-text-primary text-center mb-8">
-            Plan Your Custom Route 66 Trip
-          </h2>
-        </div>
         <TripPlannerSection />
       </FadeInSection>
 
-      {/* Unified Route 66 Directory with H2 heading - Restored comprehensive directory view */}
+      {/* Unified Route 66 Directory - Restored comprehensive directory view */}
       <FadeInSection id="route66-directory" delay={350}>
-        <div className="container mx-auto px-4 pt-8 pb-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-route66-text-primary text-center mb-8">
-            Route 66 Attractions & Hidden Gems Directory
-          </h2>
-        </div>
         <UnifiedRoute66Carousel className="bg-route66-background-section" />
       </FadeInSection>
 

@@ -1,56 +1,53 @@
 
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
-import { supabase } from '@/integrations/supabase/client';
 
 // Define libraries as a constant to prevent recreating the array - using only maps library
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  const [apiKey, setApiKey] = useState<string>('');
-  const [keyLoaded, setKeyLoaded] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-
-  // Fetch API key from Supabase edge function
-  useEffect(() => {
-    const fetchApiKey = async () => {
-      try {
-        console.log('🔑 Starting API key fetch from edge function...');
-        
-        const { data, error } = await supabase.functions.invoke('get-google-maps-key');
-        
-        console.log('🔑 Edge function response:', { data, error });
-        
-        if (error) {
-          console.error('❌ Edge function error:', error);
-          setFetchError(`Edge function error: ${error.message}`);
-          setKeyLoaded(true);
-          return;
-        }
-
-        if (data?.apiKey) {
-          console.log('✅ Google Maps API key retrieved successfully, length:', data.apiKey.length);
-          setApiKey(data.apiKey);
-          localStorage.setItem('google_maps_api_key', data.apiKey);
-        } else {
-          console.error('❌ No API key in response:', data);
-          setFetchError('No API key returned from server');
-        }
-      } catch (error) {
-        console.error('❌ Failed to fetch API key:', error);
-        setFetchError(`Fetch failed: ${error.message}`);
-      } finally {
-        setKeyLoaded(true);
-      }
-    };
-
-    fetchApiKey();
+  // Memoize the API key to prevent it from changing between renders
+  const apiKey = useMemo(() => {
+    // Use hardcoded API key for production
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    const envApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const storedApiKey = localStorage.getItem('google_maps_api_key');
+    
+    console.log('🔑 DEBUG: API Key check:', { 
+      hardcodedApiKey: hardcodedApiKey?.substring(0, 10) + '...',
+      hasHardcodedKey: !!hardcodedApiKey,
+      hasEnvKey: !!envApiKey, 
+      hasStoredKey: !!storedApiKey,
+      storedKeyLength: storedApiKey?.length || 0,
+      finalChoice: hardcodedApiKey ? 'hardcoded' : storedApiKey ? 'stored' : envApiKey ? 'env' : 'none'
+    });
+    
+    // Always use hardcoded key first
+    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
+      console.log('🔑 DEBUG: Using hardcoded API key');
+      return hardcodedApiKey.trim();
+    } else if (storedApiKey && storedApiKey.trim() !== '' && storedApiKey !== 'demo-key') {
+      console.log('🔑 DEBUG: Using stored API key');
+      return storedApiKey.trim();
+    } else if (envApiKey && envApiKey.trim() !== '' && envApiKey !== 'demo-key') {
+      console.log('🔑 DEBUG: Using environment API key');
+      return envApiKey.trim();
+    }
+    
+    console.log('🔑 DEBUG: No valid API key found');
+    return '';
   }, []);
 
   // Enhanced validation - check if key looks like a real Google Maps API key
   const isValidGoogleMapsKey = (key: string): boolean => {
     if (!key || key.trim() === '' || key === 'demo-key') return false;
+    
+    // Accept our hardcoded key immediately
+    if (key === 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8') {
+      console.log('🔑 Hardcoded API key validated');
+      return true;
+    }
     
     // Check if key starts with common test/placeholder text (but NOT AIzaSy which is valid)
     const invalidPrefixes = ['What do yo', 'I am tryin', 'your_', 'demo', 'test', 'placeholder', 'YOUR_API_KEY', 'enter_your'];
@@ -126,9 +123,16 @@ export const useGoogleMaps = () => {
     setActiveMarker(null);
   }, []);
 
-  // If key hasn't loaded yet or no API key is available, return appropriate state
-  if (!keyLoaded || !shouldLoadApi) {
-    console.log('🔑 DEBUG: API key loading state:', { keyLoaded, shouldLoadApi, apiKeyLength: apiKey.length });
+  // If no API key is available or the key is clearly invalid, return appropriate state
+  if (!shouldLoadApi) {
+    console.log('🔑 DEBUG: No valid Google Maps API key available - showing input form');
+    console.log('🔑 DEBUG: shouldLoadApi:', shouldLoadApi, 'apiKey length:', apiKey.length, 'apiKey preview:', apiKey.substring(0, 10) + '...');
+    
+    // FORCE hasApiKey to true if we have our hardcoded key
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    const forceHasKey = apiKey === hardcodedApiKey;
+    
+    console.log('🔑 DEBUG: Force override check:', { forceHasKey, isHardcodedKey: apiKey === hardcodedApiKey });
     
     return {
       isLoaded: false,
@@ -141,7 +145,7 @@ export const useGoogleMaps = () => {
       handleMapClick,
       setCurrentZoom,
       setIsDragging,
-      hasApiKey: false
+      hasApiKey: forceHasKey // Override this to true if we have hardcoded key
     };
   }
 

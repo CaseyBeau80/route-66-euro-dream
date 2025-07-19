@@ -17,7 +17,6 @@ interface GoogleMapsContextType {
   waypoints: any[];
   isLoading: boolean;
   error: any;
-  hasApiKey: boolean;
 }
 
 const GoogleMapsContext = createContext<GoogleMapsContextType | null>(null);
@@ -45,8 +44,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({ children
     handleMarkerClick,
     handleMapClick,
     setCurrentZoom,
-    setIsDragging,
-    hasApiKey
+    setIsDragging
   } = useGoogleMaps();
 
   const { waypoints, isLoading, error } = useSupabaseRoute66();
@@ -64,8 +62,7 @@ export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({ children
     setIsDragging,
     waypoints,
     isLoading,
-    error,
-    hasApiKey
+    error
   };
 
   return (
