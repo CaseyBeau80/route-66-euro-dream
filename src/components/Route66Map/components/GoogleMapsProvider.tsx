@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext } from 'react';
-import { useGoogleMaps } from '../hooks/useGoogleMaps';
+import { useGlobalGoogleMapsContext } from '../../providers/GlobalGoogleMapsProvider';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
 
 interface GoogleMapsContextType {
@@ -36,36 +36,24 @@ interface GoogleMapsProviderProps {
 }
 
 export const GoogleMapsProvider: React.FC<GoogleMapsProviderProps> = ({ children }) => {
-  const {
-    isLoaded,
-    loadError,
-    activeMarker,
-    currentZoom,
-    isDragging,
-    mapRef,
-    handleMarkerClick,
-    handleMapClick,
-    setCurrentZoom,
-    setIsDragging,
-    hasApiKey,
-    setApiKey
-  } = useGoogleMaps();
-
+  // Use the global Google Maps context instead of creating our own loader
+  const globalContext = useGlobalGoogleMapsContext();
+  
   const { waypoints, isLoading, error } = useSupabaseRoute66();
 
   const contextValue: GoogleMapsContextType = {
-    isLoaded,
-    loadError,
-    activeMarker,
-    currentZoom,
-    isDragging,
-    mapRef,
-    handleMarkerClick,
-    handleMapClick,
-    setCurrentZoom,
-    setIsDragging,
-    hasApiKey,
-    setApiKey,
+    isLoaded: globalContext.isLoaded,
+    loadError: globalContext.loadError,
+    activeMarker: globalContext.activeMarker,
+    currentZoom: globalContext.currentZoom,
+    isDragging: globalContext.isDragging,
+    mapRef: globalContext.mapRef,
+    handleMarkerClick: globalContext.handleMarkerClick,
+    handleMapClick: globalContext.handleMapClick,
+    setCurrentZoom: globalContext.setCurrentZoom,
+    setIsDragging: globalContext.setIsDragging,
+    hasApiKey: globalContext.hasApiKey,
+    setApiKey: globalContext.setApiKey,
     waypoints,
     isLoading,
     error
