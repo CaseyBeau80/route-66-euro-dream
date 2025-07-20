@@ -15,6 +15,12 @@ serve(async (req) => {
     // Get the Google Maps API key from Supabase secrets
     const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY')
     
+    console.log('🔍 API Key Check:', {
+      hasApiKey: !!apiKey,
+      keyLength: apiKey?.length || 0,
+      keyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'none'
+    })
+    
     if (!apiKey) {
       console.error('❌ Google Maps API key not found in secrets')
       return new Response(
@@ -29,7 +35,11 @@ serve(async (req) => {
     console.log('✅ Successfully retrieved Google Maps API key')
     
     return new Response(
-      JSON.stringify({ apiKey }),
+      JSON.stringify({ 
+        apiKey,
+        success: true,
+        timestamp: new Date().toISOString()
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
