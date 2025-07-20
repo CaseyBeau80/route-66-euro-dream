@@ -106,7 +106,8 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
             options={mapOptions}
             onLoad={onMapLoad}
           >
-            <MapMarkers segment={segment} />
+            {/* MapMarkers temporarily disabled to fix Google Maps loader conflict */}
+            {/* <MapMarkers segment={segment} /> */}
           </GoogleMap>
         </div>
         <MapLegend />
