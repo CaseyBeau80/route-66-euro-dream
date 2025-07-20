@@ -79,15 +79,37 @@ const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactN
       });
 
       try {
+        // Validate API key format before loading
+        if (!apiKey || apiKey.trim().length === 0) {
+          throw new Error('Empty or invalid API key');
+        }
+
+        const cleanApiKey = apiKey.trim();
+        
+        // Log detailed API key validation
+        console.log('🔑 API Key Validation:', {
+          originalLength: apiKey.length,
+          trimmedLength: cleanApiKey.length,
+          startsWithAIza: cleanApiKey.startsWith('AIza'),
+          hasSpaces: /\s/.test(apiKey),
+          hasTabs: /\t/.test(apiKey),
+          hasNewlines: /\n/.test(apiKey),
+          firstChar: apiKey.charCodeAt(0),
+          lastChar: apiKey.charCodeAt(apiKey.length - 1)
+        });
+
         // Create the loader promise
         loaderPromise = import('@googlemaps/js-api-loader').then(({ Loader }) => {
+          console.log('🚀 Creating Google Maps Loader with cleaned API key');
           loaderInstance = new Loader({
-            apiKey: apiKey,
+            apiKey: cleanApiKey, // Use cleaned API key
             version: 'weekly',
             libraries: GOOGLE_MAPS_LIBRARIES,
             language: 'en',
             region: 'US'
           });
+          
+          console.log('⏳ Starting Google Maps API load...');
           return loaderInstance.load();
         });
 
