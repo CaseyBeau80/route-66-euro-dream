@@ -43,13 +43,32 @@ export class GoogleMapsIntegrationService {
       return this.cachedApiKey;
     }
     
+    // First, check localStorage for an existing key
     try {
-      console.log('🌐 GoogleMapsIntegrationService: Fetching from edge function...');
+      const storedKey = localStorage.getItem(this.STORAGE_KEY);
+      if (storedKey && storedKey.trim().length > 0 && storedKey.startsWith('AIza')) {
+        console.log('✅ GoogleMapsIntegrationService: Using stored API key from localStorage');
+        console.log('🔑 GoogleMapsIntegrationService: Stored key prefix:', storedKey.substring(0, 10) + '...');
+        this.cachedApiKey = storedKey.trim();
+        return storedKey.trim();
+      }
+      console.log('🔍 GoogleMapsIntegrationService: No valid stored API key found');
+    } catch (storageError) {
+      console.warn('⚠️ GoogleMapsIntegrationService: Failed to check localStorage:', storageError);
+    }
+    
+    try {
+      console.log('🌐 GoogleMapsIntegrationService: Attempting to fetch from edge function...');
+      console.log('📡 GoogleMapsIntegrationService: About to make fetch request...');
       
       // Add timeout and better error handling
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ GoogleMapsIntegrationService: Request timeout after 10 seconds');
+        controller.abort();
+      }, 10000); // 10 second timeout
       
+      console.log('📨 GoogleMapsIntegrationService: Making fetch request to edge function...');
       const response = await fetch('https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/get-google-maps-key', {
         method: 'GET',
         headers: {
@@ -59,6 +78,7 @@ export class GoogleMapsIntegrationService {
       });
 
       clearTimeout(timeoutId);
+      console.log('📡 GoogleMapsIntegrationService: Fetch request completed');
 
       console.log('📡 GoogleMapsIntegrationService: Edge function response:', {
         status: response.status,
