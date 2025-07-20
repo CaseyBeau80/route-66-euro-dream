@@ -37,7 +37,7 @@ serve(async (req) => {
     console.log(`🌤️ Fetching weather for ${cityName} at ${lat}, ${lng}`)
 
     // Fetch current weather
-    const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric`
+    const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
     const currentResponse = await fetch(currentWeatherUrl)
     
     if (!currentResponse.ok) {
@@ -47,7 +47,7 @@ serve(async (req) => {
     const currentData = await currentResponse.json()
 
     // Fetch forecast
-    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric`
+    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${apiKey}&units=imperial`
     const forecastResponse = await fetch(forecastUrl)
     
     if (!forecastResponse.ok) {
@@ -63,7 +63,7 @@ serve(async (req) => {
       description: currentData.weather[0].description,
       icon: currentData.weather[0].icon,
       humidity: currentData.main.humidity,
-      windSpeed: Math.round(currentData.wind?.speed * 3.6) || 0 // Convert m/s to km/h
+      windSpeed: Math.round(currentData.wind?.speed) || 0 // Imperial units return mph directly
     }
 
     // Format forecast (next 5 days, taking one reading per day at noon)
@@ -76,7 +76,7 @@ serve(async (req) => {
         description: item.weather[0].description,
         icon: item.weather[0].icon,
         humidity: item.main.humidity,
-        windSpeed: Math.round(item.wind?.speed * 3.6) || 0
+        windSpeed: Math.round(item.wind?.speed) || 0
       }))
 
     const result = { current, forecast }
