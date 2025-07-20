@@ -86,17 +86,27 @@ export const useGoogleMaps = () => {
     libraries: GOOGLE_MAPS_LIBRARIES
   });
 
-  // Only load Google Maps if we have a valid API key and it's not loading
+  // Only load Google Maps if we have a valid API key and not loading/error
+  const shouldLoadMaps = !apiKeyLoading && !apiKeyError && hasApiKey;
+  
+  console.log('🗺️ shouldLoadMaps decision:', {
+    apiKeyLoading,
+    apiKeyError,
+    hasApiKey,
+    shouldLoadMaps,
+    apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'none'
+  });
+
+  // Only initialize loader if we should load maps
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey,
+    googleMapsApiKey: shouldLoadMaps ? apiKey : '',
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
     region: 'US',
     preventGoogleFontsLoading: true,
-    // Only load if we have a valid API key and not loading
-    ...(hasApiKey ? {} : { googleMapsApiKey: '' })
+    // Only load when we have a valid API key to prevent loader conflicts
   });
 
   const {
@@ -144,8 +154,8 @@ export const useGoogleMaps = () => {
   }
 
   return {
-    isLoaded: hasApiKey ? isLoaded : false,
-    loadError: hasApiKey ? loadError : (apiKeyError ? new Error(apiKeyError) : null),
+    isLoaded: shouldLoadMaps ? isLoaded : false,
+    loadError: shouldLoadMaps ? loadError : (apiKeyError ? new Error(apiKeyError) : null),
     activeMarker,
     currentZoom,
     isDragging,
@@ -154,7 +164,7 @@ export const useGoogleMaps = () => {
     handleMapClick,
     setCurrentZoom,
     setIsDragging,
-    hasApiKey,
+    hasApiKey: shouldLoadMaps,
     setApiKey: setApiKeyAndReload,
     apiKeyLoading
   };

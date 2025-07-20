@@ -27,9 +27,9 @@ export class GoogleMapsIntegrationService {
     };
   }
 
-  static async isAvailable(): Promise<boolean> {
-    const apiKey = await this.getApiKey();
-    return !!apiKey && apiKey.trim().length > 0;
+  static isAvailable(): boolean {
+    // This is now a simple check - the async loading is handled in the hook
+    return true; // Always return true, let the hook handle the actual availability
   }
 
   static async getApiKey(): Promise<string | null> {
@@ -42,11 +42,13 @@ export class GoogleMapsIntegrationService {
     }
     
     try {
-      // Fetch API key from Supabase Edge Function
+      // Fetch API key from Supabase Edge Function with proper authorization
       const response = await fetch('https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/get-google-maps-key', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo`,
+          'apikey': `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo`
         },
       });
 
