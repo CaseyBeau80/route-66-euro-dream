@@ -1,6 +1,5 @@
-
 import { DriveInData } from './hooks/useDriveInsData';
-import { openExternalLinkWithHistory, createReturnToMapUrl } from '@/utils/externalLinkUtils';
+import { openMobileAwareLink, createMobileAwareReturnUrl } from '@/utils/mobileAwareLinkUtils';
 
 interface DriveInMarkerEventHandlersConfig {
   driveIn: DriveInData;
@@ -128,13 +127,14 @@ export const createDriveInMarkerEventHandlers = ({
     }
   };
 
-  // Enhanced website opening with external link handling
+  // Enhanced website opening with mobile-aware external link handling
   const handleWebsiteClick = (website: string) => {
     console.log(`🌐 Opening drive-in website: ${driveIn.name} - ${website}`);
-    openExternalLinkWithHistory(website, driveIn.name, {
-      returnUrl: createReturnToMapUrl(),
+    openMobileAwareLink(website, driveIn.name, {
+      returnUrl: createMobileAwareReturnUrl(),
       linkSource: 'drive-in-marker',
-      showReturnButton: true
+      showReturnButton: true,
+      showLoadingState: true
     });
   };
 

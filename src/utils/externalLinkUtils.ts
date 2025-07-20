@@ -1,4 +1,3 @@
-
 export interface ExternalLinkOptions {
   returnUrl?: string;
   linkSource?: string;
@@ -10,28 +9,37 @@ export const openExternalLinkWithHistory = (
   siteName: string,
   options: ExternalLinkOptions = {}
 ): void => {
-  try {
-    const formattedUrl = url.startsWith('http') ? url : `https://${url}`;
-    
-    console.log(`🔗 Opening external link: ${siteName} - ${formattedUrl}`);
-    
-    // Store return information in session storage for potential return navigation
-    if (options.returnUrl) {
-      sessionStorage.setItem('ramble66_return_url', options.returnUrl);
-      sessionStorage.setItem('ramble66_return_source', options.linkSource || 'map');
+  // Import the mobile-aware handler dynamically to avoid circular dependencies
+  import('./mobileAwareLinkUtils').then(({ openMobileAwareLink }) => {
+    openMobileAwareLink(url, siteName, {
+      ...options,
+      showLoadingState: true
+    });
+  }).catch(() => {
+    // Fallback to original behavior if import fails
+    try {
+      const formattedUrl = url.startsWith('http') ? url : `https://${url}`;
+      
+      console.log(`🔗 Opening external link (fallback): ${siteName} - ${formattedUrl}`);
+      
+      // Store return information in session storage for potential return navigation
+      if (options.returnUrl) {
+        sessionStorage.setItem('ramble66_return_url', options.returnUrl);
+        sessionStorage.setItem('ramble66_return_source', options.linkSource || 'map');
+      }
+      
+      // Add return URL as a parameter if requested
+      let finalUrl = formattedUrl;
+      if (options.showReturnButton && options.returnUrl) {
+        const separator = formattedUrl.includes('?') ? '&' : '?';
+        finalUrl = `${formattedUrl}${separator}utm_source=ramble66&return_url=${encodeURIComponent(options.returnUrl)}`;
+      }
+      
+      window.open(finalUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Error opening external link:', error);
     }
-    
-    // Add return URL as a parameter if requested
-    let finalUrl = formattedUrl;
-    if (options.showReturnButton && options.returnUrl) {
-      const separator = formattedUrl.includes('?') ? '&' : '?';
-      finalUrl = `${formattedUrl}${separator}utm_source=ramble66&return_url=${encodeURIComponent(options.returnUrl)}`;
-    }
-    
-    window.open(finalUrl, '_blank', 'noopener,noreferrer');
-  } catch (error) {
-    console.error('Error opening external link:', error);
-  }
+  });
 };
 
 export const createReturnToMapUrl = (): string => {

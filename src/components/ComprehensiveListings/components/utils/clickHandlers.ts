@@ -1,6 +1,6 @@
 
 import { ListingItem } from '../../types';
-import { openExternalLinkWithHistory, createReturnToMapUrl } from '@/utils/externalLinkUtils';
+import { openMobileAwareLink, createMobileAwareReturnUrl } from '@/utils/mobileAwareLinkUtils';
 
 export const createImageClickHandler = (item: ListingItem) => (e: React.MouseEvent) => {
   console.log(`🔗 IMAGE CLICKED for ${item.name}`, { 
@@ -17,12 +17,13 @@ export const createImageClickHandler = (item: ListingItem) => (e: React.MouseEve
     console.log(`🚀 OPENING WEBSITE: ${item.website}`);
     
     try {
-      openExternalLinkWithHistory(item.website, item.name, {
-        returnUrl: createReturnToMapUrl(),
+      openMobileAwareLink(item.website, item.name, {
+        returnUrl: createMobileAwareReturnUrl(),
         linkSource: 'listings',
-        showReturnButton: true
+        showReturnButton: true,
+        showLoadingState: true
       });
-      console.log(`✅ External link opened successfully for ${item.name}`);
+      console.log(`✅ Mobile-aware link opened successfully for ${item.name}`);
     } catch (error) {
       console.error(`❌ Error opening website for ${item.name}:`, error);
     }
@@ -41,10 +42,11 @@ export const createContainerClickHandler = (item: ListingItem) => (e: React.Mous
   // Only handle clicks on the image container itself, not child elements
   if (e.target === e.currentTarget && item.website) {
     console.log(`🔗 Container direct click for ${item.name}, opening website`);
-    openExternalLinkWithHistory(item.website, item.name, {
-      returnUrl: createReturnToMapUrl(),
+    openMobileAwareLink(item.website, item.name, {
+      returnUrl: createMobileAwareReturnUrl(),
       linkSource: 'listings',
-      showReturnButton: true
+      showReturnButton: true,
+      showLoadingState: true
     });
   }
 };
@@ -53,10 +55,11 @@ export const createWebsiteLinkClickHandler = (item: ListingItem) => (e: React.Mo
   console.log(`🔗 WEBSITE LINK CLICKED for ${item.name}`, { website: item.website });
   if (item.website) {
     e.preventDefault();
-    openExternalLinkWithHistory(item.website, item.name, {
-      returnUrl: createReturnToMapUrl(),
+    openMobileAwareLink(item.website, item.name, {
+      returnUrl: createMobileAwareReturnUrl(),
       linkSource: 'listings',
-      showReturnButton: true
+      showReturnButton: true,
+      showLoadingState: true
     });
   }
 };

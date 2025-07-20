@@ -1,6 +1,5 @@
-
 import { EventSource } from '../data/cityEventLinks';
-import { openExternalLinkWithHistory, createReturnToMapUrl } from '@/utils/externalLinkUtils';
+import { openMobileAwareLink, createMobileAwareReturnUrl } from '@/utils/mobileAwareLinkUtils';
 
 export const getEventSourceIcon = (type: EventSource['type']): string => {
   switch (type) {
@@ -44,10 +43,11 @@ export const openEventLink = (url: string, sourceName: string): void => {
   try {
     console.log(`🔗 Opening event source: ${sourceName} - ${url}`);
     
-    openExternalLinkWithHistory(url, sourceName, {
-      returnUrl: createReturnToMapUrl(),
+    openMobileAwareLink(url, sourceName, {
+      returnUrl: createMobileAwareReturnUrl(),
       linkSource: 'events',
-      showReturnButton: true
+      showReturnButton: true,
+      showLoadingState: true
     });
   } catch (error) {
     console.error('Error opening event link:', error);

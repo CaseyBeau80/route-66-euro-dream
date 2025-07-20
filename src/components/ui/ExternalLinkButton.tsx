@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { ExternalLink, ArrowLeft } from 'lucide-react';
+import { ExternalLink, ArrowLeft, Smartphone, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { openExternalLinkWithHistory, createReturnToMapUrl } from '@/utils/externalLinkUtils';
+import { openMobileAwareLink, createMobileAwareReturnUrl, isMobileDevice } from '@/utils/mobileAwareLinkUtils';
 
 interface ExternalLinkButtonProps {
   url: string;
@@ -13,6 +12,7 @@ interface ExternalLinkButtonProps {
   size?: 'sm' | 'default' | 'lg';
   showReturnOption?: boolean;
   linkSource?: string;
+  forceNewTab?: boolean;
 }
 
 export const ExternalLinkButton: React.FC<ExternalLinkButtonProps> = ({
@@ -23,16 +23,21 @@ export const ExternalLinkButton: React.FC<ExternalLinkButtonProps> = ({
   variant = 'default',
   size = 'default',
   showReturnOption = true,
-  linkSource = 'map'
+  linkSource = 'map',
+  forceNewTab = false
 }) => {
+  const isMobile = isMobileDevice();
+  
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    openExternalLinkWithHistory(url, siteName, {
-      returnUrl: createReturnToMapUrl(),
+    openMobileAwareLink(url, siteName, {
+      returnUrl: createMobileAwareReturnUrl(),
       linkSource,
-      showReturnButton: showReturnOption
+      showReturnButton: showReturnOption,
+      forceNewTab,
+      showLoadingState: true
     });
   };
 
@@ -42,9 +47,18 @@ export const ExternalLinkButton: React.FC<ExternalLinkButtonProps> = ({
       variant={variant}
       size={size}
       className={`flex items-center gap-2 ${className}`}
+      title={isMobile && !forceNewTab ? 'Opens in same tab (mobile)' : 'Opens in new tab'}
     >
       {children}
-      <ExternalLink className="h-4 w-4 opacity-70" />
+      <div className="flex items-center gap-1">
+        <ExternalLink className="h-4 w-4 opacity-70" />
+        {/* Show navigation hint icon */}
+        {isMobile && !forceNewTab ? (
+          <Smartphone className="h-3 w-3 opacity-50" />
+        ) : (
+          <Monitor className="h-3 w-3 opacity-50" />
+        )}
+      </div>
     </Button>
   );
 };
