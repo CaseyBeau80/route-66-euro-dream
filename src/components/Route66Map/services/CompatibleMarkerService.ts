@@ -122,6 +122,19 @@ export class CompatibleMarker {
     this._advancedMarker.zIndex = zIndex;
   }
 
+  // Icon compatibility - recreate content when icon changes
+  setIcon(icon: string | google.maps.Icon | google.maps.Symbol | null): void {
+    const content = this.createMarkerContent({ 
+      position: this._position, 
+      map: this._map, 
+      icon: icon || undefined,
+      title: this._title,
+      zIndex: this._zIndex,
+      visible: this._visible 
+    });
+    this._advancedMarker.content = content;
+  }
+
   // Animation compatibility (simplified)
   setAnimation(animation: google.maps.Animation | null): void {
     if (animation === google.maps.Animation.BOUNCE) {

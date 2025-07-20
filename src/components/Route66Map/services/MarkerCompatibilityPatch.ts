@@ -64,6 +64,7 @@ export class MarkerCompatibilityPatch {
           setTitle: (title: string) => compatibleMarker.setTitle(title),
           getZIndex: () => compatibleMarker.getZIndex(),
           setZIndex: (zIndex: number) => compatibleMarker.setZIndex(zIndex),
+          setIcon: (icon: any) => compatibleMarker.setIcon(icon),
           setAnimation: (animation: any) => compatibleMarker.setAnimation(animation),
           addListener: (event: string, callback: () => void) => compatibleMarker.addListener(event, callback),
           
