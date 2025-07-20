@@ -78,7 +78,20 @@ export class CompatibleMarker {
 
   // Compatibility methods that match the old google.maps.Marker API
   getPosition(): google.maps.LatLng | null {
-    return this._advancedMarker.position as google.maps.LatLng;
+    const position = this._advancedMarker.position;
+    if (!position) return null;
+    
+    // Convert to google.maps.LatLng if it's not already
+    if (position instanceof google.maps.LatLng) {
+      return position;
+    }
+    
+    // If it's a LatLngLiteral, convert to LatLng
+    if (typeof position === 'object' && 'lat' in position && 'lng' in position) {
+      return new google.maps.LatLng(position.lat, position.lng);
+    }
+    
+    return null;
   }
 
   setPosition(position: google.maps.LatLng | google.maps.LatLngLiteral): void {
