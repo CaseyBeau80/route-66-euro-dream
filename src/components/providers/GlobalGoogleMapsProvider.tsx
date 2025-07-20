@@ -3,9 +3,10 @@ import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from '../Route66Map/hooks/useMapLoading';
 import { useSupabaseRoute66 } from '../Route66Map/hooks/useSupabaseRoute66';
 import { GoogleMapsIntegrationService } from '../TripCalculator/services/GoogleMapsIntegrationService';
+import { MarkerCompatibilityPatch } from '../Route66Map/services/MarkerCompatibilityPatch';
 
 // Define libraries as a constant to prevent recreating the array
-const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
+const GOOGLE_MAPS_LIBRARIES: ("maps" | "marker")[] = ['maps', 'marker'];
 
 interface GlobalGoogleMapsContextType {
   isLoaded: boolean;
@@ -81,6 +82,18 @@ const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactN
       userAgent: navigator.userAgent
     });
   }
+
+  // Apply compatibility patch when Google Maps is loaded
+  useEffect(() => {
+    if (isLoaded && !loadError) {
+      console.log('🔧 InnerGoogleMapsProvider: Applying marker compatibility patch...');
+      try {
+        MarkerCompatibilityPatch.apply({ enableLogging: true });
+      } catch (error) {
+        console.error('❌ InnerGoogleMapsProvider: Failed to apply compatibility patch:', error);
+      }
+    }
+  }, [isLoaded, loadError]);
 
   const {
     isDragging,
