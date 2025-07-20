@@ -4,7 +4,7 @@ import MapLoadingStates from './components/MapLoadingStates';
 import GoogleMapsRoute66 from './GoogleMapsRoute66';
 import ApiKeyInput from './components/ApiKeyInput';
 
-import { useGoogleMapsContext } from './components/GoogleMapsProvider';
+import { useGlobalGoogleMapsContext } from '../providers/GlobalGoogleMapsProvider';
 
 interface MapDisplayProps {
   selectedState: string | null;
@@ -17,7 +17,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
   onStateClick, 
   onClearSelection 
 }) => {
-  const { isLoaded, loadError, hasApiKey, setApiKey } = useGoogleMapsContext();
+  const { isLoaded, loadError, hasApiKey, setApiKey } = useGlobalGoogleMapsContext();
   
   console.log('🗺️ MapDisplay render state:', { 
     isLoaded, 

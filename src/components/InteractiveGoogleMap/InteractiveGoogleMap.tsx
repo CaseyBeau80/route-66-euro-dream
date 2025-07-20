@@ -2,7 +2,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useGoogleMapsContext } from '@/components/Route66Map/components/GoogleMapsProvider';
+import { useGlobalGoogleMapsContext } from '@/components/providers/GlobalGoogleMapsProvider';
 
 interface InteractiveGoogleMapProps {
   onMapLoad?: (map: google.maps.Map) => void;
@@ -50,7 +50,7 @@ const InteractiveGoogleMap: React.FC<InteractiveGoogleMapProps> = ({
   console.log('🚨 Device detection result:', { isMobile, userAgent: navigator.userAgent.substring(0, 50) });
 
   // Use context instead of direct hook to avoid loader conflicts
-  const { isLoaded, loadError } = useGoogleMapsContext();
+  const { isLoaded, loadError } = useGlobalGoogleMapsContext();
 
   // Map options with device-aware wheel zoom handling
   const mapOptions = React.useMemo((): google.maps.MapOptions => {
