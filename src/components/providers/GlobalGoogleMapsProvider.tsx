@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from '../Route66Map/hooks/useMapLoading';
 import { useSupabaseRoute66 } from '../Route66Map/hooks/useSupabaseRoute66';
 import { GoogleMapsIntegrationService } from '../TripCalculator/services/GoogleMapsIntegrationService';
@@ -7,6 +6,10 @@ import { MarkerCompatibilityPatch } from '../Route66Map/services/MarkerCompatibi
 
 // Define libraries as a constant to prevent recreating the array
 const GOOGLE_MAPS_LIBRARIES: ("maps" | "marker")[] = ['maps', 'marker'];
+
+// Singleton to prevent multiple loader calls in StrictMode
+let loaderInstance: any = null;
+let loaderPromise: Promise<any> | null = null;
 
 interface GlobalGoogleMapsContextType {
   isLoaded: boolean;
@@ -44,23 +47,62 @@ interface GlobalGoogleMapsProviderProps {
 // Inner provider that only renders when we have an API key
 const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactNode }> = ({ apiKey, children }) => {
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<any>(null);
   const mapRef = React.useRef<google.maps.Map | null>(null);
 
-  // Now we can safely call useJsApiLoader with a valid API key
-  console.log('🔄 InnerGoogleMapsProvider: Initializing Google Maps with API key:', {
-    keyLength: apiKey.length,
-    keyPrefix: apiKey.substring(0, 20) + '...'
-  });
-  
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: apiKey,
-    libraries: GOOGLE_MAPS_LIBRARIES,
-    version: 'weekly',
-    language: 'en',
-    region: 'US',
-    preventGoogleFontsLoading: true,
-  });
+  // Custom loader implementation that handles StrictMode
+  useEffect(() => {
+    const loadGoogleMaps = async () => {
+      // Return early if already loaded
+      if (loaderInstance && isLoaded) {
+        console.log('🔄 InnerGoogleMapsProvider: Google Maps already loaded');
+        return;
+      }
+
+      // Return the existing promise if loading is in progress
+      if (loaderPromise) {
+        console.log('🔄 InnerGoogleMapsProvider: Google Maps loading already in progress');
+        try {
+          await loaderPromise;
+          setIsLoaded(true);
+        } catch (error) {
+          setLoadError(error);
+        }
+        return;
+      }
+
+      console.log('🔄 InnerGoogleMapsProvider: Starting Google Maps load with API key:', {
+        keyLength: apiKey.length,
+        keyPrefix: apiKey.substring(0, 20) + '...',
+        libraries: GOOGLE_MAPS_LIBRARIES
+      });
+
+      try {
+        // Create the loader promise
+        loaderPromise = import('@googlemaps/js-api-loader').then(({ Loader }) => {
+          loaderInstance = new Loader({
+            apiKey: apiKey,
+            version: 'weekly',
+            libraries: GOOGLE_MAPS_LIBRARIES,
+            language: 'en',
+            region: 'US'
+          });
+          return loaderInstance.load();
+        });
+
+        await loaderPromise;
+        setIsLoaded(true);
+        console.log('✅ InnerGoogleMapsProvider: Google Maps loaded successfully');
+      } catch (error) {
+        console.error('❌ InnerGoogleMapsProvider: Failed to load Google Maps:', error);
+        setLoadError(error);
+        loaderPromise = null; // Reset on error to allow retry
+      }
+    };
+
+    loadGoogleMaps();
+  }, [apiKey]);
 
   console.log('🗺️ InnerGoogleMapsProvider loader state:', {
     isLoaded,
