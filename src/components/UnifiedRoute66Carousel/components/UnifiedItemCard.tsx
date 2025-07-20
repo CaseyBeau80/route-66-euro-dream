@@ -3,6 +3,7 @@ import { ExternalLink, MapPin, Calendar, ImageIcon, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UnifiedRoute66Item } from '../types';
+import { openMobileAwareLink, createMobileAwareReturnUrl } from '@/utils/mobileAwareLinkUtils';
 
 interface UnifiedItemCardProps {
   item: UnifiedRoute66Item;
@@ -42,7 +43,12 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
 
   const handleWebsiteClick = () => {
     if (item.website) {
-      window.open(item.website, '_blank', 'noopener,noreferrer');
+      openMobileAwareLink(item.website, item.name, {
+        returnUrl: createMobileAwareReturnUrl(),
+        linkSource: 'unified-carousel',
+        showReturnButton: true,
+        showLoadingState: true
+      });
     }
   };
 
@@ -50,7 +56,12 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({ item }) => {
     if (item.latitude && item.longitude) {
       const placeName = encodeURIComponent(`${item.name}, ${item.city_name}${item.state ? `, ${item.state}` : ''}`);
       const url = `https://www.google.com/maps/search/${placeName}/@${item.latitude},${item.longitude},15z`;
-      window.open(url, '_blank');
+      openMobileAwareLink(url, `Map for ${item.name}`, {
+        returnUrl: createMobileAwareReturnUrl(),
+        linkSource: 'unified-carousel-map',
+        showReturnButton: true,
+        showLoadingState: true
+      });
     }
   };
 

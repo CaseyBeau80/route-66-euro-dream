@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Route, ExternalLink, X } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { useMobileCardDismissal } from '@/hooks/useMobileCardDismissal';
+import { openMobileAwareLink, createMobileAwareReturnUrl } from '@/utils/mobileAwareLinkUtils';
 
 interface AttractionClickableCardProps {
   attraction: Route66Waypoint;
@@ -133,7 +134,12 @@ const AttractionClickableCard: React.FC<AttractionClickableCardProps> = ({
           {/* Website button */}
           {attractionWebsite && (
             <button
-              onClick={() => window.open(attractionWebsite, '_blank', 'noopener,noreferrer')}
+              onClick={() => openMobileAwareLink(attractionWebsite, attraction.name, {
+                returnUrl: createMobileAwareReturnUrl(),
+                linkSource: 'attraction-clickable-card',
+                showReturnButton: true,
+                showLoadingState: true
+              })}
               className="w-full bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
             >
               <ExternalLink className="h-4 w-4" />

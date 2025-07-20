@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Star, ExternalLink, X } from 'lucide-react';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { openMobileAwareLink, createMobileAwareReturnUrl } from '@/utils/mobileAwareLinkUtils';
 
 interface AttractionHoverCardProps {
   attraction: Route66Waypoint;
@@ -101,7 +102,12 @@ const AttractionHoverCard: React.FC<AttractionHoverCardProps> = ({
         {attractionWebsite && (
           <div className="mb-4">
             <button
-              onClick={() => window.open(attractionWebsite, '_blank', 'noopener,noreferrer')}
+              onClick={() => openMobileAwareLink(attractionWebsite, attraction.name, {
+                returnUrl: createMobileAwareReturnUrl(),
+                linkSource: 'attraction-hover-card',
+                showReturnButton: true,
+                showLoadingState: true
+              })}
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer pointer-events-auto"
             >
               <ExternalLink className="h-4 w-4" />
