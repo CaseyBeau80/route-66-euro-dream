@@ -40,12 +40,79 @@ interface GlobalGoogleMapsProviderProps {
   children: React.ReactNode;
 }
 
+// Inner provider that only renders when we have an API key
+const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactNode }> = ({ apiKey, children }) => {
+  const [activeMarker, setActiveMarker] = useState<string | null>(null);
+  const mapRef = React.useRef<google.maps.Map | null>(null);
+
+  // Now we can safely call useJsApiLoader with a valid API key
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: apiKey,
+    libraries: GOOGLE_MAPS_LIBRARIES,
+    version: 'weekly',
+    language: 'en',
+    region: 'US',
+    preventGoogleFontsLoading: true,
+  });
+
+  const {
+    isDragging,
+    setIsDragging,
+    currentZoom,
+    setCurrentZoom
+  } = useMapLoading();
+
+  const { waypoints, isLoading, error } = useSupabaseRoute66();
+
+  const handleMarkerClick = React.useCallback((markerId: string | number) => {
+    const id = markerId.toString();
+    console.log('🎯 Global Marker clicked:', id);
+    setActiveMarker(prevActive => prevActive === id ? null : id);
+  }, []);
+
+  const handleMapClick = React.useCallback(() => {
+    console.log('🗺️ Global Map clicked - clearing active marker');
+    setActiveMarker(null);
+  }, []);
+
+  const setApiKeyAndReload = React.useCallback((newApiKey: string) => {
+    const trimmedKey = newApiKey.trim();
+    GoogleMapsIntegrationService.setApiKey(trimmedKey);
+    console.log('🔑 API key updated, page will reload to initialize Google Maps');
+    window.location.reload();
+  }, []);
+
+  const contextValue: GlobalGoogleMapsContextType = {
+    isLoaded,
+    loadError,
+    activeMarker,
+    currentZoom,
+    isDragging,
+    mapRef,
+    handleMarkerClick,
+    handleMapClick,
+    setCurrentZoom,
+    setIsDragging,
+    hasApiKey: true,
+    setApiKey: setApiKeyAndReload,
+    waypoints,
+    isLoading,
+    error,
+    apiKeyLoading: false
+  };
+
+  return (
+    <GlobalGoogleMapsContext.Provider value={contextValue}>
+      {children}
+    </GlobalGoogleMapsContext.Provider>
+  );
+};
+
 export const GlobalGoogleMapsProvider: React.FC<GlobalGoogleMapsProviderProps> = ({ children }) => {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [apiKeyLoading, setApiKeyLoading] = useState<boolean>(true);
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
-  const [activeMarker, setActiveMarker] = useState<string | null>(null);
-  const mapRef = React.useRef<google.maps.Map | null>(null);
 
   // Load API key once globally
   useEffect(() => {
@@ -87,37 +154,6 @@ export const GlobalGoogleMapsProvider: React.FC<GlobalGoogleMapsProviderProps> =
     };
   }, []);
 
-  // Only call useJsApiLoader once globally when we have an API key
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: apiKey || '',
-    libraries: GOOGLE_MAPS_LIBRARIES,
-    version: 'weekly',
-    language: 'en',
-    region: 'US',
-    preventGoogleFontsLoading: true,
-  });
-
-  const {
-    isDragging,
-    setIsDragging,
-    currentZoom,
-    setCurrentZoom
-  } = useMapLoading();
-
-  const { waypoints, isLoading, error } = useSupabaseRoute66();
-
-  const handleMarkerClick = React.useCallback((markerId: string | number) => {
-    const id = markerId.toString();
-    console.log('🎯 Global Marker clicked:', id);
-    setActiveMarker(prevActive => prevActive === id ? null : id);
-  }, []);
-
-  const handleMapClick = React.useCallback(() => {
-    console.log('🗺️ Global Map clicked - clearing active marker');
-    setActiveMarker(null);
-  }, []);
-
   const setApiKeyAndReload = React.useCallback((newApiKey: string) => {
     const trimmedKey = newApiKey.trim();
     GoogleMapsIntegrationService.setApiKey(trimmedKey);
@@ -125,40 +161,38 @@ export const GlobalGoogleMapsProvider: React.FC<GlobalGoogleMapsProviderProps> =
     window.location.reload();
   }, []);
 
-  const hasValidApiKey = !apiKeyLoading && !apiKeyError && !!apiKey;
-  const finalIsLoaded = hasValidApiKey && isLoaded;
-  const finalLoadError = apiKeyError ? new Error(apiKeyError) : (hasValidApiKey ? loadError : null);
+  // If we're still loading or have an error, provide a minimal context
+  if (apiKeyLoading || apiKeyError || !apiKey) {
+    const contextValue: GlobalGoogleMapsContextType = {
+      isLoaded: false,
+      loadError: apiKeyError ? new Error(apiKeyError) : null,
+      activeMarker: null,
+      currentZoom: 10,
+      isDragging: false,
+      mapRef: { current: null },
+      handleMarkerClick: () => {},
+      handleMapClick: () => {},
+      setCurrentZoom: () => {},
+      setIsDragging: () => {},
+      hasApiKey: false,
+      setApiKey: setApiKeyAndReload,
+      waypoints: [],
+      isLoading: false,
+      error: null,
+      apiKeyLoading
+    };
 
-  console.log('🗺️ GlobalGoogleMapsProvider state:', {
-    apiKeyLoading,
-    apiKeyError,
-    hasValidApiKey,
-    finalIsLoaded,
-    loadError: finalLoadError?.message
-  });
+    return (
+      <GlobalGoogleMapsContext.Provider value={contextValue}>
+        {children}
+      </GlobalGoogleMapsContext.Provider>
+    );
+  }
 
-  const contextValue: GlobalGoogleMapsContextType = {
-    isLoaded: finalIsLoaded,
-    loadError: finalLoadError,
-    activeMarker,
-    currentZoom,
-    isDragging,
-    mapRef,
-    handleMarkerClick,
-    handleMapClick,
-    setCurrentZoom,
-    setIsDragging,
-    hasApiKey: hasValidApiKey,
-    setApiKey: setApiKeyAndReload,
-    waypoints,
-    isLoading,
-    error,
-    apiKeyLoading
-  };
-
+  // Once we have the API key, use the inner provider
   return (
-    <GlobalGoogleMapsContext.Provider value={contextValue}>
+    <InnerGoogleMapsProvider apiKey={apiKey}>
       {children}
-    </GlobalGoogleMapsContext.Provider>
+    </InnerGoogleMapsProvider>
   );
 };
