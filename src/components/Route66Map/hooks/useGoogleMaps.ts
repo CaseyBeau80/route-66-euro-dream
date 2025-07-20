@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
@@ -8,37 +7,56 @@ import { GoogleMapsIntegrationService } from '../../TripCalculator/services/Goog
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const [apiKeyLoading, setApiKeyLoading] = useState<boolean>(true);
   const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+  const [hasTriedLoading, setHasTriedLoading] = useState<boolean>(false);
   
   // Load API key on component mount
   useEffect(() => {
+    let mounted = true;
+    
     const loadApiKey = async () => {
+      if (hasTriedLoading) return; // Prevent multiple attempts
+      
       try {
+        console.log('🔑 Loading Google Maps API key...');
         setApiKeyLoading(true);
         setApiKeyError(null);
+        setHasTriedLoading(true);
+        
         const key = await GoogleMapsIntegrationService.getApiKey();
-        if (key) {
+        
+        if (!mounted) return; // Component unmounted
+        
+        if (key && key.trim().length > 0) {
           setApiKey(key);
-          console.log('✅ Google Maps API key loaded successfully');
+          console.log('✅ Google Maps API key loaded successfully:', key.substring(0, 8) + '...');
         } else {
           setApiKeyError('No API key available');
           console.log('❌ No Google Maps API key available');
         }
       } catch (error) {
+        if (!mounted) return; // Component unmounted
+        
         console.error('❌ Failed to load Google Maps API key:', error);
         setApiKeyError(error instanceof Error ? error.message : 'Failed to load API key');
       } finally {
-        setApiKeyLoading(false);
+        if (mounted) {
+          setApiKeyLoading(false);
+        }
       }
     };
 
     loadApiKey();
-  }, []);
+    
+    return () => {
+      mounted = false;
+    };
+  }, [hasTriedLoading]);
   
   // Enhanced validation - check if key looks like a real Google Maps API key
-  const isValidGoogleMapsKey = (key: string): boolean => {
+  const isValidGoogleMapsKey = (key: string | null): boolean => {
     if (!key || key.trim() === '' || key === 'demo-key') return false;
     
     // Check if key starts with common test/placeholder text
@@ -74,39 +92,27 @@ export const useGoogleMaps = () => {
     return false;
   };
 
-  const hasApiKey = !apiKeyLoading && !apiKeyError && isValidGoogleMapsKey(apiKey);
+  const hasValidApiKey = !apiKeyLoading && !apiKeyError && isValidGoogleMapsKey(apiKey);
   
-  console.log('🗺️ Google Maps loader config:', {
-    hasApiKey,
+  console.log('🗺️ Google Maps state:', {
     apiKeyLoading,
     apiKeyError,
-    apiKeyLength: apiKey.length,
+    hasValidApiKey,
+    apiKeyLength: apiKey?.length || 0,
     apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'none',
-    isValidKey: hasApiKey,
-    libraries: GOOGLE_MAPS_LIBRARIES
+    hasTriedLoading
   });
 
-  // Only load Google Maps if we have a valid API key and not loading/error
-  const shouldLoadMaps = !apiKeyLoading && !apiKeyError && hasApiKey;
-  
-  console.log('🗺️ shouldLoadMaps decision:', {
-    apiKeyLoading,
-    apiKeyError,
-    hasApiKey,
-    shouldLoadMaps,
-    apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'none'
-  });
-
-  // Only initialize loader if we should load maps
+  // CRITICAL: Only initialize loader when we have a valid API key
+  // Pass empty string when no key to prevent loader issues
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: shouldLoadMaps ? apiKey : '',
+    googleMapsApiKey: hasValidApiKey ? apiKey! : '', // Use actual key or empty string
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
     region: 'US',
     preventGoogleFontsLoading: true,
-    // Only load when we have a valid API key to prevent loader conflicts
   });
 
   const {
@@ -138,24 +144,25 @@ export const useGoogleMaps = () => {
     window.location.reload();
   }, []);
 
-  console.log('🗺️ Google Maps loading state:', {
-    isLoaded: hasApiKey ? isLoaded : false,
-    loadError: hasApiKey ? loadError : null,
-    hasValidApiKey: hasApiKey,
+  const finalIsLoaded = hasValidApiKey && isLoaded;
+  const finalLoadError = hasValidApiKey ? loadError : (apiKeyError ? new Error(apiKeyError) : null);
+
+  console.log('🗺️ Google Maps final state:', {
+    finalIsLoaded,
+    finalLoadError: finalLoadError?.message,
+    hasValidApiKey,
     actualIsLoaded: isLoaded,
-    actualLoadError: loadError,
-    apiKeyLoading,
-    apiKeyError
+    actualLoadError: loadError?.message
   });
 
   // Log any loading errors
-  if (loadError) {
+  if (loadError && hasValidApiKey) {
     console.error('❌ Google Maps loading error:', loadError);
   }
 
   return {
-    isLoaded: shouldLoadMaps ? isLoaded : false,
-    loadError: shouldLoadMaps ? loadError : (apiKeyError ? new Error(apiKeyError) : null),
+    isLoaded: finalIsLoaded,
+    loadError: finalLoadError,
     activeMarker,
     currentZoom,
     isDragging,
@@ -164,7 +171,7 @@ export const useGoogleMaps = () => {
     handleMapClick,
     setCurrentZoom,
     setIsDragging,
-    hasApiKey: shouldLoadMaps,
+    hasApiKey: hasValidApiKey,
     setApiKey: setApiKeyAndReload,
     apiKeyLoading
   };
