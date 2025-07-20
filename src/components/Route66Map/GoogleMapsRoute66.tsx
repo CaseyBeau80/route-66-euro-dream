@@ -24,7 +24,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   onStateClick,
   onClearSelection
 }) => {
-  const { isLoaded, loadError } = useGlobalGoogleMapsContext();
+  const { isLoaded, loadError } = useGlobalGoogleMapsContext(); // Fixed import
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
