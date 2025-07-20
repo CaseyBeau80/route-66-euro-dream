@@ -32,19 +32,23 @@ export class GoogleMapsIntegrationService {
   }
 
   static getApiKey(): string | null {
-    // Use hardcoded API key for production
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-    
-    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
-      return hardcodedApiKey.trim();
-    }
+    // Log for debugging
+    console.log('🔑 Getting API key...');
     
     try {
-      return localStorage.getItem(this.STORAGE_KEY);
+      // First try localStorage (user-provided key)
+      const storedKey = localStorage.getItem(this.STORAGE_KEY);
+      if (storedKey && storedKey.trim().length > 0) {
+        console.log('✅ Using stored API key from localStorage');
+        return storedKey.trim();
+      }
     } catch (error) {
-      console.warn('Failed to retrieve Google Maps API key from localStorage:', error);
-      return null;
+      console.warn('⚠️ Failed to retrieve Google Maps API key from localStorage:', error);
     }
+    
+    // If no stored key, user needs to provide one
+    console.log('❌ No API key found - user needs to input their key');
+    return null;
   }
 
   static setApiKey(apiKey: string): void {
