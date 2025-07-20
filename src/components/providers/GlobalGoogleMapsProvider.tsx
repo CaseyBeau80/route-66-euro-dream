@@ -64,8 +64,20 @@ const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactN
   console.log('🗺️ InnerGoogleMapsProvider loader state:', {
     isLoaded,
     hasLoadError: !!loadError,
-    errorMessage: loadError?.message
+    errorMessage: loadError?.message,
+    apiKeyLength: apiKey.length,
+    apiKeyValid: apiKey.startsWith('AIza')
   });
+
+  // Log any load errors in detail
+  if (loadError) {
+    console.error('❌ InnerGoogleMapsProvider: Google Maps failed to load:', {
+      error: loadError,
+      message: loadError.message,
+      stack: loadError.stack,
+      apiKeyPrefix: apiKey.substring(0, 10) + '...'
+    });
+  }
 
   const {
     isDragging,

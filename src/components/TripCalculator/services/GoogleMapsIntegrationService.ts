@@ -33,15 +33,16 @@ export class GoogleMapsIntegrationService {
   }
 
   static async getApiKey(): Promise<string | null> {
-    console.log('🔑 Getting Google Maps API key from Supabase...');
+    console.log('🔑 GoogleMapsIntegrationService: Getting Google Maps API key from Supabase...');
     
     // Return cached key if available
     if (this.cachedApiKey) {
-      console.log('✅ Using cached API key');
+      console.log('✅ GoogleMapsIntegrationService: Using cached API key');
       return this.cachedApiKey;
     }
     
     try {
+      console.log('🌐 GoogleMapsIntegrationService: Fetching from edge function...');
       // Fetch API key from Supabase Edge Function (now public, no auth needed)
       const response = await fetch('https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/get-google-maps-key', {
         method: 'GET',
@@ -50,11 +51,24 @@ export class GoogleMapsIntegrationService {
         },
       });
 
+      console.log('📡 GoogleMapsIntegrationService: Edge function response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
-        throw new Error(`Failed to fetch API key: ${response.status}`);
+        throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      console.log('📦 GoogleMapsIntegrationService: Edge function data:', {
+        hasApiKey: !!data.apiKey,
+        hasError: !!data.error,
+        success: data.success,
+        timestamp: data.timestamp
+      });
       
       if (data.error) {
         throw new Error(data.error);
@@ -65,28 +79,31 @@ export class GoogleMapsIntegrationService {
         // Store in localStorage for hook access
         try {
           localStorage.setItem(this.STORAGE_KEY, data.apiKey);
+          console.log('💾 GoogleMapsIntegrationService: API key stored in localStorage');
         } catch (error) {
-          console.warn('⚠️ Failed to store API key in localStorage:', error);
+          console.warn('⚠️ GoogleMapsIntegrationService: Failed to store API key in localStorage:', error);
         }
-        console.log('✅ Successfully retrieved Google Maps API key from Supabase');
+        console.log('✅ GoogleMapsIntegrationService: Successfully retrieved Google Maps API key from Supabase');
         return data.apiKey;
       }
 
       throw new Error('No API key returned from server');
     } catch (error) {
-      console.error('❌ Failed to get Google Maps API key:', error);
+      console.error('❌ GoogleMapsIntegrationService: Failed to get Google Maps API key:', error);
       
       // Fallback to localStorage for backward compatibility
       try {
         const storedKey = localStorage.getItem(this.STORAGE_KEY);
         if (storedKey && storedKey.trim().length > 0) {
-          console.log('⚠️ Using fallback API key from localStorage');
+          console.log('⚠️ GoogleMapsIntegrationService: Using fallback API key from localStorage');
           return storedKey.trim();
         }
+        console.log('🔍 GoogleMapsIntegrationService: No fallback API key in localStorage');
       } catch (storageError) {
-        console.warn('⚠️ Failed to access localStorage:', storageError);
+        console.warn('⚠️ GoogleMapsIntegrationService: Failed to access localStorage:', storageError);
       }
       
+      console.log('💥 GoogleMapsIntegrationService: Returning null - no API key available');
       return null;
     }
   }
