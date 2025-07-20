@@ -46,6 +46,11 @@ const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactN
   const mapRef = React.useRef<google.maps.Map | null>(null);
 
   // Now we can safely call useJsApiLoader with a valid API key
+  console.log('🔄 InnerGoogleMapsProvider: Initializing Google Maps with API key:', {
+    keyLength: apiKey.length,
+    keyPrefix: apiKey.substring(0, 20) + '...'
+  });
+  
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: apiKey,
@@ -54,6 +59,12 @@ const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactN
     language: 'en',
     region: 'US',
     preventGoogleFontsLoading: true,
+  });
+
+  console.log('🗺️ InnerGoogleMapsProvider loader state:', {
+    isLoaded,
+    hasLoadError: !!loadError,
+    errorMessage: loadError?.message
   });
 
   const {
@@ -130,7 +141,10 @@ export const GlobalGoogleMapsProvider: React.FC<GlobalGoogleMapsProviderProps> =
         
         if (key && key.trim().length > 0) {
           setApiKey(key);
-          console.log('✅ GlobalGoogleMapsProvider: API key loaded successfully');
+          console.log('✅ GlobalGoogleMapsProvider: API key loaded successfully', {
+            keyLength: key.length,
+            keyPrefix: key.substring(0, 20) + '...'
+          });
         } else {
           setApiKeyError('No API key available');
           console.log('❌ GlobalGoogleMapsProvider: No API key available');
