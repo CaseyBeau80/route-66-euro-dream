@@ -62,6 +62,12 @@ export class GoogleMapsIntegrationService {
 
       if (data.apiKey) {
         this.cachedApiKey = data.apiKey;
+        // Store in localStorage for hook access
+        try {
+          localStorage.setItem(this.STORAGE_KEY, data.apiKey);
+        } catch (error) {
+          console.warn('⚠️ Failed to store API key in localStorage:', error);
+        }
         console.log('✅ Successfully retrieved Google Maps API key from Supabase');
         return data.apiKey;
       }

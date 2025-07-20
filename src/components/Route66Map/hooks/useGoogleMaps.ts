@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useMapLoading } from './useMapLoading';
 import { GoogleMapsIntegrationService } from '../../TripCalculator/services/GoogleMapsIntegrationService';
@@ -7,107 +7,32 @@ import { GoogleMapsIntegrationService } from '../../TripCalculator/services/Goog
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [apiKeyLoading, setApiKeyLoading] = useState<boolean>(true);
-  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
-  const [hasTriedLoading, setHasTriedLoading] = useState<boolean>(false);
-  
-  // Load API key on component mount
-  useEffect(() => {
-    let mounted = true;
-    
-    const loadApiKey = async () => {
-      if (hasTriedLoading) return; // Prevent multiple attempts
-      
-      try {
-        console.log('🔑 Loading Google Maps API key...');
-        setApiKeyLoading(true);
-        setApiKeyError(null);
-        setHasTriedLoading(true);
-        
-        const key = await GoogleMapsIntegrationService.getApiKey();
-        
-        if (!mounted) return; // Component unmounted
-        
-        if (key && key.trim().length > 0) {
-          setApiKey(key);
-          console.log('✅ Google Maps API key loaded successfully:', key.substring(0, 8) + '...');
-        } else {
-          setApiKeyError('No API key available');
-          console.log('❌ No Google Maps API key available');
-        }
-      } catch (error) {
-        if (!mounted) return; // Component unmounted
-        
-        console.error('❌ Failed to load Google Maps API key:', error);
-        setApiKeyError(error instanceof Error ? error.message : 'Failed to load API key');
-      } finally {
-        if (mounted) {
-          setApiKeyLoading(false);
-        }
+  // Get API key synchronously from localStorage as fallback
+  // The main loading is now handled by the parent component
+  const getApiKey = (): string => {
+    try {
+      const storedKey = localStorage.getItem('google_maps_api_key');
+      if (storedKey && storedKey.trim().length > 0) {
+        return storedKey.trim();
       }
-    };
-
-    loadApiKey();
-    
-    return () => {
-      mounted = false;
-    };
-  }, [hasTriedLoading]);
-  
-  // Enhanced validation - check if key looks like a real Google Maps API key
-  const isValidGoogleMapsKey = (key: string | null): boolean => {
-    if (!key || key.trim() === '' || key === 'demo-key') return false;
-    
-    // Check if key starts with common test/placeholder text
-    const invalidPrefixes = ['What do yo', 'I am tryin', 'your_', 'demo', 'test', 'placeholder', 'YOUR_API_KEY', 'enter_your'];
-    const keyLower = key.toLowerCase();
-    
-    for (const prefix of invalidPrefixes) {
-      if (keyLower.startsWith(prefix.toLowerCase())) {
-        console.log(`🔑 Invalid API key detected - starts with: ${prefix}`);
-        return false;
-      }
+    } catch (error) {
+      console.warn('⚠️ Failed to get API key from localStorage:', error);
     }
-    
-    // Google Maps API keys are typically 39 characters and start with 'AIzaSy'
-    if (key.length < 35) {
-      console.log('🔑 API key too short');
-      return false;
-    }
-    
-    // Accept keys that start with AIzaSy (legitimate Google Maps API keys)
-    if (key.startsWith('AIzaSy')) {
-      console.log('🔑 Valid Google Maps API key format detected');
-      return true;
-    }
-    
-    // For other formats, be more lenient but still check basic criteria
-    if (key.length >= 35 && !/^[a-zA-Z_\s]/.test(key)) {
-      console.log('🔑 API key appears to be in valid format');
-      return true;
-    }
-    
-    console.log('🔑 API key format appears invalid');
-    return false;
+    return ''; // Return empty string as fallback
   };
 
-  const hasValidApiKey = !apiKeyLoading && !apiKeyError && isValidGoogleMapsKey(apiKey);
+  const apiKey = getApiKey();
   
-  console.log('🗺️ Google Maps state:', {
-    apiKeyLoading,
-    apiKeyError,
-    hasValidApiKey,
-    apiKeyLength: apiKey?.length || 0,
-    apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'none',
-    hasTriedLoading
+  console.log('🗺️ useGoogleMaps: Using API key:', {
+    hasKey: !!apiKey,
+    keyLength: apiKey.length,
+    keyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'none'
   });
 
-  // CRITICAL: Only initialize loader when we have a valid API key
-  // Pass empty string when no key to prevent loader issues
+  // Initialize Google Maps loader with consistent options
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: hasValidApiKey ? apiKey! : '', // Use actual key or empty string
+    googleMapsApiKey: apiKey,
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
@@ -144,25 +69,20 @@ export const useGoogleMaps = () => {
     window.location.reload();
   }, []);
 
-  const finalIsLoaded = hasValidApiKey && isLoaded;
-  const finalLoadError = hasValidApiKey ? loadError : (apiKeyError ? new Error(apiKeyError) : null);
-
-  console.log('🗺️ Google Maps final state:', {
-    finalIsLoaded,
-    finalLoadError: finalLoadError?.message,
-    hasValidApiKey,
-    actualIsLoaded: isLoaded,
-    actualLoadError: loadError?.message
+  console.log('🗺️ useGoogleMaps final state:', {
+    isLoaded,
+    loadError: loadError?.message,
+    hasApiKey: !!apiKey
   });
 
   // Log any loading errors
-  if (loadError && hasValidApiKey) {
+  if (loadError) {
     console.error('❌ Google Maps loading error:', loadError);
   }
 
   return {
-    isLoaded: finalIsLoaded,
-    loadError: finalLoadError,
+    isLoaded,
+    loadError,
     activeMarker,
     currentZoom,
     isDragging,
@@ -171,8 +91,8 @@ export const useGoogleMaps = () => {
     handleMapClick,
     setCurrentZoom,
     setIsDragging,
-    hasApiKey: hasValidApiKey,
+    hasApiKey: !!apiKey,
     setApiKey: setApiKeyAndReload,
-    apiKeyLoading
+    apiKeyLoading: false // Always false since loading is handled upstream
   };
 };
