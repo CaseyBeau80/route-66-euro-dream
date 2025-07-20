@@ -75,7 +75,10 @@ const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactN
       error: loadError,
       message: loadError.message,
       stack: loadError.stack,
-      apiKeyPrefix: apiKey.substring(0, 10) + '...'
+      apiKeyPrefix: apiKey.substring(0, 10) + '...',
+      currentDomain: window.location.hostname,
+      currentUrl: window.location.href,
+      userAgent: navigator.userAgent
     });
   }
 

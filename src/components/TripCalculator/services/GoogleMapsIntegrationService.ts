@@ -34,6 +34,8 @@ export class GoogleMapsIntegrationService {
 
   static async getApiKey(): Promise<string | null> {
     console.log('🔑 GoogleMapsIntegrationService: Getting Google Maps API key from Supabase...');
+    console.log('🌍 GoogleMapsIntegrationService: Current domain:', window.location.hostname);
+    console.log('🔗 GoogleMapsIntegrationService: Current URL:', window.location.href);
     
     // Return cached key if available
     if (this.cachedApiKey) {
@@ -43,22 +45,32 @@ export class GoogleMapsIntegrationService {
     
     try {
       console.log('🌐 GoogleMapsIntegrationService: Fetching from edge function...');
-      // Fetch API key from Supabase Edge Function (now public, no auth needed)
+      
+      // Add timeout and better error handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await fetch('https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/get-google-maps-key', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       console.log('📡 GoogleMapsIntegrationService: Edge function response:', {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok
+        ok: response.ok,
+        headers: Object.fromEntries(response.headers.entries())
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('❌ GoogleMapsIntegrationService: Edge function error response:', errorText);
+        throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -67,13 +79,14 @@ export class GoogleMapsIntegrationService {
         hasApiKey: !!data.apiKey,
         hasError: !!data.error,
         success: data.success,
-        timestamp: data.timestamp
+        timestamp: data.timestamp,
+        fullResponse: data
       });
       
       if (data.error) {
         throw new Error(data.error);
       }
-
+      
       if (data.apiKey) {
         this.cachedApiKey = data.apiKey;
         // Store in localStorage for hook access
@@ -90,12 +103,18 @@ export class GoogleMapsIntegrationService {
       throw new Error('No API key returned from server');
     } catch (error) {
       console.error('❌ GoogleMapsIntegrationService: Failed to get Google Maps API key:', error);
+      console.error('❌ GoogleMapsIntegrationService: Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       
       // Fallback to localStorage for backward compatibility
       try {
         const storedKey = localStorage.getItem(this.STORAGE_KEY);
         if (storedKey && storedKey.trim().length > 0) {
           console.log('⚠️ GoogleMapsIntegrationService: Using fallback API key from localStorage');
+          console.log('🔑 GoogleMapsIntegrationService: Fallback key starts with:', storedKey.substring(0, 10));
           return storedKey.trim();
         }
         console.log('🔍 GoogleMapsIntegrationService: No fallback API key in localStorage');
