@@ -16,6 +16,15 @@ const MapLoadError: React.FC<MapLoadErrorProps> = ({ error }) => {
     fullUrl: window.location.href
   });
 
+  const handleTryWithNewApiKey = () => {
+    const newApiKey = prompt('Enter your Google Maps API key (for testing):');
+    if (newApiKey && newApiKey.trim()) {
+      localStorage.setItem('google_maps_api_key', newApiKey.trim());
+      console.log('🔄 Manual API key set, reloading...');
+      window.location.reload();
+    }
+  };
+
   return (
     <div className="flex items-center justify-center h-full bg-gray-100 rounded-xl border border-gray-200">
       <div className="text-center p-6 max-w-2xl">
@@ -45,15 +54,24 @@ const MapLoadError: React.FC<MapLoadErrorProps> = ({ error }) => {
           </ul>
         </div>
         
-        <button
-          onClick={() => {
-            console.log('🔄 Reloading page for debugging...');
-            window.location.reload();
-          }}
-          className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Reload Page
-        </button>
+        <div className="mt-4 space-x-2">
+          <button
+            onClick={() => {
+              console.log('🔄 Reloading page for debugging...');
+              window.location.reload();
+            }}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Reload Page
+          </button>
+          
+          <button
+            onClick={handleTryWithNewApiKey}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Test with Manual API Key
+          </button>
+        </div>
       </div>
     </div>
   );
