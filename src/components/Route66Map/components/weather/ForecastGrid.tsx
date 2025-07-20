@@ -64,12 +64,12 @@ const ForecastGrid: React.FC<ForecastGridProps> = ({ forecast, showHeader = fals
               
               {/* High temperature - large and prominent */}
               <div className="text-lg font-bold text-gray-800 mb-1">
-                {day.temperature.high}°
+                {day.temperature.high}°F
               </div>
               
               {/* Low temperature - smaller and muted */}
               <div className="text-sm text-gray-600 mb-2">
-                {day.temperature.low}°
+                {day.temperature.low}°F
               </div>
               
               {/* Precipitation chance */}
