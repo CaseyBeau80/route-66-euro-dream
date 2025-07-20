@@ -1,6 +1,6 @@
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { useGoogleMapsContext } from './components/GoogleMapsProvider';
+import { useGlobalGoogleMapsContext } from '../providers/GlobalGoogleMapsProvider';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapLoadingStates from './components/MapLoadingStates';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
@@ -24,7 +24,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   onStateClick,
   onClearSelection
 }) => {
-  const { isLoaded, loadError } = useGoogleMapsContext();
+  const { isLoaded, loadError } = useGlobalGoogleMapsContext();
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
