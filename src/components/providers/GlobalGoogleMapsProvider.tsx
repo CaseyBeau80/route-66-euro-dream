@@ -110,6 +110,13 @@ const InnerGoogleMapsProvider: React.FC<{ apiKey: string; children: React.ReactN
           });
           
           console.log('⏳ Starting Google Maps API load...');
+          
+          // Add global error handler to suppress Google Maps error dialogs
+          (window as any).gm_authFailure = () => {
+            console.warn('⚠️ Google Maps authentication warning suppressed');
+            // Don't show the default error dialog
+          };
+          
           return loaderInstance.load();
         });
 
