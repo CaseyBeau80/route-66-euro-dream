@@ -16,27 +16,90 @@ export class GoogleDistanceMatrixService {
   private static apiKey: string | null = null;
   private static cache = new Map<string, DistanceMatrixResult>();
 
-  static setApiKey(key: string) {
+  static async setApiKey(key: string) {
     this.apiKey = key;
     localStorage.setItem('google_maps_api_key', key);
   }
 
-  static getApiKey(): string | null {
-    // Use hardcoded API key for production
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+  static async getApiKey(): Promise<string | null> {
+    console.log('🔑 GoogleDistanceMatrixService: Getting API key from Supabase edge function...');
     
-    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
-      return hardcodedApiKey.trim();
+    // Return cached key if available
+    if (this.apiKey) {
+      console.log('✅ GoogleDistanceMatrixService: Using cached API key');
+      return this.apiKey;
     }
     
-    if (!this.apiKey) {
-      this.apiKey = localStorage.getItem('google_maps_api_key');
+    // Check localStorage first
+    try {
+      const storedKey = localStorage.getItem('google_maps_api_key');
+      if (storedKey && storedKey.trim().length > 0 && storedKey.startsWith('AIza')) {
+        console.log('✅ GoogleDistanceMatrixService: Using stored API key from localStorage');
+        this.apiKey = storedKey.trim();
+        return storedKey.trim();
+      }
+    } catch (storageError) {
+      console.warn('⚠️ GoogleDistanceMatrixService: Failed to check localStorage:', storageError);
     }
-    return this.apiKey;
+    
+    // Fetch from Supabase edge function
+    try {
+      console.log('🌐 GoogleDistanceMatrixService: Fetching API key from edge function...');
+      
+      const response = await fetch('https://xbwaphzntaxmdfzfsmvt.supabase.co/functions/v1/get-google-maps-key', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ GoogleDistanceMatrixService: Edge function error:', errorText);
+        throw new Error(`Failed to fetch API key: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      if (data.apiKey) {
+        this.apiKey = data.apiKey;
+        // Store in localStorage for future use
+        try {
+          localStorage.setItem('google_maps_api_key', data.apiKey);
+          console.log('💾 GoogleDistanceMatrixService: API key stored in localStorage');
+        } catch (error) {
+          console.warn('⚠️ GoogleDistanceMatrixService: Failed to store API key in localStorage:', error);
+        }
+        console.log('✅ GoogleDistanceMatrixService: Successfully retrieved API key from Supabase');
+        return data.apiKey;
+      }
+
+      throw new Error('No API key returned from server');
+    } catch (error) {
+      console.error('❌ GoogleDistanceMatrixService: Failed to get API key:', error);
+      
+      // Fallback to localStorage
+      try {
+        const storedKey = localStorage.getItem('google_maps_api_key');
+        if (storedKey && storedKey.trim().length > 0) {
+          console.log('⚠️ GoogleDistanceMatrixService: Using fallback API key from localStorage');
+          return storedKey.trim();
+        }
+      } catch (storageError) {
+        console.warn('⚠️ GoogleDistanceMatrixService: Failed to access localStorage:', storageError);
+      }
+      
+      return null;
+    }
   }
 
-  static isAvailable(): boolean {
-    return !!this.getApiKey();
+  static async isAvailable(): Promise<boolean> {
+    const apiKey = await this.getApiKey();
+    return !!apiKey;
   }
 
   private static getCacheKey(origin: DestinationCity, destination: DestinationCity): string {
@@ -55,9 +118,9 @@ export class GoogleDistanceMatrixService {
       return this.cache.get(cacheKey)!;
     }
 
-    const apiKey = this.getApiKey();
+    const apiKey = await this.getApiKey();
     if (!apiKey) {
-      throw new Error('Google Maps API key not set');
+      throw new Error('Google Maps API key not available');
     }
 
     try {
