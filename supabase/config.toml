@@ -2,6 +2,3 @@ project_id = "xbwaphzntaxmdfzfsmvt"
 
 [functions.weather-forecast]
 verify_jwt = false
-
-[functions.get-google-maps-key]
-verify_jwt = false

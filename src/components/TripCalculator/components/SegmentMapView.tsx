@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { GoogleMap } from '@react-google-maps/api';
-import { useGlobalGoogleMapsContext } from '@/components/providers/GlobalGoogleMapsProvider';
+import { useGoogleMapsContext } from '@/components/Route66Map/components/GoogleMapsProvider';
 import { DailySegment } from '../services/planning/TripPlanBuilder';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Navigation } from 'lucide-react';
@@ -18,7 +18,7 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
   const mapRef = useRef<google.maps.Map | null>(null);
 
   // Use context instead of separate loader to prevent conflicts
-  const { isLoaded, loadError, hasApiKey } = useGlobalGoogleMapsContext();
+  const { isLoaded, loadError, hasApiKey } = useGoogleMapsContext();
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -106,8 +106,7 @@ const SegmentMapView: React.FC<SegmentMapViewProps> = ({ segment, isExpanded }) 
             options={mapOptions}
             onLoad={onMapLoad}
           >
-            {/* MapMarkers temporarily disabled to fix Google Maps loader conflict */}
-            {/* <MapMarkers segment={segment} /> */}
+            <MapMarkers segment={segment} />
           </GoogleMap>
         </div>
         <MapLegend />

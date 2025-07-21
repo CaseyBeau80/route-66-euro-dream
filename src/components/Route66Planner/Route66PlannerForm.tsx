@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PlannerFormData, TripItinerary } from './types';
 import { usePlannerService } from './hooks/usePlannerService';
 import { GoogleDistanceMatrixService } from './services/GoogleDistanceMatrixService';
@@ -26,22 +26,7 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
   setIsPlanning
 }) => {
   const { planTrip } = usePlannerService();
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-
-  // Check API key availability on component mount
-  useEffect(() => {
-    const checkApiKey = async () => {
-      try {
-        const available = await GoogleDistanceMatrixService.isAvailable();
-        setShowApiKeyInput(!available);
-      } catch (error) {
-        console.error('Error checking API key availability:', error);
-        setShowApiKeyInput(true);
-      }
-    };
-
-    checkApiKey();
-  }, []);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(!GoogleDistanceMatrixService.isAvailable());
 
   const handlePlanTrip = async () => {
     if (!formData.startDate || !formData.startCity || !formData.endCity) {
@@ -59,16 +44,6 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
     }
   };
 
-  const handleApiKeySet = async () => {
-    // Recheck API key availability
-    try {
-      const available = await GoogleDistanceMatrixService.isAvailable();
-      setShowApiKeyInput(!available);
-    } catch (error) {
-      console.error('Error checking API key after setting:', error);
-    }
-  };
-
   const isFormValid = Boolean(formData.startDate && formData.startCity && formData.endCity);
 
   return (
@@ -77,7 +52,7 @@ const Route66PlannerForm: React.FC<Route66PlannerFormProps> = ({
       
       <ApiKeySection 
         showApiKeyInput={showApiKeyInput}
-        onApiKeySet={handleApiKeySet}
+        onApiKeySet={() => setShowApiKeyInput(false)}
       />
 
       <DateAndLocationSection 

@@ -1,6 +1,6 @@
 
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { useGlobalGoogleMapsContext } from '../providers/GlobalGoogleMapsProvider';
+import { useGoogleMapsContext } from './components/GoogleMapsProvider';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MapLoadingStates from './components/MapLoadingStates';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
@@ -24,7 +24,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   onStateClick,
   onClearSelection
 }) => {
-  const { isLoaded, loadError } = useGlobalGoogleMapsContext(); // Fixed import
+  const { isLoaded, loadError } = useGoogleMapsContext();
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
@@ -38,12 +38,10 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   });
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
-    console.log('🗺️ GoogleMapsRoute66: Map loaded, setting mapRef');
     mapRef.current = map;
     
     // Ensure map is fully ready before setting state
     setTimeout(() => {
-      console.log('🗺️ GoogleMapsRoute66: Setting isMapReady to true - markers should render now');
       setIsMapReady(true);
     }, 500);
   }, []);
@@ -73,7 +71,6 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         {/* Route 66 Content - Only render when map is ready */}
         {mapRef.current && isMapReady && (
           <>
-            {console.log('🎯 GoogleMapsRoute66: Rendering marker containers - map ready!')}
             {/* State Styling - Highlight Route 66 states */}
             <StateStyling map={mapRef.current} />
             

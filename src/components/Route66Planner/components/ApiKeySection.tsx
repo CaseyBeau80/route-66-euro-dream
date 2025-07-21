@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle } from 'lucide-react';
 import ApiKeyInput from './ApiKeyInput';
 import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 
@@ -11,52 +11,9 @@ interface ApiKeySectionProps {
 }
 
 const ApiKeySection: React.FC<ApiKeySectionProps> = ({ showApiKeyInput, onApiKeySet }) => {
-  const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
-  const [hasApiKey, setHasApiKey] = useState(false);
+  const isGoogleAvailable = GoogleDistanceMatrixService.isAvailable();
 
-  useEffect(() => {
-    const checkApiKey = async () => {
-      setIsCheckingApiKey(true);
-      try {
-        const available = await GoogleDistanceMatrixService.isAvailable();
-        setHasApiKey(available);
-      } catch (error) {
-        console.error('Error checking API key:', error);
-        setHasApiKey(false);
-      } finally {
-        setIsCheckingApiKey(false);
-      }
-    };
-
-    checkApiKey();
-  }, []);
-
-  const handleApiKeySet = async () => {
-    // Recheck API key availability after setting
-    const available = await GoogleDistanceMatrixService.isAvailable();
-    setHasApiKey(available);
-    onApiKeySet();
-  };
-
-  if (isCheckingApiKey) {
-    return (
-      <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <Loader2 className="h-5 w-5 text-blue-600 animate-spin flex-shrink-0" />
-            <div>
-              <h4 className="font-semibold text-blue-900">Checking Google Maps API...</h4>
-              <p className="text-sm text-blue-800">
-                Verifying API key availability for accurate distance calculations.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (hasApiKey) {
+  if (isGoogleAvailable) {
     return (
       <Card className="border-green-200 bg-green-50">
         <CardContent className="p-4">
@@ -105,10 +62,10 @@ const ApiKeySection: React.FC<ApiKeySectionProps> = ({ showApiKeyInput, onApiKey
             </p>
           </div>
           
-          <ApiKeyInput onApiKeySet={handleApiKeySet} />
+          <ApiKeyInput onApiKeySet={onApiKeySet} />
           
           <div className="text-xs text-[#94a3b8] space-y-1">
-            <p>• Your API key is stored securely and used only for distance calculations</p>
+            <p>• Your API key is stored locally and never sent to our servers</p>
             <p>• Distance Matrix API calls are made directly from your browser</p>
             <p>• You only pay Google for the API usage according to their pricing</p>
           </div>
