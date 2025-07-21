@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import MapDisplay from './MapDisplay';
 import MapLoadingIndicator from './components/MapLoading';
 import MapLoadError from './components/MapLoadError';
+import MapDebugInfo from './components/MapDebugInfo';
 import { useGlobalGoogleMapsContext } from '../providers/GlobalGoogleMapsProvider';
 
 const Route66Map: React.FC = () => {
@@ -33,6 +34,7 @@ const Route66Map: React.FC = () => {
 
   return (
     <div className="w-full h-full">
+      <MapDebugInfo />
       <MapDisplay
         selectedState={selectedState}
         onStateClick={handleStateClick}
