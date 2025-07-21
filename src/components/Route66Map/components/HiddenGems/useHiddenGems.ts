@@ -1,6 +1,4 @@
-
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { HiddenGem } from './types';
 
 export const useHiddenGems = () => {
@@ -13,48 +11,66 @@ export const useHiddenGems = () => {
 
   const fetchHiddenGems = async () => {
     try {
-      console.log('💎 Fetching hidden gems from hidden_gems table only...');
+      console.log('💎 Loading static hidden gems data...');
       
-      const { data, error } = await supabase
-        .from('hidden_gems')
-        .select('*')
-        .order('title');
-
-      if (error) {
-        console.error('❌ Error fetching hidden gems:', error);
-        return;
-      }
-
-      console.log(`💎 Found ${data?.length || 0} items from hidden_gems table`);
-      
-      // Validate and process the data
-      const validHiddenGems = (data || []).filter(gem => {
-        const lat = parseFloat(gem.latitude?.toString() || '0');
-        const lng = parseFloat(gem.longitude?.toString() || '0');
-        
-        // Check for valid coordinates
-        const isValidLat = lat >= -90 && lat <= 90 && lat !== 0;
-        const isValidLng = lng >= -180 && lng <= 180 && lng !== 0;
-        
-        if (!isValidLat || !isValidLng) {
-          console.warn(`⚠️ Invalid coordinates for ${gem.title}: lat=${lat}, lng=${lng}`);
-          return false;
+      // Static hidden gems data for Route 66
+      const staticHiddenGems: HiddenGem[] = [
+        {
+          id: '1',
+          title: 'Blue Whale of Catoosa',
+          latitude: 36.1878,
+          longitude: -95.7489,
+          description: 'Giant blue whale sculpture and swimming hole in Catoosa, Oklahoma.',
+          city_name: 'Catoosa',
+          website: null
+        },
+        {
+          id: '2',
+          title: 'Cadillac Ranch',
+          latitude: 35.2220,
+          longitude: -101.9673,
+          description: 'Art installation with 10 half-buried Cadillacs in Amarillo, Texas.',
+          city_name: 'Amarillo',
+          website: null
+        },
+        {
+          id: '3',
+          title: 'Gemini Giant',
+          latitude: 41.5056,
+          longitude: -88.0817,
+          description: 'Fiberglass muffler man holding a rocket in Wilmington, Illinois.',
+          city_name: 'Wilmington',
+          website: null
+        },
+        {
+          id: '4',
+          title: 'Wigwam Motel',
+          latitude: 35.0819,
+          longitude: -110.0298,
+          description: 'Iconic teepee-shaped motel rooms in Holbrook, Arizona.',
+          city_name: 'Holbrook',
+          website: null
+        },
+        {
+          id: '5',
+          title: 'Leaning Water Tower',
+          latitude: 35.0889,
+          longitude: -100.8900,
+          description: 'Famous leaning water tower in Groom, Texas.',
+          city_name: 'Groom',
+          website: null
         }
-        
-        console.log(`✅ Valid coordinates for ${gem.title}: lat=${lat}, lng=${lng}`);
-        return true;
-      }).map(gem => ({
-        ...gem,
-        latitude: parseFloat(gem.latitude?.toString() || '0'),
-        longitude: parseFloat(gem.longitude?.toString() || '0')
-      }));
+      ];
+
+      console.log(`💎 Found ${staticHiddenGems.length} static hidden gems`);
       
-      console.log(`💎 Valid hidden gems to display: ${validHiddenGems.length}`);
-      validHiddenGems.forEach(gem => {
-        console.log(`  - ${gem.title}: ${gem.latitude}, ${gem.longitude}`);
+      staticHiddenGems.forEach(gem => {
+        console.log(`✅ Valid coordinates for ${gem.title}: lat=${gem.latitude}, lng=${gem.longitude}`);
       });
+
+      setHiddenGems(staticHiddenGems);
+      console.log(`💎 Set ${staticHiddenGems.length} valid hidden gems`);
       
-      setHiddenGems(validHiddenGems);
     } catch (error) {
       console.error('❌ Error in fetchHiddenGems:', error);
     } finally {

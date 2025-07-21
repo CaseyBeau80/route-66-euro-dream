@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import AttractionCustomMarker from './Attractions/AttractionCustomMarker';
 
 interface Attraction {
@@ -31,57 +30,109 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
   const [loading, setLoading] = useState(true);
   const [currentZoom, setCurrentZoom] = useState<number>(6);
 
-  // Fetch attractions from the attractions table
+  // Use static attractions data instead of Supabase
   useEffect(() => {
-    const fetchAttractions = async () => {
-      try {
-        console.log('🎯 Fetching attractions from attractions table...');
-        
-        const { data, error } = await supabase
-          .from('attractions')
-          .select('*')
-          .order('name');
-
-        if (error) {
-          console.error('❌ Error fetching attractions:', error);
-          return;
-        }
-
-        console.log(`✅ Fetched ${data?.length || 0} attractions from database`);
-        
-        // Debug: Log all attraction names to see what we have
-        if (data) {
-          console.log('🔍 ALL ATTRACTIONS IN DATABASE:');
-          data.forEach((attraction, index) => {
-            console.log(`  ${index + 1}. "${attraction.name}" in ${attraction.city_name}, ${attraction.state}`);
-            console.log(`     Coordinates: ${attraction.latitude}, ${attraction.longitude}`);
-          });
-          
-          // Specifically look for the missing attractions
-          const waterfalls = data.find(a => a.name.toLowerCase().includes('waterfall'));
-          const shoalCreek = data.find(a => a.name.toLowerCase().includes('shoal creek'));
-          
-          console.log('🔍 LOOKING FOR SPECIFIC ATTRACTIONS:');
-          console.log('  The Waterfalls:', waterfalls ? `FOUND - ${waterfalls.name}` : 'NOT FOUND');
-          console.log('  Shoal Creek Overlook:', shoalCreek ? `FOUND - ${shoalCreek.name}` : 'NOT FOUND');
-          
-          if (waterfalls) {
-            console.log(`    Waterfalls details: lat=${waterfalls.latitude}, lng=${waterfalls.longitude}, city=${waterfalls.city_name}`);
-          }
-          if (shoalCreek) {
-            console.log(`    Shoal Creek details: lat=${shoalCreek.latitude}, lng=${shoalCreek.longitude}, city=${shoalCreek.city_name}`);
-          }
-        }
-        
-        setAttractions(data || []);
-      } catch (error) {
-        console.error('❌ Error in fetchAttractions:', error);
-      } finally {
-        setLoading(false);
+    console.log('🎯 Loading static attractions data...');
+    
+    // Static attractions data for Route 66
+    const staticAttractions: Attraction[] = [
+      {
+        id: '1',
+        name: 'Cadillac Ranch',
+        city_name: 'Amarillo',
+        state: 'TX',
+        latitude: 35.2220,
+        longitude: -101.9673,
+        description: 'Iconic art installation featuring 10 buried Cadillacs',
+        category: 'Art Installation',
+        featured: true
+      },
+      {
+        id: '2', 
+        name: 'Petrified Forest National Park',
+        city_name: 'Holbrook',
+        state: 'AZ',
+        latitude: 35.0819,
+        longitude: -109.7877,
+        description: 'Ancient petrified wood and painted desert landscapes',
+        category: 'National Park',
+        featured: true
+      },
+      {
+        id: '3',
+        name: 'Santa Monica Pier',
+        city_name: 'Santa Monica',
+        state: 'CA',
+        latitude: 34.0195,
+        longitude: -118.4912,
+        description: 'Western terminus of Route 66 with amusement park',
+        category: 'Landmark',
+        featured: true
+      },
+      {
+        id: '4',
+        name: 'Gateway Arch',
+        city_name: 'St. Louis',
+        state: 'MO',
+        latitude: 38.6270,
+        longitude: -90.1994,
+        description: 'Iconic 630-foot stainless steel arch',
+        category: 'Monument',
+        featured: true
+      },
+      {
+        id: '5',
+        name: 'Chain of Rocks Bridge',
+        city_name: 'St. Louis',
+        state: 'MO',
+        latitude: 38.7406,
+        longitude: -90.1743,
+        description: 'Historic Route 66 bridge with 22-degree bend',
+        category: 'Bridge',
+        featured: false
+      },
+      {
+        id: '6',
+        name: 'Meramec Caverns',
+        city_name: 'Stanton',
+        state: 'MO',
+        latitude: 38.2581,
+        longitude: -91.0826,
+        description: 'Underground limestone cave system',
+        category: 'Natural Wonder',
+        featured: false
+      },
+      {
+        id: '7',
+        name: 'Blue Whale of Catoosa',
+        city_name: 'Catoosa',
+        state: 'OK',
+        latitude: 36.1878,
+        longitude: -95.7489,
+        description: 'Giant blue whale sculpture and swimming hole',
+        category: 'Roadside Attraction',
+        featured: true
+      },
+      {
+        id: '8',
+        name: 'Golden Driller',
+        city_name: 'Tulsa',
+        state: 'OK', 
+        latitude: 36.1512,
+        longitude: -95.9371,
+        description: '75-foot tall statue of an oil worker',
+        category: 'Roadside Attraction',
+        featured: false
       }
-    };
+    ];
 
-    fetchAttractions();
+    console.log(`✅ Loaded ${staticAttractions.length} static attractions`);
+    staticAttractions.forEach((attraction, index) => {
+      console.log(`  ${index + 1}. "${attraction.name}" in ${attraction.city_name}, ${attraction.state}`);
+    });
+    
+    setAttractions(staticAttractions);
+    setLoading(false);
   }, []);
   
   // Simplified zoom handling - no more aggressive debouncing that causes disappearing
