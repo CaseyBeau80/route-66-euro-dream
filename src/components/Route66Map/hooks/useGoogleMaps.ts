@@ -7,11 +7,25 @@ import { useMapLoading } from './useMapLoading';
 const GOOGLE_MAPS_LIBRARIES: ("maps")[] = ['maps'];
 
 export const useGoogleMaps = () => {
-  // Get API key from localStorage or use demo key
+  // Get API key with priority: Environment Variable > localStorage > demo key
   const getStoredApiKey = (): string => {
+    // 1. Check environment variable first
+    const envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (envKey && envKey.trim() !== '' && envKey !== 'your_google_maps_api_key_here') {
+      console.log('🔑 Using Google Maps API key from environment variable');
+      return envKey.trim();
+    }
+    
+    // 2. Check localStorage as fallback
     const storedKey = localStorage.getItem('google_maps_api_key');
-    // Use a demo key if no stored key is available
-    return storedKey?.trim() || 'AIzaSyBjsINSWPx5SC1nxnqwCb_7ByVKFps7t1A';
+    if (storedKey && storedKey.trim() !== '') {
+      console.log('🔑 Using Google Maps API key from localStorage');
+      return storedKey.trim();
+    }
+    
+    // 3. Use demo key as last resort
+    console.log('🔑 Using demo Google Maps API key');
+    return 'AIzaSyBjsINSWPx5SC1nxnqwCb_7ByVKFps7t1A';
   };
 
   const [apiKey, setApiKey] = useState<string>(getStoredApiKey());

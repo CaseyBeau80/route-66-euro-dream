@@ -32,19 +32,35 @@ export class GoogleMapsIntegrationService {
   }
 
   static getApiKey(): string | null {
-    // Use hardcoded API key for production
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    // Priority: Environment Variable > localStorage > hardcoded fallback
     
+    // 1. Check environment variable first
+    const envKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || '';
+    if (envKey && envKey.trim() !== '' && envKey !== 'your_google_maps_api_key_here') {
+      console.log('🔑 GoogleMapsIntegration using API key from environment variable');
+      return envKey.trim();
+    }
+    
+    // 2. Check localStorage as fallback
+    try {
+      const storedKey = localStorage.getItem(this.STORAGE_KEY);
+      if (storedKey && storedKey.trim() !== '') {
+        console.log('🔑 GoogleMapsIntegration using API key from localStorage');
+        return storedKey.trim();
+      }
+    } catch (error) {
+      console.warn('Failed to retrieve Google Maps API key from localStorage:', error);
+    }
+    
+    // 3. Use hardcoded key as last resort
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
     if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
+      console.log('🔑 GoogleMapsIntegration using hardcoded API key fallback');
       return hardcodedApiKey.trim();
     }
     
-    try {
-      return localStorage.getItem(this.STORAGE_KEY);
-    } catch (error) {
-      console.warn('Failed to retrieve Google Maps API key from localStorage:', error);
-      return null;
-    }
+    console.warn('❌ GoogleMapsIntegration: No API key available');
+    return null;
   }
 
   static setApiKey(apiKey: string): void {
