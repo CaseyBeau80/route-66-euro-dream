@@ -22,17 +22,33 @@ export class GoogleDistanceMatrixService {
   }
 
   static getApiKey(): string | null {
-    // Use hardcoded API key for production
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    // Priority: Environment Variable > localStorage > hardcoded fallback
     
-    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
-      return hardcodedApiKey.trim();
+    // 1. Check environment variable first
+    const envKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || '';
+    if (envKey && envKey.trim() !== '' && envKey !== 'your_google_maps_api_key_here') {
+      console.log('🔑 GoogleDistanceMatrix using API key from environment variable');
+      return envKey.trim();
     }
     
+    // 2. Check localStorage as fallback
     if (!this.apiKey) {
       this.apiKey = localStorage.getItem('google_maps_api_key');
     }
-    return this.apiKey;
+    if (this.apiKey && this.apiKey.trim() !== '') {
+      console.log('🔑 GoogleDistanceMatrix using API key from localStorage');
+      return this.apiKey.trim();
+    }
+    
+    // 3. Use hardcoded key as last resort
+    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
+    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
+      console.log('🔑 GoogleDistanceMatrix using hardcoded API key fallback');
+      return hardcodedApiKey.trim();
+    }
+    
+    console.warn('❌ GoogleDistanceMatrix: No API key available');
+    return null;
   }
 
   static isAvailable(): boolean {
