@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://caseybeau80.github.io/ramble66-sitemap/sitemap.xml
+Sitemap: https://www.ramble66.com/sitemap.xml
