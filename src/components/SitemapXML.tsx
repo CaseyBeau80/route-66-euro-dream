@@ -2,7 +2,10 @@ import { useEffect } from 'react';
 import { generateSitemapFile } from '@/utils/sitemapGenerator';
 
 const SitemapXML = () => {
+  console.log('SitemapXML component is rendering');
+  
   useEffect(() => {
+    console.log('SitemapXML useEffect running');
     // Set the document content type
     const meta = document.createElement('meta');
     meta.setAttribute('http-equiv', 'Content-Type');
@@ -13,7 +16,14 @@ const SitemapXML = () => {
     document.title = 'Sitemap';
   }, []);
 
-  const xml = generateSitemapFile();
+  let xml;
+  try {
+    xml = generateSitemapFile();
+    console.log('Generated XML:', xml.substring(0, 100) + '...');
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    xml = 'Error generating sitemap';
+  }
   
   return (
     <pre style={{ 
