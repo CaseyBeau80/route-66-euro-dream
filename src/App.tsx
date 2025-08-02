@@ -11,8 +11,6 @@ import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
 import SharedTripPage from "./pages/SharedTripPage";
 import NotFound from "./pages/NotFound";
-import RobotsResponse from "./components/RobotsResponse";
-import SitemapResponse from "./components/SitemapResponse";
 
 // Create QueryClient instance outside of component to avoid recreation
 const queryClient = new QueryClient({
@@ -38,8 +36,6 @@ function App() {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/trip/:shareCode" element={<SharedTripPage />} />
-                <Route path="/robots.txt" element={<RobotsResponse />} />
-                <Route path="/sitemap.xml" element={<SitemapResponse />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
