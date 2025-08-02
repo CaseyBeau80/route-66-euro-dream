@@ -11,6 +11,7 @@ import ContactPage from "./pages/ContactPage";
 import AboutPage from "./pages/AboutPage";
 import SharedTripPage from "./pages/SharedTripPage";
 import SitemapResponse from "./components/SitemapResponse";
+import RobotsResponse from "./components/RobotsResponse";
 import NotFound from "./pages/NotFound";
 
 // Create QueryClient instance outside of component to avoid recreation
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/trip/:shareCode" element={<SharedTripPage />} />
                 <Route path="/sitemap.xml" element={<SitemapResponse />} />
+                <Route path="/robots.txt" element={<RobotsResponse />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
