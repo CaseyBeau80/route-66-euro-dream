@@ -58,7 +58,10 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       {/* Canonical URL */}
       <link rel="canonical" href={baseUrl} />
       
-      {/* Alternative names for search engines */}
+      {/* Sitemap */}
+      <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+      
+      {/* Structured Data - Website */}
       <script type="application/ld+json">
         {JSON.stringify({
           "@context": "https://schema.org",
@@ -78,6 +81,32 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
               "urlTemplate": `${baseUrl}?q={search_term_string}`
             },
             "query-input": "required name=search_term_string"
+          }
+        })}
+      </script>
+      
+      {/* Structured Data - Trip Planning Service */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Route 66 Trip Planner",
+          "description": "Interactive Route 66 trip planning service with maps, attractions, and dining recommendations",
+          "provider": {
+            "@type": "Organization",
+            "name": "Ramble 66",
+            "url": baseUrl
+          },
+          "serviceType": "Travel Planning",
+          "areaServed": {
+            "@type": "Place",
+            "name": "Route 66 - Chicago to Santa Monica"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "description": "Free Route 66 trip planning tools and resources"
           }
         })}
       </script>
