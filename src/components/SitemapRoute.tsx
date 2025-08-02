@@ -6,21 +6,24 @@ const SitemapRoute = () => {
     // Generate sitemap XML
     const xml = generateSitemapFile();
     
-    // Set proper headers and serve XML
-    const response = new Response(xml, {
-      headers: {
-        'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
-      }
-    });
+    // Replace the entire page content with XML
+    document.documentElement.innerHTML = xml;
     
-    // Create blob URL and replace current page
-    const blob = new Blob([xml], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    window.location.replace(url);
+    // Add XML declaration if browser supports it
+    if (document.implementation && document.implementation.createDocumentType) {
+      const xmlDoc = document.implementation.createDocument('', '', null);
+      xmlDoc.documentElement.innerHTML = xml;
+    }
   }, []);
 
-  return null;
+  // Render the XML content directly as text
+  const xml = generateSitemapFile();
+  
+  return (
+    <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+      {xml}
+    </pre>
+  );
 };
 
 export default SitemapRoute;
