@@ -14,35 +14,73 @@ interface SocialMetaTagsProps {
 const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
   title = 'Plan Your Route 66 Road Trip – Interactive Map, Hidden Gems & Classic Diners',
   description = 'Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
-  imageUrl = '/assets/branding/ramble66-social-share.jpg',
-  url = typeof window !== 'undefined' ? window.location.href : '',
+  imageUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png',
+  url = typeof window !== 'undefined' ? window.location.href : 'https://www.ramble66.com',
   type = 'website',
   siteName = 'Ramble 66'
 }) => {
+  // Ensure absolute URL for social image
+  const absoluteImageUrl = imageUrl.startsWith('http') ? imageUrl : `${url}${imageUrl}`;
+  const baseUrl = url.split('?')[0].split('#')[0]; // Clean URL for canonical
+  
   return (
     <Helmet>
+      {/* Basic Meta Tags */}
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta name="keywords" content="Route 66, road trip planner, interactive map, classic diners, retro motels, hidden gems, Mother Road, Chicago to Santa Monica, travel attractions, historic route, Ramble 66, Ramble66" />
+      <meta name="author" content="Ramble 66" />
+      <meta name="robots" content="index, follow" />
+      
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
-      <meta property="og:url" content={url} />
+      <meta property="og:url" content={baseUrl} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={imageUrl} />
+      <meta property="og:image" content={absoluteImageUrl} />
+      <meta property="og:image:alt" content="Ramble 66 - Route 66 Trip Planner Logo" />
       <meta property="og:site_name" content={siteName} />
+      <meta property="og:locale" content="en_US" />
       
       {/* Twitter */}
-      <meta property="twitter:card" content="summary_large_image" />
-      <meta property="twitter:url" content={url} />
-      <meta property="twitter:title" content={title} />
-      <meta property="twitter:description" content={description} />
-      <meta property="twitter:image" content={imageUrl} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:url" content={baseUrl} />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={absoluteImageUrl} />
+      <meta name="twitter:image:alt" content="Ramble 66 - Route 66 Trip Planner Logo" />
       
-      {/* Additional Meta Tags */}
-      <meta name="description" content={description} />
-      <meta name="keywords" content="Route 66, road trip planner, interactive map, classic diners, retro motels, hidden gems, Mother Road, Chicago to Santa Monica, travel attractions, historic route, Ramble 66" />
-      <meta name="author" content="Ramble 66" />
+      {/* Additional SEO Meta Tags */}
+      <meta name="application-name" content="Ramble 66" />
+      <meta name="apple-mobile-web-app-title" content="Ramble 66" />
+      <meta name="msapplication-TileColor" content="#D2041A" />
       
       {/* Canonical URL */}
-      <link rel="canonical" href={url} />
+      <link rel="canonical" href={baseUrl} />
+      
+      {/* Alternative names for search engines */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Ramble 66",
+          "alternateName": ["Ramble66", "Ramble 66", "Route 66 Trip Planner"],
+          "url": baseUrl,
+          "description": description,
+          "author": {
+            "@type": "Organization",
+            "name": "Ramble 66"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": `${baseUrl}?q={search_term_string}`
+            },
+            "query-input": "required name=search_term_string"
+          }
+        })}
+      </script>
     </Helmet>
   );
 };
