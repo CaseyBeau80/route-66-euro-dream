@@ -3,7 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync, existsSync } from "fs";
 import { generateSitemapFile } from "./src/utils/sitemapGenerator";
 
 // https://vitejs.dev/config/
@@ -23,8 +23,20 @@ const sitemapPlugin = () => {
         const target = path.resolve(outDir, 'sitemap.xml');
         writeFileSync(target, xml, 'utf8');
         console.log('[sitemap-plugin] Wrote', target);
+
+        // Ensure robots.txt is present in final build output
+        const robotsIn = path.resolve('public', 'robots.txt');
+        const robotsOut = path.resolve(outDir, 'robots.txt');
+        let robotsContent = 'User-agent: *\nAllow: /\nSitemap: https://ramble66.com/sitemap.xml\n';
+        try {
+          if (existsSync(robotsIn)) {
+            robotsContent = readFileSync(robotsIn, 'utf8');
+          }
+        } catch {}
+        writeFileSync(robotsOut, robotsContent, 'utf8');
+        console.log('[sitemap-plugin] Wrote', robotsOut);
       } catch (err) {
-        console.warn('[sitemap-plugin] Failed to write sitemap:', err);
+        console.warn('[sitemap-plugin] Failed to write sitemap/robots:', err);
       }
     }
   };
