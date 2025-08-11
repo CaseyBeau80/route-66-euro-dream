@@ -94,18 +94,3 @@ export const generateSitemapFile = (tripCodes: string[] = []): string => {
   generator.addTripRoutes(tripCodes);
   return generator.generateXML();
 };
-
-// Function to get sitemap as downloadable blob
-export const downloadSitemap = (tripCodes: string[] = [], filename: string = 'sitemap.xml'): void => {
-  const xml = generateSitemapFile(tripCodes);
-  const blob = new Blob([xml], { type: 'application/xml' });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
