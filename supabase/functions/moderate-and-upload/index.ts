@@ -8,13 +8,23 @@ const ALLOWED_ORIGINS = new Set<string>([
   'http://localhost:5173'
 ]);
 
+function isPreviewOrigin(origin: string | null) {
+  if (!origin) return false;
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname.endsWith('.lovable.dev') || hostname.endsWith('.webcontainer.io');
+  } catch {
+    return false;
+  }
+}
+
 function getCorsHeaders(origin: string | null) {
   const headers: Record<string, string> = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Vary': 'Origin'
   };
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+  if (origin && (ALLOWED_ORIGINS.has(origin) || isPreviewOrigin(origin))) {
     headers['Access-Control-Allow-Origin'] = origin;
   }
   return headers;
@@ -23,10 +33,10 @@ function getCorsHeaders(origin: string | null) {
 
 serve(async (req) => {
   console.log('🚀 Edge Function called:', req.method, req.url);
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
   
   if (req.method === 'OPTIONS') {
-    const origin = req.headers.get('Origin');
-    const corsHeaders = getCorsHeaders(origin);
     return new Response(null, { headers: { ...corsHeaders, 'Access-Control-Max-Age': '86400' } });
   }
 

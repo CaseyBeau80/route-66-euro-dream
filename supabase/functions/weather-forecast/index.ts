@@ -6,12 +6,22 @@ const ALLOWED_ORIGINS = new Set<string>([
   'http://localhost:5173'
 ]);
 
+function isPreviewOrigin(origin: string | null) {
+  if (!origin) return false;
+  try {
+    const hostname = new URL(origin).hostname;
+    return hostname.endsWith('.lovable.dev') || hostname.endsWith('.webcontainer.io');
+  } catch {
+    return false;
+  }
+}
+
 function getCorsHeaders(origin: string | null) {
   const headers: Record<string, string> = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Vary': 'Origin'
   };
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
+  if (origin && (ALLOWED_ORIGINS.has(origin) || isPreviewOrigin(origin))) {
     headers['Access-Control-Allow-Origin'] = origin;
   }
   return headers;
