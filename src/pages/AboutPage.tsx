@@ -1,16 +1,12 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Mail, Heart, Map, Users } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
+import SocialMetaTags from '@/components/shared/SocialMetaTags';
 
 const AboutPage = () => {
   return (
     <MainLayout>
-      <Helmet>
-        <title>About Us - Ramble Route 66</title>
-        <meta name="description" content="Learn about Ramble Route 66 - your guide to America's Main Street. Discover our mission to preserve and share Route 66's rich history." />
-        <link rel="canonical" href="https://ramble66.com/about" />
-      </Helmet>
+      <SocialMetaTags title="About Ramble 66 – Route 66 Trip Planner" />
       
       <main className="min-h-screen bg-background">
         {/* Hero Section */}
