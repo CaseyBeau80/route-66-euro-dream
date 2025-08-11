@@ -8,27 +8,27 @@ import { generateSitemapFile } from "./src/utils/sitemapGenerator";
 
 // https://vitejs.dev/config/
 // Vite plugin to generate sitemap.xml into the final build output
-const sitemapPlugin = () => ({
-  name: 'sitemap-generator',
-  apply: 'build' as const,
-  configResolved(config: any) {
-    // capture outDir for later
-    // @ts-ignore - attach custom field
-    this.__outDir = config.build?.outDir || 'dist';
-  },
-  closeBundle() {
-    try {
-      // @ts-ignore
-      const outDir = this.__outDir || 'dist';
-      const xml = generateSitemapFile();
-      const target = path.resolve(outDir, 'sitemap.xml');
-      writeFileSync(target, xml, 'utf8');
-      console.log('[sitemap-plugin] Wrote', target);
-    } catch (err) {
-      console.warn('[sitemap-plugin] Failed to write sitemap:', err);
+const sitemapPlugin = () => {
+  let outDir = 'dist';
+  return {
+    name: 'sitemap-generator',
+    apply: 'build' as const,
+    configResolved(config: any) {
+      // capture outDir for later
+      outDir = (config?.build?.outDir as string) || 'dist';
+    },
+    closeBundle() {
+      try {
+        const xml = generateSitemapFile();
+        const target = path.resolve(outDir, 'sitemap.xml');
+        writeFileSync(target, xml, 'utf8');
+        console.log('[sitemap-plugin] Wrote', target);
+      } catch (err) {
+        console.warn('[sitemap-plugin] Failed to write sitemap:', err);
+      }
     }
-  }
-});
+  };
+};
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
