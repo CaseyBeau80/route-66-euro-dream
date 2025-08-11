@@ -13,9 +13,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Fredoka+One:wght@400&family=Bungee&family=Righteous&family=Bebas+Neue&family=Special+Elite&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     
+    <!-- Static fallback SEO for crawlers before JS executes; React Helmet overrides per-route -->
+    <title>Ramble 66 — Route 66 Trip Planner</title>
+    <meta name="description" content="Plan your ultimate Route 66 road trip with Ramble 66: interactive maps, must-see stops, and shareable itineraries." />
+    <link rel="canonical" href="https://ramble66.com/" />
     <!-- Theme color only - all other meta tags handled by React Helmet -->
     <meta name="theme-color" content="#D2041A">
-    
+
+    <!-- Client-side host canonicalization: redirect www → apex -->
+    <script>
+      (function() {
+        var h = window.location.hostname;
+        if (h && h.slice(0,4).toLowerCase() === 'www.') {
+          var target = window.location.protocol + '//' + h.slice(4) + window.location.pathname + window.location.search + window.location.hash;
+          window.location.replace(target);
+        }
+      })();
+    </script>
     <style>
       /* Custom Route 66 CSS Variables */
       :root {
