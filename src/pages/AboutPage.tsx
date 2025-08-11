@@ -9,7 +9,7 @@ const AboutPage = () => {
       <Helmet>
         <title>About Us - Ramble Route 66</title>
         <meta name="description" content="Learn about Ramble Route 66 - your guide to America's Main Street. Discover our mission to preserve and share Route 66's rich history." />
-        <link rel="canonical" href="https://www.ramble66.com/about" />
+        <link rel="canonical" href="https://ramble66.com/about" />
       </Helmet>
       
       <main className="min-h-screen bg-background">

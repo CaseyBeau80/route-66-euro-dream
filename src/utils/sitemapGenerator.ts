@@ -9,7 +9,7 @@ export class SitemapGenerator {
   private baseUrl: string;
   private urls: SitemapUrl[] = [];
 
-  constructor(baseUrl: string = 'https://www.ramble66.com') {
+  constructor(baseUrl: string = 'https://ramble66.com') {
     this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
   }
 

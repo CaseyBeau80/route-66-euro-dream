@@ -15,13 +15,13 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
   title = 'Plan Your Route 66 Road Trip – Interactive Map, Hidden Gems & Classic Diners',
   description = 'Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
   imageUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png',
-  url = typeof window !== 'undefined' ? window.location.href : 'https://www.ramble66.com',
+  url = typeof window !== 'undefined' ? window.location.href : 'https://ramble66.com',
   type = 'website',
   siteName = 'Ramble 66'
 }) => {
   // Ensure absolute URL for social image
   const absoluteImageUrl = imageUrl.startsWith('http') ? imageUrl : `${url}${imageUrl}`;
-  const baseUrl = url.split('?')[0].split('#')[0]; // Clean URL for canonical
+  const baseUrl = url.split('?')[0].split('#')[0].replace('https://www.ramble66.com', 'https://ramble66.com'); // Clean URL for canonical and normalize to non-www
   
   return (
     <Helmet>

@@ -9,7 +9,7 @@ const ContactPage = () => {
       <Helmet>
         <title>Contact Us - Ramble Route 66</title>
         <meta name="description" content="Get in touch with Ramble Route 66. Contact us for questions, suggestions, or partnership opportunities." />
-        <link rel="canonical" href="https://www.ramble66.com/contact" />
+        <link rel="canonical" href="https://ramble66.com/contact" />
       </Helmet>
       
       <main className="min-h-screen bg-background">
@@ -43,12 +43,12 @@ const ContactPage = () => {
                       <div>
                         <h3 className="font-semibold text-route66-text-primary mb-1">Website</h3>
                         <a 
-                          href="https://www.ramble66.com" 
+                          href="https://ramble66.com" 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="text-route66-primary hover:underline"
                         >
-                          www.ramble66.com
+                          ramble66.com
                         </a>
                       </div>
                     </div>
