@@ -2,21 +2,54 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = new Set<string>([
+  'https://ramble66.com',
+  'https://www.ramble66.com',
+  'http://localhost:5173'
+]);
+
+function getCorsHeaders(origin: string | null) {
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Vary': 'Origin'
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
 }
 
+
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    if (!corsHeaders['Access-Control-Allow-Origin']) {
+      return new Response('CORS origin not allowed', { status: 403, headers: { 'Vary': 'Origin' } });
+    }
+    return new Response(null, { headers: { ...corsHeaders, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Max-Age': '86400' } })
   }
 
   try {
     const { imageUrl, postId } = await req.json()
+
+    // Basic validation
+    const postIdSafe = typeof postId === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(postId);
+    let parsedUrl: URL | null = null;
+    try { parsedUrl = new URL(String(imageUrl)); } catch (_) {}
+
+    const ALLOWED_HOSTS = ['instagram.com','cdninstagram.com','fbcdn.net','fbcdn.com'];
+    const isAllowedHost = parsedUrl && ALLOWED_HOSTS.some(h => parsedUrl!.hostname === h || parsedUrl!.hostname.endsWith(`.${h}`));
+
+    if (!postIdSafe || !parsedUrl || parsedUrl.protocol !== 'https:' || !isAllowedHost) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid image URL or postId' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
     
-    console.log(`📸 Proxying image for post ${postId}: ${imageUrl}`)
+    console.log(`📸 Proxying image for post ${postId}: ${parsedUrl.href}`)
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -39,7 +72,7 @@ serve(async (req) => {
         imageUrl: publicUrl.publicUrl,
         cached: true 
       }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400' }
       })
     }
 
@@ -67,8 +100,22 @@ serve(async (req) => {
       })
     }
 
+    const contentType = imageResponse.headers.get('content-type') || ''
+    if (!contentType.startsWith('image/')) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid content type' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    const MAX_BYTES = 5_000_000; // 5MB
+    const contentLength = parseInt(imageResponse.headers.get('content-length') || '0')
+    if (contentLength && contentLength > MAX_BYTES) {
+      return new Response(JSON.stringify({ success: false, error: 'Image too large' }), { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
     const imageBlob = await imageResponse.blob()
     const imageBuffer = await imageBlob.arrayBuffer()
+    if (imageBuffer.byteLength > MAX_BYTES) {
+      return new Response(JSON.stringify({ success: false, error: 'Image too large' }), { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
     // Store the image in Supabase Storage
     const { error: uploadError } = await supabase.storage
@@ -99,13 +146,13 @@ serve(async (req) => {
 
     console.log(`✅ Successfully proxied and stored image for post ${postId}`)
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      imageUrl: publicUrl.publicUrl,
-      cached: false 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+  return new Response(JSON.stringify({ 
+    success: true, 
+    imageUrl: publicUrl.publicUrl,
+    cached: false 
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400' }
+  })
 
   } catch (error) {
     console.error('❌ Error in instagram-proxy function:', error)

@@ -1,4 +1,10 @@
 project_id = "xbwaphzntaxmdfzfsmvt"
 
 [functions.weather-forecast]
-verify_jwt = false
+verify_jwt = true
+
+[functions.instagram-proxy]
+verify_jwt = true
+
+[functions.moderate-and-upload]
+verify_jwt = true

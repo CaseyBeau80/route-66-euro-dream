@@ -59,7 +59,15 @@ export function ensureJvmObjectExists(): void {
                 const markerItem = document.createElement('div');
                 markerItem.style.margin = '4px 0';
                 markerItem.style.fontSize = '12px';
-                markerItem.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:#e74c3c;border-radius:50%;margin-right:6px;"></span> ${marker.name}`;
+                const dot = document.createElement('span');
+                dot.style.display = 'inline-block';
+                dot.style.width = '8px';
+                dot.style.height = '8px';
+                dot.style.background = '#e74c3c';
+                dot.style.borderRadius = '50%';
+                dot.style.marginRight = '6px';
+                markerItem.appendChild(dot);
+                markerItem.appendChild(document.createTextNode(String(marker.name || '')));
                 markerList.appendChild(markerItem);
               });
               
@@ -87,7 +95,15 @@ export function ensureJvmObjectExists(): void {
                 const markerItem = document.createElement('div');
                 markerItem.style.margin = '4px 0';
                 markerItem.style.fontSize = '12px';
-                markerItem.innerHTML = `<span style="display:inline-block;width:8px;height:8px;background:#e74c3c;border-radius:50%;margin-right:6px;"></span> ${marker.name}`;
+              const dot = document.createElement('span');
+              dot.style.display = 'inline-block';
+              dot.style.width = '8px';
+              dot.style.height = '8px';
+              dot.style.background = '#e74c3c';
+              dot.style.borderRadius = '50%';
+              dot.style.marginRight = '6px';
+              markerItem.appendChild(dot);
+              markerItem.appendChild(document.createTextNode(String(marker.name || '')));
                 markerList.appendChild(markerItem);
               });
               

@@ -1,9 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = new Set<string>([
+  'https://ramble66.com',
+  'https://www.ramble66.com',
+  'http://localhost:5173'
+]);
+
+function getCorsHeaders(origin: string | null) {
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Vary': 'Origin'
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
 }
+
 
 interface WeatherRequest {
   lat: number;
@@ -12,13 +25,28 @@ interface WeatherRequest {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    if (!corsHeaders['Access-Control-Allow-Origin']) {
+      return new Response('CORS origin not allowed', { status: 403, headers: { 'Vary': 'Origin' } });
+    }
+    return new Response(null, { headers: { ...corsHeaders, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Max-Age': '86400' } })
   }
 
   try {
     const { lat, lng, cityName }: WeatherRequest = await req.json()
+
+    // Validate input
+    const isNum = (n: any) => typeof n === 'number' && Number.isFinite(n);
+    if (!isNum(lat) || !isNum(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180 || typeof cityName !== 'string' || cityName.length > 100) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request parameters' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
     
     // Get the OpenWeatherMap API key from Supabase secrets
     const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY')
@@ -86,7 +114,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify(result),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } 
       }
     )
 

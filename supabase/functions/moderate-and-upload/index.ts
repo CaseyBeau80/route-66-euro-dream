@@ -2,18 +2,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
-};
+const ALLOWED_ORIGINS = new Set<string>([
+  'https://ramble66.com',
+  'https://www.ramble66.com',
+  'http://localhost:5173'
+]);
+
+function getCorsHeaders(origin: string | null) {
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-requested-with',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin'
+  };
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
+}
+
 
 serve(async (req) => {
   console.log('🚀 Edge Function called:', req.method, req.url);
   
   if (req.method === 'OPTIONS') {
-    console.log('✅ CORS preflight request handled');
-    return new Response(null, { headers: corsHeaders });
+    const origin = req.headers.get('Origin');
+    const corsHeaders = getCorsHeaders(origin);
+    return new Response(null, { headers: { ...corsHeaders, 'Access-Control-Max-Age': '86400' } });
   }
 
   if (req.method !== 'POST') {
@@ -28,6 +42,7 @@ serve(async (req) => {
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const visionApiKey = Deno.env.get('GCP_VISION_API_KEY');
 
+  // Avoid leaking secrets in logs
   console.log('🔧 Environment check:', {
     hasSupabaseUrl: !!supabaseUrl,
     hasSupabaseKey: !!supabaseKey,
@@ -63,17 +78,17 @@ serve(async (req) => {
     const formData = await req.formData();
     
     const imageFile = formData.get('image') as File;
-    const tripId = formData.get('tripId') as string;
-    const stopId = formData.get('stopId') as string;
-    const userSessionId = formData.get('userSessionId') as string;
+    const tripId = String(formData.get('tripId') || '');
+    const stopId = String(formData.get('stopId') || '');
+    const userSessionId = String(formData.get('userSessionId') || '');
 
     console.log('📋 Form data received:', {
       hasImageFile: !!imageFile,
       imageFileName: imageFile?.name,
       imageFileSize: imageFile?.size,
-      tripId,
-      stopId,
-      userSessionId
+      tripId: tripId ? '[provided]' : '[missing]',
+      stopId: stopId ? '[provided]' : '[missing]',
+      userSessionId: userSessionId ? '[provided]' : '[missing]'
     });
 
     if (!imageFile || !tripId || !stopId || !userSessionId) {
@@ -83,7 +98,16 @@ serve(async (req) => {
         error: 'Missing required fields: image, tripId, stopId, or userSessionId'
       }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...getCorsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Enforce MIME whitelist and size limit
+    const allowedTypes = new Set(['image/jpeg','image/png','image/webp','image/gif']);
+    if (!imageFile.type || !allowedTypes.has(imageFile.type)) {
+      return new Response(JSON.stringify({ success: false, error: 'Unsupported file type' }), {
+        status: 400,
+        headers: { ...getCorsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' }
       });
     }
 
@@ -96,7 +120,7 @@ serve(async (req) => {
         error: `Image too large. Maximum size is ${maxSizeBytes / (1024 * 1024)}MB, but received ${(imageFile.size / (1024 * 1024)).toFixed(2)}MB`
       }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...getCorsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' }
       });
     }
 
@@ -269,20 +293,20 @@ serve(async (req) => {
 
     console.log('🎉 Success response:', response);
 
-    return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+  return new Response(JSON.stringify(response), {
+    headers: { ...getCorsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' }
+  });
 
   } catch (error: any) {
     console.error('💥 Edge function error:', error);
     
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message || 'Unexpected server error',
-      details: error.stack || 'No stack trace available'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+  return new Response(JSON.stringify({
+    success: false,
+    error: error.message || 'Unexpected server error',
+    details: error.stack || 'No stack trace available'
+  }), {
+    status: 500,
+    headers: { ...getCorsHeaders(req.headers.get('Origin')), 'Content-Type': 'application/json' }
+  });
   }
 });

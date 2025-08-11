@@ -84,23 +84,21 @@ export class DestinationMarkerCreator {
       
       console.log(`🪵 Created wooden post icon data for ${destinationName}:`, iconData);
       
-      // Create marker element
+      // Create marker element safely without innerHTML
       const markerElement = document.createElement('div');
-      markerElement.innerHTML = `
-        <div style="
-          width: 60px;
-          height: 70px;
-          background-image: url('${iconData.url}');
-          background-size: contain;
-          background-repeat: no-repeat;
-          background-position: center;
-          cursor: pointer;
-          transition: transform 0.2s ease;
-          filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-        " data-destination="${destinationName}"></div>
-      `;
-      
-      const imgElement = markerElement.firstElementChild as HTMLElement;
+      const imgElement = document.createElement('div');
+      imgElement.style.width = '60px';
+      imgElement.style.height = '70px';
+      imgElement.style.backgroundImage = `url("${iconData.url}")`;
+      imgElement.style.backgroundSize = 'contain';
+      imgElement.style.backgroundRepeat = 'no-repeat';
+      imgElement.style.backgroundPosition = 'center';
+      imgElement.style.cursor = 'pointer';
+      imgElement.style.transition = 'transform 0.2s ease';
+      imgElement.style.filter = 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))';
+      (imgElement as any).dataset.destination = destinationName;
+      markerElement.appendChild(imgElement);
+
       
       // Add hover effects to the wooden post
       imgElement.addEventListener('mouseenter', () => {
