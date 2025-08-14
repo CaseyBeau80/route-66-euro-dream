@@ -1,4 +1,3 @@
-
 import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
@@ -16,7 +15,7 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <SocialMetaTags title="Plan Your Route 66 Road Trip – Interactive Map & Guide" description="Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions along America’s Mother Road from Chicago to Santa Monica." />
+      <SocialMetaTags title="Ramble 66" description="Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, ..." />
       
       {/* Hero Section - Full viewport height with two-column layout */}
       <section id="hero">
