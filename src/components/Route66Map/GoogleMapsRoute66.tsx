@@ -34,10 +34,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     hasLoadError: !!loadError,
     errorMessage: loadError?.message,
     isMapReady,
-    selectedState
+    selectedState,
+    renderingDecision: 'PROCEEDING_TO_MAP' // Loading states handled by MapDisplay
   });
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
+    console.log('🗺️ GoogleMapsRoute66: Map loaded successfully, setting ready state');
     mapRef.current = map;
     
     // Set map ready immediately to prevent flickering
@@ -45,16 +47,12 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   }, []);
 
   const handleMapClick = useCallback(() => {
+    console.log('🗺️ GoogleMapsRoute66: Map clicked, clearing selection');
     onClearSelection();
   }, [onClearSelection]);
 
-  if (loadError) {
-    return <MapLoadingStates loadError={loadError} isLoaded={false} />;
-  }
-
-  if (!isLoaded) {
-    return <MapLoadingStates loadError={undefined} isLoaded={false} />;
-  }
+  // Note: Loading state management is now handled by MapDisplay
+  // This component assumes Google Maps API is already loaded and ready
 
   return (
     <div className="relative w-full h-full bg-gray-100" style={{ minHeight: '750px', height: '750px' }}>

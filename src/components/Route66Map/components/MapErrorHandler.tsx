@@ -9,18 +9,16 @@ interface MapErrorHandlerProps {
 }
 
 export const MapErrorHandler: React.FC<MapErrorHandlerProps> = ({ children }) => {
-  const { isLoaded, loadError, isLoading, error } = useGoogleMapsContext();
+  const { isLoading, error } = useGoogleMapsContext();
 
-  if (loadError) {
-    console.error('❌ Google Maps API failed to load:', loadError);
-    return <MapLoadError error="Failed to load Google Maps API." />;
-  }
+  console.log('🔍 MapErrorHandler state check:', { 
+    isLoading, 
+    hasError: !!error,
+    errorMessage: error 
+  });
 
-  if (!isLoaded) {
-    console.log('⏳ Google Maps API still loading...');
-    return <MapLoadingIndicator />;
-  }
-
+  // Only handle data loading errors, not Google Maps API loading
+  // Google Maps API loading is handled by MapDisplay
   if (isLoading) {
     console.log('⏳ Route 66 waypoints still loading...');
     return <MapLoadingIndicator />;
@@ -31,5 +29,6 @@ export const MapErrorHandler: React.FC<MapErrorHandlerProps> = ({ children }) =>
     return <MapLoadError error={`Failed to load Route 66 waypoints: ${error}`} />;
   }
 
+  console.log('✅ MapErrorHandler: All checks passed, rendering children');
   return <>{children}</>;
 };

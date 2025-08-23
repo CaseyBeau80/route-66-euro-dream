@@ -26,7 +26,8 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     errorMessage: loadError?.message,
     selectedState,
     onStateClick: !!onStateClick,
-    onClearSelection: !!onClearSelection
+    onClearSelection: !!onClearSelection,
+    renderingDecision: !hasApiKey ? 'API_KEY_INPUT' : loadError ? 'ERROR' : !isLoaded ? 'LOADING' : 'MAP'
   });
 
   // Show API key input if no valid API key is available
@@ -82,7 +83,7 @@ const MapDisplay: React.FC<MapDisplayProps> = ({
     );
   }
 
-  console.log('🎯 MapDisplay: Rendering GoogleMapsRoute66 successfully');
+  console.log('🎯 MapDisplay: All checks passed - Rendering GoogleMapsRoute66');
 
   return (
     <div className="w-full h-[750px] rounded-lg overflow-hidden shadow-lg">
