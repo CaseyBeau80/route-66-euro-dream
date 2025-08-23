@@ -76,7 +76,8 @@ export const useGoogleMaps = () => {
     isValidKey: hasApiKey,
     libraries: GOOGLE_MAPS_LIBRARIES,
     envVar: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? 'Present' : 'Missing',
-    currentDomain: typeof window !== 'undefined' ? window.location.hostname : 'Unknown'
+    currentDomain: typeof window !== 'undefined' ? window.location.hostname : 'Unknown',
+    fullUrl: typeof window !== 'undefined' ? window.location.href : 'Unknown'
   });
 
   // Only load Google Maps if we have a valid API key
