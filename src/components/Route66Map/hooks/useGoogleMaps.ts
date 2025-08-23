@@ -25,7 +25,7 @@ export const useGoogleMaps = () => {
     
     // 3. Use your actual API key as fallback
     console.log('🔑 Using fallback Google Maps API key');
-    return 'YOUR_ACTUAL_GOOGLE_MAPS_API_KEY_HERE';
+    return 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
   };
 
   const [apiKey, setApiKey] = useState<string>(getStoredApiKey());
