@@ -82,14 +82,12 @@ export const useGoogleMaps = () => {
   // Only load Google Maps if we have a valid API key
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey,
+    googleMapsApiKey: hasApiKey ? apiKey : '',
     libraries: GOOGLE_MAPS_LIBRARIES,
     version: 'weekly',
     language: 'en',
     region: 'US',
-    preventGoogleFontsLoading: true,
-    // Only load if we have a valid API key
-    ...(hasApiKey ? {} : { googleMapsApiKey: '' })
+    preventGoogleFontsLoading: true
   });
 
   const {
