@@ -23,9 +23,9 @@ export const useGoogleMaps = () => {
       return storedKey.trim();
     }
     
-    // 3. Use demo key as last resort
-    console.log('🔑 Using demo Google Maps API key');
-    return 'AIzaSyBjsINSWPx5SC1nxnqwCb_7ByVKFps7t1A';
+    // 3. Use your actual API key as fallback
+    console.log('🔑 Using fallback Google Maps API key');
+    return 'YOUR_ACTUAL_GOOGLE_MAPS_API_KEY_HERE';
   };
 
   const [apiKey, setApiKey] = useState<string>(getStoredApiKey());
