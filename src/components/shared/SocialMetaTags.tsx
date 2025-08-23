@@ -13,7 +13,7 @@ interface SocialMetaTagsProps {
 
 const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
   title = 'Ramble 66',
-  description = 'Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
+  description = 'Plan and share your ultimate Route 66 road trip with our interactive map and shareable travel planner. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
   imageUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png',
   url = typeof window !== 'undefined' ? window.location.href.replace('https://www.ramble66.com', 'https://ramble66.com') : 'https://ramble66.com',
   type = 'website',
