@@ -40,10 +40,8 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
     
-    // Ensure map is fully ready before setting state
-    setTimeout(() => {
-      setIsMapReady(true);
-    }, 500);
+    // Set map ready immediately to prevent flickering
+    setIsMapReady(true);
   }, []);
 
   const handleMapClick = useCallback(() => {
@@ -65,7 +63,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         onMapClick={handleMapClick}
         center={{ lat: 35.0, lng: -98.0 }}
         zoom={isMobile ? 4 : 5}
-        className="w-full h-full"
+        className="w-full h-full opacity-100 transition-opacity duration-300"
         showDefaultZoomControls={false}
       >
         {/* Route 66 Content - Only render when map is ready */}
