@@ -1,4 +1,4 @@
-// Lazy loaded components for code splitting and performance optimization
+// Lazy loaded components for aggressive code splitting and performance optimization
 import { lazy } from 'react';
 
 // Heavy map components - defer loading until needed
@@ -11,6 +11,18 @@ export const LazyTripPlannerSection = lazy(() => import('./TripPlannerSection'))
 export const LazySocialSection = lazy(() => import('./SocialSection/SocialSection'));
 export const LazyFunSection = lazy(() => import('./FunSection/FunSection'));
 export const LazyTollRoads = lazy(() => import('./TollRoads'));
+
+// Additional lazy components for further code splitting
+export const LazyMainLayout = lazy(() => import('./MainLayout'));
+export const LazyFadeInSection = lazy(() => import('./FadeInSection'));
+export const LazyBackToTopButton = lazy(() => import('./BackToTopButton'));
+
+// Heavy utility components - with proper default export handling
+export const LazyGoogleMapsProvider = lazy(() => 
+  import('./Route66Map/components/GoogleMapsProvider').then(module => ({ 
+    default: module.GoogleMapsProvider 
+  }))
+);
 
 // Optional: Create a loading fallback component
 export const ComponentLoadingFallback = () => (

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,13 +10,24 @@ import SvgDefinitions from "@/components/shared/SvgDefinitions";
 import { LayoutOptimizer } from "@/components/Route66Map/utils/LayoutOptimizer";
 import { preloadCriticalData } from "@/services/sharedDataService";
 import { SWRConfig } from 'swr';
+
+// Critical page loaded immediately (homepage)
 import Index from "./pages/Index";
-import ContactPage from "./pages/ContactPage";
-import AboutPage from "./pages/AboutPage";
-import SharedTripPage from "./pages/SharedTripPage";
-import NotFound from "./pages/NotFound";
-import RobotsTxtPage from "./pages/RobotsTxtPage";
-import SitemapXmlPage from "./pages/SitemapXmlPage";
+
+// Route-based code splitting - lazy load non-critical pages
+const LazyContactPage = lazy(() => import("./pages/ContactPage"));
+const LazyAboutPage = lazy(() => import("./pages/AboutPage"));
+const LazySharedTripPage = lazy(() => import("./pages/SharedTripPage"));
+const LazyNotFound = lazy(() => import("./pages/NotFound"));
+const LazyRobotsTxtPage = lazy(() => import("./pages/RobotsTxtPage"));
+const LazySitemapXmlPage = lazy(() => import("./pages/SitemapXmlPage"));
+
+// Route loading fallback
+const RouteLoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-route66-primary"></div>
+  </div>
+);
 
 // Create QueryClient instance outside of component to avoid recreation
 const queryClient = new QueryClient({
@@ -56,13 +67,40 @@ function App() {
               <Sonner />
               <BrowserRouter>
               <Routes>
+                {/* Critical route - loaded immediately */}
                 <Route path="/" element={<Index />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/trip/:shareCode" element={<SharedTripPage />} />
-                <Route path="/robots.txt" element={<RobotsTxtPage />} />
-                <Route path="/sitemap.xml" element={<SitemapXmlPage />} />
-                <Route path="*" element={<NotFound />} />
+                
+                {/* Non-critical routes - lazy loaded for code splitting */}
+                <Route path="/contact" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyContactPage />
+                  </Suspense>
+                } />
+                <Route path="/about" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyAboutPage />
+                  </Suspense>
+                } />
+                <Route path="/trip/:shareCode" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazySharedTripPage />
+                  </Suspense>
+                } />
+                <Route path="/robots.txt" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyRobotsTxtPage />
+                  </Suspense>
+                } />
+                <Route path="/sitemap.xml" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazySitemapXmlPage />
+                  </Suspense>
+                } />
+                <Route path="*" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyNotFound />
+                  </Suspense>
+                } />
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
