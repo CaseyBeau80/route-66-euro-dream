@@ -22,9 +22,23 @@
     <!-- Critical API endpoint preloads to reduce network dependency chains -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Optimized fonts: Only load fonts that are actually used to prevent render blocking -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    <!-- Non-blocking font loading: Critical fonts only to minimize render blocking -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Load additional non-critical fonts asynchronously after page load -->
+    <link rel="prefetch" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap">
+    
+    <!-- Font loading optimization script -->
+    <script>
+      // Load non-critical fonts after initial render
+      window.addEventListener('load', function() {
+        const nonCriticalFonts = document.createElement('link');
+        nonCriticalFonts.rel = 'stylesheet';
+        nonCriticalFonts.href = 'https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap';
+        document.head.appendChild(nonCriticalFonts);
+      });
+    </script>
     
     <!-- Static fallback SEO for crawlers before JS executes; React Helmet overrides per-route -->
     <title>Ramble 66 — Route 66 Trip Planner</title>
@@ -121,11 +135,11 @@
       /* Hide skeleton once React loads */
       .react-loaded .fcp-skeleton { display: none; }
       
-      /* Preload critical CSS to prevent render blocking */
-      .font-route66 { font-family: 'Bebas Neue', 'Arial Black', sans-serif; }
-      .font-playfair { font-family: 'Playfair Display', serif; }
-      .font-special-elite { font-family: 'Special Elite', monospace; }
-      .font-courier-prime { font-family: 'Courier Prime', monospace; }
+      /* Preload critical CSS to prevent render blocking - with fallbacks */
+      .font-route66 { font-family: 'Bebas Neue', 'Arial Black', 'Impact', sans-serif; }
+      .font-playfair { font-family: 'Playfair Display', 'Georgia', serif; }
+      .font-special-elite { font-family: 'Special Elite', 'Courier New', monospace; }
+      .font-courier-prime { font-family: 'Courier Prime', 'Courier New', monospace; }
       
       /* Custom Route 66 CSS Variables */
       :root {
