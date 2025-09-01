@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -552,28 +552,28 @@ export type Database = {
       get_location_trailblazer: {
         Args: { location_stop_id: string }
         Returns: {
-          has_trailblazer: boolean
-          user_session_id: string
           achieved_at: string
+          has_trailblazer: boolean
           photo_url: string
+          user_session_id: string
         }[]
       }
       get_trailblazer_leaderboard: {
         Args: Record<PropertyKey, never>
         Returns: {
-          user_session_id: string
-          trailblazer_count: number
           latest_achievement: string
           locations: string[]
+          trailblazer_count: number
+          user_session_id: string
         }[]
       }
       validate_route66_sequence: {
         Args: Record<PropertyKey, never>
         Returns: {
-          is_valid: boolean
-          errors: string[]
-          sequence_gaps: number[]
           duplicate_sequences: number[]
+          errors: string[]
+          is_valid: boolean
+          sequence_gaps: number[]
         }[]
       }
     }
