@@ -1,14 +1,18 @@
+import { Suspense } from "react";
 import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
 import HeroSection from "../components/Hero/HeroSection";
-import InteractiveMapSection from "../components/InteractiveMap/InteractiveMapSection";
-import UnifiedRoute66Carousel from "../components/UnifiedRoute66Carousel";
-import TripPlannerSection from "../components/TripPlannerSection";
-import SocialSection from "../components/SocialSection/SocialSection";
-import TollRoads from "../components/TollRoads";
-import FunSection from "../components/FunSection/FunSection";
 import SocialMetaTags from "../components/shared/SocialMetaTags";
+import {
+  LazyInteractiveMapSection,
+  LazyUnifiedRoute66Carousel,
+  LazyTripPlannerSection,
+  LazySocialSection,
+  LazyFunSection,
+  LazyTollRoads,
+  ComponentLoadingFallback
+} from "../components/LazyComponents";
 
 const Index = () => {
   console.log("🏠 Index page: Rendering with restored directory view");
@@ -22,34 +26,46 @@ const Index = () => {
         <HeroSection />
       </section>
 
-      {/* Interactive Map Section with fade-in */}
+      {/* Interactive Map Section with fade-in and lazy loading */}
       <FadeInSection id="interactive-map" delay={200}>
-        <InteractiveMapSection />
+        <Suspense fallback={<ComponentLoadingFallback />}>
+          <LazyInteractiveMapSection />
+        </Suspense>
       </FadeInSection>
 
-      {/* Trip Planner Section with fade-in */}
+      {/* Trip Planner Section with fade-in and lazy loading */}
       <FadeInSection id="trip-planner" delay={300}>
-        <TripPlannerSection />
+        <Suspense fallback={<ComponentLoadingFallback />}>
+          <LazyTripPlannerSection />
+        </Suspense>
       </FadeInSection>
 
-      {/* Unified Route 66 Directory - Restored comprehensive directory view */}
+      {/* Unified Route 66 Directory with lazy loading */}
       <FadeInSection id="route66-directory" delay={350}>
-        <UnifiedRoute66Carousel className="bg-route66-background-section" />
+        <Suspense fallback={<ComponentLoadingFallback />}>
+          <LazyUnifiedRoute66Carousel className="bg-route66-background-section" />
+        </Suspense>
       </FadeInSection>
 
-      {/* Social Section with fade-in */}
+      {/* Social Section with fade-in and lazy loading */}
       <FadeInSection id="social" delay={400}>
-        <SocialSection />
+        <Suspense fallback={<ComponentLoadingFallback />}>
+          <LazySocialSection />
+        </Suspense>
       </FadeInSection>
 
-      {/* Fun Section with fade-in */}
+      {/* Fun Section with fade-in and lazy loading */}
       <FadeInSection id="fun" delay={450}>
-        <FunSection />
+        <Suspense fallback={<ComponentLoadingFallback />}>
+          <LazyFunSection />
+        </Suspense>
       </FadeInSection>
 
-      {/* Toll Roads Advisory Section with fade-in */}
+      {/* Toll Roads Advisory Section with fade-in and lazy loading */}
       <FadeInSection id="toll-roads" delay={500}>
-        <TollRoads />
+        <Suspense fallback={<ComponentLoadingFallback />}>
+          <LazyTollRoads />
+        </Suspense>
       </FadeInSection>
 
       {/* Back to Top Button */}

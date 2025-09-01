@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import Route66Map from "./Route66Map";
+import { useState, Suspense } from 'react';
+import { LazyRoute66Map } from "./LazyComponents";
 import Route66FunFacts from "./Route66Countdown/Route66FunFacts";
 import MapLegend from "./Route66Countdown/MapLegend";
 import NostalgicRoute66Banner from "./Route66Map/components/NostalgicRoute66Banner";
@@ -42,7 +42,13 @@ const MapSection = ({ isMapOpen, setIsMapOpen }: MapSectionProps) => {
               <div className="absolute -inset-4 bg-gradient-to-r from-route66-primary/5 via-route66-primary-light/10 to-route66-primary/5 rounded-3xl blur-2xl"></div>
               <div className="relative bg-route66-background rounded-2xl border border-route66-border shadow-2xl h-full overflow-hidden">
                 <NostalgicRoute66Banner />
-                <Route66Map />
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-route66-primary"></div>
+                  </div>
+                }>
+                  <LazyRoute66Map />
+                </Suspense>
               </div>
             </div>
           </div>
