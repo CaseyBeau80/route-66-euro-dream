@@ -172,13 +172,10 @@ const HeroSection: React.FC = () => {
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
                 
                 {/* Image Container - Removed extra container and styling */}
-                <PictureOptimized 
+                <img 
                   src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
                   alt={content.mascotAlt}
                   className="w-full h-auto object-contain max-w-full max-h-full"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 588px"
-                  priority={true}
-                  loading="eager"
                   width={588}
                   height={803}
                   style={{ aspectRatio: '588/803' }}
