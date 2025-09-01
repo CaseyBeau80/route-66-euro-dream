@@ -23,22 +23,35 @@
     <!-- Critical API endpoint preloads to reduce network dependency chains -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Non-blocking font loading: Critical fonts only to minimize render blocking -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"></noscript>
-    
-    <!-- Load additional non-critical fonts asynchronously after page load -->
-    <link rel="prefetch" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap">
-    
-    <!-- Font loading optimization script -->
+    <!-- Fully non-blocking font loading strategy -->
     <script>
-      // Load non-critical fonts after initial render
-      window.addEventListener('load', function() {
-        const nonCriticalFonts = document.createElement('link');
-        nonCriticalFonts.rel = 'stylesheet';
-        nonCriticalFonts.href = 'https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap';
-        document.head.appendChild(nonCriticalFonts);
-      });
+      // Load fonts asynchronously without blocking render
+      (function() {
+        const loadFonts = () => {
+          // Load critical fonts first
+          const criticalFonts = document.createElement('link');
+          criticalFonts.rel = 'stylesheet';
+          criticalFonts.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap';
+          criticalFonts.media = 'print';
+          criticalFonts.onload = function() { this.media = 'all'; };
+          document.head.appendChild(criticalFonts);
+          
+          // Load non-critical fonts after a delay
+          setTimeout(() => {
+            const nonCriticalFonts = document.createElement('link');
+            nonCriticalFonts.rel = 'stylesheet';
+            nonCriticalFonts.href = 'https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap';
+            document.head.appendChild(nonCriticalFonts);
+          }, 100);
+        };
+        
+        // Load fonts immediately but asynchronously
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadFonts);
+        } else {
+          loadFonts();
+        }
+      })();
     </script>
     
     <!-- Static fallback SEO for crawlers before JS executes; React Helmet overrides per-route -->
@@ -136,11 +149,24 @@
       /* Hide skeleton once React loads */
       .react-loaded .fcp-skeleton { display: none; }
       
-      /* Preload critical CSS to prevent render blocking - with fallbacks */
-      .font-route66 { font-family: 'Bebas Neue', 'Arial Black', 'Impact', sans-serif; }
-      .font-playfair { font-family: 'Playfair Display', 'Georgia', serif; }
-      .font-special-elite { font-family: 'Special Elite', 'Courier New', monospace; }
-      .font-courier-prime { font-family: 'Courier Prime', 'Courier New', monospace; }
+      /* Enhanced critical CSS for immediate render without external dependencies */
+      .font-route66 { 
+        font-family: 'Bebas Neue', 'Arial Black', 'Impact', sans-serif; 
+        font-weight: 400;
+        font-display: swap;
+      }
+      .font-playfair { 
+        font-family: 'Playfair Display', 'Georgia', serif; 
+        font-display: swap;
+      }
+      .font-special-elite { 
+        font-family: 'Special Elite', 'Courier New', monospace; 
+        font-display: swap;
+      }
+      .font-courier-prime { 
+        font-family: 'Courier Prime', 'Courier New', monospace; 
+        font-display: swap;
+      }
       
       /* Custom Route 66 CSS Variables */
       :root {
@@ -200,6 +226,26 @@
     </div>
     
     <div id="root"></div>
+    
+    <!-- Asynchronously load main CSS to prevent render blocking -->
+    <script>
+      // Load main CSS asynchronously if not already loaded
+      const loadCSS = (href) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.media = 'print';
+        link.onload = function() { this.media = 'all'; };
+        document.head.appendChild(link);
+      };
+      
+      // Check if main CSS is already loaded via Vite
+      if (!document.querySelector('link[href*="index-"]')) {
+        // If not loaded, load it asynchronously
+        loadCSS('/assets/index-CqQAEEZr.css');
+      }
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Hide loading skeleton once React takes over - optimized for LCP
