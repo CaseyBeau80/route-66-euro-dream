@@ -117,11 +117,14 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
       
       triggerJiggleAnimation();
 
-      const screenPos = getMarkerScreenPosition();
-      if (screenPos) {
-        onPositionUpdate(screenPos.x, screenPos.y);
-        onMouseEnter();
-      }
+      // Use batched layout read to prevent forced reflows
+      LayoutOptimizer.batchLayoutRead(() => {
+        const screenPos = getMarkerScreenPosition();
+        if (screenPos) {
+          onPositionUpdate(screenPos.x, screenPos.y);
+          onMouseEnter();
+        }
+      });
     };
 
     const handleMouseOut = () => {
@@ -133,24 +136,46 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
     marker.addListener('mouseover', handleMouseOver);
     marker.addListener('mouseout', handleMouseOut);
 
-    // Update position when map changes
-    const updatePosition = () => {
+    // Throttled position update to prevent forced reflows
+    let updateTimeout: number | null = null;
+    const throttledUpdatePosition = () => {
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+      updateTimeout = window.setTimeout(() => {
+        // Use batched layout read to prevent forced reflows during map updates
+        LayoutOptimizer.batchLayoutRead(() => {
+          const screenPos = getMarkerScreenPosition();
+          if (screenPos) {
+            onPositionUpdate(screenPos.x, screenPos.y);
+          }
+        });
+        updateTimeout = null;
+      }, 50); // Increased to 50ms for better throttling
+    };
+
+    // Only listen to essential map events and throttle them
+    const boundsListener = map.addListener('bounds_changed', throttledUpdatePosition);
+    const zoomEndListener = map.addListener('zoom_changed', throttledUpdatePosition);
+
+    // Delayed initial position update to avoid blocking render
+    const initialUpdateTimeout = window.setTimeout(() => {
       const screenPos = getMarkerScreenPosition();
       if (screenPos) {
         onPositionUpdate(screenPos.x, screenPos.y);
       }
-    };
-
-    const boundsListener = map.addListener('bounds_changed', updatePosition);
-    const zoomListener = map.addListener('zoom_changed', updatePosition);
-
-    // Initial position update
-    setTimeout(updatePosition, 100);
+    }, 200);
 
     return () => {
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+      if (initialUpdateTimeout) {
+        clearTimeout(initialUpdateTimeout);
+      }
       marker.setMap(null);
       google.maps.event.removeListener(boundsListener);
-      google.maps.event.removeListener(zoomListener);
+      google.maps.event.removeListener(zoomEndListener);
     };
   }, [gem, map, onMouseEnter, onMouseLeave, onPositionUpdate]);
 

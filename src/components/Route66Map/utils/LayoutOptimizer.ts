@@ -21,8 +21,8 @@ export class LayoutOptimizer {
   private static isReading = false;
   private static readTimeoutId: number | null = null;
   
-  // Cache duration in milliseconds (32ms = 2 frames at 60fps for better performance)
-  private static CACHE_DURATION = 32;
+  // Increased cache duration to 50ms (~3 frames at 60fps) for better reflow prevention
+  private static CACHE_DURATION = 50;
   
   /**
    * Get element's bounding client rect with caching to prevent forced reflows
