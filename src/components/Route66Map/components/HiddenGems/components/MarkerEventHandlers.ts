@@ -1,5 +1,6 @@
 
 import { HiddenGem } from '../types';
+import { LayoutOptimizer } from '../../../utils/LayoutOptimizer';
 
 interface MarkerEventHandlersConfig {
   gem: HiddenGem;
@@ -82,10 +83,12 @@ export const createMarkerEventHandlers = ({
     if (!isClicked) {
       console.log(`🐭 Mouse over marker: ${gem.title}`);
       
-      // Update position if we have domEvent
+      // Update position if we have domEvent with optimized layout reads
       if (e.domEvent && e.domEvent.target) {
-        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
-        updatePosition(rect.left + rect.width / 2, rect.top);
+        LayoutOptimizer.batchLayoutRead(() => {
+          const rect = LayoutOptimizer.getBoundingClientRect(e.domEvent.target as HTMLElement);
+          updatePosition(rect.left + rect.width / 2, rect.top);
+        });
       } else {
         updateMarkerPosition();
       }
@@ -107,13 +110,15 @@ export const createMarkerEventHandlers = ({
     if (handleClick) {
       let clickPosition = { x: 0, y: 0 };
       
-      // Calculate click position
+      // Calculate click position with optimized layout reads
       if (e.domEvent && e.domEvent.target) {
-        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
-        clickPosition = {
-          x: rect.left + rect.width / 2,
-          y: rect.top
-        };
+        LayoutOptimizer.batchLayoutRead(() => {
+          const rect = LayoutOptimizer.getBoundingClientRect(e.domEvent.target as HTMLElement);
+          clickPosition = {
+            x: rect.left + rect.width / 2,
+            y: rect.top
+          };
+        });
       } else {
         // Fallback to calculated position
         updateMarkerPosition();

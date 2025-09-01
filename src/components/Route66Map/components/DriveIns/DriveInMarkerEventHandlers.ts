@@ -1,5 +1,6 @@
 import { DriveInData } from './hooks/useDriveInsData';
 import { openMobileAwareLink, createMobileAwareReturnUrl } from '@/utils/mobileAwareLinkUtils';
+import { LayoutOptimizer } from '../../utils/LayoutOptimizer';
 
 interface DriveInMarkerEventHandlersConfig {
   driveIn: DriveInData;
@@ -60,8 +61,8 @@ export const createDriveInMarkerEventHandlers = ({
       const lat = position.lat();
       const lng = position.lng();
       
-      const mapWidth = mapDiv.offsetWidth;
-      const mapHeight = mapDiv.offsetHeight;
+      // Use optimized layout reads to prevent forced reflows
+      const { width: mapWidth, height: mapHeight } = LayoutOptimizer.getElementDimensions(mapDiv);
       
       // Simple linear interpolation for pixel coordinates
       const x = ((lng - sw.lng()) / (ne.lng() - sw.lng())) * mapWidth;
@@ -109,8 +110,8 @@ export const createDriveInMarkerEventHandlers = ({
           const lat = position.lat();
           const lng = position.lng();
           
-          const mapWidth = mapDiv.offsetWidth;
-          const mapHeight = mapDiv.offsetHeight;
+          // Use optimized layout reads to prevent forced reflows
+          const { width: mapWidth, height: mapHeight } = LayoutOptimizer.getElementDimensions(mapDiv);
           
           const x = ((lng - sw.lng()) / (ne.lng() - sw.lng())) * mapWidth;
           const y = ((ne.lat() - lat) / (ne.lat() - sw.lat())) * mapHeight;

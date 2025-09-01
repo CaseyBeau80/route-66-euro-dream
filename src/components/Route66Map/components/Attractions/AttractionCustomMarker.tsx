@@ -5,6 +5,7 @@ import AttractionHoverPortal from './AttractionHoverPortal';
 import AttractionClickableCard from './AttractionClickableCard';
 import { MarkerAnimationUtils } from '../../utils/markerAnimationUtils';
 import { IconCreator } from '../RouteMarkers/IconCreator';
+import { LayoutOptimizer } from '../../utils/LayoutOptimizer';
 import type { Route66Waypoint } from '../../types/supabaseTypes';
 
 interface AttractionCustomMarkerProps {
@@ -120,8 +121,11 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
         MarkerAnimationUtils.triggerOptimizedJiggle(marker, attraction.name);
 
         if (e.domEvent && e.domEvent.target) {
-          const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
-          updatePosition(rect.left + rect.width / 2, rect.top);
+          // Batch layout read to prevent forced reflows
+          LayoutOptimizer.batchLayoutRead(() => {
+            const rect = LayoutOptimizer.getBoundingClientRect(e.domEvent.target as HTMLElement);
+            updatePosition(rect.left + rect.width / 2, rect.top);
+          });
         }
         handleMouseEnter(attraction.name);
       }
@@ -139,10 +143,13 @@ const AttractionCustomMarker: React.FC<AttractionCustomMarkerProps> = ({
       
       // Calculate click position
       if (e.domEvent) {
-        const rect = (e.domEvent.target as HTMLElement).getBoundingClientRect();
-        setClickPosition({
-          x: rect.left + rect.width / 2,
-          y: rect.top
+        // Batch layout read to prevent forced reflows
+        LayoutOptimizer.batchLayoutRead(() => {
+          const rect = LayoutOptimizer.getBoundingClientRect(e.domEvent.target as HTMLElement);
+          setClickPosition({
+            x: rect.left + rect.width / 2,
+            y: rect.top
+          });
         });
       }
       

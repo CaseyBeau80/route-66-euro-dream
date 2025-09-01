@@ -1,5 +1,6 @@
 
 import type { Route66Waypoint } from '../../types/supabaseTypes';
+import { LayoutOptimizer } from '../../utils/LayoutOptimizer';
 
 export class DestinationPositionCalculator {
   static calculateHoverPosition(
@@ -10,9 +11,9 @@ export class DestinationPositionCalculator {
     console.log(`📍 Calculating hover position for ${destination.name}`);
     
     try {
-      // Get the map container bounds
+      // Get the map container bounds using optimized layout reads
       const mapDiv = map.getDiv();
-      const mapBounds = mapDiv.getBoundingClientRect();
+      const mapBounds = LayoutOptimizer.getBoundingClientRect(mapDiv);
       
       // Create LatLng object
       const latLng = new google.maps.LatLng(destination.latitude, destination.longitude);
@@ -64,9 +65,9 @@ export class DestinationPositionCalculator {
     } catch (error) {
       console.error(`❌ Error calculating position for ${destination.name}:`, error);
       
-      // Fallback: use map center
+      // Fallback: use map center with optimized layout reads
       const mapDiv = map.getDiv();
-      const mapBounds = mapDiv.getBoundingClientRect();
+      const mapBounds = LayoutOptimizer.getBoundingClientRect(mapDiv);
       const centerX = mapBounds.left + mapBounds.width / 2;
       const centerY = mapBounds.top + mapBounds.height / 2;
       updatePosition(centerX, centerY);

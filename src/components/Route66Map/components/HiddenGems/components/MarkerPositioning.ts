@@ -1,3 +1,4 @@
+import { LayoutOptimizer } from '../../../utils/LayoutOptimizer';
 
 export const getMarkerScreenPosition = (map: google.maps.Map, marker: google.maps.Marker | null) => {
   if (!map || !marker) return null;
@@ -6,7 +7,7 @@ export const getMarkerScreenPosition = (map: google.maps.Map, marker: google.map
   if (!position) return null;
 
   const mapDiv = map.getDiv();
-  const mapRect = mapDiv.getBoundingClientRect();
+  const mapRect = LayoutOptimizer.getBoundingClientRect(mapDiv);
 
   const bounds = map.getBounds();
   if (!bounds) return null;

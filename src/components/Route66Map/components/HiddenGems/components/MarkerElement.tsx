@@ -2,6 +2,7 @@
 import React from 'react';
 import { HiddenGem } from '../types';
 import { createVintageRoute66Icon } from '../VintageRoute66Icon';
+import { LayoutOptimizer } from '../../../utils/LayoutOptimizer';
 
 interface MarkerElementProps {
   gem: HiddenGem;
@@ -42,9 +43,9 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
       const position = marker.getPosition();
       if (!position) return null;
 
-      // Get the map div
+      // Get the map div with optimized layout reads
       const mapDiv = map.getDiv();
-      const mapRect = mapDiv.getBoundingClientRect();
+      const mapRect = LayoutOptimizer.getBoundingClientRect(mapDiv);
 
       // Convert lat/lng to pixel coordinates
       const point = projection.fromLatLngToPoint(position);
@@ -91,7 +92,7 @@ const MarkerElement: React.FC<MarkerElementProps> = ({
         if (markerPosition) {
           markerImages.forEach((img, index) => {
             const imgElement = img as HTMLElement;
-            const rect = imgElement.getBoundingClientRect();
+            const rect = LayoutOptimizer.getBoundingClientRect(imgElement);
             const distance = Math.sqrt(
               Math.pow(rect.left - markerPosition.x, 2) + 
               Math.pow(rect.top - markerPosition.y, 2)

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +13,7 @@ import SharedTripPage from "./pages/SharedTripPage";
 import NotFound from "./pages/NotFound";
 import RobotsTxtPage from "./pages/RobotsTxtPage";
 import SitemapXmlPage from "./pages/SitemapXmlPage";
+import { LayoutOptimizer } from "@/components/Route66Map/utils/LayoutOptimizer";
 
 // Create QueryClient instance outside of component to avoid recreation
 const queryClient = new QueryClient({
@@ -25,6 +26,11 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // Initialize layout optimizer to handle window resize events and reduce forced reflows
+  useEffect(() => {
+    LayoutOptimizer.initialize();
+    return () => LayoutOptimizer.cleanup();
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
