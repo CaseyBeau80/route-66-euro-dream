@@ -276,11 +276,19 @@
     </style>
   </head>
   <body class="bg-white">
-    <!-- Critical loading skeleton for immediate FCP -->
+    <!-- Critical loading skeleton for immediate FCP - Enhanced with LCP text -->
     <div class="fcp-skeleton" id="loading-skeleton">
       <div class="fcp-content">
         <h1 class="fcp-title">Ramble 66</h1>
         <p class="fcp-subtitle">Route 66 Trip Planner • Hidden Gems & Classic Stops</p>
+        
+        <!-- Critical LCP text prerender to avoid 4.7s render delay -->
+        <div class="lcp-text-prerender" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 380px; width: 90%;">
+          <p class="text-base lg:text-lg leading-relaxed" style="color: hsl(213, 77%, 41%); font-size: clamp(1rem, 2.5vw, 1.125rem); line-height: 1.625;">
+            Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?
+          </p>
+        </div>
+        
         <div class="fcp-loading"></div>
       </div>
     </div>
@@ -316,18 +324,35 @@
     
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Hide loading skeleton once React takes over - optimized for LCP
-      const hideSkeletonAndOptimizeLCP = () => {
+      // Hide loading skeleton and show LCP text immediately to prevent render delay
+      const optimizeLCP = () => {
         const skeleton = document.getElementById('loading-skeleton');
-        if (skeleton) skeleton.style.display = 'none';
-        document.body.classList.add('react-loaded');
+        const lcpText = document.querySelector('.lcp-text-prerender');
+        
+        if (skeleton && lcpText) {
+          // Show LCP text immediately
+          lcpText.style.display = 'block';
+          lcpText.style.position = 'fixed';
+          lcpText.style.zIndex = '1000';
+          lcpText.style.background = 'rgba(255, 255, 255, 0.95)';
+          lcpText.style.padding = '1rem';
+          lcpText.style.borderRadius = '0.5rem';
+          lcpText.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+          
+          // Hide after React takes over
+          setTimeout(() => {
+            if (lcpText) lcpText.style.display = 'none';
+            if (skeleton) skeleton.style.display = 'none';
+            document.body.classList.add('react-loaded');
+          }, 100);
+        }
       };
       
-      // Use faster timing for better LCP
+      // Optimize LCP immediately
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', hideSkeletonAndOptimizeLCP);
+        document.addEventListener('DOMContentLoaded', optimizeLCP);
       } else {
-        hideSkeletonAndOptimizeLCP();
+        optimizeLCP();
       }
     </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" defer></script>

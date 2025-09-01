@@ -67,12 +67,13 @@ const HeroSection: React.FC = () => {
               {/* Pain Points - Tightly stacked with blue text */}
               <div className="space-y-3">
                 {content.painPoints.map((point, index) => (
-                  <div key={index}>
-                    {index < 3 ? (
-                      <p className="text-base lg:text-lg leading-relaxed text-route66-primary-light">
-                        {point}
-                      </p>
-                    ) : (
+                   <div key={index}>
+                     {index < 3 ? (
+                       <p className="text-base lg:text-lg leading-relaxed text-route66-primary-light lcp-target" 
+                          style={{ contentVisibility: 'auto', containIntrinsicSize: '380px 78px' }}>
+                         {point}
+                       </p>
+                     ) : (
                       <div className="py-1">
                         <p className="text-xl lg:text-2xl font-highway font-bold text-pink-600">
                           {point}
