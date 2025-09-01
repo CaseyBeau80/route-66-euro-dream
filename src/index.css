@@ -34,9 +34,19 @@
     /* Route 66 Theme Colors */
     --route66-background: 0 0% 97%;
     --route66-primary: 213 77% 36%;
+    --route66-primary-dark: 213 77% 31%;
+    --route66-primary-light: 212 77% 41%;
     --route66-secondary: 0 74% 42%; 
+    --route66-secondary-dark: 220 9% 30%;
+    --route66-secondary-light: 220 14% 69%;
     --route66-accent: 43 96% 56%;
+    --route66-accent-red: 0 74% 42%;
     --route66-border: 214 32% 91%;
+    --route66-text-primary: 220 26% 14%;
+    --route66-text-secondary: 220 9% 30%;
+    --route66-text-muted: 220 9% 46%;
+    --route66-dark: 220 26% 14%;
+    --route66-red: 0 74% 42%;
     
     /* Hidden Gems New Color System */
     --hidden-gem-background: 166 76% 92%; /* #E0F2F1 - Soft mint green */
@@ -77,6 +87,13 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
+    /* Route 66 Dark Mode */
+    --route66-background: 220 26% 14%;
+    --route66-primary: 212 77% 60%;
+    --route66-text-primary: 0 0% 95%;
+    --route66-text-secondary: 220 9% 70%;
+    --route66-dark: 0 0% 95%;
+    
     /* Hidden Gems Dark Mode */
     --hidden-gem-background: 166 30% 15%; /* Darker mint green */
     --hidden-gem-text: 0 0% 95%;         /* Light text for dark mode */
