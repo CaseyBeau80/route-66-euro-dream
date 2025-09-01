@@ -176,8 +176,10 @@ const HeroSection: React.FC = () => {
                   className="w-full h-auto object-contain max-w-full max-h-full"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 588px"
                   priority={true}
+                  loading="eager"
                   width={588}
                   height={803}
+                  style={{ aspectRatio: '588/803' }}
                 />
               </div>
             </div>

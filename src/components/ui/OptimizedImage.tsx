@@ -58,13 +58,13 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const generateSrcSet = (baseUrl: string) => {
     // For all lovable-uploads images, generate responsive sizes
     if (baseUrl.includes('/lovable-uploads/')) {
-      // For large hero/mascot images
+      // For large hero/mascot images - optimize for exact display sizes
       if (baseUrl.includes('625379a4-1f3a-4507-b7ae-394af1f403ae') || 
           baseUrl.includes('56c17d61-50a4-49c7-a00f-e49e4806a4b3')) {
         return [
-          `${baseUrl}?w=600&h=820&fit=contain&format=webp&quality=85 600w`,
-          `${baseUrl}?w=800&h=1093&fit=contain&format=webp&quality=85 800w`,
-          `${baseUrl}?w=588&h=803&fit=contain&format=webp&quality=85 588w`
+          `${baseUrl}?w=588&h=803&fit=contain&format=webp&quality=85 588w`,
+          `${baseUrl}?w=400&h=546&fit=contain&format=webp&quality=85 400w`,
+          `${baseUrl}?w=294&h=402&fit=contain&format=webp&quality=85 294w`
         ].join(', ');
       }
       

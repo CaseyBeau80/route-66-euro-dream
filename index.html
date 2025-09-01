@@ -11,6 +11,10 @@
     <!-- Google Fonts for Route 66 Theme - Non-blocking optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Critical LCP image preload for hero section -->
+    <link rel="preload" as="image" href="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png?w=588&h=803&fit=contain&format=webp&quality=85" type="image/webp" fetchpriority="high">
+    
     <!-- Load fonts asynchronously to prevent render blocking -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Fredoka+One:wght@400&family=Bungee&family=Righteous&family=Bebas+Neue&family=Special+Elite&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Americana:wght@400;700&family=Oswald:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Fredoka+One:wght@400&family=Bungee&family=Righteous&family=Bebas+Neue&family=Special+Elite&family=Courier+Prime:wght@400;700&family=Playfair+Display:wght@400;700&family=Americana:wght@400;700&family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
@@ -33,6 +37,10 @@
       })();
     </script>
     <style>
+      /* Critical above-the-fold CSS for faster LCP */
+      body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+      #root { min-height: 100vh; }
+      
       /* Custom Route 66 CSS Variables */
       :root {
         --route66-red: #D2041A;
@@ -40,6 +48,16 @@
         --route66-cream: #F5F2EA;
         --route66-brown: #8B4513;
         --route66-navy: #1B2951;
+        --route66-primary: hsl(213, 77%, 36%);
+        --route66-background: hsl(0, 0%, 97%);
+      }
+      
+      /* Critical hero section styles for LCP optimization */
+      .hero-container {
+        background: linear-gradient(135deg, hsl(var(--route66-background)), hsl(210, 20%, 98%), hsl(214, 32%, 95%));
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
       }
       
       /* Route 66 Shield Animation */
