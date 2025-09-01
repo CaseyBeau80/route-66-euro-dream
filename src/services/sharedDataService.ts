@@ -113,11 +113,14 @@ export const clearDataCache = () => {
 };
 
 /**
- * Preload critical data for performance optimization with deferred loading
+ * Preload critical data for performance optimization with aggressive deferral
  */
 export const preloadCriticalData = () => {
-  // Defer data loading to avoid blocking critical rendering path
-  setTimeout(() => {
+  // Use requestIdleCallback to defer data loading until browser is idle
+  const scheduleCallback = (window as any).requestIdleCallback || 
+    ((cb: () => void) => setTimeout(cb, 300));
+
+  scheduleCallback(() => {
     fetchAllRoute66Data().catch(console.error);
-  }, 100); // Small delay to allow critical resources to load first
+  }, { timeout: 1000 }); // Fallback timeout of 1s
 };
