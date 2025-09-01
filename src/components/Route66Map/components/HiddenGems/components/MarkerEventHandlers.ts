@@ -1,6 +1,7 @@
 
 import { HiddenGem } from '../types';
 import { LayoutOptimizer } from '../../../utils/LayoutOptimizer';
+import { ReflowOptimizer } from '@/utils/ReflowOptimizer';
 
 interface MarkerEventHandlersConfig {
   gem: HiddenGem;
@@ -24,7 +25,7 @@ export const createMarkerEventHandlers = ({
   isClicked = false
 }: MarkerEventHandlersConfig) => {
   
-  const updateMarkerPosition = () => {
+  const updateMarkerPosition = async () => {
     try {
       const position = marker.getPosition();
       if (!position) {
@@ -55,12 +56,13 @@ export const createMarkerEventHandlers = ({
         return;
       }
 
+      // Use ReflowOptimizer for batched dimension reads to prevent forced reflows
+      const dimensions = await ReflowOptimizer.getDimensions(mapDiv, `map_dims_${gem.id}`);
+      const { width: mapWidth, height: mapHeight } = dimensions;
+      
       // Calculate pixel position more safely
       const lat = position.lat();
       const lng = position.lng();
-      
-      const mapWidth = mapDiv.offsetWidth;
-      const mapHeight = mapDiv.offsetHeight;
       
       // Simple linear interpolation for pixel coordinates
       const x = ((lng - sw.lng()) / (ne.lng() - sw.lng())) * mapWidth;
@@ -79,18 +81,24 @@ export const createMarkerEventHandlers = ({
     }
   };
 
-  const handleMouseOver = (e: google.maps.MapMouseEvent) => {
+  const handleMouseOver = async (e: google.maps.MapMouseEvent) => {
     if (!isClicked) {
       console.log(`🐭 Mouse over marker: ${gem.title}`);
       
-      // Update position if we have domEvent with optimized layout reads
+      // Update position with batched layout reads to prevent forced reflows
       if (e.domEvent && e.domEvent.target) {
-        LayoutOptimizer.batchLayoutRead(() => {
-          const rect = LayoutOptimizer.getBoundingClientRect(e.domEvent.target as HTMLElement);
+        try {
+          const rect = await ReflowOptimizer.getBoundingRect(
+            e.domEvent.target as Element, 
+            `hover_rect_${gem.id}`
+          );
           updatePosition(rect.left + rect.width / 2, rect.top);
-        });
+        } catch (error) {
+          console.warn(`⚠️ Error getting rect for ${gem.title}:`, error);
+          await updateMarkerPosition();
+        }
       } else {
-        updateMarkerPosition();
+        await updateMarkerPosition();
       }
       
       handleMouseEnter(gem.title);
@@ -104,24 +112,31 @@ export const createMarkerEventHandlers = ({
     }
   };
 
-  const handleClickEvent = (e: google.maps.MapMouseEvent) => {
+  const handleClickEvent = async (e: google.maps.MapMouseEvent) => {
     console.log(`🖱️ Click hidden gem: ${gem.title}`);
     
     if (handleClick) {
       let clickPosition = { x: 0, y: 0 };
       
-      // Calculate click position with optimized layout reads
+      // Calculate click position with batched layout reads to prevent forced reflows
       if (e.domEvent && e.domEvent.target) {
-        LayoutOptimizer.batchLayoutRead(() => {
-          const rect = LayoutOptimizer.getBoundingClientRect(e.domEvent.target as HTMLElement);
+        try {
+          const rect = await ReflowOptimizer.getBoundingRect(
+            e.domEvent.target as Element,
+            `click_rect_${gem.id}`
+          );
           clickPosition = {
             x: rect.left + rect.width / 2,
             y: rect.top
           };
-        });
+        } catch (error) {
+          console.warn(`⚠️ Error getting click rect for ${gem.title}:`, error);
+          await updateMarkerPosition();
+          clickPosition = { x: 0, y: 0 };
+        }
       } else {
         // Fallback to calculated position
-        updateMarkerPosition();
+        await updateMarkerPosition();
         clickPosition = { x: 0, y: 0 };
       }
       

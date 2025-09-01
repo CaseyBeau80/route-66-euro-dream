@@ -129,10 +129,18 @@ export class LayoutOptimizer {
   }
   
   /**
-   * Initialize resize listener (call once per app)
+   * Initialize with enhanced reflow prevention
    */
   static initialize(): void {
+    // Use passive listeners for better performance
     window.addEventListener('resize', () => this.handleWindowResize(), { passive: true });
+    
+    // Clear caches on visibility change to prevent stale data
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.clearAllCaches();
+      }
+    }, { passive: true });
   }
   
   /**
