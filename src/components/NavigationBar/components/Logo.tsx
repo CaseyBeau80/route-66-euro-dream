@@ -1,6 +1,8 @@
 
+import React from 'react';
 import { Link, useLocation } from "react-router-dom";
 import { smoothScrollToTop } from "@/utils/smoothScroll";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 const Logo = () => {
   const location = useLocation();
@@ -20,10 +22,14 @@ const Logo = () => {
       onClick={handleLogoClick}
     >
       <div className="relative">
-        <img 
+        <OptimizedImage 
           src="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.png" 
           alt="Ramble Route 66 Logo" 
-          className="w-10 h-10 object-contain transition-all duration-300 group-hover:brightness-110" 
+          className="w-10 h-10 object-contain transition-all duration-300 group-hover:brightness-110"
+          width={40}
+          height={40}
+          sizes="40px"
+          priority={true}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-route66-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
       </div>

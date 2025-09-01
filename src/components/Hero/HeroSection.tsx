@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowDown, Check } from "lucide-react";
 import cakeImage from "@/assets/route66-100th-cake-transparent.png";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 
 // No props needed - English only
@@ -133,10 +134,13 @@ const HeroSection: React.FC = () => {
                 <div className="relative">
                   <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
                   <div className="relative flex flex-col items-center text-center gap-3 p-4">
-                    <img 
+                    <OptimizedImage 
                       src={cakeImage} 
                       alt="Route 66 100th Anniversary Celebration Cake" 
                       className="w-20 h-20 lg:w-24 lg:h-24 object-contain rounded-lg"
+                      width={96}
+                      height={96}
+                      sizes="(max-width: 1024px) 80px, 96px"
                     />
                     <div className="flex flex-col items-center">
                       <div className="flex items-baseline gap-2">
@@ -165,7 +169,15 @@ const HeroSection: React.FC = () => {
                 
                 {/* Image Container - Now much larger */}
                 <div className="relative bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
-                  <img src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png" alt={content.mascotAlt} className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]" />
+                  <OptimizedImage 
+                    src="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png" 
+                    alt={content.mascotAlt} 
+                    className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 588px"
+                    priority={true}
+                    width={588}
+                    height={803}
+                  />
                 </div>
               </div>
             </div>

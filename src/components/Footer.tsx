@@ -1,6 +1,8 @@
 
+import React from 'react';
 import { Link } from "react-router-dom";
 import LogoImage from "./shared/LogoImage";
+import { OptimizedImage } from "@/components/ui/OptimizedImage";
 
 const Footer = () => {
   console.log('🏁 Footer: Rendering with React Router Link components');
@@ -13,7 +15,14 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-4">
               <div className="mr-3">
-                <img src="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.png" alt="Ramble Route 66 Logo" className="w-10 h-10 object-contain" />
+                <OptimizedImage 
+                  src="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.png" 
+                  alt="Ramble Route 66 Logo" 
+                  className="w-10 h-10 object-contain"
+                  width={40}
+                  height={40}
+                  sizes="40px"
+                />
               </div>
               <span className="font-route66 text-xl text-white">RAMBLE 66</span>
             </div>
