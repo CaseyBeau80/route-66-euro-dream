@@ -15,7 +15,7 @@ const ComprehensiveListings = () => {
           </p>
         </div>
 
-        {Object.entries(categories).map(([key, data]) => (
+        {Object.entries(categories).slice(0, 2).map(([key, data]) => ( // Limit to 2 categories for FID optimization
           <CategorySection key={key} categoryKey={key} categoryData={data} />
         ))}
       </div>

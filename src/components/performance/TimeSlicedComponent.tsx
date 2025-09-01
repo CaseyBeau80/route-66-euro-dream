@@ -36,8 +36,8 @@ export const TimeSlicedComponent: React.FC<TimeSlicedComponentProps> = ({
  */
 export const useProgressiveMount = (
   componentCount: number,
-  mountDelay: number = 50,
-  batchSize: number = 3
+  mountDelay: number = 200, // Increased for FID optimization
+  batchSize: number = 1 // Reduced to 1 for ultra-aggressive FID optimization
 ) => {
   const [mountedCount, setMountedCount] = React.useState(0);
   
@@ -46,10 +46,12 @@ export const useProgressiveMount = (
     
     const mountNextBatch = async () => {
       for (let i = 0; i < Math.min(batchSize, componentCount - mountedCount); i++) {
+        // Multiple yields for ultra-aggressive main thread management
+        await yieldToMain();
         await yieldToMain();
         setMountedCount(prev => Math.min(prev + 1, componentCount));
         
-        // Small delay between mounts
+        // Longer delay between mounts for FID optimization
         if (mountDelay > 0) {
           await new Promise(resolve => setTimeout(resolve, mountDelay));
         }
@@ -57,12 +59,12 @@ export const useProgressiveMount = (
       
       // Schedule next batch if needed
       if (mountedCount + batchSize < componentCount) {
-        globalScheduler.schedule(mountNextBatch, 'normal');
+        globalScheduler.schedule(mountNextBatch, 'low'); // Lower priority for FID
       }
     };
     
     if (mountedCount < componentCount) {
-      globalScheduler.schedule(mountNextBatch, 'normal');
+      globalScheduler.schedule(mountNextBatch, 'low'); // Lower priority for FID
     }
   }, [componentCount, mountDelay, batchSize, mountedCount]);
   

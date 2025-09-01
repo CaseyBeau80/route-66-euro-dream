@@ -20,8 +20,8 @@ import {
 const Index = () => {
   console.log("🏠 Index page: Rendering with restored directory view");
 
-  // Progressive mounting to reduce main-thread blocking
-  const { shouldMount } = useProgressiveMount(5, 100, 2);
+  // Ultra-aggressive progressive mounting for FID optimization
+  const { shouldMount } = useProgressiveMount(5, 300, 1); // Slower, single component mounting
 
   return (
     <MainLayout>
@@ -32,15 +32,15 @@ const Index = () => {
         <HeroSection />
       </section>
 
-      {/* Interactive Map Section - Time-sliced mounting */}
+      {/* Interactive Map Section - Ultra-aggressive time-slicing for FID */}
       {shouldMount(0) && (
-        <TimeSlicedComponent priority="high" delay={200}>
+        <TimeSlicedComponent priority="high" delay={500}>
           <DeferredComponent 
             fallback={<ComponentLoadingFallback />}
-            rootMargin="200px"
-            delay={100}
+            rootMargin="300px"
+            delay={200}
           >
-            <FadeInSection id="interactive-map" delay={200}>
+            <FadeInSection id="interactive-map" delay={400}>
               <Suspense fallback={<ComponentLoadingFallback />}>
                 <LazyInteractiveMapSection />
               </Suspense>
@@ -49,15 +49,15 @@ const Index = () => {
         </TimeSlicedComponent>
       )}
 
-      {/* Trip Planner Section - Time-sliced mounting */}
+      {/* Trip Planner Section - Ultra-aggressive time-slicing for FID */}
       {shouldMount(1) && (
-        <TimeSlicedComponent priority="normal" delay={300}>
+        <TimeSlicedComponent priority="normal" delay={800}>
           <DeferredComponent 
             fallback={<ComponentLoadingFallback />}
-            rootMargin="150px"
-            delay={150}
+            rootMargin="400px"
+            delay={300}
           >
-            <FadeInSection id="trip-planner" delay={300}>
+            <FadeInSection id="trip-planner" delay={600}>
               <Suspense fallback={<ComponentLoadingFallback />}>
                 <LazyTripPlannerSection />
               </Suspense>
@@ -67,16 +67,16 @@ const Index = () => {
       )}
 
       {/* Below-the-fold content - Load only when browser is idle with time-slicing */}
-      <IdleLoader timeout={400}>
-        {/* Unified Route 66 Directory - Progressive mounting */}
+      <IdleLoader timeout={1000}>  {/* Increased timeout for FID optimization */}
+        {/* Unified Route 66 Directory - Ultra-aggressive time-slicing */}
         {shouldMount(2) && (
-          <TimeSlicedComponent priority="normal" delay={500}>
+          <TimeSlicedComponent priority="normal" delay={1200}>
             <DeferredComponent 
               fallback={<ComponentLoadingFallback />}
-              rootMargin="100px"
-              delay={200}
+              rootMargin="500px"
+              delay={400}
             >
-              <FadeInSection id="route66-directory" delay={350}>
+              <FadeInSection id="route66-directory" delay={800}>
                 <Suspense fallback={<ComponentLoadingFallback />}>
                   <LazyUnifiedRoute66Carousel className="bg-route66-background-section" />
                 </Suspense>

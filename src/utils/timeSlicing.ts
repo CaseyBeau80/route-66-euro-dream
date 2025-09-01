@@ -23,12 +23,12 @@ export const yieldToMain = (): Promise<void> => {
 };
 
 /**
- * Time-sliced array processing to prevent main-thread blocking
+ * Ultra-aggressive time-sliced array processing for FID optimization
  */
 export const processArrayInChunks = async <T, R>(
   array: T[],
   processor: (item: T, index: number) => R,
-  chunkSize: number = 10,
+  chunkSize: number = 3, // Reduced from 10 to 3 for FID optimization
   yieldAfterChunk: boolean = true
 ): Promise<R[]> => {
   const results: R[] = [];
@@ -36,14 +36,21 @@ export const processArrayInChunks = async <T, R>(
   for (let i = 0; i < array.length; i += chunkSize) {
     const chunk = array.slice(i, i + chunkSize);
     
-    // Process chunk synchronously
+    // Process chunk with micro-yields
     for (let j = 0; j < chunk.length; j++) {
       results.push(processor(chunk[j], i + j));
+      
+      // Yield after every single item for ultra-aggressive FID optimization
+      if (j < chunk.length - 1) {
+        await yieldToMain();
+      }
     }
     
-    // Yield to main thread after each chunk
-    if (yieldAfterChunk && i + chunkSize < array.length) {
+    // Always yield after each chunk for FID optimization
+    if (i + chunkSize < array.length) {
       await yieldToMain();
+      // Additional frame delay for aggressive FID optimization
+      await new Promise(resolve => setTimeout(resolve, 16));
     }
   }
   
