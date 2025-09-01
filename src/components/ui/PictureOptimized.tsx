@@ -40,7 +40,7 @@ export const PictureOptimized: React.FC<PictureOptimizedProps> = ({
       }
       
       // Skip WebP for main mascot image - use PNG directly for reliability
-      if (originalSrc.includes('886a328c-a7f0-4d7c-9f0b-6060859bbe50')) {
+      if (originalSrc.includes('8a4cc2eb-50c3-42f8-a389-ceee6cedf7e7')) {
         return null;
       }
     }

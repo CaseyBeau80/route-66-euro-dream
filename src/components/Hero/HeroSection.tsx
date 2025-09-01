@@ -161,7 +161,7 @@ const HeroSection: React.FC = () => {
                 
                 {/* Optimized Image Container */}
                 <img 
-                  src="/lovable-uploads/886a328c-a7f0-4d7c-9f0b-6060859bbe50.png"
+                  src="/lovable-uploads/8a4cc2eb-50c3-42f8-a389-ceee6cedf7e7.png"
                   alt={content.mascotAlt}
                   className="w-full h-auto object-contain scale-110 lg:scale-125"
                   width={588}
