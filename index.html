@@ -13,8 +13,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://xbwaphzntaxmdfzfsmvt.supabase.co" crossorigin>
     
-    <!-- Critical LCP image preloads for hero section - actual available image -->
-    <link rel="preload" as="image" href="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png" fetchpriority="high" crossorigin="anonymous">
+    <!-- Critical LCP image preloads for hero section - enhanced for LCP optimization -->
+    <link rel="preload" as="image" href="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png" fetchpriority="high" crossorigin="anonymous" media="(min-width: 1024px)">
+    <link rel="preload" as="image" href="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png" fetchpriority="high" crossorigin="anonymous" media="(max-width: 1023px)" imagesizes="(max-width: 640px) 400px, (max-width: 1024px) 500px, 588px">
     
     <!-- Preconnect to image CDN for faster loading -->
     <link rel="dns-prefetch" href="//ramble66.lovable.app">
@@ -160,6 +161,12 @@
         align-items: center;
       }
       
+      /* LCP optimization: Ensure hero image renders immediately */
+      .hero-image {
+        content-visibility: auto;
+        contain-intrinsic-size: 588px 803px;
+      }
+      
       /* Route 66 Shield Animation */
       .route66-shield {
         animation: vintage-flicker 3s linear infinite;
@@ -173,6 +180,12 @@
         8% { opacity: 1; }
         12% { opacity: 0.9; }
         15% { opacity: 1; }
+      }
+      
+      /* Performance hint for critical elements */
+      .lcp-critical {
+        will-change: auto;
+        contain: layout;
       }
     </style>
   </head>
@@ -189,12 +202,19 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Hide loading skeleton once React takes over
-      setTimeout(() => {
+      // Hide loading skeleton once React takes over - optimized for LCP
+      const hideSkeletonAndOptimizeLCP = () => {
         const skeleton = document.getElementById('loading-skeleton');
         if (skeleton) skeleton.style.display = 'none';
         document.body.classList.add('react-loaded');
-      }, 100);
+      };
+      
+      // Use faster timing for better LCP
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideSkeletonAndOptimizeLCP);
+      } else {
+        hideSkeletonAndOptimizeLCP();
+      }
     </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" defer></script>
   </body>

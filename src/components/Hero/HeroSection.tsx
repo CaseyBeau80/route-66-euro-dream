@@ -159,14 +159,17 @@ const HeroSection: React.FC = () => {
                 {/* Decorative Elements */}
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
                 
-                {/* Optimized Image Container */}
+                {/* LCP-optimized Image Container */}
                 <img 
                   src="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png"
                   alt={content.mascotAlt}
-                  className="w-full h-auto object-contain rounded-3xl shadow-2xl"
+                  className="w-full h-auto object-contain rounded-3xl shadow-2xl hero-image lcp-critical"
                   width={588}
                   height={803}
                   loading="eager"
+                  fetchPriority="high"
+                  decoding="sync"
+                  sizes="(max-width: 640px) 400px, (max-width: 1024px) 500px, 588px"
                   style={{ aspectRatio: '588/803' }}
                 />
               </div>
