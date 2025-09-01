@@ -226,12 +226,26 @@
     <!-- Theme color only - all other meta tags handled by React Helmet -->
     <meta name="theme-color" content="#D2041A">
 
-    <!-- Client-side host canonicalization: redirect www → apex -->
+    <!-- Enhanced canonicalization: redirect lovable.app and www to apex domain -->
     <script>
       (function() {
         var h = window.location.hostname;
+        var href = window.location.href;
+        var shouldRedirect = false;
+        var target = '';
+        
+        // Redirect www.ramble66.com → ramble66.com
         if (h && h.slice(0,4).toLowerCase() === 'www.') {
-          var target = window.location.protocol + '//' + h.slice(4) + window.location.pathname + window.location.search + window.location.hash;
+          target = window.location.protocol + '//' + h.slice(4) + window.location.pathname + window.location.search + window.location.hash;
+          shouldRedirect = true;
+        }
+        // Redirect ramble66.lovable.app → ramble66.com
+        else if (h && h.toLowerCase() === 'ramble66.lovable.app') {
+          target = 'https://ramble66.com' + window.location.pathname + window.location.search + window.location.hash;
+          shouldRedirect = true;
+        }
+        
+        if (shouldRedirect) {
           window.location.replace(target);
         }
       })();
