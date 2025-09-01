@@ -19,21 +19,18 @@ export const useUnifiedData = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching unified Route 66 data with standardized schema...');
+      console.log('🔍 Fetching unified Route 66 data using shared service...');
 
-      // Fetch all three data types in parallel
-      const [attractionsResult, driveInsResult, hiddenGemsResult] = await Promise.all([
-        supabase.from('attractions').select('*').order('name'),
-        supabase.from('drive_ins').select('*').order('name'),
-        supabase.from('hidden_gems').select('*').order('title')
-      ]);
-
+      // Use shared data service to avoid duplicate API calls
+      const { fetchAllRoute66Data } = await import('@/services/sharedDataService');
+      const data = await fetchAllRoute66Data();
+      
       const unifiedItems: UnifiedRoute66Item[] = [];
 
       // Process attractions with standardized schema
-      if (attractionsResult.data) {
-        console.log(`🎯 Processing ${attractionsResult.data.length} attractions`);
-        attractionsResult.data.forEach(attraction => {
+      if (data.attractions) {
+        console.log(`🎯 Processing ${data.attractions.length} attractions`);
+        data.attractions.forEach(attraction => {
           unifiedItems.push({
             id: `attraction-${attraction.id}`,
             name: attraction.name,
@@ -57,9 +54,9 @@ export const useUnifiedData = () => {
       }
 
       // Process drive-ins (unchanged)
-      if (driveInsResult.data) {
-        console.log(`🎬 Processing ${driveInsResult.data.length} drive-ins`);
-        driveInsResult.data.forEach(driveIn => {
+      if (data.driveIns) {
+        console.log(`🎬 Processing ${data.driveIns.length} drive-ins`);
+        data.driveIns.forEach(driveIn => {
           unifiedItems.push({
             id: `drive-in-${driveIn.id}`,
             name: driveIn.name,
@@ -81,9 +78,9 @@ export const useUnifiedData = () => {
       }
 
       // Process hidden gems with standardized schema
-      if (hiddenGemsResult.data) {
-        console.log(`💎 Processing ${hiddenGemsResult.data.length} hidden gems`);
-        hiddenGemsResult.data.forEach(gem => {
+      if (data.hiddenGems) {
+        console.log(`💎 Processing ${data.hiddenGems.length} hidden gems`);
+        data.hiddenGems.forEach(gem => {
           unifiedItems.push({
             id: `hidden-gem-${gem.id}`,
             name: gem.name || gem.title,
