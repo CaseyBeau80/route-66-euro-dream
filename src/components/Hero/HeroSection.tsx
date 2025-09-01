@@ -161,9 +161,9 @@ const HeroSection: React.FC = () => {
                 <img 
                   src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
                   alt={content.mascotAlt}
-                  className="w-full h-auto object-contain max-w-full max-h-full"
-                  width={588}
-                  height={803}
+                  className="w-full h-auto object-contain max-w-full"
+                  width={700}
+                  height={955}
                   style={{ aspectRatio: '588/803' }}
                 />
               </div>
