@@ -138,9 +138,9 @@ const HeroSection: React.FC = () => {
                     <img 
                       src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
                       alt="Route 66 100th Anniversary Celebration Cake" 
-                      className="w-20 h-20 lg:w-24 lg:h-24 object-contain rounded-lg"
-                      width={96}
-                      height={96}
+                      className="w-32 h-32 lg:w-40 lg:h-40 object-contain rounded-lg"
+                      width={160}
+                      height={160}
                     />
                     <div className="flex flex-col items-center">
                       <div className="flex items-baseline gap-2">
