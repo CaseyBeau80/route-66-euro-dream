@@ -170,7 +170,7 @@ const HeroSection: React.FC = () => {
                 {/* Image Container - Now much larger */}
                 <div className="relative bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
                   <OptimizedImage 
-                    src="/lovable-uploads/124cd616-8098-457b-904a-c77d76c2132c.png" 
+                    src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
                     alt={content.mascotAlt} 
                     className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 588px"
