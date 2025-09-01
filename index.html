@@ -70,12 +70,15 @@
       })();
     </script>
     <style>
-      /* Critical above-the-fold CSS for faster FCP */
+      /* Critical above-the-fold CSS for faster FCP - Expanded for hero section */
+      * { box-sizing: border-box; }
       body { 
         margin: 0; 
+        padding: 0;
         font-family: system-ui, -apple-system, sans-serif;
         line-height: 1.5;
         color: #1a1a1a;
+        background: #fafafa;
       }
       #root { 
         min-height: 100vh; 
@@ -147,7 +150,68 @@
       /* Hide skeleton once React loads */
       .react-loaded .fcp-skeleton { display: none; }
       
-      /* Enhanced critical CSS for immediate render without external dependencies */
+      /* Critical hero section layout - Above the fold only */
+      .hero-section {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #fafafa, #f8fafc, #f1f5f9);
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+      }
+      
+      .hero-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        align-items: center;
+      }
+      
+      @media (min-width: 1024px) {
+        .hero-container {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      
+      .hero-content {
+        text-align: center;
+      }
+      
+      @media (min-width: 1024px) {
+        .hero-content {
+          text-align: left;
+        }
+      }
+      
+      .hero-title {
+        font-size: clamp(2rem, 6vw, 4rem);
+        font-weight: 700;
+        color: hsl(213, 77%, 36%);
+        margin-bottom: 1rem;
+        line-height: 1.1;
+      }
+      
+      .hero-subtitle {
+        font-size: clamp(1rem, 3vw, 1.5rem);
+        color: hsl(213, 77%, 41%);
+        margin-bottom: 2rem;
+      }
+      
+      .hero-image-container {
+        display: flex;
+        justify-content: center;
+        position: relative;
+      }
+      
+      .hero-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 1.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+      
+      /* Critical font faces for immediate rendering */
       .font-route66 { 
         font-family: 'Bebas Neue', 'Arial Black', 'Impact', sans-serif; 
         font-weight: 400;
@@ -157,59 +221,50 @@
         font-family: 'Playfair Display', 'Georgia', serif; 
         font-display: swap;
       }
-      .font-special-elite { 
-        font-family: 'Special Elite', 'Courier New', monospace; 
-        font-display: swap;
-      }
-      .font-courier-prime { 
-        font-family: 'Courier Prime', 'Courier New', monospace; 
-        font-display: swap;
-      }
       
-      /* Custom Route 66 CSS Variables */
+      /* Critical CSS variables - Only what's needed above the fold */
       :root {
-        --route66-red: #D2041A;
-        --route66-yellow: #FFD700;
-        --route66-cream: #F5F2EA;
-        --route66-brown: #8B4513;
-        --route66-navy: #1B2951;
         --route66-primary: hsl(213, 77%, 36%);
         --route66-background: hsl(0, 0%, 97%);
+        --route66-text: #1a1a1a;
       }
       
-      /* Critical hero section styles for LCP optimization */
-      .hero-container {
-        background: linear-gradient(135deg, hsl(var(--route66-background)), hsl(210, 20%, 98%), hsl(214, 32%, 95%));
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-      }
-      
-      /* LCP optimization: Ensure hero image renders immediately */
-      .hero-image {
+      /* Performance optimizations for LCP */
+      .lcp-critical {
         content-visibility: auto;
         contain-intrinsic-size: 588px 803px;
-      }
-      
-      /* Route 66 Shield Animation */
-      .route66-shield {
-        animation: vintage-flicker 3s linear infinite;
-      }
-      
-      @keyframes vintage-flicker {
-        0%, 100% { opacity: 1; }
-        1% { opacity: 0.9; }
-        2% { opacity: 1; }
-        5% { opacity: 0.95; }
-        8% { opacity: 1; }
-        12% { opacity: 0.9; }
-        15% { opacity: 1; }
-      }
-      
-      /* Performance hint for critical elements */
-      .lcp-critical {
         will-change: auto;
         contain: layout;
+      }
+      
+      /* Critical utility classes for immediate render */
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-center { justify-content: center; }
+      .text-center { text-align: center; }
+      .hidden { display: none; }
+      .relative { position: relative; }
+      .absolute { position: absolute; }
+      .min-h-screen { min-height: 100vh; }
+      .w-full { width: 100%; }
+      .h-full { height: 100%; }
+      
+      /* Critical spacing utilities */
+      .p-4 { padding: 1rem; }
+      .px-4 { padding-left: 1rem; padding-right: 1rem; }
+      .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+      .mb-4 { margin-bottom: 1rem; }
+      .mb-8 { margin-bottom: 2rem; }
+      
+      /* Critical responsive utilities */
+      @media (min-width: 768px) {
+        .md\:text-left { text-align: left; }
+        .md\:px-8 { padding-left: 2rem; padding-right: 2rem; }
+      }
+      
+      @media (min-width: 1024px) {
+        .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .lg\:px-12 { padding-left: 3rem; padding-right: 3rem; }
       }
     </style>
   </head>
@@ -225,23 +280,35 @@
     
     <div id="root"></div>
     
-    <!-- Asynchronously load main CSS to prevent render blocking -->
+    <!-- Progressive CSS loading strategy to reduce unused CSS -->
     <script>
-      // Load main CSS asynchronously if not already loaded
-      const loadCSS = (href) => {
+      // Load main CSS asynchronously and progressively
+      const loadMainCSS = () => {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = href;
-        link.media = 'print';
-        link.onload = function() { this.media = 'all'; };
+        link.href = '/assets/index-CqQAEEZr.css';
+        link.media = 'print'; // Load non-blocking
+        link.onload = function() { 
+          this.media = 'all'; // Apply once loaded
+          // Clean up any duplicate styles from critical CSS
+          document.documentElement.classList.add('main-css-loaded');
+        };
         document.head.appendChild(link);
       };
       
-      // Check if main CSS is already loaded via Vite
-      if (!document.querySelector('link[href*="index-"]')) {
-        // If not loaded, load it asynchronously
-        loadCSS('/assets/index-CqQAEEZr.css');
-      }
+      // Progressive loading strategy
+      const initProgressiveLoading = () => {
+        // Load main CSS after critical path
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadMainCSS, 100); // Small delay for critical rendering
+          });
+        } else {
+          setTimeout(loadMainCSS, 50);
+        }
+      };
+      
+      initProgressiveLoading();
     </script>
     
     <script type="module" src="/src/main.tsx"></script>
