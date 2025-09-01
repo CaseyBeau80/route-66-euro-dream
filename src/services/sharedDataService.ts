@@ -113,9 +113,11 @@ export const clearDataCache = () => {
 };
 
 /**
- * Preload critical data for performance optimization
+ * Preload critical data for performance optimization with deferred loading
  */
 export const preloadCriticalData = () => {
-  // Start loading critical data immediately
-  fetchAllRoute66Data().catch(console.error);
+  // Defer data loading to avoid blocking critical rendering path
+  setTimeout(() => {
+    fetchAllRoute66Data().catch(console.error);
+  }, 100); // Small delay to allow critical resources to load first
 };

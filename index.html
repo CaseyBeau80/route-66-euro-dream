@@ -13,43 +13,41 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://xbwaphzntaxmdfzfsmvt.supabase.co" crossorigin>
     
+    <!-- Additional preconnects for external resources -->
+    <link rel="dns-prefetch" href="https://maps.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.gpteng.co">
+    
     <!-- Critical LCP image preloads for hero section - enhanced for LCP optimization -->
     <link rel="preload" as="image" href="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png" fetchpriority="high" crossorigin="anonymous" media="(min-width: 1024px)">
     <link rel="preload" as="image" href="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png" fetchpriority="high" crossorigin="anonymous" media="(max-width: 1023px)" imagesizes="(max-width: 640px) 400px, (max-width: 1024px) 500px, 588px">
     
-    <!-- Preconnect to image CDN for faster loading -->
-    <link rel="dns-prefetch" href="//ramble66.lovable.app">
-    
     <!-- Critical API endpoint preloads to reduce network dependency chains -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Fully non-blocking font loading strategy -->
+    <!-- Critical font preload for immediate rendering -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap"></noscript>
+    
+    <!-- Optimized non-blocking font loading strategy -->
     <script>
-      // Load fonts asynchronously without blocking render
+      // Load non-critical fonts after critical path
       (function() {
-        const loadFonts = () => {
-          // Load critical fonts first
-          const criticalFonts = document.createElement('link');
-          criticalFonts.rel = 'stylesheet';
-          criticalFonts.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap';
-          criticalFonts.media = 'print';
-          criticalFonts.onload = function() { this.media = 'all'; };
-          document.head.appendChild(criticalFonts);
-          
-          // Load non-critical fonts after a delay
+        const loadNonCriticalFonts = () => {
           setTimeout(() => {
             const nonCriticalFonts = document.createElement('link');
             nonCriticalFonts.rel = 'stylesheet';
             nonCriticalFonts.href = 'https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap';
+            nonCriticalFonts.media = 'print';
+            nonCriticalFonts.onload = function() { this.media = 'all'; };
             document.head.appendChild(nonCriticalFonts);
-          }, 100);
+          }, 200); // Load after critical resources
         };
         
-        // Load fonts immediately but asynchronously
+        // Load after DOMContentLoaded to avoid blocking critical path
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', loadFonts);
+          document.addEventListener('DOMContentLoaded', loadNonCriticalFonts);
         } else {
-          loadFonts();
+          loadNonCriticalFonts();
         }
       })();
     </script>
