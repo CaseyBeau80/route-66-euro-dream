@@ -13,20 +13,16 @@ const SvgDefinitions: React.FC = () => {
       aria-hidden="true"
     >
       <defs>
-        {/* Wood grain texture for Route 66 signs */}
+        {/* Simplified wood grain texture with fewer stops */}
         <linearGradient id="shared-woodGrain" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" style={{stopColor:'#8B4513', stopOpacity:1}} />
-          <stop offset="20%" style={{stopColor:'#A0522D', stopOpacity:1}} />
-          <stop offset="40%" style={{stopColor:'#8B4513', stopOpacity:1}} />
-          <stop offset="60%" style={{stopColor:'#654321', stopOpacity:1}} />
-          <stop offset="80%" style={{stopColor:'#8B4513', stopOpacity:1}} />
-          <stop offset="100%" style={{stopColor:'#A0522D', stopOpacity:1}} />
+          <stop offset="50%" style={{stopColor:'#A0522D', stopOpacity:1}} />
+          <stop offset="100%" style={{stopColor:'#654321', stopOpacity:1}} />
         </linearGradient>
 
-        {/* Metal bracket gradient */}
+        {/* Simplified metal bracket gradient */}
         <linearGradient id="shared-metalBracket" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{stopColor:'#C0C0C0', stopOpacity:1}} />
-          <stop offset="50%" style={{stopColor:'#808080', stopOpacity:1}} />
           <stop offset="100%" style={{stopColor:'#606060', stopOpacity:1}} />
         </linearGradient>
 

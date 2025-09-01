@@ -9,8 +9,8 @@ interface VirtualizedCarouselProps {
   items: UnifiedRoute66Item[];
 }
 
-const ITEMS_PER_PAGE = 8; // Further reduced from 12 to 8 for better DOM performance
-const ITEMS_PER_VIEW = 4; // Show 4 items at a time on desktop
+const ITEMS_PER_PAGE = 6; // Reduced to 6 for optimal DOM performance
+const ITEMS_PER_VIEW = 3; // Show 3 items at a time on desktop
 
 const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
   const [currentPage, setCurrentPage] = useState(0);

@@ -17,10 +17,15 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
   const [api, setApi] = useState<any>();
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  
+  // Limit items to reduce DOM size - show max 12 items per carousel
+  const maxItems = 12;
+  const limitedItems = items.slice(0, maxItems);
 
   console.log(`🎠 ListingCarousel render for ${categoryTitle}`, { 
     loading, 
-    itemCount: items.length,
+    itemCount: limitedItems.length,
+    totalItems: items.length,
     canScrollPrev,
     canScrollNext,
     hasApi: !!api
@@ -86,6 +91,9 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
     );
   }
 
+  // Show "View More" indicator if there are more items than displayed
+  const hasMoreItems = items.length > maxItems;
+
   return (
     <div className="relative group">
       <Carousel 
@@ -99,7 +107,7 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
         }}
       >
         <CarouselContent className="-ml-2 md:-ml-4">
-          {items.map((item) => (
+          {limitedItems.map((item) => (
             <CarouselItem key={item.id} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
               <ListingCard item={item} />
             </CarouselItem>
@@ -157,6 +165,15 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
             Next
             <ChevronRight className="h-4 w-4 ml-1 text-white" />
           </Button>
+        </div>
+      )}
+
+      {/* Show item count if truncated */}
+      {hasMoreItems && (
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Showing {limitedItems.length} of {items.length} {categoryTitle.toLowerCase()}
+          </p>
         </div>
       )}
     </div>
