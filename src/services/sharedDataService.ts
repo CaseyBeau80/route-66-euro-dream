@@ -113,14 +113,17 @@ export const clearDataCache = () => {
 };
 
 /**
- * Preload critical data for performance optimization with aggressive deferral
+ * Preload critical data with aggressive main-thread yielding
  */
 export const preloadCriticalData = () => {
-  // Use requestIdleCallback to defer data loading until browser is idle
+  // Use multiple yielding strategies to minimize main-thread blocking
   const scheduleCallback = (window as any).requestIdleCallback || 
-    ((cb: () => void) => setTimeout(cb, 300));
+    ((cb: () => void) => setTimeout(cb, 500));
 
   scheduleCallback(() => {
-    fetchAllRoute66Data().catch(console.error);
-  }, { timeout: 1000 }); // Fallback timeout of 1s
+    // Further defer data loading to avoid any main-thread blocking
+    setTimeout(() => {
+      fetchAllRoute66Data().catch(console.error);
+    }, 100);
+  }, { timeout: 2000 }); // Extended timeout for better main-thread management
 };
