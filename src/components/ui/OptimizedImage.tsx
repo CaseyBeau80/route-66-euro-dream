@@ -91,8 +91,10 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const webpSrc = getWebPVersion(src);
   const srcSet = generateSrcSet(src);
 
-  // For critical images, use eager loading
   const loadingStrategy = priority ? 'eager' : loading;
+  
+  // For LCP images, add fetchpriority attribute
+  const fetchPriority = priority ? 'high' : undefined;
 
   return (
     <picture>
@@ -112,7 +114,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         sizes={sizes}
       />
       
-      {/* Final fallback img element with optimized src */}
+      {/* Final fallback img element with optimized src and fetchpriority */}
       <img
         src={getOptimizedUrl(src, width, height)}
         alt={alt}
@@ -122,6 +124,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         height={height}
         style={style}
         decoding="async"
+        fetchPriority={fetchPriority}
         {...props}
       />
     </picture>
