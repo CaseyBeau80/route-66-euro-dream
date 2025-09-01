@@ -23,8 +23,36 @@
     <!-- Critical API endpoint preloads to reduce network dependency chains -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Standard Google Fonts loading -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap">
+    <!-- Fully non-blocking font loading strategy -->
+    <script>
+      // Load fonts asynchronously without blocking render
+      (function() {
+        const loadFonts = () => {
+          // Load critical fonts first
+          const criticalFonts = document.createElement('link');
+          criticalFonts.rel = 'stylesheet';
+          criticalFonts.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap';
+          criticalFonts.media = 'print';
+          criticalFonts.onload = function() { this.media = 'all'; };
+          document.head.appendChild(criticalFonts);
+          
+          // Load non-critical fonts after a delay
+          setTimeout(() => {
+            const nonCriticalFonts = document.createElement('link');
+            nonCriticalFonts.rel = 'stylesheet';
+            nonCriticalFonts.href = 'https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap';
+            document.head.appendChild(nonCriticalFonts);
+          }, 100);
+        };
+        
+        // Load fonts immediately but asynchronously
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadFonts);
+        } else {
+          loadFonts();
+        }
+      })();
+    </script>
     
     <!-- Static fallback SEO for crawlers before JS executes; React Helmet overrides per-route -->
     <title>Ramble 66 — Route 66 Trip Planner</title>
@@ -198,14 +226,41 @@
     </div>
     
     <div id="root"></div>
+    
+    <!-- Asynchronously load main CSS to prevent render blocking -->
+    <script>
+      // Load main CSS asynchronously if not already loaded
+      const loadCSS = (href) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.media = 'print';
+        link.onload = function() { this.media = 'all'; };
+        document.head.appendChild(link);
+      };
+      
+      // Check if main CSS is already loaded via Vite
+      if (!document.querySelector('link[href*="index-"]')) {
+        // If not loaded, load it asynchronously
+        loadCSS('/assets/index-CqQAEEZr.css');
+      }
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Hide loading skeleton once React takes over
-      setTimeout(() => {
+      // Hide loading skeleton once React takes over - optimized for LCP
+      const hideSkeletonAndOptimizeLCP = () => {
         const skeleton = document.getElementById('loading-skeleton');
         if (skeleton) skeleton.style.display = 'none';
         document.body.classList.add('react-loaded');
-      }, 100);
+      };
+      
+      // Use faster timing for better LCP
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideSkeletonAndOptimizeLCP);
+      } else {
+        hideSkeletonAndOptimizeLCP();
+      }
     </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" defer></script>
   </body>
