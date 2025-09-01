@@ -137,10 +137,14 @@ const HeroSection: React.FC = () => {
                   src={cakeImage}
                   webpSrc={cakeImageWebP}
                   alt="Route 66 100th Anniversary Celebration Cake" 
-                  className="w-20 h-20 lg:w-24 lg:h-24 object-contain"
-                  width={96}
-                  height={96}
-                  sizes="(max-width: 1024px) 80px, 96px"
+                  className="w-32 h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48 object-contain rounded-2xl shadow-lg"
+                  style={{
+                    filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15))',
+                    borderRadius: '1.5rem'
+                  }}
+                  width={192}
+                  height={192}
+                  sizes="(max-width: 1024px) 128px, (max-width: 1280px) 160px, 192px"
                 />
                 <div className="flex flex-col items-center">
                   <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none mb-1">
