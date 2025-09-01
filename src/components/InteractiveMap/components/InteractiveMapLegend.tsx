@@ -8,16 +8,9 @@ const InteractiveMapLegend: React.FC = () => {
         <div className="w-6 h-6 flex items-center justify-center">
           <div className="w-12 h-14 flex items-center justify-center">
             <svg width="24" height="30" viewBox="0 0 24 30" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style={{stopColor:'#8B4513', stopOpacity:1}} />
-                  <stop offset="50%" style={{stopColor:'#A0522D', stopOpacity:1}} />
-                  <stop offset="100%" style={{stopColor:'#8B4513', stopOpacity:1}} />
-                </linearGradient>
-              </defs>
-              <rect x="10" y="12" width="4" height="18" fill="url(#woodGrain)" stroke="#654321" strokeWidth="0.3"/>
+              <rect x="10" y="12" width="4" height="18" fill="url(#shared-woodGrain)" stroke="#654321" strokeWidth="0.3"/>
               <path d="M12 2 L4 2 L4 8 C4 10 5 12 7 13.5 C9 14.5 10.5 15 12 15 C13.5 15 15 14.5 17 13.5 C19 12 20 10 20 8 L20 2 L12 2 Z" 
-                    fill="#F5F5DC" 
+                    fill="url(#shared-route66Shield)" 
                     stroke="#000000" 
                     strokeWidth="1"/>
               <text x="12" y="6" textAnchor="middle" fill="#000000" fontSize="2" fontWeight="bold">ROUTE</text>

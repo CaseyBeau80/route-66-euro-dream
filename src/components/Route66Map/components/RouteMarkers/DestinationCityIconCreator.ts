@@ -8,35 +8,12 @@ export class DestinationCityIconCreator {
     
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${iconWidth} ${iconHeight}">
-        <defs>
-          <filter id="postShadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000000" flood-opacity="0.4"/>
-          </filter>
-          
-          <!-- Wood grain texture for the post -->
-          <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
-            <stop offset="20%" style="stop-color:#A0522D;stop-opacity:1" />
-            <stop offset="40%" style="stop-color:#8B4513;stop-opacity:1" />
-            <stop offset="60%" style="stop-color:#654321;stop-opacity:1" />
-            <stop offset="80%" style="stop-color:#8B4513;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#A0522D;stop-opacity:1" />
-          </linearGradient>
-          
-          <!-- Metal bracket gradient -->
-          <linearGradient id="metalBracket" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#C0C0C0;stop-opacity:1" />
-            <stop offset="50%" style="stop-color:#808080;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#606060;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        
         <!-- Wooden post (vertical pole) -->
         <rect x="21" y="25" width="8" height="35" 
-              fill="url(#woodGrain)" 
+              fill="url(#shared-woodGrain)" 
               stroke="#654321" 
               stroke-width="0.5"
-              filter="url(#postShadow)"/>
+              filter="url(#shared-postShadow)"/>
         
         <!-- Wood grain lines for texture -->
         <line x1="22" y1="28" x2="28" y2="28" stroke="#654321" stroke-width="0.3" opacity="0.6"/>

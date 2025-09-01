@@ -1,10 +1,9 @@
 
 import React from 'react';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUnifiedData } from './hooks/useUnifiedData';
 import FilterPanel from './components/FilterPanel';
-import UnifiedItemCard from './components/UnifiedItemCard';
+import VirtualizedCarousel from './components/VirtualizedCarousel';
 import EmptyState from './components/EmptyState';
 import { UnifiedCarouselProps } from './types';
 
@@ -79,30 +78,15 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({
         <FilterPanel filters={filters} onFiltersChange={updateFilters} onResetFilters={resetFilters} hasActiveFilters={hasActiveFilters} states={states} cities={cities} filteredCount={filteredCount} totalCount={totalCount} />
 
         {/* Content */}
-        {items.length === 0 ? <EmptyState filters={filters} onResetFilters={resetFilters} hasActiveFilters={hasActiveFilters} /> : <div className="relative">
-            <div className="relative">
-              <Carousel opts={{
-            align: "start",
-            loop: false
-          }} className="w-full">
-                {/* Inline Navigation Arrows */}
-                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-2 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl -translate-x-6" />
-                
-                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-2 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl translate-x-6" />
-
-                {/* Navigation Hint */}
-                <div className="text-center mb-6">
-                  
-                </div>
-
-                <CarouselContent className="-ml-2 md:-ml-4">
-                  {items.map(item => <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                      <UnifiedItemCard item={item} />
-                    </CarouselItem>)}
-                </CarouselContent>
-              </Carousel>
-            </div>
-          </div>}
+        {items.length === 0 ? (
+          <EmptyState 
+            filters={filters} 
+            onResetFilters={resetFilters} 
+            hasActiveFilters={hasActiveFilters} 
+          />
+        ) : (
+          <VirtualizedCarousel items={items} />
+        )}
       </div>
     </section>;
 };
