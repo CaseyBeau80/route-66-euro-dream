@@ -24,30 +24,37 @@
     <!-- Critical API endpoint preloads to reduce network dependency chains -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Critical font preload for immediate rendering -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- Completely non-blocking font loading to eliminate render blocking -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" media="print">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap"></noscript>
     
-    <!-- Optimized non-blocking font loading strategy -->
+    <!-- Completely non-blocking font loading strategy -->
     <script>
-      // Load non-critical fonts after critical path
+      // Asynchronous font loading without render blocking
       (function() {
-        const loadNonCriticalFonts = () => {
+        const loadFonts = () => {
+          // Load critical fonts with media="print" trick for non-blocking
+          const criticalLink = document.querySelector('link[href*="Bebas+Neue"]');
+          if (criticalLink) {
+            criticalLink.media = 'all';
+          }
+          
+          // Load additional fonts after brief delay
           setTimeout(() => {
-            const nonCriticalFonts = document.createElement('link');
-            nonCriticalFonts.rel = 'stylesheet';
-            nonCriticalFonts.href = 'https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap';
-            nonCriticalFonts.media = 'print';
-            nonCriticalFonts.onload = function() { this.media = 'all'; };
-            document.head.appendChild(nonCriticalFonts);
-          }, 200); // Load after critical resources
+            const additionalFonts = document.createElement('link');
+            additionalFonts.rel = 'stylesheet';
+            additionalFonts.href = 'https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap';
+            additionalFonts.media = 'print';
+            additionalFonts.onload = function() { this.media = 'all'; };
+            document.head.appendChild(additionalFonts);
+          }, 100);
         };
         
-        // Load after DOMContentLoaded to avoid blocking critical path
+        // Load fonts after DOMContentLoaded to avoid blocking critical path
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', loadNonCriticalFonts);
+          document.addEventListener('DOMContentLoaded', loadFonts);
         } else {
-          loadNonCriticalFonts();
+          loadFonts();
         }
       })();
     </script>
@@ -280,35 +287,31 @@
     
     <div id="root"></div>
     
-    <!-- Progressive CSS loading strategy to reduce unused CSS -->
+    <!-- Completely non-blocking CSS loading to eliminate render blocking -->
     <script>
-      // Load main CSS asynchronously and progressively
-      const loadMainCSS = () => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/assets/index-CqQAEEZr.css';
-        link.media = 'print'; // Load non-blocking
-        link.onload = function() { 
+      // Immediate non-blocking CSS loading strategy
+      (function() {
+        // Create and load main CSS immediately but non-blocking
+        const mainCSS = document.createElement('link');
+        mainCSS.rel = 'stylesheet';
+        mainCSS.href = '/assets/index-CqQAEEZr.css';
+        mainCSS.media = 'print'; // Load as print to avoid blocking
+        mainCSS.onload = function() { 
           this.media = 'all'; // Apply once loaded
-          // Clean up any duplicate styles from critical CSS
+          // Signal that main CSS is loaded
           document.documentElement.classList.add('main-css-loaded');
         };
-        document.head.appendChild(link);
-      };
-      
-      // Progressive loading strategy
-      const initProgressiveLoading = () => {
-        // Load main CSS after critical path
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(loadMainCSS, 100); // Small delay for critical rendering
-          });
-        } else {
-          setTimeout(loadMainCSS, 50);
-        }
-      };
-      
-      initProgressiveLoading();
+        
+        // Insert immediately to start loading ASAP
+        document.head.appendChild(mainCSS);
+        
+        // Fallback for slow connections - ensure CSS loads within reasonable time
+        setTimeout(() => {
+          if (!document.documentElement.classList.contains('main-css-loaded')) {
+            mainCSS.media = 'all';
+          }
+        }, 1000);
+      })();
     </script>
     
     <script type="module" src="/src/main.tsx"></script>
