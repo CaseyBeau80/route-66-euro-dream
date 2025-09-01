@@ -76,7 +76,8 @@ export const DragDropFileUpload = ({
     e.stopPropagation();
 
     // Only set dragOver to false if we're leaving the drop zone entirely
-    const rect = e.currentTarget.getBoundingClientRect();
+    // Use LayoutOptimizer to prevent forced reflows during drag operations
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = e.clientX;
     const y = e.clientY;
     if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {

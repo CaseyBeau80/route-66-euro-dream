@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calculator, X, DollarSign } from 'lucide-react';
+import { LayoutOptimizer } from '../../Route66Map/utils/LayoutOptimizer';
 
 interface FloatingCostPromptProps {
   onScrollToCalculator: () => void;
@@ -21,8 +22,9 @@ const FloatingCostPrompt: React.FC<FloatingCostPromptProps> = ({
       const costEstimator = document.getElementById('cost-estimator-section');
       
       if (tripResults && costEstimator) {
-        const tripResultsRect = tripResults.getBoundingClientRect();
-        const costEstimatorRect = costEstimator.getBoundingClientRect();
+        // Use LayoutOptimizer to prevent forced reflows
+        const tripResultsRect = LayoutOptimizer.getBoundingClientRect(tripResults);
+        const costEstimatorRect = LayoutOptimizer.getBoundingClientRect(costEstimator);
         
         // Show prompt when user has scrolled past the cost estimator and is viewing trip results
         const shouldShow = tripResultsRect.top < window.innerHeight * 0.5 && 

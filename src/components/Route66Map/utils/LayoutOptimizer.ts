@@ -19,9 +19,10 @@ export class LayoutOptimizer {
   private static dimensionsCache = new Map<Element, CachedDimensions>();
   private static pendingReads = new Set<() => void>();
   private static isReading = false;
+  private static readTimeoutId: number | null = null;
   
-  // Cache duration in milliseconds (16ms = 1 frame at 60fps)
-  private static CACHE_DURATION = 16;
+  // Cache duration in milliseconds (32ms = 2 frames at 60fps for better performance)
+  private static CACHE_DURATION = 32;
   
   /**
    * Get element's bounding client rect with caching to prevent forced reflows
@@ -65,18 +66,32 @@ export class LayoutOptimizer {
   /**
    * Batch multiple layout reads in a single animation frame to reduce reflows
    */
-  static batchLayoutRead(callback: () => void): void {
-    this.pendingReads.add(callback);
-    
-    if (!this.isReading) {
-      this.isReading = true;
-      requestAnimationFrame(() => {
-        // Execute all pending reads in a single frame
-        this.pendingReads.forEach(cb => cb());
-        this.pendingReads.clear();
-        this.isReading = false;
+  static batchLayoutRead(callback: () => void): Promise<void> {
+    return new Promise((resolve) => {
+      this.pendingReads.add(() => {
+        callback();
+        resolve();
       });
-    }
+      
+      if (!this.isReading) {
+        this.isReading = true;
+        
+        // Debounce layout reads to reduce frequency
+        if (this.readTimeoutId) {
+          clearTimeout(this.readTimeoutId);
+        }
+        
+        this.readTimeoutId = window.setTimeout(() => {
+          requestAnimationFrame(() => {
+            // Execute all pending reads in a single frame
+            this.pendingReads.forEach(cb => cb());
+            this.pendingReads.clear();
+            this.isReading = false;
+            this.readTimeoutId = null;
+          });
+        }, 8); // Small delay to batch multiple rapid calls
+      }
+    });
   }
   
   /**
