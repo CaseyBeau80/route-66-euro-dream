@@ -34,7 +34,7 @@ const FunFactsOfTheDay: React.FC = () => {
               className="w-full"
             >
               <CarouselContent className="-ml-2 md:-ml-4">
-                {dailyFacts.facts.map((fact, index) => (
+                {dailyFacts.facts.slice(0, 5).map((fact, index) => ( // Limit to 5 facts for DOM optimization
                   <CarouselItem 
                     key={fact.id} 
                     className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5"

@@ -45,15 +45,14 @@ const UnifiedRoute66Carousel: React.FC<UnifiedCarouselProps> = ({
             <Skeleton className="h-10 w-full max-w-md" />
           </div>
 
-          {/* Loading Cards */}
+          {/* Loading Cards - Reduced for DOM optimization */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({
-            length: 8
+            length: 4 // Reduced from 8 to 4 for better DOM performance
           }).map((_, index) => <div key={index} className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-lg" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-16 w-full" />
               </div>)}
           </div>
         </div>

@@ -9,7 +9,7 @@ interface VirtualizedCarouselProps {
   items: UnifiedRoute66Item[];
 }
 
-const ITEMS_PER_PAGE = 12; // Reduced from unlimited to 12 items per page
+const ITEMS_PER_PAGE = 8; // Further reduced from 12 to 8 for better DOM performance
 const ITEMS_PER_VIEW = 4; // Show 4 items at a time on desktop
 
 const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
