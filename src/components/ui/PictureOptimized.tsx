@@ -34,15 +34,14 @@ export const PictureOptimized: React.FC<PictureOptimizedProps> = ({
     
     // Handle lovable-uploads with specific optimizations for large images
     if (originalSrc.includes('/lovable-uploads/')) {
-      // For hero/mascot images - convert to WebP for better compression
-      if (originalSrc.includes('8f23e082-56b6-4339-abeb-dc34f7a2c0c2') ||
-          originalSrc.includes('625379a4-1f3a-4507-b7ae-394af1f403ae')) {
-        return originalSrc.replace(/\.(png|jpg|jpeg)$/i, '.webp');
-      }
-      
       // For logo images - small size optimization 
       if (originalSrc.includes('708f8a62-5f36-4d4d-b6b0-35b556d22fba')) {
         return originalSrc.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+      }
+      
+      // Skip WebP for main mascot image - use PNG directly for reliability
+      if (originalSrc.includes('8f23e082-56b6-4339-abeb-dc34f7a2c0c2')) {
+        return null;
       }
     }
     
