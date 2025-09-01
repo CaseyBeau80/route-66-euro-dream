@@ -14,17 +14,18 @@ const AboutPage = () => {
         <section className="bg-route66-primary text-white py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-4">
-                 <PictureOptimized 
-                   src="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.png"
-                   webpSrc="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.webp"
-                   alt="Ramble Route 66 Logo"
-                   className="w-32 h-32 md:w-40 md:h-40 object-contain"
-                   width={160}
-                   height={160}
-                   sizes="(max-width: 768px) 128px, 160px"
-                 />
-              </div>
+               <div className="flex justify-center mb-4">
+                  <div className="p-4 bg-white rounded-xl shadow-lg">
+                    <PictureOptimized 
+                      src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png"
+                      alt="Ramble Route 66 Logo"
+                      className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                      width={160}
+                      height={160}
+                      sizes="(max-width: 768px) 128px, 160px"
+                    />
+                  </div>
+               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">About Ramble Route 66</h1>
               <p className="text-xl text-white/90">
                 Preserving and sharing the magic of America's Main Street
