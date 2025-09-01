@@ -49,6 +49,16 @@ export default defineConfig(({ mode }) => ({
       allow: ['..']
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Ensure consistent file naming for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    }
+  },
   plugins: [
     react(),
     sitemapPlugin(),
