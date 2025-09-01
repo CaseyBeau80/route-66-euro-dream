@@ -130,30 +130,24 @@ const HeroSection: React.FC = () => {
                 </Button>
               </div>
 
-              {/* Birthday Cake Countdown - Properly spaced below CTA */}
-              <div className="pt-8 flex justify-center">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
-                  <div className="relative flex flex-col items-center text-center gap-4 p-6">
+              {/* Birthday Cake Countdown - Clean centered layout */}
+              <div className="pt-6 flex justify-center">
+                <div className="flex flex-col items-center text-center gap-3">
+                  <div className="bg-pink-50 p-4 rounded-lg">
                     <img 
                       src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
                       alt="Route 66 100th Anniversary Celebration Cake" 
-                      className="w-24 h-24 lg:w-28 lg:h-28 object-contain rounded-lg"
-                      width={112}
-                      height={112}
+                      className="w-20 h-20 lg:w-24 lg:h-24 object-contain"
+                      width={96}
+                      height={96}
                     />
-                    <div className="flex flex-col items-center">
-                      <div className="flex items-baseline gap-2">
-                        <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
-                          {mounted ? timeLeft.days : '---'}
-                        </div>
-                        <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
-                          Days
-                        </div>
-                      </div>
-                      <div className="text-xs lg:text-sm text-route66-primary mt-1 max-w-xs">
-                        Until the centennial birthday celebration of the Mother Road on November 11, 2026
-                      </div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none mb-1">
+                      {mounted ? timeLeft.days : '---'} Days
+                    </div>
+                    <div className="text-sm lg:text-base text-route66-primary text-center max-w-sm">
+                      Until the centennial birthday celebration of the Mother Road on November 11, 2026
                     </div>
                   </div>
                 </div>
