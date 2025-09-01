@@ -133,7 +133,7 @@ const HeroSection: React.FC = () => {
               {/* Birthday Cake Countdown - Simple clean layout */}
               <div className="pt-6 flex flex-col items-center text-center gap-3">
                 <img 
-                  src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
+                  src="/src/assets/route66-centennial-cake.png"
                   alt="Route 66 100th Anniversary Celebration Cake" 
                   className="w-20 h-20 lg:w-24 lg:h-24 object-contain"
                   width={96}
