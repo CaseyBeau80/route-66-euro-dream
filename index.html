@@ -12,11 +12,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Critical LCP image preloads for hero section - multiple potential versions -->
-    <link rel="preload" as="image" href="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png?w=588&h=803&fit=contain&format=webp&quality=85" type="image/webp" fetchpriority="high">
-    <link rel="preload" as="image" href="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png?w=588&h=803&fit=contain&format=webp&quality=85" type="image/webp" fetchpriority="high">
+    <!-- Critical LCP image preloads for hero section - exact URLs to ensure discoverability -->
+    <link rel="preload" as="image" href="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.png" fetchpriority="high" crossorigin="anonymous">
+    <link rel="preload" as="image" href="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" fetchpriority="high" crossorigin="anonymous">
     
-    <!-- Preconnect to image CDN -->
+    <!-- Preconnect to image CDN for faster loading -->
     <link rel="dns-prefetch" href="//ramble66.lovable.app">
     
     <!-- Load fonts asynchronously to prevent render blocking -->

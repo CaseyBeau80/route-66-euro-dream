@@ -125,6 +125,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         style={style}
         decoding="async"
         fetchPriority={fetchPriority}
+        crossOrigin="anonymous"
         {...props}
       />
     </picture>
