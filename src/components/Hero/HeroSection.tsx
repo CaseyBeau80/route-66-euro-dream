@@ -139,7 +139,7 @@ const HeroSection: React.FC = () => {
                   className="w-20 h-20 lg:w-24 lg:h-24 object-contain"
                   width={96}
                   height={96}
-                  sizes="96px"
+                  sizes="(max-width: 1024px) 80px, 96px"
                 />
                 <div className="flex flex-col items-center">
                   <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none mb-1">
@@ -159,16 +159,15 @@ const HeroSection: React.FC = () => {
                 {/* Decorative Elements */}
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
                 
-                {/* LCP-optimized Image Container */}
-                <img 
+                {/* LCP-optimized Image Container with responsive sizing */}
+                <PictureOptimized 
                   src="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png"
                   alt={content.mascotAlt}
                   className="w-full h-auto object-contain rounded-3xl shadow-2xl hero-image lcp-critical"
                   width={588}
                   height={803}
                   loading="eager"
-                  fetchPriority="high"
-                  decoding="sync"
+                  priority={true}
                   sizes="(max-width: 640px) 400px, (max-width: 1024px) 500px, 588px"
                   style={{ aspectRatio: '588/803' }}
                 />
