@@ -167,18 +167,16 @@ const HeroSection: React.FC = () => {
                 {/* Decorative Elements */}
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
                 
-                {/* Image Container - Now much larger */}
-                <div className="relative bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section rounded-2xl p-4 shadow-2xl border-4 border-route66-primary/20 w-full max-w-none">
-                  <OptimizedImage 
-                    src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
-                    alt={content.mascotAlt} 
-                    className="w-full h-auto object-contain rounded-xl min-h-[400px] lg:min-h-[500px] xl:min-h-[600px]"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 588px"
-                    priority={true}
-                    width={588}
-                    height={803}
-                  />
-                </div>
+                {/* Image Container - Removed extra container and styling */}
+                <OptimizedImage 
+                  src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
+                  alt={content.mascotAlt} 
+                  className="w-full h-auto object-contain max-w-full max-h-full"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 588px"
+                  priority={true}
+                  width={588}
+                  height={803}
+                />
               </div>
             </div>
           </div>
