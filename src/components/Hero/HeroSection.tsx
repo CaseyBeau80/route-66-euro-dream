@@ -130,25 +130,21 @@ const HeroSection: React.FC = () => {
                 </Button>
               </div>
 
-              {/* Birthday Cake Countdown - Clean centered layout */}
-              <div className="pt-6 flex justify-center">
-                <div className="flex flex-col items-center text-center gap-3">
-                  <div className="bg-pink-50 p-4 rounded-lg">
-                    <img 
-                      src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
-                      alt="Route 66 100th Anniversary Celebration Cake" 
-                      className="w-20 h-20 lg:w-24 lg:h-24 object-contain"
-                      width={96}
-                      height={96}
-                    />
+              {/* Birthday Cake Countdown - Simple clean layout */}
+              <div className="pt-6 flex flex-col items-center text-center gap-3">
+                <img 
+                  src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
+                  alt="Route 66 100th Anniversary Celebration Cake" 
+                  className="w-20 h-20 lg:w-24 lg:h-24 object-contain"
+                  width={96}
+                  height={96}
+                />
+                <div className="flex flex-col items-center">
+                  <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none mb-1">
+                    {mounted ? timeLeft.days : '---'} Days
                   </div>
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none mb-1">
-                      {mounted ? timeLeft.days : '---'} Days
-                    </div>
-                    <div className="text-sm lg:text-base text-route66-primary text-center max-w-sm">
-                      Until the centennial birthday celebration of the Mother Road on November 11, 2026
-                    </div>
+                  <div className="text-sm lg:text-base text-route66-primary text-center max-w-sm">
+                    Until the centennial birthday celebration of the Mother Road on November 11, 2026
                   </div>
                 </div>
               </div>
