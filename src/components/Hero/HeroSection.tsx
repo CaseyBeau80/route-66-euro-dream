@@ -137,7 +137,7 @@ const HeroSection: React.FC = () => {
                   src={cakeImage}
                   webpSrc={cakeImageWebP}
                   alt="Route 66 100th Anniversary Celebration Cake" 
-                  className="w-32 h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48 object-contain rounded-2xl shadow-lg"
+                  className="w-32 h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48 object-cover rounded-2xl shadow-lg"
                   style={{
                     filter: 'drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15))',
                     borderRadius: '1.5rem'
