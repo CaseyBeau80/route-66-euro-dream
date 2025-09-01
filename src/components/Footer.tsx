@@ -16,8 +16,7 @@ const Footer = () => {
             <div className="flex items-center mb-4">
               <div className="mr-3 p-1 bg-white rounded-md">
                 <PictureOptimized 
-                  src="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.png" 
-                  webpSrc="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.webp"
+                  src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
                   alt="Ramble Route 66 Logo" 
                   className="w-8 h-8 object-contain"
                   width={32}
