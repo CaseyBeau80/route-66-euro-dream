@@ -135,16 +135,12 @@ const HeroSection: React.FC = () => {
                 <div className="relative">
                   <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
                   <div className="relative flex flex-col items-center text-center gap-3 p-4">
-                    <PictureOptimized 
-                      src={cakeImage} 
-                      webpSrc={cakeImageWebP}
+                    <img 
+                      src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
                       alt="Route 66 100th Anniversary Celebration Cake" 
                       className="w-20 h-20 lg:w-24 lg:h-24 object-contain rounded-lg"
                       width={96}
                       height={96}
-                      sizes="(max-width: 1024px) 80px, 96px"
-                      loading="eager"
-                      priority={true}
                     />
                     <div className="flex flex-col items-center">
                       <div className="flex items-baseline gap-2">
