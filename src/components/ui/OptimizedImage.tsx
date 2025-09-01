@@ -31,37 +31,58 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   style,
   ...props
 }) => {
+  // Generate optimized URL with WebP format and proper sizing
+  const getOptimizedUrl = (url: string, targetWidth?: number, targetHeight?: number) => {
+    if (url.includes('/lovable-uploads/')) {
+      const params = new URLSearchParams();
+      if (targetWidth) params.set('w', targetWidth.toString());
+      if (targetHeight) params.set('h', targetHeight.toString());
+      params.set('format', 'webp');
+      params.set('quality', '85');
+      params.set('fit', 'contain');
+      
+      return `${url}?${params.toString()}`;
+    }
+    return url;
+  };
+
   // Generate WebP version of the image URL if it's a PNG/JPG
   const getWebPVersion = (url: string) => {
     if (url.includes('/lovable-uploads/') && (url.includes('.png') || url.includes('.jpg') || url.includes('.jpeg'))) {
-      return url.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+      return getOptimizedUrl(url, width, height);
     }
     return null;
   };
 
   // Generate different sizes for responsive images
   const generateSrcSet = (baseUrl: string) => {
+    // For all lovable-uploads images, generate responsive sizes
     if (baseUrl.includes('/lovable-uploads/')) {
-      // For large images, provide multiple sizes
-      if (baseUrl.includes('625379a4-1f3a-4507-b7ae-394af1f403ae')) {
+      // For large hero/mascot images
+      if (baseUrl.includes('625379a4-1f3a-4507-b7ae-394af1f403ae') || 
+          baseUrl.includes('56c17d61-50a4-49c7-a00f-e49e4806a4b3')) {
         return [
-          `${baseUrl} 999w`,
-          // We'll resize programmatically by adding size parameters
-          `${baseUrl}?w=800 800w`,
-          `${baseUrl}?w=600 600w`,
-          `${baseUrl}?w=400 400w`
+          `${baseUrl}?w=600&h=820&fit=contain&format=webp&quality=85 600w`,
+          `${baseUrl}?w=800&h=1093&fit=contain&format=webp&quality=85 800w`,
+          `${baseUrl}?w=588&h=803&fit=contain&format=webp&quality=85 588w`
         ].join(', ');
       }
       
-      // For logos and smaller images
+      // For logos and smaller images (40x40 display)
       if (baseUrl.includes('708f8a62-5f36-4d4d-b6b0-35b556d22fba')) {
         return [
-          `${baseUrl} 1024w`,
-          `${baseUrl}?w=128 128w`,
-          `${baseUrl}?w=64 64w`,
-          `${baseUrl}?w=40 40w`
+          `${baseUrl}?w=40&h=40&fit=contain&format=webp&quality=90 40w`,
+          `${baseUrl}?w=80&h=80&fit=contain&format=webp&quality=90 80w`,
+          `${baseUrl}?w=128&h=128&fit=contain&format=webp&quality=90 128w`
         ].join(', ');
       }
+      
+      // Generic responsive sizing for other uploaded images
+      return [
+        `${baseUrl}?w=400&format=webp&quality=85 400w`,
+        `${baseUrl}?w=600&format=webp&quality=85 600w`,
+        `${baseUrl}?w=800&format=webp&quality=85 800w`
+      ].join(', ');
     }
     
     return src;
@@ -91,9 +112,9 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         sizes={sizes}
       />
       
-      {/* Final fallback img element */}
+      {/* Final fallback img element with optimized src */}
       <img
-        src={src}
+        src={getOptimizedUrl(src, width, height)}
         alt={alt}
         className={className}
         loading={loadingStrategy}

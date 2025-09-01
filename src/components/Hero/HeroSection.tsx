@@ -141,6 +141,8 @@ const HeroSection: React.FC = () => {
                       width={96}
                       height={96}
                       sizes="(max-width: 1024px) 80px, 96px"
+                      loading="eager"
+                      priority={true}
                     />
                     <div className="flex flex-col items-center">
                       <div className="flex items-baseline gap-2">
