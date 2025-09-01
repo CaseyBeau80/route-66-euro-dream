@@ -181,7 +181,7 @@ const CarouselPhotoGallery: React.FC = () => {
         className="w-full"
       >
         <CarouselContent className="-ml-2 md:-ml-4">
-          {photos.slice(0, 4).map((photo, index) => ( // Reduced to 4 photos for optimal DOM performance
+          {photos.slice(0, 3).map((photo, index) => ( // Reduced to 3 photos for DOM optimization
             <CarouselItem key={`${photo.id}-${currentRotationIndex}`} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
               <div className="group relative">
                 <div className="aspect-square rounded-lg overflow-hidden bg-route66-background">

@@ -15,7 +15,7 @@ interface LazyCarouselProps {
 const LazyCarousel: React.FC<LazyCarouselProps> = ({
   children,
   className = '',
-  maxVisibleItems = 8, // Reduced from unlimited to 8 items max
+  maxVisibleItems = 4, // Reduced from 8 to 4 for DOM optimization
   showNavigation = true,
   itemClassName = 'pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4',
   contentClassName = '-ml-2 md:-ml-4'

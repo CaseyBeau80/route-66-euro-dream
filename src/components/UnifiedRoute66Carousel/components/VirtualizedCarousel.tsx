@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from 'react';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import UnifiedItemCard from './UnifiedItemCard';
@@ -9,134 +8,96 @@ interface VirtualizedCarouselProps {
   items: UnifiedRoute66Item[];
 }
 
-const ITEMS_PER_PAGE = 3; // Reduced to 3 for optimal DOM performance - fewer elements per render
-const ITEMS_PER_VIEW = 1; // Show 1 item at a time to minimize DOM elements
+// Optimized for DOM size - minimal elements per render
+const ITEMS_PER_PAGE = 2; // Reduced from 3 to 2 for DOM optimization
+const MAX_VISIBLE_ITEMS = 6; // Hard limit to prevent DOM bloat
 
 const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
   const [currentPage, setCurrentPage] = useState(0);
   
-  // Calculate total pages and current items
-  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  // Limit total items to prevent excessive DOM
+  const limitedItems = useMemo(() => 
+    items.slice(0, MAX_VISIBLE_ITEMS), 
+    [items]
+  );
+  
+  // Calculate pagination based on limited items
+  const totalPages = Math.ceil(limitedItems.length / ITEMS_PER_PAGE);
   const startIndex = currentPage * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, items.length);
+  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, limitedItems.length);
   const currentItems = useMemo(() => 
-    items.slice(startIndex, endIndex), 
-    [items, startIndex, endIndex]
+    limitedItems.slice(startIndex, endIndex), 
+    [limitedItems, startIndex, endIndex]
   );
 
   const canGoNext = currentPage < totalPages - 1;
   const canGoPrev = currentPage > 0;
 
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     if (canGoNext) {
       setCurrentPage(prev => prev + 1);
     }
-  };
+  }, [canGoNext]);
 
-  const handlePrevPage = () => {
+  const handlePrevPage = useCallback(() => {
     if (canGoPrev) {
       setCurrentPage(prev => prev - 1);
     }
-  };
+  }, [canGoPrev]);
 
-  // Reset to first page when items change (e.g., due to filtering)
+  // Reset when items change
   React.useEffect(() => {
     setCurrentPage(0);
-  }, [items.length]);
+  }, [limitedItems.length]);
 
-  if (items.length === 0) {
+  if (limitedItems.length === 0) {
     return null;
   }
 
   return (
     <div className="space-y-4">
-      {/* Page Navigation - Top */}
+      {/* Simplified navigation - only show when needed */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-route66-text-secondary">
-            Showing {startIndex + 1}-{endIndex} of {items.length} items
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevPage}
-              disabled={!canGoPrev}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm px-2">
-              {currentPage + 1} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextPage}
-              disabled={!canGoNext}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrevPage}
+            disabled={!canGoPrev}
+            className="h-8 w-8 p-0"
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm px-2">
+            {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={!canGoNext}
+            className="h-8 w-8 p-0"
+            aria-label="Next page"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       )}
 
-      {/* Virtualized Carousel */}
-      <div className="relative">
-        <Carousel 
-          opts={{
-            align: "start",
-            loop: false
-          }} 
-          className="w-full"
-        >
-          <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-2 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl -translate-x-6" />
-          
-          <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-xl bg-gradient-to-r from-route66-primary to-route66-primary-dark border-2 border-route66-border text-white hover:from-route66-primary-dark hover:to-route66-primary hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl translate-x-6" />
-
-          <CarouselContent className="-ml-2 md:-ml-4">
-            {currentItems.map(item => (
-              <CarouselItem 
-                key={item.id} 
-                className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/2 xl:basis-1/3"
-              >
-                <UnifiedItemCard item={item} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+      {/* Simplified grid layout - no carousel complexity */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {currentItems.map(item => (
+          <div key={item.id} className="w-full">
+            <UnifiedItemCard item={item} />
+          </div>
+        ))}
       </div>
 
-      {/* Page Navigation - Bottom (for longer lists) */}
-      {totalPages > 3 && (
-        <div className="flex justify-center">
-          <div className="flex items-center gap-1">
-            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-              let pageIndex;
-              if (totalPages <= 5) {
-                pageIndex = i;
-              } else if (currentPage < 2) {
-                pageIndex = i;
-              } else if (currentPage > totalPages - 3) {
-                pageIndex = totalPages - 5 + i;
-              } else {
-                pageIndex = currentPage - 2 + i;
-              }
-              
-              return (
-                <Button
-                  key={pageIndex}
-                  variant={pageIndex === currentPage ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentPage(pageIndex)}
-                  className="h-8 w-8 p-0"
-                >
-                  {pageIndex + 1}
-                </Button>
-              );
-            })}
-          </div>
+      {/* Show total count info if items were limited */}
+      {items.length > MAX_VISIBLE_ITEMS && (
+        <div className="text-center text-sm text-route66-text-secondary">
+          Showing {MAX_VISIBLE_ITEMS} of {items.length} items
         </div>
       )}
     </div>
