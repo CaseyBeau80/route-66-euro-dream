@@ -45,9 +45,82 @@
       })();
     </script>
     <style>
-      /* Critical above-the-fold CSS for faster LCP */
-      body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
-      #root { min-height: 100vh; }
+      /* Critical above-the-fold CSS for faster FCP */
+      body { 
+        margin: 0; 
+        font-family: system-ui, -apple-system, sans-serif;
+        line-height: 1.5;
+        color: #1a1a1a;
+      }
+      #root { 
+        min-height: 100vh; 
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Critical loading skeleton to improve perceived performance */
+      .fcp-skeleton {
+        background: linear-gradient(135deg, hsl(0, 0%, 97%), hsl(210, 20%, 98%), hsl(214, 32%, 95%));
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .fcp-skeleton::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.05;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      }
+      
+      .fcp-content {
+        max-width: 1200px;
+        width: 100%;
+        padding: 0 1rem;
+        text-align: center;
+        position: relative;
+        z-index: 10;
+      }
+      
+      .fcp-title {
+        font-size: clamp(1.5rem, 4vw, 3rem);
+        font-weight: 700;
+        text-transform: uppercase;
+        color: hsl(213, 77%, 36%);
+        margin-bottom: 1rem;
+        line-height: 1.2;
+        letter-spacing: 0.05em;
+      }
+      
+      .fcp-subtitle {
+        font-size: clamp(1rem, 2.5vw, 1.25rem);
+        color: hsl(213, 77%, 41%);
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      
+      .fcp-loading {
+        display: inline-block;
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid hsl(213, 77%, 36%);
+        border-top: 3px solid transparent;
+        border-radius: 50%;
+        animation: fcp-spin 1s linear infinite;
+      }
+      
+      @keyframes fcp-spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Hide skeleton once React loads */
+      .react-loaded .fcp-skeleton { display: none; }
       
       /* Preload critical CSS to prevent render blocking */
       .font-route66 { font-family: 'Bebas Neue', 'Arial Black', sans-serif; }
@@ -91,8 +164,25 @@
     </style>
   </head>
   <body class="bg-white">
+    <!-- Critical loading skeleton for immediate FCP -->
+    <div class="fcp-skeleton" id="loading-skeleton">
+      <div class="fcp-content">
+        <h1 class="fcp-title">Ramble 66</h1>
+        <p class="fcp-subtitle">Route 66 Trip Planner • Hidden Gems & Classic Stops</p>
+        <div class="fcp-loading"></div>
+      </div>
+    </div>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Hide loading skeleton once React takes over
+      setTimeout(() => {
+        const skeleton = document.getElementById('loading-skeleton');
+        if (skeleton) skeleton.style.display = 'none';
+        document.body.classList.add('react-loaded');
+      }, 100);
+    </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" defer></script>
   </body>
 </html>
