@@ -132,28 +132,25 @@ const HeroSection: React.FC = () => {
 
               {/* Birthday Cake Countdown - Directly below CTA */}
               <div className="pt-4 flex justify-center">
-                <div className="relative">
-                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
-                  <div className="relative flex flex-col items-center text-center gap-3 p-4">
-                    <img 
-                      src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
-                      alt="Route 66 100th Anniversary Celebration Cake" 
-                      className="w-32 h-32 lg:w-40 lg:h-40 object-contain rounded-lg"
-                      width={160}
-                      height={160}
-                    />
-                    <div className="flex flex-col items-center">
-                      <div className="flex items-baseline gap-2">
-                        <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
-                          {mounted ? timeLeft.days : '---'}
-                        </div>
-                        <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
-                          Days
-                        </div>
+                <div className="flex flex-col items-center text-center gap-3">
+                  <img 
+                    src="/lovable-uploads/44147a9b-7450-4c4c-9c4a-eab44c047b0a.png"
+                    alt="Route 66 100th Anniversary Celebration Cake" 
+                    className="w-32 h-32 lg:w-40 lg:h-40 object-contain"
+                    width={160}
+                    height={160}
+                  />
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
+                        {mounted ? timeLeft.days : '---'}
                       </div>
-                      <div className="text-xs lg:text-sm text-route66-primary mt-1">
-                        Until the centennial birthday celebration of the Mother Road on November 11, 2026
+                      <div className="text-2xl lg:text-3xl xl:text-4xl font-bold text-pink-600 leading-none">
+                        Days
                       </div>
+                    </div>
+                    <div className="text-xs lg:text-sm text-route66-primary mt-1">
+                      Until the centennial birthday celebration of the Mother Road on November 11, 2026
                     </div>
                   </div>
                 </div>
