@@ -2,8 +2,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown, Check } from "lucide-react";
-import cakeImage from "@/assets/route66-single-shield-cake.png";
-import cakeImageWebP from "@/assets/route66-100th-cake-pink.webp";
+import cakeImage from "@/assets/cake-single-shield-v2.png";
+import cakeImageWebP from "@/assets/cake-single-shield-v2.png"; // Using same file for now
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 import { PictureOptimized } from "@/components/ui/PictureOptimized";
 
