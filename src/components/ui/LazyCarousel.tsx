@@ -54,7 +54,7 @@ const LazyCarousel: React.FC<LazyCarouselProps> = ({
       ) : (
         // Loading skeleton with reduced elements
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: Math.min(4, maxVisibleItems) }).map((_, index) => (
+          {Array.from({ length: Math.min(3, maxVisibleItems) }).map((_, index) => (
             <div key={index} className="space-y-3">
               <Skeleton className="h-32 w-full rounded-lg" />
               <Skeleton className="h-4 w-3/4" />

@@ -12,12 +12,12 @@ interface ReactMapStatesProps {
  * React-based implementation of MapStates for rendering US states
  */
 const ReactMapStates = ({ selectedState, onStateClick }: ReactMapStatesProps) => {
-  // Only render Route 66 states and neighboring states for reduced DOM
+  // Only render Route 66 states for optimal DOM performance (reduced from all neighboring states)
   const relevantStates = allUSStates.filter(state => {
     const isRoute66State = route66States.some(r66 => r66.id === state.id);
-    // Include Route 66 states and a few key neighboring states for context
-    const neighboringStates = ['nv', 'ut', 'co', 'ks', 'ar', 'tn', 'ms', 'la', 'or', 'wa'];
-    return isRoute66State || neighboringStates.includes(state.id);
+    // Include only Route 66 states and 3 key neighboring states for minimal context
+    const criticalNeighbors = ['nv', 'co', 'ks'];
+    return isRoute66State || criticalNeighbors.includes(state.id);
   });
 
   return (

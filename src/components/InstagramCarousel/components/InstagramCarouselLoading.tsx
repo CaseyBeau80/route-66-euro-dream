@@ -7,7 +7,7 @@ const InstagramCarouselLoading = () => {
     <div className="space-y-12">
       {/* Loading Grid with 4 cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-        {Array.from({ length: 4 }).map((_, index) => (
+        {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="space-y-4">
             <Skeleton className="aspect-square w-full rounded-2xl" />
             <div className="px-6 space-y-3">

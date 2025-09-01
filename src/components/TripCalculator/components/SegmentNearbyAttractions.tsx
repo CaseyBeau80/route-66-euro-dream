@@ -186,7 +186,7 @@ const SegmentNearbyAttractions: React.FC<SegmentNearbyAttractionsProps> = ({
           <span className="text-xs text-gray-500">(loading...)</span>
         </h4>
         <div className="animate-pulse space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => (
+          {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="h-16 bg-gray-200 rounded"></div>
           ))}
         </div>

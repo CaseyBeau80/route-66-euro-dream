@@ -18,8 +18,8 @@ export const ListingCarousel = ({ items, loading, categoryTitle }: ListingCarous
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   
-  // Limit items to reduce DOM size - show max 12 items per carousel
-  const maxItems = 12;
+  // Limit items to reduce DOM size - show max 8 items per carousel for SEO optimization
+  const maxItems = 8;
   const limitedItems = items.slice(0, maxItems);
 
   console.log(`🎠 ListingCarousel render for ${categoryTitle}`, { 
