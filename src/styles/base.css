@@ -1,8 +1,6 @@
 
 /* Base Tailwind CSS imports and root configuration */
-@import url('https://fonts.googleapis.com/css2?family=Americana:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+/* Note: Google Fonts are loaded asynchronously in index.html to prevent render-blocking */
 
 @tailwind base;
 @tailwind components;

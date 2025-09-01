@@ -1,10 +1,7 @@
 
 /* Route 66 Nostalgic Typography System */
 
-/* Import nostalgic fonts */
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap');
+/* Note: Google Fonts are loaded asynchronously in index.html to prevent render-blocking */
 
 /* Custom Font Classes - Route 66 Themed */
 .font-route66 {
