@@ -23,9 +23,8 @@
     <!-- Critical API endpoint preloads to reduce network dependency chains -->
     <link rel="modulepreload" href="/src/main.tsx">
     
-    <!-- Safe non-blocking font loading -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    <!-- Standard Google Fonts loading -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap">
     
     <!-- Static fallback SEO for crawlers before JS executes; React Helmet overrides per-route -->
     <title>Ramble 66 — Route 66 Trip Planner</title>
@@ -201,19 +200,12 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Hide loading skeleton once React takes over - optimized for LCP
-      const hideSkeletonAndOptimizeLCP = () => {
+      // Hide loading skeleton once React takes over
+      setTimeout(() => {
         const skeleton = document.getElementById('loading-skeleton');
         if (skeleton) skeleton.style.display = 'none';
         document.body.classList.add('react-loaded');
-      };
-      
-      // Use faster timing for better LCP
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', hideSkeletonAndOptimizeLCP);
-      } else {
-        hideSkeletonAndOptimizeLCP();
-      }
+      }, 100);
     </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" defer></script>
   </body>
