@@ -163,7 +163,7 @@ const HeroSection: React.FC = () => {
                 <img 
                   src="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png"
                   alt={content.mascotAlt}
-                  className="w-full h-auto object-contain scale-110 lg:scale-125"
+                  className="w-full h-auto object-contain rounded-3xl shadow-2xl"
                   width={588}
                   height={803}
                   loading="eager"
