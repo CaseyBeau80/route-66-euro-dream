@@ -28,13 +28,26 @@ export const PictureOptimized: React.FC<PictureOptimizedProps> = ({
   avifSrc,
   ...props
 }) => {
-  // Auto-generate WebP version if not provided
+  // Auto-generate WebP version if not provided - with optimized paths for performance
   const getWebPVersion = (originalSrc: string) => {
     if (webpSrc) return webpSrc;
     
-    // For lovable-uploads, try WebP version
-    if (originalSrc.includes('/lovable-uploads/') && originalSrc.includes('.png')) {
-      return originalSrc.replace('.png', '.webp');
+    // Handle lovable-uploads with specific optimizations for large images
+    if (originalSrc.includes('/lovable-uploads/')) {
+      // For the main hero mascot image - generate responsive WebP
+      if (originalSrc.includes('56c17d61-50a4-49c7-a00f-e49e4806a4b3')) {
+        return originalSrc.replace('.png', '.webp');
+      }
+      
+      // For logo images - small size optimization
+      if (originalSrc.includes('708f8a62-5f36-4d4d-b6b0-35b556d22fba')) {
+        return originalSrc.replace('.png', '.webp');
+      }
+      
+      // Generic PNG to WebP conversion for other uploads
+      if (originalSrc.includes('.png')) {
+        return originalSrc.replace('.png', '.webp');
+      }
     }
     
     // For assets, try WebP version

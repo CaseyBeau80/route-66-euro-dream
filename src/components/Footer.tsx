@@ -22,6 +22,7 @@ const Footer = () => {
                   width={32}
                   height={32}
                   sizes="32px"
+                  loading="lazy"
                 />
               </div>
               <span className="font-route66 text-xl text-white">RAMBLE 66</span>

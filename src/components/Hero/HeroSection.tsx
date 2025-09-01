@@ -132,12 +132,14 @@ const HeroSection: React.FC = () => {
 
               {/* Birthday Cake Countdown - Simple clean layout */}
               <div className="pt-6 flex flex-col items-center text-center gap-3">
-                <img 
-                  src="/src/assets/route66-centennial-cake.png"
+                <PictureOptimized 
+                  src={cakeImage}
+                  webpSrc={cakeImageWebP}
                   alt="Route 66 100th Anniversary Celebration Cake" 
                   className="w-20 h-20 lg:w-24 lg:h-24 object-contain"
                   width={96}
                   height={96}
+                  sizes="96px"
                 />
                 <div className="flex flex-col items-center">
                   <div className="text-3xl lg:text-4xl xl:text-5xl font-bold text-pink-600 leading-none mb-1">
@@ -157,13 +159,16 @@ const HeroSection: React.FC = () => {
                 {/* Decorative Elements */}
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
                 
-                {/* Image Container - Removed extra container and styling */}
-                <img 
-                  src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
+                {/* Optimized Image Container */}
+                <PictureOptimized 
+                  src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
                   alt={content.mascotAlt}
                   className="w-full h-auto object-contain scale-110 lg:scale-125"
                   width={588}
                   height={803}
+                  sizes="(max-width: 640px) 400px, (max-width: 1024px) 500px, 588px"
+                  priority={true}
+                  loading="eager"
                   style={{ aspectRatio: '588/803' }}
                 />
               </div>
