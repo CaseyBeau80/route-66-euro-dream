@@ -2,6 +2,7 @@ import React from 'react';
 import { Mail, Heart, Map, Users } from 'lucide-react';
 import MainLayout from '@/components/MainLayout';
 import SocialMetaTags from '@/components/shared/SocialMetaTags';
+import { PictureOptimized } from '@/components/ui/PictureOptimized';
 
 const AboutPage = () => {
   return (
@@ -14,11 +15,15 @@ const AboutPage = () => {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <div className="flex justify-center mb-4">
-                <img 
-                  src="/lovable-uploads/1e9e4b09-68ae-4c10-943c-82511ffe0bba.png"
-                  alt="Ramble Route 66 Logo"
-                  className="w-32 h-32 md:w-40 md:h-40 object-contain"
-                />
+                 <PictureOptimized 
+                   src="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.png"
+                   webpSrc="/lovable-uploads/708f8a62-5f36-4d4d-b6b0-35b556d22fba.webp"
+                   alt="Ramble Route 66 Logo"
+                   className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                   width={160}
+                   height={160}
+                   sizes="(max-width: 768px) 128px, 160px"
+                 />
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">About Ramble Route 66</h1>
               <p className="text-xl text-white/90">

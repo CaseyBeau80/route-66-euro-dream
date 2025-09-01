@@ -3,8 +3,9 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowDown, Check } from "lucide-react";
 import cakeImage from "@/assets/route66-100th-cake-transparent.png";
+import cakeImageWebP from "@/assets/route66-100th-cake-transparent.webp";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
-import { OptimizedImage } from "@/components/ui/OptimizedImage";
+import { PictureOptimized } from "@/components/ui/PictureOptimized";
 
 
 // No props needed - English only
@@ -134,8 +135,9 @@ const HeroSection: React.FC = () => {
                 <div className="relative">
                   <div className="absolute -inset-4 bg-gradient-to-r from-pink-300/10 via-pink-400/10 to-pink-500/10 rounded-2xl blur-3xl animate-pulse"></div>
                   <div className="relative flex flex-col items-center text-center gap-3 p-4">
-                    <OptimizedImage 
+                    <PictureOptimized 
                       src={cakeImage} 
+                      webpSrc={cakeImageWebP}
                       alt="Route 66 100th Anniversary Celebration Cake" 
                       className="w-20 h-20 lg:w-24 lg:h-24 object-contain rounded-lg"
                       width={96}
@@ -170,8 +172,9 @@ const HeroSection: React.FC = () => {
                 <div className="absolute -inset-8 bg-gradient-to-r from-route66-primary/10 via-route66-accent-red/10 to-route66-orange/10 rounded-full blur-3xl animate-pulse"></div>
                 
                 {/* Image Container - Removed extra container and styling */}
-                <OptimizedImage 
+                <PictureOptimized 
                   src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
+                  webpSrc="/lovable-uploads/625379a4-1f3a-4507-b7ae-394af1f403ae.webp"
                   alt={content.mascotAlt} 
                   className="w-full h-auto object-contain max-w-full max-h-full"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 588px"
