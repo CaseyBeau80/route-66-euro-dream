@@ -14,14 +14,14 @@ const Footer = () => {
           {/* Logo & Description */}
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center mb-4">
-              <div className="mr-3">
+              <div className="mr-3 p-1 bg-white rounded-md">
                 <OptimizedImage 
                   src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
                   alt="Ramble Route 66 Logo" 
-                  className="w-10 h-10 object-contain"
-                  width={40}
-                  height={40}
-                  sizes="40px"
+                  className="w-8 h-8 object-contain"
+                  width={32}
+                  height={32}
+                  sizes="32px"
                 />
               </div>
               <span className="font-route66 text-xl text-white">RAMBLE 66</span>
