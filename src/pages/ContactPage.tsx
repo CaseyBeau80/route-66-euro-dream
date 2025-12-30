@@ -6,7 +6,11 @@ import SocialMetaTags from '@/components/shared/SocialMetaTags';
 const ContactPage = () => {
   return (
     <MainLayout>
-      <SocialMetaTags title="Contact Ramble 66 – Route 66 Trip Planner" description="Get in touch with Ramble 66—your Route 66 trip planner for routes, attractions, lodging, and trip tools along America’s Mother Road." />
+      <SocialMetaTags 
+        title="Contact Ramble 66 – Route 66 Trip Planner" 
+        description="Get in touch with Ramble 66—your Route 66 trip planner for routes, attractions, lodging, and trip tools along America's Mother Road."
+        url="https://ramble66.com/contact"
+      />
       
       <main className="min-h-screen bg-background">
         {/* Hero Section */}
