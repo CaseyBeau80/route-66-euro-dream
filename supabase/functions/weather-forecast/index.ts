@@ -29,9 +29,40 @@ function getCorsHeaders(origin: string | null) {
 
 
 interface WeatherRequest {
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
   cityName: string;
+  targetDate?: string;
+}
+
+async function geocodeCity(cityName: string, apiKey: string): Promise<{ lat: number; lon: number } | null> {
+  try {
+    const cleanCityName = cityName.replace(/,\s*[A-Z]{2}$/, '').trim();
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cleanCityName)},US&limit=3&appid=${apiKey}`;
+    
+    console.log(`🌍 Geocoding city: ${cleanCityName}`);
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Geocoding API error: ${response.status}`);
+      return null;
+    }
+    
+    const data = await response.json();
+    if (!data || data.length === 0) {
+      console.warn(`No coordinates found for ${cleanCityName}`);
+      return null;
+    }
+    
+    // Prefer US locations
+    const usLocation = data.find((r: any) => r.country === 'US') || data[0];
+    console.log(`✅ Geocoded ${cleanCityName} to lat: ${usLocation.lat}, lon: ${usLocation.lon}`);
+    
+    return { lat: usLocation.lat, lon: usLocation.lon };
+  } catch (error) {
+    console.error(`Geocoding failed for ${cityName}:`, error);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -47,13 +78,51 @@ serve(async (req) => {
   }
 
   try {
-    const { lat, lng, cityName }: WeatherRequest = await req.json()
+    const requestBody: WeatherRequest = await req.json()
+    const { cityName, targetDate } = requestBody;
+    let { lat, lng } = requestBody;
 
-    // Validate input
-    const isNum = (n: any) => typeof n === 'number' && Number.isFinite(n);
-    if (!isNum(lat) || !isNum(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180 || typeof cityName !== 'string' || cityName.length > 100) {
+    // Validate cityName is required
+    if (typeof cityName !== 'string' || cityName.length === 0 || cityName.length > 100) {
       return new Response(
-        JSON.stringify({ error: 'Invalid request parameters' }),
+        JSON.stringify({ error: 'Invalid cityName parameter' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Get the OpenWeatherMap API key from Supabase secrets
+    const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY')
+    
+    if (!apiKey) {
+      console.error('❌ OPENWEATHERMAP_API_KEY not found in environment')
+      return new Response(
+        JSON.stringify({ error: 'Weather service configuration unavailable' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // If lat/lng not provided, geocode the city
+    const isNum = (n: any) => typeof n === 'number' && Number.isFinite(n);
+    if (!isNum(lat) || !isNum(lng)) {
+      console.log(`📍 No coordinates provided, geocoding ${cityName}...`);
+      const coords = await geocodeCity(cityName, apiKey);
+      if (!coords) {
+        return new Response(
+          JSON.stringify({ error: 'Could not geocode city name' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      lat = coords.lat;
+      lng = coords.lon;
+    }
+
+    // Validate coordinates
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid coordinate parameters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
