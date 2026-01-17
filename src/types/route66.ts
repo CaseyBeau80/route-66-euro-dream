@@ -28,12 +28,15 @@ export const route66Towns: Route66Town[] = [
   // Oklahoma
   { latLng: [36.1540, -95.9928], name: "Tulsa, OK" },
   { latLng: [35.4676, -97.5164], name: "Oklahoma City, OK" },
+  { latLng: [35.4120, -99.4043], name: "Elk City, OK" },
   
   // Texas
+  { latLng: [35.2150, -100.2490], name: "Shamrock, TX" },
   { latLng: [35.2220, -101.8313], name: "Amarillo, TX" },
   
   // New Mexico
   { latLng: [35.1677, -103.7044], name: "Tucumcari, NM" },
+  { latLng: [35.0093, -104.6821], name: "Santa Rosa, NM" },
   { latLng: [35.6869, -105.9378], name: "Santa Fe, NM" }, // Branch route
   { latLng: [35.0844, -106.6504], name: "Albuquerque, NM" },
   { latLng: [35.5280, -108.7426], name: "Gallup, NM" },
