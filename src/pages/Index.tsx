@@ -14,6 +14,7 @@ import {
   LazySocialSection,
   LazyFunSection,
   LazyTollRoads,
+  LazyFAQAccordion,
   ComponentLoadingFallback
 } from "../components/LazyComponents";
 
@@ -21,7 +22,7 @@ const Index = () => {
   console.log("🏠 Index page: Rendering with restored directory view");
 
   // Ultra-aggressive progressive mounting for FID optimization
-  const { shouldMount } = useProgressiveMount(5, 300, 1); // Slower, single component mounting
+  const { shouldMount } = useProgressiveMount(6, 300, 1); // Mount 6 components including FAQ
 
   return (
     <MainLayout>
@@ -121,6 +122,23 @@ const Index = () => {
               <FadeInSection id="fun" delay={450}>
                 <Suspense fallback={<ComponentLoadingFallback />}>
                   <LazyFunSection />
+                </Suspense>
+              </FadeInSection>
+            </DeferredComponent>
+          </TimeSlicedComponent>
+        )}
+
+        {/* FAQ Section - After Fun, Before Toll Roads */}
+        {shouldMount(5) && (
+          <TimeSlicedComponent priority="low" delay={1000}>
+            <DeferredComponent 
+              fallback={<ComponentLoadingFallback />}
+              rootMargin="50px"
+              delay={300}
+            >
+              <FadeInSection id="faq" delay={475}>
+                <Suspense fallback={<ComponentLoadingFallback />}>
+                  <LazyFAQAccordion />
                 </Suspense>
               </FadeInSection>
             </DeferredComponent>
