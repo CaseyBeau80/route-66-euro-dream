@@ -8,6 +8,18 @@ export interface FAQItem {
 
 export const faqSchemaData: FAQItem[] = [
   {
+    question: "Can I still drive Route 66 today?",
+    answer: "Yes! Although officially decommissioned in 1985, most of the historic route is preserved and drivable, with many original alignments still open to traffic."
+  },
+  {
+    question: "How long does it take to drive all of Route 66?",
+    answer: "A full 2,448-mile trip usually takes 10–14 days for a leisurely pace (200–300 miles/day) with stops. Pure driving time is 32–38 hours, but plan 2–3 weeks for the complete experience — especially in 2026 with extra centennial events."
+  },
+  {
+    question: "What is a realistic budget for a Route 66 road trip in 2026?",
+    answer: "Expect $200–400 per person per day (for two sharing), totaling $3,000–$8,000+ for two weeks (excluding flights). Breakdown: gas ($500–800), lodging ($100–200/night), food ($50–100/day), attractions ($20–50/day). In 2026, centennial demand may increase lodging prices 10–20% in popular areas — book early!"
+  },
+  {
     question: "What is the best time to drive Route 66 in 2026?",
     answer: "2026 is Route 66's centennial year. Spring (April–May) and fall (September–October) offer mild weather (60–80°F), fewer crowds, and blooming landscapes. Summer can be very hot (100°F+ in deserts) and busier due to centennial events. Shoulder seasons are ideal for enjoying festivals without peak heat."
   },
@@ -34,18 +46,6 @@ export const faqSchemaData: FAQItem[] = [
   {
     question: "What is the Blue Whale of Catoosa?",
     answer: "The Blue Whale of Catoosa is a giant blue whale swimming hole attraction built in the 1970s in Oklahoma — a beloved quirky stop right in our home state!"
-  },
-  {
-    question: "Can I still drive Route 66 today?",
-    answer: "Yes! Although officially decommissioned in 1985, most of the historic route is preserved and drivable, with many original alignments still open to traffic."
-  },
-  {
-    question: "How long does it take to drive all of Route 66?",
-    answer: "A full 2,448-mile trip usually takes 10–14 days for a leisurely pace (200–300 miles/day) with stops. Pure driving time is 32–38 hours, but plan 2–3 weeks for the complete experience — especially in 2026 with extra centennial events."
-  },
-  {
-    question: "What is a realistic budget for a Route 66 road trip in 2026?",
-    answer: "Expect $200–400 per person per day (for two sharing), totaling $3,000–$8,000+ for two weeks (excluding flights). Breakdown: gas ($500–800), lodging ($100–200/night), food ($50–100/day), attractions ($20–50/day). In 2026, centennial demand may increase lodging prices 10–20% in popular areas — book early!"
   }
 ];
 
