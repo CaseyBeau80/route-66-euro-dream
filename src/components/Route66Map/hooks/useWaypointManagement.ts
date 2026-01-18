@@ -21,6 +21,15 @@ export const useWaypointManagement = ({ waypoints, selectedState }: UseWaypointM
   // Handle attraction/waypoint clicks with correct type signature
   const handleAttractionClick = useCallback((waypoint: Route66Waypoint) => {
     console.log('🎯 Attraction clicked (clustered, no yellow):', waypoint.name);
+
+    // Track GA4 event
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'attraction_clicked', {
+        attraction_name: waypoint.name,
+        attraction_state: waypoint.state,
+        attraction_type: waypoint.is_major_stop ? 'major_stop' : 'attraction'
+      });
+    }
   }, []);
 
   return {

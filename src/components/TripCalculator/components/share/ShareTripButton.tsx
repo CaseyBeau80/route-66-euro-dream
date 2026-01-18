@@ -49,6 +49,14 @@ const ShareTripButton: React.FC<ShareTripButtonProps> = ({
       }
 
       setCopied(true);
+
+      // Track GA4 event
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'share_itinerary', {
+          share_method: 'copy_link',
+          trip_title: displayTitle
+        });
+      }
       
       toast({
         title: "Trip Link Copied!",

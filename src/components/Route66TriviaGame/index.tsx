@@ -36,6 +36,15 @@ const Route66TriviaGame: React.FC = () => {
     
     const currentAnswer = updatedSession.gameState.selectedAnswers[updatedSession.gameState.selectedAnswers.length - 1];
     console.log(`🎯 Answer selected: ${option}, Correct: ${currentAnswer?.isCorrect}`);
+
+    // Track GA4 event
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'trivia_question_answered', {
+        answer_selected: option,
+        is_correct: currentAnswer?.isCorrect,
+        question_index: updatedSession.gameState.selectedAnswers.length
+      });
+    }
     
     // Show celebration for correct answers
     if (currentAnswer?.isCorrect) {
