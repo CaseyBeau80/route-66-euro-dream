@@ -9,29 +9,44 @@ export type TollRoadSection = {
   icon: ReactNode;
   title: string;
   content: string;
+  tollStatus: 'free' | 'avoidable' | 'potential';
+  stateAbbr: string;
+  transponderInfo: string;
+  avoidanceTip?: string;
 };
 
 export type EstimatedCosts = {
   title: string;
   description: string;
-  details: string[];
+  freeRoute: string;
+  details: {
+    label: string;
+    cost: string;
+    avoidable: boolean;
+  }[];
+  avoidanceTip: string;
 };
 
 export type TollRoadLink = {
   name: string;
   url: string;
   description: string;
+  transponderInfo: string;
+  tollStatus: 'free' | 'avoidable' | 'potential';
+  stateAbbr: string;
 };
 
 export type TollRoadLinks = {
   title: string;
   subtitle: string;
   links: TollRoadLink[];
+  proTip: string;
 };
 
 export type TollRoadsContent = {
   title: string;
   subtitle: string;
+  introText: string;
   sections: TollRoadSection[];
   estimatedCosts: EstimatedCosts;
   tollRoadLinks: TollRoadLinks;

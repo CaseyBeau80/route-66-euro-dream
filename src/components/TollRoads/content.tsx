@@ -1,235 +1,83 @@
 
 import React from "react";
-import { AlertTriangle, CreditCard, MapPin, Route, ExternalLink } from "lucide-react";
+import { AlertTriangle, MapPin, Route } from "lucide-react";
 import { TollRoadsContentMap } from "./types";
 
 export const tollRoadsContent: TollRoadsContentMap = {
   en: {
-    title: "Toll Roads on Route 66",
-    subtitle: "What you need to know about toll roads and payment methods",
+    title: "Toll Roads on Route 66 – Mostly Toll-Free!",
+    subtitle: "Historic Route 66 is largely toll-free when you stick to the original alignments",
+    introText: "Historic Route 66 is largely toll-free when you follow the original alignments (old highways like SH-66 in Oklahoma). Modern interstates that parallel it may have tolls, but you can easily avoid them. The main toll road is in Oklahoma. Always check official sites for current rates, construction, and payment options before your 2026 centennial trip.",
     sections: [
       {
-        icon: React.createElement(Route, { className: "h-6 w-6 text-route66-red" }),
-        title: "Toll Roads Along the Route",
-        content: "While historic Route 66 itself was toll-free, modern interstate highways that follow the route may have tolls. Major toll roads include portions of I-44 in Oklahoma, I-55 near Chicago, and some bridges and tunnels."
+        icon: React.createElement(AlertTriangle, { className: "h-6 w-6" }),
+        title: "Oklahoma Turnpike",
+        content: "I-44 Turner Turnpike (Tulsa → OKC) is the primary toll you may encounter. Many drivers avoid this entirely by staying on FREE historic SH-66, which runs parallel and offers the authentic Route 66 experience.",
+        tollStatus: "avoidable",
+        stateAbbr: "OK",
+        transponderInfo: "Uses PikePass — E-ZPass NOT accepted",
+        avoidanceTip: "Stay on historic SH-66 to avoid tolls completely"
       },
       {
-        icon: React.createElement(CreditCard, { className: "h-6 w-6 text-route66-blue" }),
-        title: "Payment Methods",
-        content: "Most toll roads accept cash, credit cards, and electronic transponders like E-ZPass, SunPass, or state-specific tags. Many newer toll plazas are cashless and use license plate recognition for billing."
+        icon: React.createElement(Route, { className: "h-6 w-6" }),
+        title: "Illinois Tollway",
+        content: "Some tolls exist near Chicago on modern roads (I-88, I-294). However, historic Route 66 alignments through Illinois are completely toll-free. You'll only hit tolls if you take modern expressways around Chicago.",
+        tollStatus: "free",
+        stateAbbr: "IL",
+        transponderInfo: "Uses I-PASS (E-ZPass compatible)",
+        avoidanceTip: "Historic Route 66 in Illinois is toll-free"
       },
       {
-        icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Auto Rentals",
-        content: "Rental cars may be charged administrative fees for toll violations. Consider getting a rental car with a transponder or ask about toll packages. Keep receipts for expense tracking. Some rental companies offer prepaid toll plans."
+        icon: React.createElement(MapPin, { className: "h-6 w-6" }),
+        title: "California FasTrak",
+        content: "Tolls exist on some Bay Area bridges and express lanes, but these are NOT near Santa Monica where Route 66 ends. Historic Route 66 through California (Needles → Santa Monica) is completely toll-free.",
+        tollStatus: "free",
+        stateAbbr: "CA",
+        transponderInfo: "E-ZPass NOT compatible with FasTrak",
+        avoidanceTip: "Route 66 in California is toll-free"
       }
     ],
     estimatedCosts: {
-      title: "Estimated Toll Costs",
-      description: "Budget approximately $20-50 for tolls on the complete Route 66 journey, depending on your specific route and vehicle type. Costs are generally higher for larger vehicles and RVs.",
+      title: "Cost Comparison",
+      description: "Following historic Route 66 keeps your trip toll-free. If you choose modern interstates, here are potential costs:",
+      freeRoute: "Historic Route 66: FREE ✓",
       details: [
-        "Chicago to St. Louis: $5-15",
-        "Oklahoma Turnpikes: $10-25", 
-        "Bridge tolls: $2-8 each",
-        "Express lanes (optional): $1-5 per use"
-      ]
+        { label: "Oklahoma I-44 Turner Turnpike", cost: "$6-12", avoidable: true },
+        { label: "Illinois Tollway (Chicago area)", cost: "$5-15", avoidable: true },
+        { label: "California bridges (if applicable)", cost: "$5-8", avoidable: true }
+      ],
+      avoidanceTip: "Stick to historic alignments to avoid all tolls!"
     },
     tollRoadLinks: {
       title: "Official Toll Road Websites",
-      subtitle: "Get current rates and payment information from official sources",
+      subtitle: "Check current rates and payment options before your trip",
       links: [
         {
           name: "Oklahoma Turnpike Authority",
           url: "https://www.pikepass.com/",
-          description: "Official site for Oklahoma toll roads including I-44 Turner Turnpike"
+          description: "I-44 Turner Turnpike info. Most drivers avoid by taking free SH-66.",
+          transponderInfo: "PikePass only — E-ZPass NOT accepted",
+          tollStatus: "avoidable",
+          stateAbbr: "OK"
         },
         {
           name: "Illinois Tollway",
           url: "https://www.illinoistollway.com/",
-          description: "Chicago area toll roads and I-PASS information"
-        },
-        {
-          name: "E-ZPass",
-          url: "https://www.e-zpassiag.com/",
-          description: "Multi-state electronic toll collection system"
-        },
-        {
-          name: "California FasTrak",
-          url: "https://www.bayareafastrak.org/",
-          description: "Electronic toll collection for California bridges and express lanes"
-        }
-      ]
-    }
-  },
-  de: {
-    title: "Mautstraßen auf der Route 66",
-    subtitle: "Was Sie über Mautstraßen und Zahlungsmethoden wissen müssen",
-    sections: [
-      {
-        icon: React.createElement(Route, { className: "h-6 w-6 text-route66-red" }),
-        title: "Mautstraßen entlang der Route",
-        content: "Während die historische Route 66 selbst mautfrei war, können moderne Interstate-Highways, die der Route folgen, Maut erheben. Große Mautstraßen umfassen Teile der I-44 in Oklahoma, I-55 bei Chicago und einige Brücken und Tunnel."
-      },
-      {
-        icon: React.createElement(CreditCard, { className: "h-6 w-6 text-route66-blue" }),
-        title: "Zahlungsmethoden",
-        content: "Die meisten Mautstraßen akzeptieren Bargeld, Kreditkarten und elektronische Transponder wie E-ZPass, SunPass oder staatsspezifische Tags. Viele neuere Mautstellen sind bargeldlos und verwenden Kennzeichenerkennung für die Abrechnung."
-      },
-      {
-        icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Auto Rentals",
-        content: "Mietwagen können Verwaltungsgebühren für Mautverstöße berechnet bekommen. Erwägen Sie einen Mietwagen mit Transponder oder fragen Sie nach Mautpaketen. Bewahren Sie Quittungen für die Kostenabrechnung auf. Einige Mietwagenfirmen bieten Prepaid-Mautpläne an."
-      }
-    ],
-    estimatedCosts: {
-      title: "Geschätzte Mautkosten",
-      description: "Budgetieren Sie etwa $20-50 für Maut auf der kompletten Route 66-Reise, abhängig von Ihrer spezifischen Route und Fahrzeugtyp. Die Kosten sind generell höher für größere Fahrzeuge und Wohnmobile.",
-      details: [
-        "Chicago nach St. Louis: $5-15",
-        "Oklahoma Turnpikes: $10-25",
-        "Brückenmaut: $2-8 pro Brücke",
-        "Expressspuren (optional): $1-5 pro Nutzung"
-      ]
-    },
-    tollRoadLinks: {
-      title: "Offizielle Mautstraßen-Websites",
-      subtitle: "Aktuelle Tarife und Zahlungsinformationen von offiziellen Quellen",
-      links: [
-        {
-          name: "Oklahoma Turnpike Authority",
-          url: "https://www.pikepass.com/",
-          description: "Offizielle Seite für Oklahoma Mautstraßen einschließlich I-44 Turner Turnpike"
-        },
-        {
-          name: "Illinois Tollway",
-          url: "https://www.illinoistollway.com/",
-          description: "Chicago Bereich Mautstraßen und I-PASS Informationen"
-        },
-        {
-          name: "E-ZPass",
-          url: "https://www.e-zpassiag.com/",
-          description: "Mehrstaat elektronisches Mauterfassungssystem"
+          description: "Chicago area tolls. Historic Route 66 through IL is toll-free.",
+          transponderInfo: "I-PASS / E-ZPass accepted",
+          tollStatus: "free",
+          stateAbbr: "IL"
         },
         {
           name: "California FasTrak",
           url: "https://www.bayareafastrak.org/",
-          description: "Elektronische Mauterfassung für Kalifornien Brücken und Expressspuren"
+          description: "Bay Area bridges only. Route 66 to Santa Monica is toll-free.",
+          transponderInfo: "FasTrak only — E-ZPass NOT accepted",
+          tollStatus: "free",
+          stateAbbr: "CA"
         }
-      ]
-    }
-  },
-  fr: {
-    title: "Routes à péage sur la Route 66",
-    subtitle: "Ce que vous devez savoir sur les routes à péage et les méthodes de paiement",
-    sections: [
-      {
-        icon: React.createElement(Route, { className: "h-6 w-6 text-route66-red" }),
-        title: "Routes à péage le long de l'itinéraire",
-        content: "Bien que la Route 66 historique elle-même était gratuite, les autoroutes modernes qui suivent l'itinéraire peuvent avoir des péages. Les principales routes à péage incluent des portions de l'I-44 en Oklahoma, l'I-55 près de Chicago, et certains ponts et tunnels."
-      },
-      {
-        icon: React.createElement(CreditCard, { className: "h-6 w-6 text-route66-blue" }),
-        title: "Méthodes de paiement",
-        content: "La plupart des routes à péage acceptent l'argent liquide, les cartes de crédit et les transpondeurs électroniques comme E-ZPass, SunPass ou les étiquettes spécifiques à l'état. Beaucoup de nouvelles stations de péage sont sans espèces et utilisent la reconnaissance de plaque d'immatriculation pour la facturation."
-      },
-      {
-        icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Auto Rentals",
-        content: "Les voitures de location peuvent être facturées des frais administratifs pour les violations de péage. Envisagez une voiture de location avec un transpondeur ou demandez des forfaits péage. Gardez les reçus pour le suivi des dépenses. Certaines entreprises de location offrent des plans de péage prépayés."
-      }
-    ],
-    estimatedCosts: {
-      title: "Coûts de péage estimés",
-      description: "Budgétez environ $20-50 pour les péages sur le voyage complet de la Route 66, selon votre itinéraire spécifique et le type de véhicule. Les coûts sont généralement plus élevés pour les véhicules plus grands et les camping-cars.",
-      details: [
-        "Chicago à St. Louis : $5-15",
-        "Oklahoma Turnpikes : $10-25",
-        "Péages de pont : $2-8 chacun",
-        "Voies express (optionnel) : $1-5 par utilisation"
-      ]
-    },
-    tollRoadLinks: {
-      title: "Sites web officiels des routes à péage",
-      subtitle: "Obtenez les tarifs actuels et les informations de paiement des sources officielles",
-      links: [
-        {
-          name: "Oklahoma Turnpike Authority",
-          url: "https://www.pikepass.com/",
-          description: "Site officiel pour les routes à péage de l'Oklahoma incluant l'I-44 Turner Turnpike"
-        },
-        {
-          name: "Illinois Tollway",
-          url: "https://www.illinoistollway.com/",
-          description: "Routes à péage de la région de Chicago et informations I-PASS"
-        },
-        {
-          name: "E-ZPass",
-          url: "https://www.e-zpassiag.com/",
-          description: "Système de collecte de péage électronique multi-états"
-        },
-        {
-          name: "California FasTrak",
-          url: "https://www.bayareafastrak.org/",
-          description: "Collecte de péage électronique pour les ponts et voies express de Californie"
-        }
-      ]
-    }
-  },
-  nl: {
-    title: "Tolwegen op Route 66",
-    subtitle: "Wat u moet weten over tolwegen en betaalmethoden",
-    sections: [
-      {
-        icon: React.createElement(Route, { className: "h-6 w-6 text-route66-red" }),
-        title: "Tolwegen langs de route",
-        content: "Hoewel de historische Route 66 zelf tolvrij was, kunnen moderne interstate highways die de route volgen tol heffen. Belangrijke tolwegen omvatten delen van I-44 in Oklahoma, I-55 bij Chicago, en enkele bruggen en tunnels."
-      },
-      {
-        icon: React.createElement(CreditCard, { className: "h-6 w-6 text-route66-blue" }),
-        title: "Betaalmethoden",
-        content: "De meeste tolwegen accepteren contant geld, creditcards en elektronische transponders zoals E-ZPass, SunPass of staatsspecifieke tags. Veel nieuwere tolpoorten zijn contantloos en gebruiken nummerplaatherkenning voor facturering."
-      },
-      {
-        icon: React.createElement(AlertTriangle, { className: "h-6 w-6 text-amber-600" }),
-        title: "Auto Rentals",
-        content: "Huurauto's kunnen administratieve kosten in rekening brengen voor tolovertredingen. Overweeg een huurauto met een transponder of vraag naar tolpakketten. Bewaar bonnetjes voor kostenbeheer. Sommige autoverhuurbedrijven bieden prepaid tolplannen aan."
-      }
-    ],
-    estimatedCosts: {
-      title: "Geschatte tolkosten",
-      description: "Budgetteer ongeveer $20-50 voor tol op de complete Route 66-reis, afhankelijk van uw specifieke route en voertuigtype. Kosten zijn over het algemeen hoger voor grotere voertuigen en campers.",
-      details: [
-        "Chicago naar St. Louis: $5-15",
-        "Oklahoma Turnpikes: $10-25",
-        "Brugtol: $2-8 elk",
-        "Express lanes (optioneel): $1-5 per gebruik"
-      ]
-    },
-    tollRoadLinks: {
-      title: "Officiële tolweg websites",
-      subtitle: "Krijg actuele tarieven en betaalinformatie van officiële bronnen",
-      links: [
-        {
-          name: "Oklahoma Turnpike Authority",
-          url: "https://www.pikepass.com/",
-          description: "Officiële site voor Oklahoma tolwegen inclusief I-44 Turner Turnpike"
-        },
-        {
-          name: "Illinois Tollway",
-          url: "https://www.illinoistollway.com/",
-          description: "Chicago gebied tolwegen en I-PASS informatie"
-        },
-        {
-          name: "E-ZPass",
-          url: "https://www.e-zpassiag.com/",
-          description: "Multi-staat elektronisch tolheffingssysteem"
-        },
-        {
-          name: "California FasTrak",
-          url: "https://www.bayareafastrak.org/",
-          description: "Elektronische tolheffing voor Californië bruggen en express lanes"
-        }
-      ]
+      ],
+      proTip: "For the authentic, toll-free Route 66 experience, follow historic alignments and avoid interstates like I-44 in Oklahoma. E-ZPass is only useful near Chicago — not needed for most of the route. Check road conditions and rates before your 2026 trip!"
     }
   }
 };
