@@ -1,6 +1,8 @@
-
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { generateFAQSchema } from '../../data/seo/faqSchemaData';
+import { generateHowToSchema } from '../../data/seo/howToSchemaData';
+import { generateAttractionsSchema, generateSoftwareAppSchema } from '../../data/seo/attractionsSchemaData';
 
 const BASE_DOMAIN = 'https://ramble66.com';
 
@@ -8,10 +10,15 @@ interface SocialMetaTagsProps {
   title?: string;
   description?: string;
   imageUrl?: string;
-  path?: string; // Explicit path like "/about" - preferred over url
-  url?: string;  // Kept for backward compatibility
+  path?: string;
+  url?: string;
   type?: 'website' | 'article';
   siteName?: string;
+  // NEW schema props (homepage only)
+  includeFaqSchema?: boolean;
+  includeHowToSchema?: boolean;
+  includeAttractionsSchema?: boolean;
+  includeSoftwareAppSchema?: boolean;
 }
 
 const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
@@ -21,16 +28,18 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
   path,
   url,
   type = 'website',
-  siteName = 'Ramble 66'
+  siteName = 'Ramble 66',
+  includeFaqSchema = false,
+  includeHowToSchema = false,
+  includeAttractionsSchema = false,
+  includeSoftwareAppSchema = false
 }) => {
   // Generate canonical URL from path (preferred) or url prop
   const canonicalUrl = (() => {
     if (path !== undefined) {
-      // Remove trailing slash, ensure path starts with /
       const cleanPath = path === '/' ? '' : path.replace(/\/+$/, '');
       return `${BASE_DOMAIN}${cleanPath}`;
     }
-    // Fallback to url prop with trailing slash removal and domain normalization
     const fallbackUrl = url || (typeof window !== 'undefined' ? window.location.href : BASE_DOMAIN);
     return fallbackUrl
       .split('?')[0]
@@ -130,6 +139,34 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
           }
         })}
       </script>
+
+      {/* Structured Data - FAQPage (Homepage only, one per page) */}
+      {includeFaqSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(generateFAQSchema())}
+        </script>
+      )}
+
+      {/* Structured Data - HowTo (Homepage only, one per page) */}
+      {includeHowToSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(generateHowToSchema())}
+        </script>
+      )}
+
+      {/* Structured Data - TouristAttraction ItemList */}
+      {includeAttractionsSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(generateAttractionsSchema())}
+        </script>
+      )}
+
+      {/* Structured Data - SoftwareApplication */}
+      {includeSoftwareAppSchema && (
+        <script type="application/ld+json">
+          {JSON.stringify(generateSoftwareAppSchema())}
+        </script>
+      )}
     </Helmet>
   );
 };
