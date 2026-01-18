@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Calendar, Share2, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import SocialMetaTags from '@/components/shared/SocialMetaTags';
 
 const SharedTripPage: React.FC = () => {
   const { shareCode } = useParams<{ shareCode: string }>();
@@ -101,6 +102,11 @@ const SharedTripPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <SocialMetaTags 
+        path={`/trip/${shareCode}`}
+        title={`${savedTrip.title} – Route 66 Trip | Ramble 66`}
+        description={savedTrip.description || `Explore this shared Route 66 trip from ${savedTrip.trip_data.startCity} to ${savedTrip.trip_data.endCity}.`}
+      />
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

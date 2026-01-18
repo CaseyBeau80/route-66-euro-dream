@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import NavigationBar from '@/components/NavigationBar';
 import Route66PlannerForm from '@/components/Route66Planner/Route66PlannerForm';
 import PlannerResults from '@/components/Route66Planner/PlannerResults';
 import { PlannerFormData, TripItinerary } from '@/components/Route66Planner/types';
 import LogoImage from '../components/shared/LogoImage';
+import SocialMetaTags from '@/components/shared/SocialMetaTags';
 
 const Route66Planner = () => {
   const [formData, setFormData] = useState<PlannerFormData>({
@@ -21,6 +21,11 @@ const Route66Planner = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
+      <SocialMetaTags 
+        path="/planner"
+        title="Route 66 Travel Planner – Ramble 66"
+        description="Plan your perfect Route 66 journey with destination cities, attractions, and day-by-day itineraries."
+      />
       <NavigationBar />
       
       <div className="pt-20 pb-8">
