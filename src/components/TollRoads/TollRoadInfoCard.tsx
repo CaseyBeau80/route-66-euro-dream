@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TollRoadSection } from "./types";
-import { Check, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle, ExternalLink } from "lucide-react";
 
 type TollRoadInfoCardProps = {
   section: TollRoadSection;
@@ -8,7 +8,6 @@ type TollRoadInfoCardProps = {
 
 const TollRoadInfoCard = ({ section }: TollRoadInfoCardProps) => {
   const isAvoidable = section.tollStatus === 'avoidable';
-  const isFree = section.tollStatus === 'free';
   
   const borderColor = isAvoidable 
     ? 'border-amber-400 hover:border-amber-500' 
@@ -62,11 +61,26 @@ const TollRoadInfoCard = ({ section }: TollRoadInfoCardProps) => {
         
         {/* Avoidance Tip */}
         {section.avoidanceTip && (
-          <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg border border-blue-200 mb-3">
             <span className="text-sm">💡</span>
             <p className="text-xs text-blue-800 font-medium">{section.avoidanceTip}</p>
           </div>
         )}
+        
+        {/* Official Website Link */}
+        <a
+          href={section.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`flex items-center justify-center gap-2 w-full p-2.5 rounded-lg font-semibold text-sm transition-all duration-300 ${
+            isAvoidable 
+              ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+              : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+          }`}
+        >
+          <ExternalLink className="h-4 w-4" />
+          <span>{section.urlLabel}</span>
+        </a>
       </CardContent>
     </Card>
   );

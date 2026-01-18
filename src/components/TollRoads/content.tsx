@@ -16,7 +16,9 @@ export const tollRoadsContent: TollRoadsContentMap = {
         tollStatus: "avoidable",
         stateAbbr: "OK",
         transponderInfo: "Uses PikePass — E-ZPass NOT accepted",
-        avoidanceTip: "Stay on historic SH-66 to avoid tolls completely"
+        avoidanceTip: "Stay on historic SH-66 to avoid tolls completely",
+        url: "https://www.pikepass.com/",
+        urlLabel: "Oklahoma Turnpike Authority"
       },
       {
         icon: React.createElement(Route, { className: "h-6 w-6" }),
@@ -25,7 +27,9 @@ export const tollRoadsContent: TollRoadsContentMap = {
         tollStatus: "free",
         stateAbbr: "IL",
         transponderInfo: "Uses I-PASS (E-ZPass compatible)",
-        avoidanceTip: "Historic Route 66 in Illinois is toll-free"
+        avoidanceTip: "Historic Route 66 in Illinois is toll-free",
+        url: "https://www.illinoistollway.com/",
+        urlLabel: "Illinois Tollway"
       },
       {
         icon: React.createElement(MapPin, { className: "h-6 w-6" }),
@@ -34,7 +38,9 @@ export const tollRoadsContent: TollRoadsContentMap = {
         tollStatus: "free",
         stateAbbr: "CA",
         transponderInfo: "E-ZPass NOT compatible with FasTrak",
-        avoidanceTip: "Route 66 in California is toll-free"
+        avoidanceTip: "Route 66 in California is toll-free",
+        url: "https://www.bayareafastrak.org/",
+        urlLabel: "California FasTrak"
       }
     ],
     estimatedCosts: {
