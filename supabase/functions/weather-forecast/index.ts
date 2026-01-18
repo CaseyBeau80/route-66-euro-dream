@@ -126,20 +126,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    
-    // Get the OpenWeatherMap API key from Supabase secrets
-    const apiKey = Deno.env.get('OPENWEATHERMAP_API_KEY')
-    
-    if (!apiKey) {
-      console.error('❌ OPENWEATHERMAP_API_KEY not found in environment')
-      return new Response(
-        JSON.stringify({ error: 'Weather service configuration unavailable' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
 
     console.log(`🌤️ Fetching weather for ${cityName} at ${lat}, ${lng}`)
 
