@@ -59,6 +59,15 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
         travelDays: dayAdjustmentInfo.minimum
       } : formData;
 
+      // Track GA4 event
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'plan_trip_submitted', {
+          start_location: dataToUse.startLocation,
+          end_location: dataToUse.endLocation,
+          travel_days: dataToUse.travelDays
+        });
+      }
+
       console.log('🚀 Proceeding with planning (no confirmation needed):', dataToUse);
       await onPlanTrip(dataToUse);
     } catch (error) {
