@@ -1,7 +1,6 @@
 import { tollRoadsContent } from "./content";
 import TollRoadInfoCard from "./TollRoadInfoCard";
 import CostBreakdownCard from "./CostBreakdownCard";
-import TollRoadLinksCard from "./TollRoadLinksCard";
 import { Route } from "lucide-react";
 
 const TollRoads = () => {
@@ -41,12 +40,7 @@ const TollRoads = () => {
         </div>
         
         {/* Cost Breakdown Card */}
-        <div className="mb-6">
-          <CostBreakdownCard estimatedCosts={content.estimatedCosts} />
-        </div>
-        
-        {/* Toll Road Links Card with Pro Tip */}
-        <TollRoadLinksCard tollRoadLinks={content.tollRoadLinks} />
+        <CostBreakdownCard estimatedCosts={content.estimatedCosts} />
       </div>
     </section>
   );
