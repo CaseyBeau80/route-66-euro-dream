@@ -111,7 +111,7 @@ const Index = () => {
           </TimeSlicedComponent>
         )}
 
-        {/* Fun Section - Progressive mounting */}
+        {/* FAQ Section - Above Fun/Trivia */}
         {shouldMount(4) && (
           <TimeSlicedComponent priority="low" delay={900}>
             <DeferredComponent 
@@ -119,16 +119,16 @@ const Index = () => {
               rootMargin="50px"
               delay={300}
             >
-              <FadeInSection id="fun" delay={450}>
+              <FadeInSection id="faq" delay={450}>
                 <Suspense fallback={<ComponentLoadingFallback />}>
-                  <LazyFunSection />
+                  <LazyFAQAccordion />
                 </Suspense>
               </FadeInSection>
             </DeferredComponent>
           </TimeSlicedComponent>
         )}
 
-        {/* FAQ Section - After Fun, Before Toll Roads */}
+        {/* Fun Section - Trivia Game */}
         {shouldMount(5) && (
           <TimeSlicedComponent priority="low" delay={1000}>
             <DeferredComponent 
@@ -136,9 +136,9 @@ const Index = () => {
               rootMargin="50px"
               delay={300}
             >
-              <FadeInSection id="faq" delay={475}>
+              <FadeInSection id="fun" delay={475}>
                 <Suspense fallback={<ComponentLoadingFallback />}>
-                  <LazyFAQAccordion />
+                  <LazyFunSection />
                 </Suspense>
               </FadeInSection>
             </DeferredComponent>

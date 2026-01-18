@@ -23,7 +23,7 @@ const FAQAccordion: React.FC = () => {
           >
             <span className="text-3xl md:text-4xl mr-2">🛣️</span>
             <span className="bg-gradient-to-r from-route66-primary via-route66-accent to-route66-red bg-clip-text text-transparent">
-              Frequently Asked Questions
+              FAQ
             </span>
             <span className="block text-lg md:text-xl mt-2 text-route66-text-secondary font-americana">
               about Route 66 (2026 Centennial Edition)
