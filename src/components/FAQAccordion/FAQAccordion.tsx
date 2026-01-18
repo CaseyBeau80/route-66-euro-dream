@@ -25,9 +25,6 @@ const FAQAccordion: React.FC = () => {
             <span className="bg-gradient-to-r from-route66-primary via-route66-accent to-route66-red bg-clip-text text-transparent">
               FAQ
             </span>
-            <span className="block text-lg md:text-xl mt-2 text-route66-text-secondary font-americana">
-              about Route 66 (2026 Centennial Edition)
-            </span>
           </h2>
 
           {/* FAQ Accordion */}
