@@ -19,10 +19,10 @@ const FAQAccordion: React.FC = () => {
           {/* Heading */}
           <h2 
             id="faq-heading"
-            className="font-route66 text-2xl md:text-3xl lg:text-4xl text-center mb-8 md:mb-10 text-route66-text"
+            className="font-route66 text-2xl md:text-3xl lg:text-4xl text-center mb-8 md:mb-10"
           >
             <span className="text-3xl md:text-4xl mr-2">🛣️</span>
-            <span className="bg-gradient-to-r from-route66-primary via-route66-accent to-route66-red bg-clip-text text-transparent">
+            <span className="text-route66-primary">
               FAQ
             </span>
           </h2>
