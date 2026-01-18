@@ -25,7 +25,15 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <SocialMetaTags path="/" title="Ramble 66" description="Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions." />
+      <SocialMetaTags 
+        path="/" 
+        title="Ramble 66" 
+        description="Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions."
+        includeFaqSchema={true}
+        includeHowToSchema={true}
+        includeAttractionsSchema={true}
+        includeSoftwareAppSchema={true}
+      />
       
       {/* Hero Section - Always render immediately */}
       <section id="hero">

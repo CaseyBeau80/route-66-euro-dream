@@ -5,6 +5,7 @@ const FunSection: React.FC = () => {
   return (
     <section className="py-20 bg-gradient-to-br from-route66-background to-route66-background-alt">
       <div className="container mx-auto px-4">
+        <h2 className="sr-only">Route 66 Trivia Game & Fun Facts</h2>
         <Route66TriviaGame />
       </div>
     </section>
