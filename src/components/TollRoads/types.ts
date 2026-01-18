@@ -13,6 +13,8 @@ export type TollRoadSection = {
   stateAbbr: string;
   transponderInfo: string;
   avoidanceTip?: string;
+  url: string;
+  urlLabel: string;
 };
 
 export type EstimatedCosts = {
