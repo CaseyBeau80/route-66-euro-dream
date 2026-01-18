@@ -8,6 +8,7 @@ import WeatherWidget from '@/components/Route66Map/components/WeatherWidget';
 import { useSupabaseRoute66 } from '@/components/Route66Map/hooks/useSupabaseRoute66';
 import { getCityEventLinks } from '@/components/Route66Map/data/cityEventLinks';
 import { getEventSourceIcon, getEventSourceBadgeClass, openEventLink } from '@/components/Route66Map/utils/eventSourceUtils';
+import SocialMetaTags from '@/components/shared/SocialMetaTags';
 
 const CityPage: React.FC = () => {
   const { citySlug } = useParams<{ citySlug: string }>();
@@ -48,6 +49,7 @@ const CityPage: React.FC = () => {
   }
 
   const cityName = city.name.split(',')[0].split(' - ')[0].trim();
+  const stateName = city.name.includes(',') ? city.name.split(',')[1]?.trim() : '';
   const cityEventData = getCityEventLinks(cityName, city.state);
 
   const handleEventSourceClick = (url: string, sourceName: string) => {
@@ -56,6 +58,11 @@ const CityPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
+      <SocialMetaTags 
+        path={`/city/${citySlug}`}
+        title={`${cityName}${stateName ? `, ${stateName}` : ''} – Route 66 | Ramble 66`}
+        description={`Explore ${cityName} on Route 66. Discover local attractions, events, weather, and travel tips for your Mother Road journey.`}
+      />
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-700 to-amber-800 text-white py-8">
         <div className="container mx-auto px-4">

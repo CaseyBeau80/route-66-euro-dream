@@ -25,7 +25,7 @@ const Index = () => {
 
   return (
     <MainLayout>
-      <SocialMetaTags title="Ramble 66" description="Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, ..." />
+      <SocialMetaTags path="/" title="Ramble 66" description="Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions." />
       
       {/* Hero Section - Always render immediately */}
       <section id="hero">

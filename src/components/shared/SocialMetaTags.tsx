@@ -2,11 +2,14 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
+const BASE_DOMAIN = 'https://ramble66.com';
+
 interface SocialMetaTagsProps {
   title?: string;
   description?: string;
   imageUrl?: string;
-  url?: string;
+  path?: string; // Explicit path like "/about" - preferred over url
+  url?: string;  // Kept for backward compatibility
   type?: 'website' | 'article';
   siteName?: string;
 }
@@ -15,16 +18,30 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
   title = 'Ramble 66',
   description = 'Plan and share your ultimate Route 66 road trip with our interactive map and shareable travel planner. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
   imageUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png',
-  url = typeof window !== 'undefined' ? window.location.href.replace('https://www.ramble66.com', 'https://ramble66.com').replace('https://ramble66.lovable.app', 'https://ramble66.com') : 'https://ramble66.com',
+  path,
+  url,
   type = 'website',
   siteName = 'Ramble 66'
 }) => {
+  // Generate canonical URL from path (preferred) or url prop
+  const canonicalUrl = (() => {
+    if (path !== undefined) {
+      // Remove trailing slash, ensure path starts with /
+      const cleanPath = path === '/' ? '' : path.replace(/\/+$/, '');
+      return `${BASE_DOMAIN}${cleanPath}`;
+    }
+    // Fallback to url prop with trailing slash removal and domain normalization
+    const fallbackUrl = url || (typeof window !== 'undefined' ? window.location.href : BASE_DOMAIN);
+    return fallbackUrl
+      .split('?')[0]
+      .split('#')[0]
+      .replace(/\/+$/, '')
+      .replace('https://www.ramble66.com', BASE_DOMAIN)
+      .replace('https://ramble66.lovable.app', BASE_DOMAIN) || BASE_DOMAIN;
+  })();
+
   // Ensure absolute URL for social image
-  const absoluteImageUrl = imageUrl.startsWith('http') ? imageUrl : `${url}${imageUrl}`;
-  // Always canonicalize to ramble66.com domain, removing www and lovable.app subdomains
-  const baseUrl = url.split('?')[0].split('#')[0]
-    .replace('https://www.ramble66.com', 'https://ramble66.com')
-    .replace('https://ramble66.lovable.app', 'https://ramble66.com');
+  const absoluteImageUrl = imageUrl.startsWith('http') ? imageUrl : `${canonicalUrl}${imageUrl}`;
   
   return (
     <Helmet>
@@ -37,7 +54,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
-      <meta property="og:url" content={baseUrl} />
+      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={absoluteImageUrl} />
@@ -47,7 +64,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:url" content={baseUrl} />
+      <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={absoluteImageUrl} />
@@ -59,7 +76,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       <meta name="msapplication-TileColor" content="#D2041A" />
       
       {/* Canonical URL */}
-      <link rel="canonical" href={baseUrl} />
+      <link rel="canonical" href={canonicalUrl} />
       
       {/* Sitemap */}
       <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
@@ -71,7 +88,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
           "@type": "WebSite",
           "name": "Ramble 66",
           "alternateName": ["Ramble66", "Ramble 66", "Route 66 Trip Planner"],
-          "url": baseUrl,
+          "url": canonicalUrl,
           "description": description,
           "author": {
             "@type": "Organization",
@@ -81,7 +98,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
             "@type": "SearchAction",
             "target": {
               "@type": "EntryPoint",
-              "urlTemplate": `${baseUrl}?q={search_term_string}`
+              "urlTemplate": `${canonicalUrl}?q={search_term_string}`
             },
             "query-input": "required name=search_term_string"
           }
@@ -98,7 +115,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
           "provider": {
             "@type": "Organization",
             "name": "Ramble 66",
-            "url": baseUrl
+            "url": canonicalUrl
           },
           "serviceType": "Travel Planning",
           "areaServed": {

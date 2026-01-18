@@ -1,11 +1,16 @@
-
 'use client';
 
 import TestUpload from '@/components/TestUpload';
+import SocialMetaTags from '@/components/shared/SocialMetaTags';
 
 export default function TestUploadPage() {
   return (
     <main className="min-h-screen bg-background">
+      <SocialMetaTags 
+        path="/test-upload"
+        title="Route 66 Media Upload – Ramble 66"
+        description="Share your Route 66 journey photos and videos with fellow travelers on Ramble 66."
+      />
       <div className="container mx-auto py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">

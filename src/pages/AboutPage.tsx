@@ -8,9 +8,9 @@ const AboutPage = () => {
   return (
     <MainLayout>
       <SocialMetaTags 
+        path="/about"
         title="About Ramble 66 – Route 66 Trip Planner" 
         description="Learn about Ramble 66—your Route 66 trip planner. We help travelers discover hidden gems, classic diners, retro motels, and iconic attractions from Chicago to Santa Monica."
-        url="https://ramble66.com/about"
       />
       
       <main className="min-h-screen bg-background">
