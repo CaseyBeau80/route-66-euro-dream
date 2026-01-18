@@ -5,6 +5,7 @@ import { StrictDestinationCityEnforcer } from './StrictDestinationCityEnforcer';
 import { DirectionEnforcerService } from './DirectionEnforcerService';
 import { GeographicProgressionService } from './GeographicProgressionService';
 import { CityDisplayService } from '../utils/CityDisplayService';
+import { AttractionFinder } from './AttractionFinder';
 import { TripPlan, DailySegment, RecommendedStop, DriveTimeCategory, DestinationInfo } from './TripPlanTypes';
 
 // Re-export types so other files can import them from here
@@ -24,7 +25,8 @@ export class TripPlanBuilder {
     startStop: TripStop,
     endStop: TripStop,
     selectedDestinations: TripStop[],
-    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused'
+    tripStyle: 'balanced' | 'destination-focused' = 'destination-focused',
+    allStops: TripStop[] = []
   ): TripPlan {
     console.log(`🏗️ STRICT: Building trip plan with ${selectedDestinations.length} destination cities`);
     
@@ -62,6 +64,11 @@ export class TripPlanBuilder {
       const currentCityDisplay = CityDisplayService.formatCityDisplay(currentPoint);
       const nextCityDisplay = CityDisplayService.formatCityDisplay(nextPoint);
 
+      // Find attractions along this segment (only once, reuse for both arrays)
+      const segmentAttractions = allStops.length > 0 
+        ? AttractionFinder.findStrictAttractionsForSegment(currentPoint, nextPoint, allStops, 3)
+        : [];
+
       const segment: DailySegment = {
         day: i + 1,
         title: `Day ${i + 1}: ${currentCityDisplay} to ${nextCityDisplay}`,
@@ -75,9 +82,26 @@ export class TripPlanBuilder {
           city: nextPoint.city || nextPoint.city_name,
           state: nextPoint.state
         },
-        recommendedStops: [],
+        recommendedStops: segmentAttractions.map(stop => ({
+          stopId: stop.id,
+          id: stop.id,
+          name: stop.name,
+          description: stop.description,
+          latitude: stop.latitude,
+          longitude: stop.longitude,
+          category: stop.category,
+          city_name: stop.city_name,
+          state: stop.state,
+          city: stop.city || stop.city_name || 'Unknown'
+        })),
         isGoogleMapsData: false,
-        attractions: [],
+        attractions: segmentAttractions.map(stop => ({
+          name: stop.name,
+          title: stop.name,
+          description: stop.description,
+          city: stop.city || stop.city_name || 'Unknown',
+          category: stop.category || 'attraction'
+        })),
         driveTimeCategory: {
           category: driveTimeHours > 8 ? 'extreme' : driveTimeHours > 6 ? 'long' : driveTimeHours > 4 ? 'optimal' : 'short',
           message: driveTimeHours > 8 ? `Long drive day: ${driveTimeHours.toFixed(1)} hours. Consider breaking this into multiple days.` : 'Manageable drive time',

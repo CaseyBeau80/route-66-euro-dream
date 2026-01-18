@@ -83,12 +83,13 @@ export class Route66TripPlannerService {
         console.warn(`⚠️ DAYS MISMATCH: Requested ${requestedDays} days, but got ${actualDays} days. Destinations: ${destinations.length}`);
       }
 
-      // STEP 4: Build trip plan using only destination cities
+      // STEP 4: Build trip plan using only destination cities (pass allStops for attractions)
       const tripPlan = TripPlanBuilder.buildTripPlan(
         startStop,
         endStop,
         destinations,
-        tripStyle
+        tripStyle,
+        allStops
       );
 
       // STEP 5: Final validation - ensure all stops are destination cities
