@@ -12,6 +12,7 @@ export const LazySocialSection = lazy(() => import('./SocialSection/SocialSectio
 export const LazyFunSection = lazy(() => import('./FunSection/FunSection'));
 export const LazyTollRoads = lazy(() => import('./TollRoads'));
 export const LazyFAQAccordion = lazy(() => import('./FAQAccordion'));
+export const LazyCentennialEventsCalendar = lazy(() => import('./CentennialEventsCalendar'));
 
 // Additional lazy components for further code splitting
 export const LazyMainLayout = lazy(() => import('./MainLayout'));
