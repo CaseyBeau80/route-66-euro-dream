@@ -15,6 +15,7 @@ import {
   LazyFunSection,
   LazyTollRoads,
   LazyFAQAccordion,
+  LazyCentennialEventsCalendar,
   ComponentLoadingFallback
 } from "../components/LazyComponents";
 
@@ -22,7 +23,7 @@ const Index = () => {
   console.log("🏠 Index page: Rendering with restored directory view");
 
   // Ultra-aggressive progressive mounting for FID optimization
-  const { shouldMount } = useProgressiveMount(6, 300, 1); // Mount 6 components including FAQ
+  const { shouldMount } = useProgressiveMount(7, 300, 1); // Mount 7 components including Events Calendar
 
   return (
     <MainLayout>
@@ -111,8 +112,25 @@ const Index = () => {
           </TimeSlicedComponent>
         )}
 
-        {/* FAQ Section - Above Fun/Trivia */}
+        {/* Centennial Events Calendar */}
         {shouldMount(4) && (
+          <TimeSlicedComponent priority="low" delay={850}>
+            <DeferredComponent 
+              fallback={<ComponentLoadingFallback />}
+              rootMargin="50px"
+              delay={250}
+            >
+              <FadeInSection id="events-calendar" delay={425}>
+                <Suspense fallback={<ComponentLoadingFallback />}>
+                  <LazyCentennialEventsCalendar />
+                </Suspense>
+              </FadeInSection>
+            </DeferredComponent>
+          </TimeSlicedComponent>
+        )}
+
+        {/* FAQ Section - Above Fun/Trivia */}
+        {shouldMount(5) && (
           <TimeSlicedComponent priority="low" delay={900}>
             <DeferredComponent 
               fallback={<ComponentLoadingFallback />}
@@ -129,7 +147,7 @@ const Index = () => {
         )}
 
         {/* Fun Section - Trivia Game */}
-        {shouldMount(5) && (
+        {shouldMount(6) && (
           <TimeSlicedComponent priority="low" delay={1000}>
             <DeferredComponent 
               fallback={<ComponentLoadingFallback />}
