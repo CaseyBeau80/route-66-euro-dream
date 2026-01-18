@@ -8,9 +8,9 @@ interface VirtualizedCarouselProps {
   items: UnifiedRoute66Item[];
 }
 
-// Optimized for DOM size - minimal elements per render
-const ITEMS_PER_PAGE = 2; // Reduced from 3 to 2 for DOM optimization
-const MAX_VISIBLE_ITEMS = 6; // Hard limit to prevent DOM bloat
+// Pagination settings
+const ITEMS_PER_PAGE = 6; // Show 6 items per page
+const MAX_VISIBLE_ITEMS = 500; // Allow all items to be accessible
 
 const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
   const [currentPage, setCurrentPage] = useState(0);
