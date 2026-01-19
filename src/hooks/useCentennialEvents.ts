@@ -67,6 +67,10 @@ const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
 
   console.log('[CentennialEvents] Fetched', data?.length, 'events');
   
+  // Debug: Log motorcycle events
+  const motorcycleEvents = data?.filter(e => e.category === 'motorcycles');
+  console.log('[CentennialEvents] Motorcycle events:', motorcycleEvents?.length, motorcycleEvents);
+  
   return (data as DatabaseEvent[]).map(transformEvent);
 };
 
