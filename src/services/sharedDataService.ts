@@ -1,7 +1,7 @@
 /**
  * Shared data service to reduce duplicate API calls and network dependency chains
  */
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 // Cache for API responses to prevent duplicate requests
 const cache = new Map<string, Promise<any>>();

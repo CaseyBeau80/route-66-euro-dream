@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { UnifiedRoute66Item, FilterState } from '../types';
 
 export const useUnifiedData = () => {
