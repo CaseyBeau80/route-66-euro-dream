@@ -215,7 +215,11 @@ export const safeParseDate = (dateString: string | null | undefined): Date | nul
  */
 export const getCountdownText = (dateStart: string): string => {
   const eventDate = safeParseDate(dateStart);
-  if (!eventDate) return 'Date TBD';
+  
+  if (!eventDate) {
+    console.log('[getCountdownText] Failed to parse date:', dateStart);
+    return 'Date TBD';
+  }
   
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -224,23 +228,28 @@ export const getCountdownText = (dateStart: string): string => {
   const diffTime = eventDate.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
+  let result: string;
+  
   if (diffDays < 0) {
-    return 'Past event';
+    result = 'Past event';
   } else if (diffDays === 0) {
-    return 'Today!';
+    result = 'Today!';
   } else if (diffDays === 1) {
-    return 'Tomorrow!';
+    result = 'Tomorrow!';
   } else if (diffDays <= 7) {
-    return `In ${diffDays} days`;
+    result = `In ${diffDays} days`;
   } else if (diffDays <= 30) {
     const weeks = Math.floor(diffDays / 7);
-    return `In ${weeks} week${weeks > 1 ? 's' : ''}`;
+    result = `In ${weeks} week${weeks > 1 ? 's' : ''}`;
   } else if (diffDays <= 365) {
     const months = Math.floor(diffDays / 30);
-    return `In ${months} month${months > 1 ? 's' : ''}`;
+    result = `In ${months} month${months > 1 ? 's' : ''}`;
+  } else {
+    result = `In ${diffDays} days`;
   }
   
-  return `In ${diffDays} days`;
+  console.log('[getCountdownText]', dateStart, '->', result, 'diffDays:', diffDays);
+  return result;
 };
 
 /**
