@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
 
+// Global flag to force all idle loaders to render immediately
+let forceRenderAll = false;
+const forceRenderListeners: Set<() => void> = new Set();
+
+export const forceIdleLoaderRender = () => {
+  forceRenderAll = true;
+  forceRenderListeners.forEach(listener => listener());
+};
+
 /**
  * Hook that defers execution until the browser is idle
  * Reduces JavaScript execution time during critical rendering
@@ -24,9 +33,17 @@ export const useIdleCallback = (callback: () => void, deps: any[] = []) => {
  * Hook that returns true when the browser is idle
  */
 export const useIsIdle = (timeout: number = 100) => {
-  const [isIdle, setIsIdle] = useState(false);
+  const [isIdle, setIsIdle] = useState(forceRenderAll);
 
   useEffect(() => {
+    if (forceRenderAll) {
+      setIsIdle(true);
+      return;
+    }
+
+    const listener = () => setIsIdle(true);
+    forceRenderListeners.add(listener);
+
     const scheduleCallback = (window as any).requestIdleCallback || 
       ((cb: () => void) => setTimeout(cb, timeout));
 
@@ -35,6 +52,7 @@ export const useIsIdle = (timeout: number = 100) => {
     });
 
     return () => {
+      forceRenderListeners.delete(listener);
       const cancelCallback = (window as any).cancelIdleCallback || clearTimeout;
       cancelCallback(id);
     };
