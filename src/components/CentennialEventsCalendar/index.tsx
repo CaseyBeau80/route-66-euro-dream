@@ -7,13 +7,16 @@ import EventCard from './components/EventCard';
 import EventModal from './components/EventModal';
 import FilterBar from './components/FilterBar';
 import FeaturedEvents from './components/FeaturedEvents';
-
 const CentennialEventsCalendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CentennialEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch events from database with static fallback
-  const { events, isLoading, isUsingFallback } = useCentennialEventsWithFallback();
+  const {
+    events,
+    isLoading,
+    isUsingFallback
+  } = useCentennialEventsWithFallback();
 
   // Use filters with fetched events
   const {
@@ -24,24 +27,17 @@ const CentennialEventsCalendar: React.FC = () => {
     setSelectedMonth,
     resetFilters,
     highlightedEvents,
-    totalEventCount,
+    totalEventCount
   } = useEventFilters(events);
-
   const handleEventClick = (event: CentennialEvent) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
   };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
   };
-
-  return (
-    <section 
-      className="py-12 sm:py-16 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"
-      aria-labelledby="events-calendar-heading"
-    >
+  return <section className="py-12 sm:py-16 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white" aria-labelledby="events-calendar-heading">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -50,10 +46,7 @@ const CentennialEventsCalendar: React.FC = () => {
             <span>2026 Centennial Events</span>
           </div>
           
-          <h2 
-            id="events-calendar-heading"
-            className="text-3xl sm:text-4xl font-bold text-slate-800 mb-3"
-          >
+          <h2 id="events-calendar-heading" className="text-3xl sm:text-4xl font-bold text-slate-800 mb-3">
             Route 66 Turns 100! 🎉
           </h2>
           
@@ -70,85 +63,45 @@ const CentennialEventsCalendar: React.FC = () => {
         </div>
 
         {/* Loading indicator */}
-        {isLoading && (
-          <div className="flex items-center justify-center gap-2 text-slate-500 mb-6">
+        {isLoading && <div className="flex items-center justify-center gap-2 text-slate-500 mb-6">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-sm">Loading events...</span>
-          </div>
-        )}
+          </div>}
 
         {/* Featured Events Carousel */}
         <div className="mb-8">
-          <FeaturedEvents 
-            events={highlightedEvents} 
-            onEventClick={handleEventClick}
-          />
+          <FeaturedEvents events={highlightedEvents} onEventClick={handleEventClick} />
         </div>
 
         {/* Filter Bar - Combined State + Month */}
         <div className="mb-6">
-          <FilterBar
-            selectedState={selectedState}
-            selectedMonth={selectedMonth}
-            onStateChange={setSelectedState}
-            onMonthChange={setSelectedMonth}
-            onReset={resetFilters}
-            eventCount={filteredEvents.length}
-            totalCount={totalEventCount}
-          />
+          <FilterBar selectedState={selectedState} selectedMonth={selectedMonth} onStateChange={setSelectedState} onMonthChange={setSelectedMonth} onReset={resetFilters} eventCount={filteredEvents.length} totalCount={totalEventCount} />
         </div>
 
         {/* Events Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredEvents.map((event) => (
-            <EventCard 
-              key={event.id} 
-              event={event} 
-              onClick={handleEventClick}
-            />
-          ))}
+          {filteredEvents.map(event => <EventCard key={event.id} event={event} onClick={handleEventClick} />)}
         </div>
 
         {/* Empty state */}
-        {filteredEvents.length === 0 && !isLoading && (
-          <div className="text-center py-12">
+        {filteredEvents.length === 0 && !isLoading && <div className="text-center py-12">
             <p className="text-slate-500 mb-4">No events match your current filters.</p>
-            <button
-              onClick={resetFilters}
-              className="text-[#1B60A3] hover:text-[#155187] font-medium"
-            >
+            <button onClick={resetFilters} className="text-[#1B60A3] hover:text-[#155187] font-medium">
               Reset filters to see all events
             </button>
-          </div>
-        )}
+          </div>}
 
         {/* Data source footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-400">
-            <a 
-              href="https://route66centennial.org/calendar"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#1B60A3] hover:text-[#155187] inline-flex items-center gap-1"
-            >
-              View Official Calendar
-              <ExternalLink className="h-3 w-3" />
-            </a>
-            {isUsingFallback && (
-              <span className="text-amber-500 ml-2">(using cached data)</span>
-            )}
+            
+            {isUsingFallback && <span className="text-amber-500 ml-2">(using cached data)</span>}
           </p>
         </div>
       </div>
 
       {/* Event Modal */}
-      <EventModal 
-        event={selectedEvent}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
-    </section>
-  );
+      <EventModal event={selectedEvent} isOpen={isModalOpen} onClose={handleCloseModal} />
+    </section>;
 };
-
 export default CentennialEventsCalendar;
