@@ -191,7 +191,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
 
           {/* Data source note */}
           <p className="text-xs text-slate-400 text-center pt-2 border-t border-slate-100">
-            Event data from route66centennial.org • Last updated Jan 18, 2026
+            Last updated Jan 18, 2026
           </p>
         </div>
       </DialogContent>
