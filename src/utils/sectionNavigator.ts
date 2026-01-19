@@ -14,31 +14,44 @@ export const unregisterSectionNavigator = (sectionId: string) => {
 };
 
 // Navigate to a section - forces mount if needed, then scrolls
-export const navigateToSection = (sectionId: string, maxRetries: number = 15, retryDelay: number = 200) => {
+// initialDelay gives React time to render after force-mount triggers
+export const navigateToSection = (
+  sectionId: string, 
+  maxRetries: number = 25,  // Increased retries
+  retryDelay: number = 150,  // Slightly faster checks
+  initialDelay: number = 100 // Wait for React to render after force triggers
+) => {
   // First, trigger the force-mount callback if available
   const callback = navigationCallbacks.get(sectionId);
   if (callback) {
     callback();
   }
 
-  // Then wait for element to appear and scroll
-  let attempts = 0;
-  
-  const tryScroll = () => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-      return;
-    }
+  // Wait a bit for React to process the force-render before starting to look for element
+  setTimeout(() => {
+    let attempts = 0;
     
-    attempts++;
-    if (attempts < maxRetries) {
-      setTimeout(tryScroll, retryDelay);
-    }
-  };
-  
-  tryScroll();
+    const tryScroll = () => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        // Add a tiny delay to ensure element is fully positioned
+        requestAnimationFrame(() => {
+          element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        });
+        return;
+      }
+      
+      attempts++;
+      if (attempts < maxRetries) {
+        setTimeout(tryScroll, retryDelay);
+      } else {
+        console.warn(`Could not find section "${sectionId}" after ${maxRetries} attempts`);
+      }
+    };
+    
+    tryScroll();
+  }, initialDelay);
 };
