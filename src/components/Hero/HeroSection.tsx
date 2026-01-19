@@ -56,6 +56,14 @@ const HeroSection: React.FC = () => {
   const scrollToEventsCalendar = () => {
     smoothScrollToSection('events-calendar');
   };
+  
+  const scrollToTripPlanner = () => {
+    smoothScrollToSection('trip-planner');
+  };
+  
+  const scrollToSocial = () => {
+    smoothScrollToSection('social');
+  };
   return <>
       <section className="relative min-h-fit bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
         {/* Background Pattern */}
@@ -94,29 +102,60 @@ const HeroSection: React.FC = () => {
                 ))}
               </div>
 
-              {/* Benefits Section - Vertical with Green Checkmarks - Compact */}
+              {/* Benefits Section - Vertical with Green Checkmarks - Clickable */}
               <div className="space-y-1 py-1">
-                <div className="flex items-center gap-2">
+                <button 
+                  onClick={scrollToInteractiveMap}
+                  className="flex items-center gap-2 text-left hover:bg-route66-primary/5 rounded-lg p-2 -ml-2 transition-colors group cursor-pointer w-full"
+                >
                   <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Interactive Route 66 Google Map</div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                      Interactive Route 66 Google Map
+                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    </div>
                     <div className="text-route66-text-secondary text-sm lg:text-base">Explore iconic cities, quirky roadside attractions, and hidden gems</div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
+                </button>
+                <button 
+                  onClick={scrollToTripPlanner}
+                  className="flex items-center gap-2 text-left hover:bg-route66-primary/5 rounded-lg p-2 -ml-2 transition-colors group cursor-pointer w-full"
+                >
                   <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Shareable Travel Planner</div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                      Shareable Travel Planner
+                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    </div>
                     <div className="text-route66-text-secondary text-sm lg:text-base">Build custom Route 66 trips and share them with friends and family</div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
+                </button>
+                <button 
+                  onClick={scrollToSocial}
+                  className="flex items-center gap-2 text-left hover:bg-route66-primary/5 rounded-lg p-2 -ml-2 transition-colors group cursor-pointer w-full"
+                >
                   <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl">Social Media & More</div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                      Social Media & More
+                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    </div>
                     <div className="text-route66-text-secondary text-sm lg:text-base">Instagram integration and community features for travelers</div>
                   </div>
-                </div>
+                </button>
+                <button 
+                  onClick={scrollToEventsCalendar}
+                  className="flex items-center gap-2 text-left hover:bg-route66-primary/5 rounded-lg p-2 -ml-2 transition-colors group cursor-pointer w-full"
+                >
+                  <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
+                  <div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                      Route 66 Events Calendar
+                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    </div>
+                    <div className="text-route66-text-secondary text-sm lg:text-base">Discover centennial celebrations, festivals, and car shows across all 8 states</div>
+                  </div>
+                </button>
               </div>
 
               {/* Enhanced CTA Button - Compact spacing */}
