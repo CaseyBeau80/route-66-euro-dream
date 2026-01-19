@@ -6,7 +6,7 @@ import cakeImage from "@/assets/cake-single-shield-v2.png";
 import cakeImageWebP from "@/assets/cake-single-shield-v2.png"; // Using same file for now
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 import { PictureOptimized } from "@/components/ui/PictureOptimized";
-
+import { smoothScrollToSection } from "@/utils/smoothScroll";
 
 // No props needed - English only
 const heroContent = {
@@ -38,6 +38,12 @@ const heroContent = {
 const HeroSection: React.FC = () => {
   const content = heroContent.en; // Always use English
   const { timeLeft, mounted } = useTimer();
+  
+  // Smart contextual text based on whether celebrations have started
+  const celebrationsStartDate = new Date('2026-01-03');
+  const now = new Date();
+  const celebrationsStarted = now >= celebrationsStartDate;
+  
   const scrollToInteractiveMap = () => {
     const mapSection = document.getElementById('interactive-map');
     if (mapSection) {
@@ -45,6 +51,10 @@ const HeroSection: React.FC = () => {
         behavior: 'smooth'
       });
     }
+  };
+  
+  const scrollToEventsCalendar = () => {
+    smoothScrollToSection('events-calendar');
   };
   return <>
       <section className="relative min-h-fit bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
@@ -151,7 +161,21 @@ const HeroSection: React.FC = () => {
                     {mounted ? timeLeft.days : '---'} Days
                   </div>
                   <div className="text-sm lg:text-base text-route66-primary text-center max-w-sm">
-                    Until the centennial birthday celebration of the Mother Road on November 11, 2026
+                    Until the 100th birthday of the Mother Road on November 11, 2026
+                  </div>
+                  <div className="text-xs lg:text-sm text-route66-secondary text-center mt-2 flex items-center justify-center gap-2">
+                    <span className="inline-block w-2 h-2 bg-[#1B60A3] rounded-full animate-pulse"></span>
+                    <span>
+                      {celebrationsStarted 
+                        ? 'Celebrations now underway!' 
+                        : 'Celebrations begin January 2026'}
+                    </span>
+                    <button 
+                      onClick={scrollToEventsCalendar}
+                      className="text-pink-600 hover:text-pink-700 hover:underline font-bold transition-colors"
+                    >
+                      → View Events
+                    </button>
                   </div>
                 </div>
               </div>
