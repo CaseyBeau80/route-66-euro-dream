@@ -125,7 +125,7 @@ const CentennialEventsCalendar: React.FC = () => {
         {/* Data source footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-400">
-            Events powered by Lovable Cloud • Last seeded January 19, 2026 • 
+            Events powered by Supabase • Last seeded January 19, 2026 • 
             Sourced from{' '}
             <a 
               href="https://route66centennial.org/calendar"
