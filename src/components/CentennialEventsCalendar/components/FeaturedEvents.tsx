@@ -22,14 +22,15 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
   }, [events]);
 
   const visibleCount = 3; // Show 3 at a time on desktop
-  const maxIndex = Math.max(0, sortedEvents.length - visibleCount);
+  const totalPages = Math.ceil(sortedEvents.length / visibleCount);
+  const maxIndex = Math.max(0, (totalPages - 1) * visibleCount);
 
   const handlePrev = () => {
-    setCurrentIndex(prev => Math.max(0, prev - 1));
+    setCurrentIndex(prev => Math.max(0, prev - visibleCount));
   };
 
   const handleNext = () => {
-    setCurrentIndex(prev => Math.min(maxIndex, prev + 1));
+    setCurrentIndex(prev => Math.min(maxIndex, prev + visibleCount));
   };
 
   if (sortedEvents.length === 0) return null;
