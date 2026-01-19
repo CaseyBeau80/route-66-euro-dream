@@ -63,6 +63,9 @@ const CATEGORY_OPTIONS: { value: EventCategory | 'all'; label: string }[] = [
   { value: 'caravan', label: `${categoryMetadata['caravan']?.emoji || '🚐'} Caravan` },
   { value: 'screening', label: `${categoryMetadata['screening']?.emoji || '🎬'} Screening` },
   { value: 'speaker-series', label: `${categoryMetadata['speaker-series']?.emoji || '🎤'} Speaker Series` },
+  { value: 'bicycles', label: `${categoryMetadata['bicycles']?.emoji || '🚴'} Bicycles` },
+  { value: 'motorcycles', label: `${categoryMetadata['motorcycles']?.emoji || '🏍️'} Motorcycles` },
+  { value: 'runs', label: `${categoryMetadata['runs']?.emoji || '🏃'} Runs` },
   { value: 'other', label: `${categoryMetadata['other']?.emoji || '📅'} Other` },
 ];
 
