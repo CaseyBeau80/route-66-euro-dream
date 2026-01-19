@@ -14,8 +14,8 @@ interface EventCardProps {
 const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
   const countdown = getCountdownText(event.dateStart);
   const isSoon = isEventSoon(event.dateStart);
-  const stateInfo = stateMetadata[event.state];
-  const categoryInfo = categoryMetadata[event.category];
+  const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-gray-500' };
+  const categoryInfo = categoryMetadata[event.category] || { label: 'Event', emoji: '📅' };
   
   // State color mapping for border (cool blue/gray palette)
   const stateColorMap: Record<string, string> = {
