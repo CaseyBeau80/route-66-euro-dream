@@ -14,11 +14,11 @@ interface FeaturedEventsProps {
 const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   
-  // Prioritize Oklahoma events (Road Fest, Capital Cruise) at front
+  // Pure chronological sort - no state prioritization
   const sortedEvents = React.useMemo(() => {
-    const okEvents = events.filter(e => e.state === 'OK');
-    const otherEvents = events.filter(e => e.state !== 'OK');
-    return [...okEvents, ...otherEvents];
+    return [...events].sort((a, b) => 
+      new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
+    );
   }, [events]);
 
   const visibleCount = 3; // Show 3 at a time on desktop
@@ -117,7 +117,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
   const categoryInfo = categoryMetadata[event.category];
   const countdown = getCountdownText(event.dateStart);
   
-  // State gradient backgrounds (cool blue/gray palette with subtle neon glow)
+  // State gradient backgrounds (cool blue/gray palette - equal treatment for all states)
   const stateGradients: Record<string, string> = {
     'IL': 'from-blue-500 to-blue-600',
     'MO': 'from-slate-500 to-slate-600',
@@ -168,9 +168,12 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
             {event.title}
           </h4>
 
-          {/* Location */}
+          {/* Location with state */}
           <p className="text-sm text-white/80 mb-auto">
             {event.location}
+            {event.state !== 'national' && (
+              <span className="ml-1 text-white/60">({stateInfo.name})</span>
+            )}
           </p>
 
           {/* Date at bottom */}

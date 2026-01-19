@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ListingItem } from '../types';
@@ -13,7 +12,7 @@ export const useHiddenGems = () => {
       try {
         console.log('💎 Fetching hidden gems from hidden_gems table...');
         
-        const { data: hiddenGems, error } = await supabase
+        const { data: hiddenGems, error } = await (supabase as any)
           .from('hidden_gems')
           .select('*')
           .order('title')
@@ -21,13 +20,13 @@ export const useHiddenGems = () => {
 
         if (!error && hiddenGems) {
           console.log(`💎 Fetched ${hiddenGems.length} hidden gems from hidden_gems table`);
-          setItems(hiddenGems.map(gem => ({
+          setItems(hiddenGems.map((gem: any) => ({
             id: gem.id,
             name: gem.title,
             title: gem.title,
             description: gem.description,
             city_name: gem.city_name,
-            state: 'Various', // Hidden gems may span multiple states
+            state: 'Various',
             image_url: gem.image_url,
             thumbnail_url: gem.thumbnail_url,
             website: gem.website,

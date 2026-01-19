@@ -1,8 +1,23 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ListingItem } from '../types';
 import { generateTags } from '../utils/tagGenerator';
+
+// Define the expected drive-in shape from the database
+interface DriveInRow {
+  id: string;
+  name: string;
+  description: string | null;
+  city_name: string | null;
+  state: string | null;
+  image_url: string | null;
+  thumbnail_url: string | null;
+  website: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  featured: boolean | null;
+  status: string | null;
+}
 
 export const useDriveIns = () => {
   const [items, setItems] = useState<ListingItem[]>([]);
@@ -13,15 +28,17 @@ export const useDriveIns = () => {
       try {
         console.log('🎬 Fetching drive-ins from drive_ins table...');
         
-        const { data: driveIns, error } = await supabase
+        // Use type assertion since table may not exist yet in generated types
+        const { data: driveIns, error } = await (supabase as any)
           .from('drive_ins')
           .select('*')
           .order('name')
           .limit(6);
 
         if (!error && driveIns) {
-          console.log(`🎬 Fetched ${driveIns.length} drive-ins from drive_ins table`);
-          setItems(driveIns.map(driveIn => ({
+          const typedDriveIns = driveIns as DriveInRow[];
+          console.log(`🎬 Fetched ${typedDriveIns.length} drive-ins from drive_ins table`);
+          setItems(typedDriveIns.map(driveIn => ({
             id: driveIn.id,
             name: driveIn.name,
             title: driveIn.name,
@@ -38,6 +55,9 @@ export const useDriveIns = () => {
             featured: driveIn.featured,
             status: driveIn.status
           })));
+        } else if (error) {
+          // Table may not exist yet - this is expected
+          console.log('🎬 Drive-ins table not available yet:', error.message);
         }
       } catch (error) {
         console.error('❌ Error fetching drive-ins:', error);

@@ -1,36 +1,32 @@
 import { useState, useMemo, useCallback } from 'react';
-import { CentennialEvent, EventState, EventCategory, centennialEvents } from '@/data/centennialEventsData';
+import { CentennialEvent, EventState, EventCategory } from '@/data/centennialEventsData';
 
-export type FilterType = 'all' | 'state' | 'month' | 'local';
 export type SortType = 'date' | 'state' | 'category';
 
 interface UseEventFiltersReturn {
   filteredEvents: CentennialEvent[];
   selectedState: EventState | 'all';
   selectedMonth: number | 'all'; // 0-11 for months, 'all' for all
-  filterType: FilterType;
   sortType: SortType;
   setSelectedState: (state: EventState | 'all') => void;
   setSelectedMonth: (month: number | 'all') => void;
-  setFilterType: (type: FilterType) => void;
   setSortType: (type: SortType) => void;
   resetFilters: () => void;
   getEventCountByState: (state: EventState) => number;
   getEventCountByMonth: (month: number) => number;
   highlightedEvents: CentennialEvent[];
-  localEvents: CentennialEvent[]; // Oklahoma events
+  totalEventCount: number;
 }
 
-export const useEventFilters = (): UseEventFiltersReturn => {
-  // Default to Oklahoma for local focus
-  const [selectedState, setSelectedState] = useState<EventState | 'all'>('OK');
+export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersReturn => {
+  // Default to showing all events
+  const [selectedState, setSelectedState] = useState<EventState | 'all'>('all');
   const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
-  const [filterType, setFilterType] = useState<FilterType>('local');
   const [sortType, setSortType] = useState<SortType>('date');
 
   // Sort events chronologically by default
-  const sortEvents = useCallback((events: CentennialEvent[]): CentennialEvent[] => {
-    return [...events].sort((a, b) => {
+  const sortEvents = useCallback((eventsToSort: CentennialEvent[]): CentennialEvent[] => {
+    return [...eventsToSort].sort((a, b) => {
       switch (sortType) {
         case 'date':
           return new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime();
@@ -44,63 +40,50 @@ export const useEventFilters = (): UseEventFiltersReturn => {
     });
   }, [sortType]);
 
-  // Filter events based on current filters
+  // Filter events based on current filters - COMBINABLE state + month
   const filteredEvents = useMemo(() => {
-    let events = [...centennialEvents];
+    let filtered = [...events];
 
     // Apply state filter
-    if (filterType === 'state' && selectedState !== 'all') {
-      events = events.filter(e => e.state === selectedState);
+    if (selectedState !== 'all') {
+      filtered = filtered.filter(e => e.state === selectedState);
     }
 
-    // Apply month filter
-    if (filterType === 'month' && selectedMonth !== 'all') {
-      events = events.filter(e => {
+    // Apply month filter (combinable with state)
+    if (selectedMonth !== 'all') {
+      filtered = filtered.filter(e => {
         const eventMonth = new Date(e.dateStart).getMonth();
         return eventMonth === selectedMonth;
       });
     }
 
-    // Apply local (Oklahoma) filter
-    if (filterType === 'local') {
-      events = events.filter(e => e.state === 'OK');
-    }
+    return sortEvents(filtered);
+  }, [events, selectedState, selectedMonth, sortEvents]);
 
-    return sortEvents(events);
-  }, [selectedState, selectedMonth, filterType, sortType, sortEvents]);
-
-  // Get highlighted/featured events
+  // Get highlighted/featured events - pure chronological sort
   const highlightedEvents = useMemo(() => {
-    return centennialEvents
+    return events
       .filter(e => e.isHighlight)
       .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
-  }, []);
-
-  // Get Oklahoma events for local highlights
-  const localEvents = useMemo(() => {
-    return centennialEvents
-      .filter(e => e.state === 'OK')
-      .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
-  }, []);
+  }, [events]);
 
   // Get event count by state
   const getEventCountByState = useCallback((state: EventState): number => {
-    return centennialEvents.filter(e => e.state === state).length;
-  }, []);
+    return events.filter(e => e.state === state).length;
+  }, [events]);
 
   // Get event count by month
   const getEventCountByMonth = useCallback((month: number): number => {
-    return centennialEvents.filter(e => {
+    return events.filter(e => {
       const eventMonth = new Date(e.dateStart).getMonth();
       return eventMonth === month;
     }).length;
-  }, []);
+  }, [events]);
 
   // Reset filters
   const resetFilters = useCallback(() => {
     setSelectedState('all');
     setSelectedMonth('all');
-    setFilterType('all');
     setSortType('date');
   }, []);
 
@@ -108,16 +91,14 @@ export const useEventFilters = (): UseEventFiltersReturn => {
     filteredEvents,
     selectedState,
     selectedMonth,
-    filterType,
     sortType,
     setSelectedState,
     setSelectedMonth,
-    setFilterType,
     setSortType,
     resetFilters,
     getEventCountByState,
     getEventCountByMonth,
     highlightedEvents,
-    localEvents
+    totalEventCount: events.length,
   };
 };

@@ -1,31 +1,31 @@
-import React, { useState, Suspense } from 'react';
-import { Calendar, MapPin, Filter, Star, ExternalLink } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { CentennialEvent, dataSourceInfo } from '@/data/centennialEventsData';
+import React, { useState } from 'react';
+import { Calendar, ExternalLink, Loader2 } from 'lucide-react';
+import { CentennialEvent } from '@/data/centennialEventsData';
+import { useCentennialEventsWithFallback } from '@/hooks/useCentennialEvents';
 import { useEventFilters } from './hooks/useEventFilters';
 import EventCard from './components/EventCard';
 import EventModal from './components/EventModal';
-import StateFilter from './components/StateFilter';
+import FilterBar from './components/FilterBar';
 import FeaturedEvents from './components/FeaturedEvents';
-import MonthlyView from './components/MonthlyView';
-import LocalHighlights from './components/LocalHighlights';
 
 const CentennialEventsCalendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CentennialEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('local');
 
+  // Fetch events from database with static fallback
+  const { events, isLoading, isUsingFallback } = useCentennialEventsWithFallback();
+
+  // Use filters with fetched events
   const {
     filteredEvents,
     selectedState,
     selectedMonth,
     setSelectedState,
     setSelectedMonth,
-    setFilterType,
+    resetFilters,
     highlightedEvents,
-    localEvents
-  } = useEventFilters();
+    totalEventCount,
+  } = useEventFilters(events);
 
   const handleEventClick = (event: CentennialEvent) => {
     setSelectedEvent(event);
@@ -35,24 +35,6 @@ const CentennialEventsCalendar: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
-  };
-
-  const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
-    switch (tab) {
-      case 'all':
-        setFilterType('all');
-        break;
-      case 'local':
-        setFilterType('local');
-        break;
-      case 'state':
-        setFilterType('state');
-        break;
-      case 'month':
-        setFilterType('month');
-        break;
-    }
   };
 
   return (
@@ -87,6 +69,14 @@ const CentennialEventsCalendar: React.FC = () => {
           </div>
         </div>
 
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="flex items-center justify-center gap-2 text-slate-500 mb-6">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Loading events...</span>
+          </div>
+        )}
+
         {/* Featured Events Carousel */}
         <div className="mb-8">
           <FeaturedEvents 
@@ -95,100 +85,69 @@ const CentennialEventsCalendar: React.FC = () => {
           />
         </div>
 
-        {/* Tabs for filtering */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full justify-start mb-6 flex-wrap gap-1 h-auto p-1 bg-slate-100/80">
-            <TabsTrigger 
-              value="local" 
-              className="flex items-center gap-1.5 data-[state=active]:bg-[#1B60A3] data-[state=active]:text-white"
+        {/* Filter Bar - Combined State + Month */}
+        <div className="mb-6">
+          <FilterBar
+            selectedState={selectedState}
+            selectedMonth={selectedMonth}
+            onStateChange={setSelectedState}
+            onMonthChange={setSelectedMonth}
+            onReset={resetFilters}
+            eventCount={filteredEvents.length}
+            totalCount={totalEventCount}
+          />
+        </div>
+
+        {/* Events Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredEvents.map((event) => (
+            <EventCard 
+              key={event.id} 
+              event={event} 
+              onClick={handleEventClick}
+            />
+          ))}
+        </div>
+
+        {/* Empty state */}
+        {filteredEvents.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <p className="text-slate-500 mb-4">No events match your current filters.</p>
+            <button
+              onClick={resetFilters}
+              className="text-[#1B60A3] hover:text-[#155187] font-medium"
             >
-              <MapPin className="h-3.5 w-3.5" />
-              Oklahoma (Local)
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {localEvents.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="all" className="flex items-center gap-1.5">
-              <Star className="h-3.5 w-3.5" />
-              All Events
-            </TabsTrigger>
-            <TabsTrigger value="state" className="flex items-center gap-1.5">
-              <Filter className="h-3.5 w-3.5" />
-              By State
-            </TabsTrigger>
-            <TabsTrigger value="month" className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" />
-              By Month
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Local/Oklahoma Tab */}
-          <TabsContent value="local" className="mt-0">
-            <LocalHighlights onEventClick={handleEventClick} />
-          </TabsContent>
-
-          {/* All Events Tab */}
-          <TabsContent value="all" className="mt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredEvents.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
-                  onClick={handleEventClick}
-                />
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* By State Tab */}
-          <TabsContent value="state" className="mt-0 space-y-6">
-            <StateFilter 
-              selectedState={selectedState} 
-              onStateChange={setSelectedState}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredEvents.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
-                  onClick={handleEventClick}
-                />
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* By Month Tab */}
-          <TabsContent value="month" className="mt-0 space-y-6">
-            <MonthlyView 
-              selectedMonth={selectedMonth}
-              onMonthChange={setSelectedMonth}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredEvents.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
-                  onClick={handleEventClick}
-                />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+              Reset filters to see all events
+            </button>
+          </div>
+        )}
 
         {/* Data source footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-400">
-            Event data sourced from{' '}
+            Events powered by Lovable Cloud • Last seeded January 19, 2026 • 
+            Sourced from{' '}
             <a 
-              href={dataSourceInfo.officialSite}
+              href="https://route66centennial.org/calendar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#1B60A3] hover:text-[#155187]"
+            >
+              route66centennial.org/calendar
+            </a>
+            {' '}•{' '}
+            <a 
+              href="https://route66centennial.org/calendar"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#1B60A3] hover:text-[#155187] inline-flex items-center gap-1"
             >
-              {dataSourceInfo.source}
+              View Official Calendar
               <ExternalLink className="h-3 w-3" />
             </a>
-            {' '}• Last updated: {dataSourceInfo.lastUpdated}
+            {isUsingFallback && (
+              <span className="text-amber-500 ml-2">(using cached data)</span>
+            )}
           </p>
         </div>
       </div>
