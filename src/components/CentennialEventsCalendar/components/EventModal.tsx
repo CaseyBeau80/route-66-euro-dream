@@ -25,6 +25,7 @@ import {
 } from '../utils/eventCalendarHelpers';
 import GuinnessBadge from './GuinnessBadge';
 import { toast } from 'sonner';
+import { openMobileAwareLink } from '@/utils/mobileAwareLinkUtils';
 
 interface EventModalProps {
   event: CentennialEvent | null;
@@ -179,15 +180,13 @@ const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
 
           {/* Official Link */}
           {event.officialUrl && (
-            <a 
-              href={event.officialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium transition-colors"
+            <button 
+              onClick={() => openMobileAwareLink(event.officialUrl!, event.title, { forceNewTab: true })}
+              className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium transition-colors cursor-pointer"
             >
               <ExternalLink className="h-4 w-4" />
               Visit Official Event Page
-            </a>
+            </button>
           )}
 
           {/* Data source note */}
