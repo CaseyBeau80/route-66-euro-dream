@@ -54,7 +54,18 @@ const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
     throw error;
   }
 
-  console.log('[CentennialEvents] Fetched', data?.length, 'events. Sample URL:', data?.[0]?.official_url);
+  // Debug: Find the 100th Anniversary event and log its date
+  const anniversaryEvent = data?.find(e => e.title?.includes('100th Anniversary'));
+  if (anniversaryEvent) {
+    console.log('[CentennialEvents] Anniversary event raw data:', {
+      title: anniversaryEvent.title,
+      date_start: anniversaryEvent.date_start,
+      date_display: anniversaryEvent.date_display,
+      typeOfDateStart: typeof anniversaryEvent.date_start
+    });
+  }
+
+  console.log('[CentennialEvents] Fetched', data?.length, 'events');
   
   return (data as DatabaseEvent[]).map(transformEvent);
 };
