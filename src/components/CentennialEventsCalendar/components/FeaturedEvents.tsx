@@ -179,7 +179,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
           {/* Date at bottom */}
           <div className="mt-3 pt-2 border-t border-white/20">
             <p className="text-sm font-medium">
-              {formatDateRange(event.dateStart, event.dateEnd)}
+              {event.dateDisplay || formatDateRange(event.dateStart, event.dateEnd)}
             </p>
           </div>
 
