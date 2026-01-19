@@ -32,7 +32,7 @@ export class EnhancedSupabaseDataService {
     
     if (connectionStatus.isConnected) {
       try {
-        const { supabase } = await import('@/integrations/supabase/client');
+        const { supabase } = await import('@/lib/supabase');
         
         // ONLY fetch from destination_cities table - NO other tables
         const { data: destinationCities, error } = await (supabase as any)

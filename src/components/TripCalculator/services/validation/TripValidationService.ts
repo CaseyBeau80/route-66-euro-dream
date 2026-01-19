@@ -1,7 +1,7 @@
 
 import { route66Towns } from '@/types/route66';
 import { DistanceEstimationService } from '../utils/DistanceEstimationService';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 export interface TripValidationResult {
   isValid: boolean;

@@ -1,6 +1,6 @@
 
 import { AttractionSearchResult, AttractionSearchStatus } from './AttractionSearchResult';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 export interface NearbyAttraction {
   id: string;
