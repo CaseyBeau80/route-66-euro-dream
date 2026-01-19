@@ -61,8 +61,11 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     }
 
     // Apply category filter (combinable with state and month)
+    // Case-insensitive comparison to handle DB categories like "Runs" vs "runs"
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(e => e.category === selectedCategory);
+      filtered = filtered.filter(e => 
+        e.category?.toLowerCase() === selectedCategory.toLowerCase()
+      );
     }
 
     return sortEvents(filtered);
