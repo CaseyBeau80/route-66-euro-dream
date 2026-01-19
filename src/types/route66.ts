@@ -19,6 +19,7 @@ export const route66Towns: Route66Town[] = [
   // Missouri section - St. Louis comes AFTER Springfield, IL
   { latLng: [38.6272, -90.1978], name: "St. Louis, MO" }, // AFTER Springfield, IL
   { latLng: [38.0890, -91.7624], name: "Rolla, MO" },
+  { latLng: [37.6806, -92.6637], name: "Lebanon, MO" }, // Added - between Rolla and Springfield
   { latLng: [37.2090, -93.2923], name: "Springfield, MO" }, // SECOND Springfield
   { latLng: [37.0947, -94.5133], name: "Joplin, MO" },
   
