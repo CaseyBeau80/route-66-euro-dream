@@ -128,16 +128,9 @@ const HeroSection: React.FC = () => {
               {/* Clean Header Structure */}
               <div className="text-center lg:text-left mb-4">
                 {/* Brand Name */}
-                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase tracking-wider text-route66-primary mb-2">
+                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase tracking-wider text-route66-primary mb-3">
                   {content.brandName}
                 </h1>
-                
-                {/* Decorative Divider */}
-                <div className="flex items-center justify-center lg:justify-start gap-3 mb-3">
-                  <div className="h-0.5 w-12 bg-gradient-to-r from-transparent to-route66-accent"></div>
-                  <div className="w-2 h-2 bg-route66-accent rotate-45"></div>
-                  <div className="h-0.5 w-12 bg-gradient-to-l from-transparent to-route66-accent"></div>
-                </div>
                 
                 {/* Combined Headline */}
                 <p className="text-xl lg:text-2xl xl:text-3xl font-highway font-bold text-pink-600">
