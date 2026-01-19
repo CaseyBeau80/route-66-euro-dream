@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { Route66Waypoint } from '../types/supabaseTypes';
 
 export interface ValidationResult {
