@@ -16,9 +16,7 @@ import { navigateToSection } from "@/utils/sectionNavigator";
 const heroContent = {
   en: {
     brandName: "RAMBLE 66",
-    centennialLine: "Celebrate 100 Years of the Mother Road",
-    tagline: "Hidden Gems • Classic Diners • Must-See Stops",
-    taglineSubtitle: "Along Historic Route 66",
+    headline: "100 Years of Hidden Gems, Classic Diners & Must-See Stops",
     painPoints: [
       "Too much time spent spinning your Route 66 wheels?",
       "Are you bouncing between websites, still unsure where or how to start your Route 66 trip?",
@@ -30,9 +28,7 @@ const heroContent = {
   },
   de: {
     brandName: "RAMBLE 66",
-    centennialLine: "Feiern Sie 100 Jahre Mother Road",
-    tagline: "Versteckte Perlen • Klassische Diners • Sehenswertes",
-    taglineSubtitle: "Entlang der historischen Route 66",
+    headline: "100 Jahre Versteckte Perlen, Klassische Diners & Sehenswertes",
     painPoints: [
       "Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?",
       "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst?",
@@ -44,9 +40,7 @@ const heroContent = {
   },
   fr: {
     brandName: "RAMBLE 66",
-    centennialLine: "Célébrez 100 Ans de la Mother Road",
-    tagline: "Joyaux Cachés • Diners Classiques • Incontournables",
-    taglineSubtitle: "Le Long de la Route 66 Historique",
+    headline: "100 Ans de Joyaux Cachés, Diners Classiques & Incontournables",
     painPoints: [
       "Trop de temps passé à faire tourner vos roues de Route 66?",
       "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66?",
@@ -58,9 +52,7 @@ const heroContent = {
   },
   es: {
     brandName: "RAMBLE 66",
-    centennialLine: "Celebra 100 Años de la Mother Road",
-    tagline: "Joyas Ocultas • Diners Clásicos • Paradas Imperdibles",
-    taglineSubtitle: "A Lo Largo de la Histórica Ruta 66",
+    headline: "100 Años de Joyas Ocultas, Diners Clásicos & Paradas Imperdibles",
     painPoints: [
       "¿Demasiado tiempo perdido girando las ruedas en la Ruta 66?",
       "¿Saltando entre sitios web, aún sin saber dónde o cómo empezar tu viaje por la Ruta 66?",
@@ -72,9 +64,7 @@ const heroContent = {
   },
   "pt-BR": {
     brandName: "RAMBLE 66",
-    centennialLine: "Celebre 100 Anos da Mother Road",
-    tagline: "Joias Escondidas • Diners Clássicos • Paradas Imperdíveis",
-    taglineSubtitle: "Ao Longo da Histórica Rota 66",
+    headline: "100 Anos de Joias Escondidas, Diners Clássicos & Paradas Imperdíveis",
     painPoints: [
       "Muito tempo gasto girando as rodas da Rota 66?",
       "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66?",
@@ -135,31 +125,23 @@ const HeroSection: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-4">
-              {/* New Layered Header Structure */}
-              <div className="text-center lg:text-left mb-2">
+              {/* Clean Header Structure */}
+              <div className="text-center lg:text-left mb-4">
                 {/* Brand Name */}
                 <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase tracking-wider text-route66-primary mb-2">
                   {content.brandName}
                 </h1>
                 
                 {/* Decorative Divider */}
-                <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                <div className="flex items-center justify-center lg:justify-start gap-3 mb-3">
                   <div className="h-0.5 w-12 bg-gradient-to-r from-transparent to-route66-accent"></div>
                   <div className="w-2 h-2 bg-route66-accent rotate-45"></div>
                   <div className="h-0.5 w-12 bg-gradient-to-l from-transparent to-route66-accent"></div>
                 </div>
                 
-                {/* Centennial Celebration Line */}
-                <p className="text-2xl lg:text-3xl xl:text-4xl font-highway font-bold text-pink-600 mb-3 animate-fade-in">
-                  {content.centennialLine}
-                </p>
-                
-                {/* Value Proposition Tagline */}
-                <p className="text-lg lg:text-xl text-route66-primary-light font-semibold tracking-wide">
-                  {content.tagline}
-                </p>
-                <p className="text-base lg:text-lg text-route66-text-secondary italic mt-1">
-                  {content.taglineSubtitle}
+                {/* Combined Headline */}
+                <p className="text-xl lg:text-2xl xl:text-3xl font-highway font-bold text-pink-600">
+                  {content.headline}
                 </p>
               </div>
 
