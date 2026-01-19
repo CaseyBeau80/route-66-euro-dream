@@ -110,7 +110,7 @@ const HeroSection: React.FC = () => {
                 >
                   <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark group-hover:underline transition-colors">
                       Interactive Route 66 Google Map
                       <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                     </div>
@@ -123,7 +123,7 @@ const HeroSection: React.FC = () => {
                 >
                   <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark group-hover:underline transition-colors">
                       Shareable Travel Planner
                       <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                     </div>
@@ -136,7 +136,7 @@ const HeroSection: React.FC = () => {
                 >
                   <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark group-hover:underline transition-colors">
                       Social Media & More
                       <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                     </div>
@@ -149,7 +149,7 @@ const HeroSection: React.FC = () => {
                 >
                   <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
                   <div>
-                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark transition-colors">
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark group-hover:underline transition-colors">
                       Route 66 Events Calendar
                       <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                     </div>
