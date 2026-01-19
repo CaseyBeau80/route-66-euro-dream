@@ -148,7 +148,7 @@ export class HeritageDatabaseMigration {
   }> {
     try {
       // Try to select heritage columns to check if they exist
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('destination_cities')
         .select('id, heritage_score, tourism_score, route66_importance')
         .limit(1);
@@ -218,13 +218,13 @@ export class HeritageDatabaseMigration {
       // Proceed with migration if columns exist
       for (const cityData of this.HERITAGE_CITY_DATA) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await (supabase as any)
             .from('destination_cities')
             .update({
               heritage_score: cityData.heritage_score,
               tourism_score: cityData.tourism_score,
               route66_importance: cityData.route66_importance
-            } as any) // Use 'as any' to bypass TypeScript checking for now
+            })
             .or(`name.ilike.%${cityData.name}%,city_name.ilike.%${cityData.name}%`)
             .eq('state', cityData.state);
 
@@ -285,7 +285,7 @@ export class HeritageDatabaseMigration {
         console.warn('⚠️ Cannot validate heritage scores - columns do not exist:', columnCheck.missingColumns);
         
         // Get basic city count without heritage columns
-        const { data: basicCities, error: basicError } = await supabase
+        const { data: basicCities, error: basicError } = await (supabase as any)
           .from('destination_cities')
           .select('name, state');
 
@@ -301,9 +301,9 @@ export class HeritageDatabaseMigration {
       }
 
       // If columns exist, do full validation
-      const { data: allCities, error } = await supabase
+      const { data: allCities, error } = await (supabase as any)
         .from('destination_cities')
-        .select('name, state, heritage_score, tourism_score') as any; // Use 'as any' to bypass TypeScript
+        .select('name, state, heritage_score, tourism_score');
 
       if (error) {
         console.error('Error validating heritage scores:', error);

@@ -1,4 +1,5 @@
 
+
 import { useState, useCallback } from 'react';
 import { DailySegment } from '../../services/planning/TripPlanBuilder';
 import { AttractionSearchResult, AttractionSearchStatus } from '../../services/attractions/AttractionSearchResult';

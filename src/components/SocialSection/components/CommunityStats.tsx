@@ -57,7 +57,7 @@ const CommunityStats: React.FC = () => {
       // Get total photos count
       const {
         count: totalPhotos
-      } = await supabase.from('photo_challenges').select('*', {
+      } = await (supabase as any).from('photo_challenges').select('*', {
         count: 'exact',
         head: true
       }).not('moderation_result', 'is', null);
@@ -69,7 +69,7 @@ const CommunityStats: React.FC = () => {
       // Get unique locations count
       const {
         data: uniqueLocationsData
-      } = await supabase.from('photo_challenges').select('stop_id').not('moderation_result', 'is', null);
+      } = await (supabase as any).from('photo_challenges').select('stop_id').not('moderation_result', 'is', null);
       const uniqueLocations = new Set(uniqueLocationsData?.map(item => item.stop_id) || []).size;
 
       // Get today's uploads
@@ -77,7 +77,7 @@ const CommunityStats: React.FC = () => {
       today.setHours(0, 0, 0, 0);
       const {
         count: todayUploads
-      } = await supabase.from('photo_challenges').select('*', {
+      } = await (supabase as any).from('photo_challenges').select('*', {
         count: 'exact',
         head: true
       }).gte('created_at', today.toISOString()).not('moderation_result', 'is', null);

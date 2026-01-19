@@ -15,7 +15,7 @@ export const useHiddenGems = () => {
     try {
       console.log('💎 Fetching hidden gems from hidden_gems table only...');
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('hidden_gems')
         .select('*')
         .order('title');

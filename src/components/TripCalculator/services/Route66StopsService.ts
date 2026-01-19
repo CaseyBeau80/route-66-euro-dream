@@ -11,7 +11,7 @@ export class Route66StopsService {
       console.log('🔍 STRICT: Fetching all stops with destination city categorization');
       
       // Fetch destination cities (major overnight stops)
-      const { data: cities, error: citiesError } = await supabase
+      const { data: cities, error: citiesError } = await (supabase as any)
         .from('destination_cities')
         .select('*');
       
@@ -20,7 +20,7 @@ export class Route66StopsService {
       }
 
       // Fetch attractions (points of interest, not overnight destinations)
-      const { data: attractions, error: attractionsError } = await supabase
+      const { data: attractions, error: attractionsError } = await (supabase as any)
         .from('attractions')
         .select('*');
       

@@ -14,7 +14,7 @@ export const useDestinationCities = () => {
         console.log("🏛️ [DEBUG] Starting to fetch destination cities for planner...");
         console.log('🔗 [DEBUG] Supabase client status:', !!supabase);
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('destination_cities')
           .select('*');
           

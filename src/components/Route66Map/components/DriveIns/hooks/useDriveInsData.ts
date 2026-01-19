@@ -30,7 +30,7 @@ export const useDriveInsData = () => {
       try {
         console.log('🎬 Fetching drive-ins from drive_ins table...');
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('drive_ins')
           .select('*')
           .order('name');

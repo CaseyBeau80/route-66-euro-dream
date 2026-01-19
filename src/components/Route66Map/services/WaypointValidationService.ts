@@ -20,7 +20,7 @@ export class WaypointValidationService {
 
     try {
       // Fetch all waypoints
-      const { data: waypoints, error } = await supabase
+      const { data: waypoints, error } = await (supabase as any)
         .from('route66_waypoints')
         .select('*')
         .order('sequence_order');

@@ -12,9 +12,9 @@ export class SupabaseDataService {
     try {
       // Fetch from multiple tables in parallel
       const [attractionsResult, destinationCitiesResult, waypointsResult] = await Promise.all([
-        supabase.from('attractions').select('*'),
-        supabase.from('destination_cities').select('*'),
-        supabase.from('route66_waypoints').select('*')
+        (supabase as any).from('attractions').select('*'),
+        (supabase as any).from('destination_cities').select('*'),
+        (supabase as any).from('route66_waypoints').select('*')
       ]);
 
       const allStops: TripStop[] = [];
@@ -197,7 +197,7 @@ export class SupabaseDataService {
     console.log('🏛️ [SPRINGFIELD DEBUG] Fetching destination cities from Supabase');
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('destination_cities')
         .select('*')
         .order('name');
