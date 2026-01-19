@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CentennialEvent, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
@@ -147,10 +147,14 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
         <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8" />
         
         <div className="relative z-10 h-full flex flex-col">
-          {/* Top badge */}
-          <div className="flex items-center mb-2">
+          {/* Top badges */}
+          <div className="flex items-center justify-between gap-2 mb-2">
             <Badge className="bg-white/20 text-white border-0 text-xs">
               {categoryInfo.emoji} {categoryInfo.label}
+            </Badge>
+            <Badge className="bg-slate-800/80 text-white border-0 text-xs flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {countdown}
             </Badge>
           </div>
 
