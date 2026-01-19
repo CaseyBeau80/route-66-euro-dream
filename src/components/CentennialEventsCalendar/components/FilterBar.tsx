@@ -9,13 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { EventState, stateMetadata } from '@/data/centennialEventsData';
+import { EventState, EventCategory, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
 
 interface FilterBarProps {
   selectedState: EventState | 'all';
   selectedMonth: number | 'all';
+  selectedCategory: EventCategory | 'all';
   onStateChange: (state: EventState | 'all') => void;
   onMonthChange: (month: number | 'all') => void;
+  onCategoryChange: (category: EventCategory | 'all') => void;
   onReset: () => void;
   eventCount: number;
   totalCount: number;
@@ -50,18 +52,34 @@ const STATE_OPTIONS: { value: EventState | 'all'; label: string }[] = [
   { value: 'CA', label: 'California' },
 ];
 
+// Category options with icons
+const CATEGORY_OPTIONS: { value: EventCategory | 'all'; label: string }[] = [
+  { value: 'all', label: 'All Categories' },
+  { value: 'kickoff', label: `${categoryMetadata['kickoff']?.emoji || '🎉'} Kickoff` },
+  { value: 'parade', label: `${categoryMetadata['parade']?.emoji || '🚗'} Parade` },
+  { value: 'festival', label: `${categoryMetadata['festival']?.emoji || '🎪'} Festival` },
+  { value: 'car-show', label: `${categoryMetadata['car-show']?.emoji || '🏎️'} Car Show` },
+  { value: 'concert', label: `${categoryMetadata['concert']?.emoji || '🎵'} Concert` },
+  { value: 'caravan', label: `${categoryMetadata['caravan']?.emoji || '🚐'} Caravan` },
+  { value: 'screening', label: `${categoryMetadata['screening']?.emoji || '🎬'} Screening` },
+  { value: 'speaker-series', label: `${categoryMetadata['speaker-series']?.emoji || '🎤'} Speaker Series` },
+  { value: 'other', label: `${categoryMetadata['other']?.emoji || '📅'} Other` },
+];
+
 const FilterBar: React.FC<FilterBarProps> = ({
   selectedState,
   selectedMonth,
+  selectedCategory,
   onStateChange,
   onMonthChange,
+  onCategoryChange,
   onReset,
   eventCount,
   totalCount,
 }) => {
   const monthScrollRef = useRef<HTMLDivElement>(null);
   
-  const hasActiveFilters = selectedState !== 'all' || selectedMonth !== 'all';
+  const hasActiveFilters = selectedState !== 'all' || selectedMonth !== 'all' || selectedCategory !== 'all';
   
   const scrollMonths = (direction: 'left' | 'right') => {
     if (monthScrollRef.current) {
@@ -76,30 +94,56 @@ const FilterBar: React.FC<FilterBarProps> = ({
     return stateMetadata[state].name;
   };
 
+  const getCategoryDisplayName = (category: EventCategory | 'all'): string => {
+    if (category === 'all') return 'All Categories';
+    const meta = categoryMetadata[category];
+    return meta ? `${meta.emoji} ${meta.label}` : category;
+  };
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-4">
-      {/* State Filter Row */}
+      {/* State & Category Filter Row */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <label className="text-sm font-medium text-slate-700 whitespace-nowrap">
-          Filter by State:
+          Filter by:
         </label>
-        <Select
-          value={selectedState}
-          onValueChange={(value) => onStateChange(value as EventState | 'all')}
-        >
-          <SelectTrigger className="w-full sm:w-[200px] bg-white">
-            <SelectValue placeholder="Select state">
-              {getStateDisplayName(selectedState)}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-white z-50">
-            {STATE_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col sm:flex-row gap-2 flex-1">
+          <Select
+            value={selectedState}
+            onValueChange={(value) => onStateChange(value as EventState | 'all')}
+          >
+            <SelectTrigger className="w-full sm:w-[180px] bg-white">
+              <SelectValue placeholder="Select state">
+                {getStateDisplayName(selectedState)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-white z-50">
+              {STATE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={selectedCategory}
+            onValueChange={(value) => onCategoryChange(value as EventCategory | 'all')}
+          >
+            <SelectTrigger className="w-full sm:w-[180px] bg-white">
+              <SelectValue placeholder="Select category">
+                {getCategoryDisplayName(selectedCategory)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-white z-50">
+              {CATEGORY_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Month Filter Row */}
