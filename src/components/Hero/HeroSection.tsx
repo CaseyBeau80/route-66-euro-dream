@@ -17,6 +17,7 @@ const heroContent = {
   en: {
     brandName: "RAMBLE 66",
     headline: "100 Years of Hidden Gems, Classic Diners & Must-See Stops",
+    subtitle: "Along the Mother Road",
     painPoints: [
       "Too much time spent spinning your Route 66 wheels?",
       "Are you bouncing between websites, still unsure where or how to start your Route 66 trip?",
@@ -29,6 +30,7 @@ const heroContent = {
   de: {
     brandName: "RAMBLE 66",
     headline: "100 Jahre Versteckte Perlen, Klassische Diners & Sehenswertes",
+    subtitle: "Entlang der Mother Road",
     painPoints: [
       "Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?",
       "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst?",
@@ -41,6 +43,7 @@ const heroContent = {
   fr: {
     brandName: "RAMBLE 66",
     headline: "100 Ans de Joyaux Cachés, Diners Classiques & Incontournables",
+    subtitle: "Le Long de la Mother Road",
     painPoints: [
       "Trop de temps passé à faire tourner vos roues de Route 66?",
       "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66?",
@@ -53,6 +56,7 @@ const heroContent = {
   es: {
     brandName: "RAMBLE 66",
     headline: "100 Años de Joyas Ocultas, Diners Clásicos & Paradas Imperdibles",
+    subtitle: "A Lo Largo de la Mother Road",
     painPoints: [
       "¿Demasiado tiempo perdido girando las ruedas en la Ruta 66?",
       "¿Saltando entre sitios web, aún sin saber dónde o cómo empezar tu viaje por la Ruta 66?",
@@ -65,6 +69,7 @@ const heroContent = {
   "pt-BR": {
     brandName: "RAMBLE 66",
     headline: "100 Anos de Joias Escondidas, Diners Clássicos & Paradas Imperdíveis",
+    subtitle: "Ao Longo da Mother Road",
     painPoints: [
       "Muito tempo gasto girando as rodas da Rota 66?",
       "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66?",
@@ -132,9 +137,14 @@ const HeroSection: React.FC = () => {
                   {content.brandName}
                 </h1>
                 
-                {/* Combined Headline */}
+                {/* Main Headline */}
                 <p className="text-xl lg:text-2xl xl:text-3xl font-highway font-bold text-pink-600">
                   {content.headline}
+                </p>
+                
+                {/* Subtitle */}
+                <p className="text-base lg:text-lg text-route66-text-secondary italic mt-1">
+                  {content.subtitle}
                 </p>
               </div>
 
