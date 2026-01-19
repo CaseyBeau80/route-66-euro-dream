@@ -11,7 +11,7 @@ export class SupabaseConnectionService {
   static async checkConnection(): Promise<SupabaseConnectionStatus> {
     try {
       // Import supabase here to avoid circular dependencies
-      const { supabase } = await import('@/integrations/supabase/client');
+      const { supabase } = await import('@/lib/supabase');
       
       // Try a simple query to test connection
       const { data, error } = await (supabase as any)

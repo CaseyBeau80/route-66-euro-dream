@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { TripStop } from '../types/TripStop';
 
 export class Route66StopsService {

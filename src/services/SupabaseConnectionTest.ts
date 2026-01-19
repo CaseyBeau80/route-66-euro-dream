@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 export class SupabaseConnectionTest {
   static async testConnection(): Promise<{ success: boolean; error?: string; data?: any }> {
