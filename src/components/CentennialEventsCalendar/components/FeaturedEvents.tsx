@@ -14,11 +14,13 @@ interface FeaturedEventsProps {
 const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   
-  // Pure chronological sort - no state prioritization
+  // Pure chronological sort - filter out events without valid dateStart
   const sortedEvents = React.useMemo(() => {
-    return [...events].sort((a, b) => 
-      new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
-    );
+    return [...events]
+      .filter(e => e.dateStart) // Ensure dateStart exists
+      .sort((a, b) => 
+        new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
+      );
   }, [events]);
 
   const visibleCount = 3; // Show 3 at a time on desktop
@@ -116,7 +118,8 @@ interface FeaturedEventCardProps {
 const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick }) => {
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-slate-500' };
   const categoryInfo = categoryMetadata[event.category] || { emoji: '📅', label: 'Event' };
-  const countdown = getCountdownText(event.dateStart);
+  // Use dateStart (ISO format) with dateDisplay as fallback
+  const countdown = getCountdownText(event.dateStart || event.dateDisplay);
   
   // State gradient backgrounds (cool blue/gray palette - equal treatment for all states)
   const stateGradients: Record<string, string> = {
