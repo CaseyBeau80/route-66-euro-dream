@@ -21,7 +21,7 @@ export class TrailblazerService {
     try {
       console.log('🔍 Checking trailblazer status for stop:', stopId);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .rpc('get_location_trailblazer', { location_stop_id: stopId });
 
       if (error) {
@@ -41,7 +41,7 @@ export class TrailblazerService {
     try {
       console.log('🏆 Fetching trailblazer leaderboard with limit:', limit);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .rpc('get_trailblazer_leaderboard');
 
       if (error) {
@@ -62,7 +62,7 @@ export class TrailblazerService {
     try {
       console.log('📊 Fetching user trailblazer stats for:', userSessionId);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('trailblazer_achievements')
         .select(`
           stop_id,

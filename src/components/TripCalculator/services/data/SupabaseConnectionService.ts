@@ -14,7 +14,7 @@ export class SupabaseConnectionService {
       const { supabase } = await import('@/integrations/supabase/client');
       
       // Try a simple query to test connection
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('destination_cities')
         .select('id')
         .limit(1);

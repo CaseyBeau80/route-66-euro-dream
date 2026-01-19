@@ -38,7 +38,7 @@ export const usePlannerService = () => {
 
   const fetchAttractions = async (cityName: string, state: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('attractions')
         .select('*')
         .or(`city_name.ilike.%${cityName}%,state.eq.${state}`)

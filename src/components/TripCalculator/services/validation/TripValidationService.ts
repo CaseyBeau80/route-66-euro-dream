@@ -180,7 +180,7 @@ export class TripValidationService {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('destination_cities')
         .select('*');
 

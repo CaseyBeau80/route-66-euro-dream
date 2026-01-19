@@ -35,7 +35,7 @@ export class EnhancedSupabaseDataService {
         const { supabase } = await import('@/integrations/supabase/client');
         
         // ONLY fetch from destination_cities table - NO other tables
-        const { data: destinationCities, error } = await supabase
+        const { data: destinationCities, error } = await (supabase as any)
           .from('destination_cities')
           .select('*')
           .order('name');

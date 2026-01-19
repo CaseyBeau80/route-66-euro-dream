@@ -21,7 +21,7 @@ export class TripService {
     const shareCode = this.generateShareCode();
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('trips')
         .insert({
           title: title || tripPlan.title,
@@ -54,7 +54,7 @@ export class TripService {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('trips')
         .select('*')
         .eq('share_code', shareCode)
@@ -96,7 +96,7 @@ export class TripService {
 
     try {
       // First get the current view count
-      const { data: currentTrip, error: fetchError } = await supabase
+      const { data: currentTrip, error: fetchError } = await (supabase as any)
         .from('trips')
         .select('view_count')
         .eq('share_code', shareCode)
@@ -108,7 +108,7 @@ export class TripService {
       }
 
       // Then increment it
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('trips')
         .update({ 
           view_count: (currentTrip?.view_count || 0) + 1

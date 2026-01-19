@@ -30,7 +30,7 @@ export const AddTulsaHotels = () => {
     ];
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('hidden_gems')
         .insert(hotels)
         .select();

@@ -36,7 +36,7 @@ export const usePhotoRotation = (config: UsePhotoRotationConfig = {}) => {
   const fetchPhotos = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('photo_challenges')
         .select('*')
         .not('moderation_result', 'is', null)

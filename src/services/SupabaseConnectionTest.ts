@@ -6,7 +6,7 @@ export class SupabaseConnectionTest {
       console.log('🔗 [DEBUG] Testing Supabase connection...');
       
       // Test basic connection
-      const { data: connectionTest, error: connectionError } = await supabase
+      const { data: connectionTest, error: connectionError } = await (supabase as any)
         .from('destination_cities')
         .select('count')
         .limit(1);
@@ -17,7 +17,7 @@ export class SupabaseConnectionTest {
       }
       
       // Test data retrieval
-      const { data: cities, error: dataError } = await supabase
+      const { data: cities, error: dataError } = await (supabase as any)
         .from('destination_cities')
         .select('*');
         
@@ -55,7 +55,7 @@ export class SupabaseConnectionTest {
     
     try {
       // Check if Springfield, MO exists
-      const { data: existing, error: checkError } = await supabase
+      const { data: existing, error: checkError } = await (supabase as any)
         .from('destination_cities')
         .select('*')
         .eq('name', 'Springfield')
@@ -74,7 +74,7 @@ export class SupabaseConnectionTest {
       console.log('⚠️ [DEBUG] Springfield, MO not found, attempting to insert...');
       
       // Insert Springfield, MO if it doesn't exist
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await (supabase as any)
         .from('destination_cities')
         .insert([
           {

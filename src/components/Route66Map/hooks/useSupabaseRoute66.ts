@@ -13,7 +13,7 @@ export const useSupabaseRoute66 = () => {
       try {
         console.log("🗺️ Fetching Route 66 waypoints from route66_waypoints table ONLY...");
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('route66_waypoints')
           .select('*')
           .order('sequence_order', { ascending: true }); // Explicitly ascending order

@@ -35,11 +35,11 @@ export const fetchAllRoute66Data = () => {
       waypointsResult,
       destinationCitiesResult
     ] = await Promise.all([
-      supabase.from('attractions').select('*').order('name'),
-      supabase.from('hidden_gems').select('*').order('title'),
-      supabase.from('drive_ins').select('*').order('name'),
-      supabase.from('route66_waypoints').select('*').order('sequence_order'),
-      supabase.from('destination_cities').select('*')
+      (supabase as any).from('attractions').select('*').order('name'),
+      (supabase as any).from('hidden_gems').select('*').order('title'),
+      (supabase as any).from('drive_ins').select('*').order('name'),
+      (supabase as any).from('route66_waypoints').select('*').order('sequence_order'),
+      (supabase as any).from('destination_cities').select('*')
     ]);
 
     console.log('✅ All Route 66 data fetched in single batch');

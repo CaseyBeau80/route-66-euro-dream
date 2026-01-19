@@ -25,7 +25,7 @@ export class GeographicAttractionService {
       const allAttractions: NearbyAttraction[] = [];
 
       // Fetch from attractions table
-      const { data: attractions, error: attractionsError } = await supabase
+      const { data: attractions, error: attractionsError } = await (supabase as any)
         .from('attractions')
         .select('*')
         .ilike('city_name', `%${city}%`)
@@ -54,7 +54,7 @@ export class GeographicAttractionService {
       }
 
       // Fetch from hidden_gems table
-      const { data: hiddenGems, error: hiddenGemsError } = await supabase
+      const { data: hiddenGems, error: hiddenGemsError } = await (supabase as any)
         .from('hidden_gems')
         .select('*')
         .ilike('city_name', `%${city}%`);
@@ -82,7 +82,7 @@ export class GeographicAttractionService {
       }
 
       // Fetch from drive_ins table
-      const { data: driveIns, error: driveInsError } = await supabase
+      const { data: driveIns, error: driveInsError } = await (supabase as any)
         .from('drive_ins')
         .select('*')
         .ilike('city_name', `%${city}%`)
@@ -137,9 +137,9 @@ export class GeographicAttractionService {
     try {
       // Check what's actually in our Supabase tables
       const [attractionsResult, hiddenGemsResult, driveInsResult] = await Promise.all([
-        supabase.from('attractions').select('*').ilike('city_name', `%${city}%`),
-        supabase.from('hidden_gems').select('*').ilike('city_name', `%${city}%`),
-        supabase.from('drive_ins').select('*').ilike('city_name', `%${city}%`)
+        (supabase as any).from('attractions').select('*').ilike('city_name', `%${city}%`),
+        (supabase as any).from('hidden_gems').select('*').ilike('city_name', `%${city}%`),
+        (supabase as any).from('drive_ins').select('*').ilike('city_name', `%${city}%`)
       ]);
 
       return {

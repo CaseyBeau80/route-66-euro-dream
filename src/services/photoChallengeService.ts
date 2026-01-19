@@ -46,7 +46,7 @@ export const uploadPhotoChallenge = async (
     console.log('File uploaded successfully, public URL:', publicUrl);
 
     // Insert record into photo_challenges table
-    const { data: challengeData, error: challengeError } = await supabase
+    const { data: challengeData, error: challengeError } = await (supabase as any)
       .from('photo_challenges')
       .insert({
         photo_url: publicUrl,

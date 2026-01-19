@@ -24,7 +24,7 @@ export const useDestinationCities = () => {
       try {
         console.log('🏛️ ULTRA SIMPLE: Fetching destination cities...');
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('destination_cities')
           .select('id, name, state, latitude, longitude, description, image_url, featured');
 
