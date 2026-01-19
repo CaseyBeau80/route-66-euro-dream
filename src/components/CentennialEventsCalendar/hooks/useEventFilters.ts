@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { CentennialEvent, EventState, EventCategory } from '@/data/centennialEventsData';
-
+import { safeParseDate } from '../utils/eventCalendarHelpers';
 export type SortType = 'date' | 'state' | 'category';
 
 interface UseEventFiltersReturn {
@@ -55,7 +55,8 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     // Apply month filter (combinable with state)
     if (selectedMonth !== 'all') {
       filtered = filtered.filter(e => {
-        const eventMonth = new Date(e.dateStart).getMonth();
+        const parsedDate = safeParseDate(e.dateStart);
+        const eventMonth = parsedDate ? parsedDate.getMonth() : -1;
         return eventMonth === selectedMonth;
       });
     }
@@ -86,7 +87,8 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
   // Get event count by month
   const getEventCountByMonth = useCallback((month: number): number => {
     return events.filter(e => {
-      const eventMonth = new Date(e.dateStart).getMonth();
+      const parsedDate = safeParseDate(e.dateStart);
+      const eventMonth = parsedDate ? parsedDate.getMonth() : -1;
       return eventMonth === month;
     }).length;
   }, [events]);

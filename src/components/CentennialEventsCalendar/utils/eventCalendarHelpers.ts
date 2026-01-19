@@ -157,7 +157,7 @@ export const getUpcomingEvents = (count: number = 3): CentennialEvent[] => {
 /**
  * Safely parse a date string, handling various formats
  */
-const safeParseDate = (dateString: string | null | undefined): Date | null => {
+export const safeParseDate = (dateString: string | null | undefined): Date | null => {
   if (!dateString) return null;
   
   // Log the incoming date string for debugging
