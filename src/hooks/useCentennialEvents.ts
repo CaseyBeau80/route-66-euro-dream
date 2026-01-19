@@ -61,7 +61,6 @@ export const useCentennialEvents = () => {
     queryFn: fetchCentennialEvents,
     staleTime: 1000 * 60 * 10, // Cache for 10 minutes
     gcTime: 1000 * 60 * 30, // Keep in garbage collection for 30 minutes
-    placeholderData: staticEvents, // Use static data while loading
     retry: 2,
   });
 };
