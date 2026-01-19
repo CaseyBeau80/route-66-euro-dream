@@ -155,13 +155,33 @@ export const getUpcomingEvents = (count: number = 3): CentennialEvent[] => {
 };
 
 /**
+ * Safely parse a date string, handling various formats
+ */
+const safeParseDate = (dateString: string | null | undefined): Date | null => {
+  if (!dateString) return null;
+  
+  // Handle ISO date format (YYYY-MM-DD) - add time to avoid timezone issues
+  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  
+  const date = new Date(dateString);
+  // Check if date is valid
+  if (isNaN(date.getTime())) return null;
+  
+  return date;
+};
+
+/**
  * Get countdown text for an event
  */
 export const getCountdownText = (dateStart: string): string => {
+  const eventDate = safeParseDate(dateStart);
+  if (!eventDate) return 'Date TBD';
+  
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  
-  const eventDate = new Date(dateStart);
   eventDate.setHours(0, 0, 0, 0);
   
   const diffTime = eventDate.getTime() - now.getTime();
@@ -190,8 +210,10 @@ export const getCountdownText = (dateStart: string): string => {
  * Check if event is happening now or soon (within 7 days)
  */
 export const isEventSoon = (dateStart: string): boolean => {
+  const eventDate = safeParseDate(dateStart);
+  if (!eventDate) return false;
+  
   const now = new Date();
-  const eventDate = new Date(dateStart);
   const diffTime = eventDate.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
@@ -202,17 +224,19 @@ export const isEventSoon = (dateStart: string): boolean => {
  * Format date range for display
  */
 export const formatDateRange = (dateStart: string, dateEnd?: string): string => {
-  const start = new Date(dateStart);
+  const start = safeParseDate(dateStart);
+  if (!start) return 'Date TBD';
+  
   const options: Intl.DateTimeFormatOptions = { 
     month: 'short', 
     day: 'numeric' 
   };
   
-  if (!dateEnd || dateStart === dateEnd) {
+  const end = dateEnd ? safeParseDate(dateEnd) : null;
+  
+  if (!end || dateStart === dateEnd) {
     return start.toLocaleDateString('en-US', { ...options, year: 'numeric' });
   }
-  
-  const end = new Date(dateEnd);
   
   // Same month
   if (start.getMonth() === end.getMonth()) {
