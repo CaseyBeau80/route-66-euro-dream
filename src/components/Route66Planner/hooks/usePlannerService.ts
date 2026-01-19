@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { PlannerFormData, TripItinerary, DestinationCity, DaySegment } from '../types';
 import { useDestinationCities } from './useDestinationCities';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { GoogleDistanceMatrixService } from '../services/GoogleDistanceMatrixService';
 import { DirectionEnforcerService } from '@/components/TripCalculator/services/planning/DirectionEnforcerService';
 import { GeographicProgressionService } from '@/components/TripCalculator/services/planning/GeographicProgressionService';
