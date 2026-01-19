@@ -214,11 +214,27 @@ export const safeParseDate = (dateString: string | null | undefined): Date | nul
  * Get countdown text for an event
  */
 export const getCountdownText = (dateStart: string): string => {
-  const eventDate = safeParseDate(dateStart);
-  
-  if (!eventDate) {
-    console.log('[getCountdownText] Failed to parse date:', dateStart);
+  // Handle undefined/null/empty
+  if (!dateStart) {
+    console.log('[getCountdownText] No dateStart provided');
     return 'Date TBD';
+  }
+  
+  // Try parsing - log the input for debugging
+  console.log('[getCountdownText] Input:', dateStart, 'Type:', typeof dateStart);
+  
+  let eventDate = safeParseDate(dateStart);
+  
+  // If safeParseDate failed, try a direct Date parse as last resort
+  if (!eventDate) {
+    const directParse = new Date(dateStart);
+    if (!isNaN(directParse.getTime())) {
+      eventDate = directParse;
+      console.log('[getCountdownText] Direct parse succeeded:', eventDate);
+    } else {
+      console.log('[getCountdownText] All parsing failed for:', dateStart);
+      return 'Date TBD';
+    }
   }
   
   const now = new Date();
@@ -248,7 +264,7 @@ export const getCountdownText = (dateStart: string): string => {
     result = `In ${diffDays} days`;
   }
   
-  console.log('[getCountdownText]', dateStart, '->', result, 'diffDays:', diffDays);
+  console.log('[getCountdownText] Result:', result, 'diffDays:', diffDays);
   return result;
 };
 
