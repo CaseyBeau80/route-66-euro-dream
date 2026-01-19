@@ -418,7 +418,7 @@ export const stateMetadata: Record<EventState, { name: string; order: number; co
   'KS': { name: 'Kansas', order: 3, color: 'bg-yellow-500' },
   'OK': { name: 'Oklahoma', order: 4, color: 'bg-orange-500' },
   'TX': { name: 'Texas', order: 5, color: 'bg-red-600' },
-  'NM': { name: 'New Mexico', order: 6, color: 'bg-turquoise-500' },
+  'NM': { name: 'New Mexico', order: 6, color: 'bg-cyan-500' },
   'AZ': { name: 'Arizona', order: 7, color: 'bg-amber-600' },
   'CA': { name: 'California', order: 8, color: 'bg-yellow-400' },
   'national': { name: 'National', order: 0, color: 'bg-purple-600' }
