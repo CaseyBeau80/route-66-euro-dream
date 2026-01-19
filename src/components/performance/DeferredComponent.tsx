@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useRef, ComponentType } from 'react';
 
+// Global flag to force all deferred components to render immediately
+let forceRenderAll = false;
+const forceRenderListeners: Set<() => void> = new Set();
+
+export const forceDeferredRender = () => {
+  forceRenderAll = true;
+  forceRenderListeners.forEach(listener => listener());
+};
+
 interface DeferredComponentProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -19,11 +28,23 @@ export const DeferredComponent: React.FC<DeferredComponentProps> = ({
   threshold = 0.1,
   delay = 0
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
+  const [isVisible, setIsVisible] = useState(forceRenderAll);
+  const [shouldRender, setShouldRender] = useState(forceRenderAll);
   const elementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (forceRenderAll) {
+      setIsVisible(true);
+      setShouldRender(true);
+      return;
+    }
+
+    const listener = () => {
+      setIsVisible(true);
+      setShouldRender(true);
+    };
+    forceRenderListeners.add(listener);
+
     const element = elementRef.current;
     if (!element) return;
 
@@ -45,12 +66,13 @@ export const DeferredComponent: React.FC<DeferredComponentProps> = ({
     observer.observe(element);
 
     return () => {
+      forceRenderListeners.delete(listener);
       observer.unobserve(element);
     };
   }, [rootMargin, threshold]);
 
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible && !shouldRender) {
       // Add delay to further defer JavaScript execution
       const timer = setTimeout(() => {
         setShouldRender(true);
@@ -58,7 +80,7 @@ export const DeferredComponent: React.FC<DeferredComponentProps> = ({
 
       return () => clearTimeout(timer);
     }
-  }, [isVisible, delay]);
+  }, [isVisible, delay, shouldRender]);
 
   return (
     <div ref={elementRef}>

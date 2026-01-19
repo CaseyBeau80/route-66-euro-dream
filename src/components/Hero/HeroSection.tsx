@@ -6,7 +6,11 @@ import cakeImage from "@/assets/cake-single-shield-v2.png";
 import cakeImageWebP from "@/assets/cake-single-shield-v2.png"; // Using same file for now
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 import { PictureOptimized } from "@/components/ui/PictureOptimized";
-import { smoothScrollToSection, smoothScrollToSectionWithRetry } from "@/utils/smoothScroll";
+import { smoothScrollToSection } from "@/utils/smoothScroll";
+import { forceIdleLoaderRender } from "@/components/performance/IdleLoader";
+import { forceDeferredRender } from "@/components/performance/DeferredComponent";
+import { forceTimeSlicedRender } from "@/components/performance/TimeSlicedComponent";
+import { navigateToSection } from "@/utils/sectionNavigator";
 
 // No props needed - English only
 const heroContent = {
@@ -53,8 +57,15 @@ const HeroSection: React.FC = () => {
     }
   };
   
+  const forceRenderAllSections = () => {
+    forceIdleLoaderRender();
+    forceDeferredRender();
+    forceTimeSlicedRender();
+  };
+
   const scrollToEventsCalendar = () => {
-    smoothScrollToSectionWithRetry('events-calendar');
+    forceRenderAllSections();
+    navigateToSection('events-calendar');
   };
   
   const scrollToTripPlanner = () => {
@@ -62,7 +73,8 @@ const HeroSection: React.FC = () => {
   };
   
   const scrollToSocial = () => {
-    smoothScrollToSectionWithRetry('social');
+    forceRenderAllSections();
+    navigateToSection('social');
   };
   return <>
       <section className="relative min-h-fit bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
