@@ -19,18 +19,18 @@ const StateFilter: React.FC<StateFilterProps> = ({ selectedState, onStateChange 
     'all', 'national', 'IL', 'MO', 'KS', 'OK', 'TX', 'NM', 'AZ', 'CA'
   ];
 
-  // State display info with colors
+  // State display info with colors (cool blue/gray palette)
   const stateStyles: Record<EventState | 'all', { bg: string; activeBg: string; text: string }> = {
     'all': { bg: 'bg-slate-100', activeBg: 'bg-slate-700', text: 'text-slate-700' },
-    'national': { bg: 'bg-purple-100', activeBg: 'bg-purple-600', text: 'text-purple-700' },
+    'national': { bg: 'bg-indigo-100', activeBg: 'bg-indigo-600', text: 'text-indigo-700' },
     'IL': { bg: 'bg-blue-100', activeBg: 'bg-blue-500', text: 'text-blue-700' },
-    'MO': { bg: 'bg-red-100', activeBg: 'bg-red-500', text: 'text-red-700' },
-    'KS': { bg: 'bg-yellow-100', activeBg: 'bg-yellow-500', text: 'text-yellow-700' },
-    'OK': { bg: 'bg-orange-100', activeBg: 'bg-orange-500', text: 'text-orange-700' },
-    'TX': { bg: 'bg-red-100', activeBg: 'bg-red-600', text: 'text-red-700' },
-    'NM': { bg: 'bg-teal-100', activeBg: 'bg-teal-500', text: 'text-teal-700' },
-    'AZ': { bg: 'bg-amber-100', activeBg: 'bg-amber-600', text: 'text-amber-700' },
-    'CA': { bg: 'bg-yellow-100', activeBg: 'bg-yellow-500', text: 'text-yellow-700' }
+    'MO': { bg: 'bg-slate-100', activeBg: 'bg-slate-500', text: 'text-slate-700' },
+    'KS': { bg: 'bg-sky-100', activeBg: 'bg-sky-500', text: 'text-sky-700' },
+    'OK': { bg: 'bg-blue-100', activeBg: 'bg-[#1B60A3]', text: 'text-[#1B60A3]' },
+    'TX': { bg: 'bg-slate-100', activeBg: 'bg-slate-600', text: 'text-slate-700' },
+    'NM': { bg: 'bg-cyan-100', activeBg: 'bg-cyan-500', text: 'text-cyan-700' },
+    'AZ': { bg: 'bg-indigo-100', activeBg: 'bg-indigo-500', text: 'text-indigo-700' },
+    'CA': { bg: 'bg-sky-100', activeBg: 'bg-sky-400', text: 'text-sky-700' }
   };
 
   const getLabel = (state: EventState | 'all'): string => {
@@ -60,7 +60,7 @@ const StateFilter: React.FC<StateFilterProps> = ({ selectedState, onStateChange 
                 ? `${styles.activeBg} text-white border-transparent shadow-md` 
                 : `${styles.bg} ${styles.text} border-transparent hover:border-slate-300`
               }
-              ${isOklahoma && !isActive ? 'ring-2 ring-orange-300 ring-offset-1' : ''}
+              ${isOklahoma && !isActive ? 'ring-2 ring-[#1B60A3] ring-offset-1' : ''}
             `}
             aria-pressed={isActive}
             aria-label={`Filter by ${getLabel(state)}, ${count} events`}

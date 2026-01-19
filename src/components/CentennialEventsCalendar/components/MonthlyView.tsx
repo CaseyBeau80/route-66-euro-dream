@@ -53,11 +53,11 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({ selectedMonth, onMonthChange 
     }
   };
 
-  // Highlight colors for months with more events
+  // Highlight colors for months with more events (cool blue palette)
   const getMonthStyle = (count: number, isSelected: boolean) => {
-    if (isSelected) return 'bg-orange-500 text-white border-orange-500';
-    if (count >= 5) return 'bg-orange-100 border-orange-300 text-orange-700';
-    if (count >= 3) return 'bg-amber-50 border-amber-200 text-amber-700';
+    if (isSelected) return 'bg-[#1B60A3] text-white border-[#1B60A3]';
+    if (count >= 5) return 'bg-blue-100 border-blue-300 text-blue-700';
+    if (count >= 3) return 'bg-sky-50 border-sky-200 text-sky-700';
     if (count > 0) return 'bg-slate-50 border-slate-200 text-slate-700';
     return 'bg-slate-50/50 border-slate-100 text-slate-400';
   };
@@ -111,7 +111,7 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({ selectedMonth, onMonthChange 
                   flex-shrink-0 flex flex-col items-center p-2 rounded-lg border-2
                   min-w-[70px] transition-all duration-200 hover:scale-105
                   ${getMonthStyle(count, isSelected)}
-                  ${hasHighlightEvent && !isSelected ? 'ring-2 ring-amber-400 ring-offset-1' : ''}
+                  ${hasHighlightEvent && !isSelected ? 'ring-2 ring-[#1B60A3] ring-offset-1' : ''}
                 `}
                 aria-pressed={isSelected}
                 aria-label={`${month.name} 2026, ${count} events`}
@@ -136,7 +136,7 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({ selectedMonth, onMonthChange 
                 
                 {/* Highlight indicator */}
                 {hasHighlightEvent && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full" />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#1B60A3] rounded-full" />
                 )}
               </button>
             );
@@ -158,11 +158,11 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({ selectedMonth, onMonthChange 
       {/* Legend */}
       <div className="flex items-center justify-center gap-4 mt-3 text-xs text-slate-500">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-orange-100 border border-orange-300" />
+          <div className="w-3 h-3 rounded bg-blue-100 border border-blue-300" />
           <span>5+ events</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-full bg-amber-400" />
+          <div className="w-2 h-2 rounded-full bg-[#1B60A3]" />
           <span>Featured events</span>
         </div>
       </div>

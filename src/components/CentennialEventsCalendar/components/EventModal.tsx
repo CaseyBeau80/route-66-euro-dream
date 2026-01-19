@@ -69,17 +69,17 @@ const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
     }
   };
 
-  // State color mapping for accent
+  // State color mapping for accent (cool blue/gray palette)
   const stateColorMap: Record<string, string> = {
     'IL': 'bg-blue-500',
-    'MO': 'bg-red-500',
-    'KS': 'bg-yellow-500',
-    'OK': 'bg-orange-500',
-    'TX': 'bg-red-600',
-    'NM': 'bg-teal-500',
-    'AZ': 'bg-amber-600',
-    'CA': 'bg-yellow-400',
-    'national': 'bg-purple-600'
+    'MO': 'bg-slate-500',
+    'KS': 'bg-sky-500',
+    'OK': 'bg-[#1B60A3]',
+    'TX': 'bg-slate-600',
+    'NM': 'bg-cyan-500',
+    'AZ': 'bg-indigo-500',
+    'CA': 'bg-sky-400',
+    'national': 'bg-indigo-600'
   };
 
   return (
@@ -115,14 +115,14 @@ const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
           )}
 
           {/* Date & Countdown */}
-          <div className="flex items-center justify-between bg-orange-50 rounded-lg p-3">
+          <div className="flex items-center justify-between bg-blue-50 rounded-lg p-3">
             <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-orange-600" />
+              <Calendar className="h-5 w-5 text-[#1B60A3]" />
               <span className="font-semibold text-slate-800">
                 {formatDateRange(event.dateStart, event.dateEnd)}
               </span>
             </div>
-            <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+            <Badge variant="secondary" className="bg-blue-100 text-[#155187]">
               <Clock className="h-3 w-3 mr-1" />
               {countdown}
             </Badge>
@@ -130,7 +130,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
 
           {/* Location */}
           <div className="flex items-start gap-2">
-            <MapPin className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <MapPin className="h-5 w-5 text-[#1B60A3] flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-slate-800">{event.location}</p>
               {event.venue && (
@@ -182,7 +182,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
           {event.officialUrl && (
             <button 
               onClick={() => openMobileAwareLink(event.officialUrl!, event.title, { forceNewTab: true })}
-              className="flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium transition-colors cursor-pointer"
+              className="flex items-center gap-2 text-[#1B60A3] hover:text-[#155187] font-medium transition-colors cursor-pointer"
             >
               <ExternalLink className="h-4 w-4" />
               Visit Official Event Page
