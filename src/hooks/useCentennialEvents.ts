@@ -24,6 +24,7 @@ interface DatabaseEvent {
 }
 
 // Transform database row (snake_case) to frontend format (camelCase)
+// Normalize category to lowercase to match frontend EventCategory type
 const transformEvent = (dbEvent: DatabaseEvent): CentennialEvent => ({
   id: dbEvent.event_id,
   title: dbEvent.title,
@@ -34,7 +35,7 @@ const transformEvent = (dbEvent: DatabaseEvent): CentennialEvent => ({
   venue: dbEvent.venue || undefined,
   state: dbEvent.state as CentennialEvent['state'],
   description: dbEvent.description,
-  category: dbEvent.category as CentennialEvent['category'],
+  category: dbEvent.category.toLowerCase() as CentennialEvent['category'],
   isHighlight: dbEvent.is_highlight,
   officialUrl: dbEvent.official_url || undefined,
   guinnessAttempt: dbEvent.guinness_attempt,
