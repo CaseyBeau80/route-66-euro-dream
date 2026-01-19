@@ -42,16 +42,20 @@ const transformEvent = (dbEvent: DatabaseEvent): CentennialEvent => ({
 });
 
 const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
+  console.log('[CentennialEvents] Fetching from external Supabase...');
+  
   const { data, error } = await supabase
     .from('centennial_events')
     .select('*')
     .order('date_start', { ascending: true });
 
   if (error) {
-    console.error('Error fetching centennial events:', error);
+    console.error('[CentennialEvents] Error fetching:', error);
     throw error;
   }
 
+  console.log('[CentennialEvents] Fetched', data?.length, 'events. Sample URL:', data?.[0]?.official_url);
+  
   return (data as DatabaseEvent[]).map(transformEvent);
 };
 
@@ -69,13 +73,16 @@ export const useCentennialEvents = () => {
 export const useCentennialEventsWithFallback = () => {
   const { data, isLoading, error } = useCentennialEvents();
   
-  // Fall back to static data if there's an error or still loading
-  const events = error || !data ? staticEvents : data;
+  // Only fall back to static data if there's an actual error, not during loading
+  const events = error ? staticEvents : (data || []);
+  const isUsingFallback = !!error;
+  
+  console.log('[CentennialEvents] Hook state - isLoading:', isLoading, 'hasData:', !!data, 'isUsingFallback:', isUsingFallback);
   
   return {
     events,
     isLoading,
     error,
-    isUsingFallback: !!error || !data,
+    isUsingFallback,
   };
 };
