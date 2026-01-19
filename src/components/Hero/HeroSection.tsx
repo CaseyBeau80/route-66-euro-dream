@@ -268,7 +268,7 @@ const HeroSection: React.FC = () => {
                   <div className="text-sm lg:text-base text-route66-primary text-center max-w-sm">
                     Until the 100th birthday of the Mother Road on November 11, 2026
                   </div>
-                  <div className="text-xs lg:text-sm text-route66-secondary text-center mt-2 flex items-center justify-center gap-2">
+                  <div className="text-xs lg:text-sm text-center mt-2 flex items-center justify-center gap-2 bg-yellow-300 text-blue-700 font-semibold px-4 py-1.5 rounded-full shadow-sm">
                     <span className="inline-block w-2 h-2 bg-[#1B60A3] rounded-full animate-pulse"></span>
                     <span>
                       {celebrationsStarted 
@@ -277,7 +277,7 @@ const HeroSection: React.FC = () => {
                     </span>
                     <button 
                       onClick={scrollToEventsCalendar}
-                      className="text-pink-600 hover:text-pink-700 hover:underline font-bold transition-colors"
+                      className="text-blue-800 hover:text-blue-900 hover:underline font-bold transition-colors"
                     >
                       → View Events
                     </button>
