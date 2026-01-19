@@ -77,15 +77,23 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
       {/* Featured cards carousel */}
       <div className="overflow-hidden">
         <div 
-          className="flex gap-4 transition-transform duration-300"
-          style={{ transform: `translateX(-${currentIndex * (100 / visibleCount)}%)` }}
+          className="flex transition-transform duration-300"
+          style={{ 
+            transform: `translateX(-${currentIndex * (100 / sortedEvents.length)}%)`,
+            width: `${(sortedEvents.length / visibleCount) * 100}%`
+          }}
         >
           {sortedEvents.map((event) => (
-            <FeaturedEventCard 
-              key={event.id} 
-              event={event} 
-              onClick={() => onEventClick(event)}
-            />
+            <div 
+              key={event.id}
+              className="px-2"
+              style={{ width: `${100 / sortedEvents.length}%` }}
+            >
+              <FeaturedEventCard 
+                event={event} 
+                onClick={() => onEventClick(event)}
+              />
+            </div>
           ))}
         </div>
       </div>
@@ -137,7 +145,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.67rem)] group"
+      className="w-full group"
     >
       <div className={`
         relative overflow-hidden rounded-xl p-4 h-full min-h-[180px]
