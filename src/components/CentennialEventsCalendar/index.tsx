@@ -57,13 +57,13 @@ const CentennialEventsCalendar: React.FC = () => {
 
   return (
     <section 
-      className="py-12 sm:py-16 bg-gradient-to-br from-orange-50 via-amber-50/50 to-slate-50"
+      className="py-12 sm:py-16 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"
       aria-labelledby="events-calendar-heading"
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-blue-100 text-[#1B60A3] px-4 py-1.5 rounded-full text-sm font-medium mb-4">
             <Calendar className="h-4 w-4" />
             <span>2026 Centennial Events</span>
           </div>
@@ -81,7 +81,7 @@ const CentennialEventsCalendar: React.FC = () => {
           </p>
 
           {/* Pro tip callout */}
-          <div className="inline-block bg-amber-100 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
+          <div className="inline-block bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm text-blue-800">
             <strong>💡 Plan ahead!</strong> Book accommodations early for major events like the 
             April 30 National Kickoff and June Road Fest.
           </div>
@@ -100,7 +100,7 @@ const CentennialEventsCalendar: React.FC = () => {
           <TabsList className="w-full justify-start mb-6 flex-wrap gap-1 h-auto p-1 bg-slate-100/80">
             <TabsTrigger 
               value="local" 
-              className="flex items-center gap-1.5 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
+              className="flex items-center gap-1.5 data-[state=active]:bg-[#1B60A3] data-[state=active]:text-white"
             >
               <MapPin className="h-3.5 w-3.5" />
               Oklahoma (Local)
@@ -183,7 +183,7 @@ const CentennialEventsCalendar: React.FC = () => {
               href={dataSourceInfo.officialSite}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-orange-500 hover:text-orange-600 inline-flex items-center gap-1"
+              className="text-[#1B60A3] hover:text-[#155187] inline-flex items-center gap-1"
             >
               {dataSourceInfo.source}
               <ExternalLink className="h-3 w-3" />

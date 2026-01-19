@@ -17,22 +17,22 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
   const stateInfo = stateMetadata[event.state];
   const categoryInfo = categoryMetadata[event.category];
   
-  // State color mapping for border
+  // State color mapping for border (cool blue/gray palette)
   const stateColorMap: Record<string, string> = {
     'IL': 'border-l-blue-500',
-    'MO': 'border-l-red-500',
-    'KS': 'border-l-yellow-500',
-    'OK': 'border-l-orange-500',
-    'TX': 'border-l-red-600',
-    'NM': 'border-l-teal-500',
-    'AZ': 'border-l-amber-600',
-    'CA': 'border-l-yellow-400',
-    'national': 'border-l-purple-600'
+    'MO': 'border-l-slate-500',
+    'KS': 'border-l-sky-400',
+    'OK': 'border-l-[#1B60A3]',
+    'TX': 'border-l-slate-600',
+    'NM': 'border-l-cyan-500',
+    'AZ': 'border-l-indigo-500',
+    'CA': 'border-l-sky-300',
+    'national': 'border-l-indigo-600'
   };
 
   return (
     <Card 
-      className={`group overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-orange-400 cursor-pointer relative border-l-4 ${stateColorMap[event.state]} shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1`}
+      className={`group overflow-hidden bg-white/95 backdrop-blur-sm border-2 border-slate-200 hover:border-[#1B60A3] cursor-pointer relative border-l-4 ${stateColorMap[event.state]} shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1`}
       onClick={() => onClick(event)}
       role="button"
       tabIndex={0}
@@ -46,11 +46,11 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
     >
       {/* Highlight glow for featured events */}
       {event.isHighlight && (
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-100/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100/50 to-transparent pointer-events-none" />
       )}
       
       {/* Header with badges */}
-      <div className="bg-gradient-to-r from-slate-50 to-orange-50/50 p-3 border-b border-slate-200">
+      <div className="bg-gradient-to-r from-slate-50 to-blue-50/30 p-3 border-b border-slate-200">
         <div className="flex items-center justify-between gap-2 mb-2">
           {/* State badge */}
           <Badge 
@@ -77,7 +77,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
         </div>
         
         {/* Title */}
-        <h3 className="font-bold text-base text-slate-800 group-hover:text-orange-700 transition-colors duration-300 line-clamp-2">
+        <h3 className="font-bold text-base text-slate-800 group-hover:text-[#1B60A3] transition-colors duration-300 line-clamp-2">
           {event.title}
         </h3>
       </div>
@@ -90,13 +90,13 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
         
         {/* Date */}
         <div className="flex items-center gap-2 text-sm text-slate-700">
-          <Calendar className="h-4 w-4 text-orange-500 flex-shrink-0" />
+          <Calendar className="h-4 w-4 text-[#1B60A3] flex-shrink-0" />
           <span className="font-medium">{formatDateRange(event.dateStart, event.dateEnd)}</span>
         </div>
         
         {/* Location */}
         <div className="flex items-start gap-2 text-sm text-slate-600">
-          <MapPin className="h-4 w-4 text-orange-500 flex-shrink-0 mt-0.5" />
+          <MapPin className="h-4 w-4 text-[#1B60A3] flex-shrink-0 mt-0.5" />
           <div>
             <span>{event.location}</span>
             {event.venue && (
@@ -111,7 +111,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
         </p>
         
         {/* View details link */}
-        <div className="flex items-center gap-1 text-xs text-orange-600 group-hover:text-orange-700 font-medium pt-1">
+        <div className="flex items-center gap-1 text-xs text-[#1B60A3] group-hover:text-[#155187] font-medium pt-1">
           <span>View details</span>
           <ExternalLink className="h-3 w-3" />
         </div>

@@ -31,17 +31,17 @@ const LocalHighlights: React.FC<LocalHighlightsProps> = ({ onEventClick }) => {
   );
 
   return (
-    <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-5 border-2 border-orange-200">
+    <div className="bg-gradient-to-br from-blue-50 to-slate-50 rounded-xl p-5 border-2 border-blue-200">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
-        <div className="flex items-center justify-center w-10 h-10 bg-orange-500 rounded-full">
+        <div className="flex items-center justify-center w-10 h-10 bg-[#1B60A3] rounded-full">
           <MapPin className="h-5 w-5 text-white" />
         </div>
         <div>
           <h3 className="font-bold text-lg text-slate-800">Oklahoma Highlights</h3>
           <p className="text-sm text-slate-600">Perfect for Tulsa-area road trips!</p>
         </div>
-        <Badge className="ml-auto bg-orange-500 text-white">
+        <Badge className="ml-auto bg-[#1B60A3] text-white">
           {oklahomaEvents.length} events
         </Badge>
       </div>
@@ -52,7 +52,7 @@ const LocalHighlights: React.FC<LocalHighlightsProps> = ({ onEventClick }) => {
           <button
             key={event.id}
             onClick={() => onEventClick(event)}
-            className="w-full text-left bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01] border border-orange-100"
+            className="w-full text-left bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01] border border-blue-100"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
@@ -65,7 +65,7 @@ const LocalHighlights: React.FC<LocalHighlightsProps> = ({ onEventClick }) => {
                 
                 {/* Title with star for highlights */}
                 <div className="flex items-center gap-1.5">
-                  <Star className="h-4 w-4 text-amber-500 fill-amber-500 flex-shrink-0" />
+                  <Star className="h-4 w-4 text-[#1B60A3] fill-[#1B60A3] flex-shrink-0" />
                   <h4 className="font-bold text-slate-800">{event.title}</h4>
                 </div>
                 
@@ -79,7 +79,7 @@ const LocalHighlights: React.FC<LocalHighlightsProps> = ({ onEventClick }) => {
               
               {/* Date & countdown */}
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-medium text-orange-600">
+                <p className="text-sm font-medium text-[#1B60A3]">
                   {formatDateRange(event.dateStart, event.dateEnd)}
                 </p>
                 <Badge variant="outline" className="text-xs mt-1">
@@ -100,12 +100,12 @@ const LocalHighlights: React.FC<LocalHighlightsProps> = ({ onEventClick }) => {
               <button
                 key={event.id}
                 onClick={() => onEventClick(event)}
-                className="text-left bg-white/70 rounded-lg p-2.5 hover:bg-white transition-colors border border-orange-100/50"
+                className="text-left bg-white/70 rounded-lg p-2.5 hover:bg-white transition-colors border border-blue-100/50"
               >
                 <p className="font-medium text-sm text-slate-800 line-clamp-1">{event.title}</p>
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-xs text-slate-500">{event.location}</span>
-                  <span className="text-xs text-orange-600 font-medium">
+                  <span className="text-xs text-[#1B60A3] font-medium">
                     {formatDateRange(event.dateStart, event.dateEnd)}
                   </span>
                 </div>
@@ -116,8 +116,8 @@ const LocalHighlights: React.FC<LocalHighlightsProps> = ({ onEventClick }) => {
       )}
 
       {/* Pro tip */}
-      <div className="mt-4 p-3 bg-orange-100/50 rounded-lg border border-orange-200">
-        <p className="text-xs text-orange-800">
+      <div className="mt-4 p-3 bg-blue-100/50 rounded-lg border border-blue-200">
+        <p className="text-xs text-blue-800">
           <strong>💡 Pro Tip:</strong> The AAA Route 66 Road Fest and Capital Cruise in Tulsa are 
           signature national events—book accommodations early! The Capital Cruise is an official 
           Guinness World Records™ attempt.

@@ -39,9 +39,9 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+          <Star className="h-5 w-5 text-[#1B60A3] fill-[#1B60A3]" />
           <h3 className="text-lg font-bold text-slate-800">Featured Events</h3>
-          <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+          <Badge variant="secondary" className="bg-blue-100 text-[#1B60A3]">
             {sortedEvents.length} highlights
           </Badge>
         </div>
@@ -95,7 +95,7 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
             onClick={() => setCurrentIndex(i * visibleCount)}
             className={`h-2 rounded-full transition-all ${
               Math.floor(currentIndex / visibleCount) === i 
-                ? 'w-6 bg-orange-500' 
+                ? 'w-6 bg-[#1B60A3]' 
                 : 'w-2 bg-slate-300 hover:bg-slate-400'
             }`}
             aria-label={`Go to featured events page ${i + 1}`}
@@ -117,17 +117,17 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
   const categoryInfo = categoryMetadata[event.category];
   const countdown = getCountdownText(event.dateStart);
   
-  // State gradient backgrounds
+  // State gradient backgrounds (cool blue/gray palette with subtle neon glow)
   const stateGradients: Record<string, string> = {
     'IL': 'from-blue-500 to-blue-600',
-    'MO': 'from-red-500 to-red-600',
-    'KS': 'from-yellow-500 to-yellow-600',
-    'OK': 'from-orange-500 to-orange-600',
-    'TX': 'from-red-600 to-red-700',
-    'NM': 'from-teal-500 to-teal-600',
-    'AZ': 'from-amber-500 to-amber-600',
-    'CA': 'from-yellow-400 to-yellow-500',
-    'national': 'from-purple-500 to-purple-600'
+    'MO': 'from-slate-500 to-slate-600',
+    'KS': 'from-sky-400 to-sky-500',
+    'OK': 'from-[#1B60A3] to-[#155187]',
+    'TX': 'from-slate-600 to-slate-700',
+    'NM': 'from-cyan-500 to-cyan-600',
+    'AZ': 'from-indigo-500 to-indigo-600',
+    'CA': 'from-sky-300 to-sky-400',
+    'national': 'from-indigo-600 to-indigo-700'
   };
 
   return (
@@ -138,7 +138,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
       <div className={`
         relative overflow-hidden rounded-xl p-4 h-full min-h-[180px]
         bg-gradient-to-br ${stateGradients[event.state]}
-        text-white shadow-lg hover:shadow-xl
+        text-white shadow-lg hover:shadow-xl hover:shadow-[#1B60A3]/20
         transition-all duration-300 hover:scale-[1.02]
       `}>
         {/* Decorative elements */}
