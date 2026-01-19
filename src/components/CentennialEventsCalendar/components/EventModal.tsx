@@ -36,9 +36,9 @@ interface EventModalProps {
 const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
   if (!event) return null;
 
-  const stateInfo = stateMetadata[event.state];
-  const categoryInfo = categoryMetadata[event.category];
-  const countdown = getCountdownText(event.dateStart);
+  const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-gray-500' };
+  const categoryInfo = categoryMetadata[event.category] || { label: 'Event', emoji: '📅' };
+  const countdown = getCountdownText(event.dateDisplay);
 
   const handleGoogleCalendar = () => {
     const url = createGoogleCalendarUrl(event);
@@ -119,7 +119,7 @@ const EventModal: React.FC<EventModalProps> = ({ event, isOpen, onClose }) => {
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-[#1B60A3]" />
               <span className="font-semibold text-slate-800">
-                {formatDateRange(event.dateStart, event.dateEnd)}
+                {event.dateDisplay}
               </span>
             </div>
             <Badge variant="secondary" className="bg-blue-100 text-[#155187]">
