@@ -95,6 +95,9 @@ export type Database = {
         | "screening"
         | "speaker-series"
         | "other"
+        | "bicycles"
+        | "motorcycles"
+        | "runs"
       event_state:
         | "IL"
         | "MO"
@@ -242,6 +245,9 @@ export const Constants = {
         "screening",
         "speaker-series",
         "other",
+        "bicycles",
+        "motorcycles",
+        "runs",
       ],
       event_state: ["IL", "MO", "KS", "OK", "TX", "NM", "AZ", "CA", "national"],
     },
