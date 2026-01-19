@@ -12,9 +12,10 @@ interface EventCardProps {
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
-  // Use dateDisplay for countdown since it's the reliable field from the database
-  const countdown = getCountdownText(event.dateDisplay);
-  const isSoon = isEventSoon(event.dateDisplay);
+  // Use dateStart (ISO format) with dateDisplay as fallback for reliable parsing
+  const dateForCountdown = event.dateStart || event.dateDisplay;
+  const countdown = getCountdownText(dateForCountdown);
+  const isSoon = isEventSoon(dateForCountdown);
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-gray-500' };
   const categoryInfo = categoryMetadata[event.category] || { label: 'Event', emoji: '📅' };
   
