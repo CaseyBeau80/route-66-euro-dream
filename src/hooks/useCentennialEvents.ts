@@ -54,22 +54,25 @@ const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
     throw error;
   }
 
-  // Debug: Find the 100th Anniversary event and log its date
-  const anniversaryEvent = data?.find(e => e.title?.includes('100th Anniversary'));
-  if (anniversaryEvent) {
-    console.log('[CentennialEvents] Anniversary event raw data:', {
-      title: anniversaryEvent.title,
-      date_start: anniversaryEvent.date_start,
-      date_display: anniversaryEvent.date_display,
-      typeOfDateStart: typeof anniversaryEvent.date_start
-    });
-  }
-
   console.log('[CentennialEvents] Fetched', data?.length, 'events');
   
-  // Debug: Log motorcycle events
+  // Debug: Log ALL unique categories from database
+  const uniqueCategories = [...new Set(data?.map(e => e.category) || [])];
+  console.log('[CentennialEvents] All categories in DB:', uniqueCategories);
+  
+  // Debug: Log motorcycle, bicycle, and runs events
   const motorcycleEvents = data?.filter(e => e.category === 'motorcycles');
-  console.log('[CentennialEvents] Motorcycle events:', motorcycleEvents?.length, motorcycleEvents);
+  const bicycleEvents = data?.filter(e => e.category === 'bicycles');
+  const runsEvents = data?.filter(e => e.category === 'runs');
+  console.log('[CentennialEvents] New category counts:', {
+    motorcycles: motorcycleEvents?.length || 0,
+    bicycles: bicycleEvents?.length || 0,
+    runs: runsEvents?.length || 0
+  });
+  
+  if (motorcycleEvents && motorcycleEvents.length > 0) {
+    console.log('[CentennialEvents] Motorcycle events found:', motorcycleEvents);
+  }
   
   return (data as DatabaseEvent[]).map(transformEvent);
 };
