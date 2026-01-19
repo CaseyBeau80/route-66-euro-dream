@@ -3,7 +3,7 @@
 // Last updated: January 18, 2026
 
 export type EventState = 'IL' | 'MO' | 'KS' | 'OK' | 'TX' | 'NM' | 'AZ' | 'CA' | 'national';
-export type EventCategory = 'kickoff' | 'parade' | 'festival' | 'car-show' | 'concert' | 'caravan' | 'screening' | 'speaker-series' | 'other';
+export type EventCategory = 'kickoff' | 'parade' | 'festival' | 'car-show' | 'concert' | 'caravan' | 'screening' | 'speaker-series' | 'bicycles' | 'motorcycles' | 'runs' | 'other';
 
 export interface CentennialEvent {
   id: string;
@@ -434,6 +434,9 @@ export const categoryMetadata: Record<EventCategory, { label: string; emoji: str
   'caravan': { label: 'Caravan', emoji: '🚙' },
   'screening': { label: 'Screening', emoji: '🎬' },
   'speaker-series': { label: 'Speaker Series', emoji: '🎤' },
+  'bicycles': { label: 'Bicycles', emoji: '🚴' },
+  'motorcycles': { label: 'Motorcycles', emoji: '🏍️' },
+  'runs': { label: 'Runs', emoji: '🏃' },
   'other': { label: 'Special Event', emoji: '⭐' }
 };
 
