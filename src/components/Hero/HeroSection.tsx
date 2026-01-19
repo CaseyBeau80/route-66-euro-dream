@@ -12,29 +12,75 @@ import { forceDeferredRender } from "@/components/performance/DeferredComponent"
 import { forceTimeSlicedRender } from "@/components/performance/TimeSlicedComponent";
 import { navigateToSection } from "@/utils/sectionNavigator";
 
-// No props needed - English only
+// Multilingual content - English displayed by default, ready for future language switching
 const heroContent = {
   en: {
-    title: "Plan <span class='underline'>Your</span> Route 66 Vacation 👇",
-    painPoints: ["Too much time spent spinning your Route 66 wheels?", "Are you bouncing between websites, still unsure where or how to start your Route 66 trip?", "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?", "Here. You come right here (and it's all free)."],
+    brandName: "RAMBLE 66",
+    centennialLine: "Celebrate 100 Years of the Mother Road",
+    tagline: "Hidden Gems • Classic Diners • Must-See Stops",
+    taglineSubtitle: "Along Historic Route 66",
+    painPoints: [
+      "Too much time spent spinning your Route 66 wheels?",
+      "Are you bouncing between websites, still unsure where or how to start your Route 66 trip?",
+      "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?",
+      "Here. You come right here (and it's all free)."
+    ],
     ctaButton: "Start Exploring",
     mascotAlt: "Big Bo Ramble - Route 66 Mascot"
   },
   de: {
-    title: "Planen Sie Ihren Route 66 Urlaub ohne Kopfschmerzen",
-    painPoints: ["Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?", "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst? Planung sollte sich nicht wie Rätselraten anfühlen.", "Fragst du dich, wo andere hingehen, um ihre Route 66-Reise zu planen — Stadtveranstaltungen, Attraktionen, versteckte Perlen, Drive-Ins, Diners, Wetter, Fahrzeiten und Zielstopps?", "Hier. Du kommst genau hierher — und es ist alles kostenlos."],
+    brandName: "RAMBLE 66",
+    centennialLine: "Feiern Sie 100 Jahre Mother Road",
+    tagline: "Versteckte Perlen • Klassische Diners • Sehenswertes",
+    taglineSubtitle: "Entlang der historischen Route 66",
+    painPoints: [
+      "Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?",
+      "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst?",
+      "Fragst du dich, wo andere hingehen, um ihre Route 66-Reise zu planen — Stadtveranstaltungen, Attraktionen, versteckte Perlen, Drive-Ins, Diners, Wetter, Fahrzeiten und Zielstopps?",
+      "Hier. Du kommst genau hierher — und es ist alles kostenlos."
+    ],
     ctaButton: "Erkunden Beginnen",
     mascotAlt: "Big Bo Ramble - Route 66 Maskottchen"
   },
   fr: {
-    title: "Planifiez Vos Vacances Route 66 sans mal de tête",
-    painPoints: ["Trop de temps passé à faire tourner vos roues de Route 66?", "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66? La planification ne devrait pas ressembler à de la devinette.", "Vous vous demandez où les autres vont pour planifier leur voyage Route 66 — événements de ville, attractions, joyaux cachés, drive-ins, restaurants, météo, temps de direction et arrêts de destination?", "Ici. Vous venez exactement ici — et c'est tout gratuit."],
+    brandName: "RAMBLE 66",
+    centennialLine: "Célébrez 100 Ans de la Mother Road",
+    tagline: "Joyaux Cachés • Diners Classiques • Incontournables",
+    taglineSubtitle: "Le Long de la Route 66 Historique",
+    painPoints: [
+      "Trop de temps passé à faire tourner vos roues de Route 66?",
+      "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66?",
+      "Vous vous demandez où les autres vont pour planifier leur voyage Route 66 — événements de ville, attractions, joyaux cachés, drive-ins, restaurants, météo?",
+      "Ici. Vous venez exactement ici — et c'est tout gratuit."
+    ],
     ctaButton: "Commencer l'Exploration",
     mascotAlt: "Big Bo Ramble - Mascotte Route 66"
   },
+  es: {
+    brandName: "RAMBLE 66",
+    centennialLine: "Celebra 100 Años de la Mother Road",
+    tagline: "Joyas Ocultas • Diners Clásicos • Paradas Imperdibles",
+    taglineSubtitle: "A Lo Largo de la Histórica Ruta 66",
+    painPoints: [
+      "¿Demasiado tiempo perdido girando las ruedas en la Ruta 66?",
+      "¿Saltando entre sitios web, aún sin saber dónde o cómo empezar tu viaje por la Ruta 66?",
+      "¿Te preguntas dónde otros planifican su viaje por la Ruta 66 — eventos, atracciones, joyas ocultas, drive-ins, diners, clima y paradas?",
+      "Aquí. Vienes exactamente aquí — y todo es gratis."
+    ],
+    ctaButton: "Empezar a Explorar",
+    mascotAlt: "Big Bo Ramble - Mascota Ruta 66"
+  },
   "pt-BR": {
-    title: "Planeje Suas Férias na Rota 66 sem dor de cabeça",
-    painPoints: ["Muito tempo gasto girando as rodas da Rota 66?", "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66? O planejamento não deveria parecer adivinhação.", "Imaginando onde outros vão para planejar sua viagem na Rota 66 — eventos da cidade, atrações, joias escondidas, drive-ins, restaurantes, clima, tempos de direção e paradas de destino?", "Aqui. Você vem exatamente aqui — e é tudo gratuito."],
+    brandName: "RAMBLE 66",
+    centennialLine: "Celebre 100 Anos da Mother Road",
+    tagline: "Joias Escondidas • Diners Clássicos • Paradas Imperdíveis",
+    taglineSubtitle: "Ao Longo da Histórica Rota 66",
+    painPoints: [
+      "Muito tempo gasto girando as rodas da Rota 66?",
+      "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66?",
+      "Imaginando onde outros vão para planejar sua viagem na Rota 66 — eventos da cidade, atrações, joias escondidas, drive-ins, restaurantes, clima?",
+      "Aqui. Você vem exatamente aqui — e é tudo gratuito."
+    ],
     ctaButton: "Começar a Explorar",
     mascotAlt: "Big Bo Ramble - Mascote Rota 66"
   }
@@ -89,10 +135,33 @@ const HeroSection: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Column - Pain Points Content */}
             <div className="space-y-4">
-              {/* Title - Bold, uppercase, bright blue */}
-              <h1 className="text-3xl lg:text-4xl xl:text-5xl font-route66 font-bold uppercase leading-tight text-route66-primary">
-                Ramble 66 – Hidden Gems, Classic Diners & Must-See Stops
-              </h1>
+              {/* New Layered Header Structure */}
+              <div className="text-center lg:text-left mb-2">
+                {/* Brand Name */}
+                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase tracking-wider text-route66-primary mb-2">
+                  {content.brandName}
+                </h1>
+                
+                {/* Decorative Divider */}
+                <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                  <div className="h-0.5 w-12 bg-gradient-to-r from-transparent to-route66-accent"></div>
+                  <div className="w-2 h-2 bg-route66-accent rotate-45"></div>
+                  <div className="h-0.5 w-12 bg-gradient-to-l from-transparent to-route66-accent"></div>
+                </div>
+                
+                {/* Centennial Celebration Line */}
+                <p className="text-2xl lg:text-3xl xl:text-4xl font-highway font-bold text-pink-600 mb-3 animate-fade-in">
+                  {content.centennialLine}
+                </p>
+                
+                {/* Value Proposition Tagline */}
+                <p className="text-lg lg:text-xl text-route66-primary-light font-semibold tracking-wide">
+                  {content.tagline}
+                </p>
+                <p className="text-base lg:text-lg text-route66-text-secondary italic mt-1">
+                  {content.taglineSubtitle}
+                </p>
+              </div>
 
               {/* Pain Points - Tightly stacked with blue text */}
               <div className="space-y-3">
