@@ -160,10 +160,26 @@ export const getUpcomingEvents = (count: number = 3): CentennialEvent[] => {
 const safeParseDate = (dateString: string | null | undefined): Date | null => {
   if (!dateString) return null;
   
-  // Handle ISO date format (YYYY-MM-DD) - add time to avoid timezone issues
+  // Handle ISO date format (YYYY-MM-DD)
   if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     const [year, month, day] = dateString.split('-').map(Number);
     return new Date(year, month - 1, day);
+  }
+  
+  // Handle DD-Mon-YY format (e.g., "11-Nov-26")
+  const monthMap: Record<string, number> = {
+    'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+    'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+  };
+  
+  const ddMonYYMatch = dateString.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2})$/);
+  if (ddMonYYMatch) {
+    const day = parseInt(ddMonYYMatch[1], 10);
+    const month = monthMap[ddMonYYMatch[2]];
+    const year = 2000 + parseInt(ddMonYYMatch[3], 10); // Assume 20xx century
+    if (month !== undefined) {
+      return new Date(year, month, day);
+    }
   }
   
   const date = new Date(dateString);
