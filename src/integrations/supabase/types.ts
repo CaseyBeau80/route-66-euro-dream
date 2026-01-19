@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      centennial_events: {
+        Row: {
+          category: Database["public"]["Enums"]["event_category"]
+          created_at: string | null
+          date_display: string
+          date_end: string | null
+          date_start: string
+          description: string
+          event_id: string
+          guinness_attempt: boolean | null
+          guinness_note: string | null
+          id: string
+          image_url: string | null
+          is_highlight: boolean | null
+          location: string
+          official_url: string | null
+          state: Database["public"]["Enums"]["event_state"]
+          title: string
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["event_category"]
+          created_at?: string | null
+          date_display: string
+          date_end?: string | null
+          date_start: string
+          description: string
+          event_id: string
+          guinness_attempt?: boolean | null
+          guinness_note?: string | null
+          id?: string
+          image_url?: string | null
+          is_highlight?: boolean | null
+          location: string
+          official_url?: string | null
+          state: Database["public"]["Enums"]["event_state"]
+          title: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["event_category"]
+          created_at?: string | null
+          date_display?: string
+          date_end?: string | null
+          date_start?: string
+          description?: string
+          event_id?: string
+          guinness_attempt?: boolean | null
+          guinness_note?: string | null
+          id?: string
+          image_url?: string | null
+          is_highlight?: boolean | null
+          location?: string
+          official_url?: string | null
+          state?: Database["public"]["Enums"]["event_state"]
+          title?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +85,26 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      event_category:
+        | "kickoff"
+        | "parade"
+        | "festival"
+        | "car-show"
+        | "concert"
+        | "caravan"
+        | "screening"
+        | "speaker-series"
+        | "other"
+      event_state:
+        | "IL"
+        | "MO"
+        | "KS"
+        | "OK"
+        | "TX"
+        | "NM"
+        | "AZ"
+        | "CA"
+        | "national"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +231,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      event_category: [
+        "kickoff",
+        "parade",
+        "festival",
+        "car-show",
+        "concert",
+        "caravan",
+        "screening",
+        "speaker-series",
+        "other",
+      ],
+      event_state: ["IL", "MO", "KS", "OK", "TX", "NM", "AZ", "CA", "national"],
+    },
   },
 } as const

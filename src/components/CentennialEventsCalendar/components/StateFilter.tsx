@@ -19,7 +19,7 @@ const StateFilter: React.FC<StateFilterProps> = ({ selectedState, onStateChange 
     'all', 'national', 'IL', 'MO', 'KS', 'OK', 'TX', 'NM', 'AZ', 'CA'
   ];
 
-  // State display info with colors (cool blue/gray palette)
+  // State display info with colors (cool blue/gray palette - ALL STATES EQUAL)
   const stateStyles: Record<EventState | 'all', { bg: string; activeBg: string; text: string }> = {
     'all': { bg: 'bg-slate-100', activeBg: 'bg-slate-700', text: 'text-slate-700' },
     'national': { bg: 'bg-indigo-100', activeBg: 'bg-indigo-600', text: 'text-indigo-700' },
@@ -46,9 +46,6 @@ const StateFilter: React.FC<StateFilterProps> = ({ selectedState, onStateChange 
         const styles = stateStyles[state];
         const count = getCount(state);
         
-        // Highlight Oklahoma with a special ring
-        const isOklahoma = state === 'OK';
-        
         return (
           <button
             key={state}
@@ -60,7 +57,6 @@ const StateFilter: React.FC<StateFilterProps> = ({ selectedState, onStateChange 
                 ? `${styles.activeBg} text-white border-transparent shadow-md` 
                 : `${styles.bg} ${styles.text} border-transparent hover:border-slate-300`
               }
-              ${isOklahoma && !isActive ? 'ring-2 ring-[#1B60A3] ring-offset-1' : ''}
             `}
             aria-pressed={isActive}
             aria-label={`Filter by ${getLabel(state)}, ${count} events`}

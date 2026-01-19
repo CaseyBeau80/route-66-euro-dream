@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ListingItem } from '../types';
@@ -13,7 +12,7 @@ export const useRoute66Waypoints = () => {
       try {
         console.log('🛣️ Fetching Route 66 waypoints with images...');
         
-        const { data: waypoints, error } = await supabase
+        const { data: waypoints, error } = await (supabase as any)
           .from('route66_waypoints')
           .select('*')
           .order('sequence_order')
@@ -21,7 +20,7 @@ export const useRoute66Waypoints = () => {
 
         if (!error && waypoints) {
           console.log(`🛣️ Fetched ${waypoints.length} waypoints with images`);
-          setItems(waypoints.map(waypoint => ({
+          setItems(waypoints.map((waypoint: any) => ({
             id: waypoint.id,
             name: waypoint.name,
             description: waypoint.description,

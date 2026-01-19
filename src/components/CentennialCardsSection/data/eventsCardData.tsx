@@ -1,11 +1,19 @@
 import React from 'react';
 import { Calendar, MapPin, Clock } from 'lucide-react';
 import { CentennialCardData } from './types';
-import { getUpcomingEvents, formatDateRange, getCountdownText } from '@/components/CentennialEventsCalendar/utils/eventCalendarHelpers';
+import { useCentennialEventsWithFallback } from '@/hooks/useCentennialEvents';
+import { formatDateRange, getCountdownText } from '@/components/CentennialEventsCalendar/utils/eventCalendarHelpers';
 
 // Dynamic content that shows next 2-3 upcoming events
 const UpcomingEventsPreview: React.FC = () => {
-  const upcomingEvents = getUpcomingEvents(3);
+  const { events } = useCentennialEventsWithFallback();
+  
+  // Get upcoming events (sorted by date, future only)
+  const today = new Date();
+  const upcomingEvents = events
+    .filter(e => new Date(e.dateStart) >= today)
+    .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime())
+    .slice(0, 3);
   
   return (
     <div className="text-center space-y-3 relative" aria-label="Upcoming Route 66 centennial events">
@@ -45,7 +53,7 @@ const UpcomingEventsPreview: React.FC = () => {
           
           {/* Event count */}
           <div className="mt-2 text-xs text-orange-500">
-            35+ events across 8 states
+            {events.length}+ events across 8 states
           </div>
         </div>
       </div>

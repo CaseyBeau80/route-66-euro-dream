@@ -37,7 +37,7 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
       try {
         console.log('🎯 Fetching attractions from attractions table...');
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('attractions')
           .select('*')
           .order('name');
