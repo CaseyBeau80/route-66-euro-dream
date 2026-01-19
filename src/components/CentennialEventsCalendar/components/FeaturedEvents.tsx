@@ -147,14 +147,11 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
         <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8" />
         
         <div className="relative z-10 h-full flex flex-col">
-          {/* Top badges */}
-          <div className="flex items-center justify-between mb-2">
+          {/* Top badge */}
+          <div className="flex items-center mb-2">
             <Badge className="bg-white/20 text-white border-0 text-xs">
               {categoryInfo.emoji} {categoryInfo.label}
             </Badge>
-            <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
-              {countdown}
-            </span>
           </div>
 
           {/* Guinness badge if applicable */}
