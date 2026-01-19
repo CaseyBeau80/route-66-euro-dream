@@ -6,7 +6,7 @@ import cakeImage from "@/assets/cake-single-shield-v2.png";
 import cakeImageWebP from "@/assets/cake-single-shield-v2.png"; // Using same file for now
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 import { PictureOptimized } from "@/components/ui/PictureOptimized";
-import { smoothScrollToSection } from "@/utils/smoothScroll";
+import { smoothScrollToSection, smoothScrollToSectionWithRetry } from "@/utils/smoothScroll";
 
 // No props needed - English only
 const heroContent = {
@@ -54,7 +54,7 @@ const HeroSection: React.FC = () => {
   };
   
   const scrollToEventsCalendar = () => {
-    smoothScrollToSection('events-calendar');
+    smoothScrollToSectionWithRetry('events-calendar');
   };
   
   const scrollToTripPlanner = () => {
@@ -62,7 +62,7 @@ const HeroSection: React.FC = () => {
   };
   
   const scrollToSocial = () => {
-    smoothScrollToSection('social');
+    smoothScrollToSectionWithRetry('social');
   };
   return <>
       <section className="relative min-h-fit bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
