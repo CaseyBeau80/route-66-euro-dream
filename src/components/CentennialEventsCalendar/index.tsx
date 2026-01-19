@@ -23,8 +23,10 @@ const CentennialEventsCalendar: React.FC = () => {
     filteredEvents,
     selectedState,
     selectedMonth,
+    selectedCategory,
     setSelectedState,
     setSelectedMonth,
+    setSelectedCategory,
     resetFilters,
     highlightedEvents,
     totalEventCount
@@ -75,7 +77,7 @@ const CentennialEventsCalendar: React.FC = () => {
 
         {/* Filter Bar - Combined State + Month */}
         <div className="mb-6">
-          <FilterBar selectedState={selectedState} selectedMonth={selectedMonth} onStateChange={setSelectedState} onMonthChange={setSelectedMonth} onReset={resetFilters} eventCount={filteredEvents.length} totalCount={totalEventCount} />
+          <FilterBar selectedState={selectedState} selectedMonth={selectedMonth} selectedCategory={selectedCategory} onStateChange={setSelectedState} onMonthChange={setSelectedMonth} onCategoryChange={setSelectedCategory} onReset={resetFilters} eventCount={filteredEvents.length} totalCount={totalEventCount} />
         </div>
 
         {/* Events Grid */}

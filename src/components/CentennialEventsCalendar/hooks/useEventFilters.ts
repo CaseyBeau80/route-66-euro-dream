@@ -7,9 +7,11 @@ interface UseEventFiltersReturn {
   filteredEvents: CentennialEvent[];
   selectedState: EventState | 'all';
   selectedMonth: number | 'all'; // 0-11 for months, 'all' for all
+  selectedCategory: EventCategory | 'all';
   sortType: SortType;
   setSelectedState: (state: EventState | 'all') => void;
   setSelectedMonth: (month: number | 'all') => void;
+  setSelectedCategory: (category: EventCategory | 'all') => void;
   setSortType: (type: SortType) => void;
   resetFilters: () => void;
   getEventCountByState: (state: EventState) => number;
@@ -22,6 +24,7 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
   // Default to showing all events
   const [selectedState, setSelectedState] = useState<EventState | 'all'>('all');
   const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'all'>('all');
   const [sortType, setSortType] = useState<SortType>('date');
 
   // Sort events chronologically by default
@@ -40,7 +43,7 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     });
   }, [sortType]);
 
-  // Filter events based on current filters - COMBINABLE state + month
+  // Filter events based on current filters - COMBINABLE state + month + category
   const filteredEvents = useMemo(() => {
     let filtered = [...events];
 
@@ -57,8 +60,13 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
       });
     }
 
+    // Apply category filter (combinable with state and month)
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(e => e.category === selectedCategory);
+    }
+
     return sortEvents(filtered);
-  }, [events, selectedState, selectedMonth, sortEvents]);
+  }, [events, selectedState, selectedMonth, selectedCategory, sortEvents]);
 
   // Get highlighted/featured events - pure chronological sort
   const highlightedEvents = useMemo(() => {
@@ -84,6 +92,7 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
   const resetFilters = useCallback(() => {
     setSelectedState('all');
     setSelectedMonth('all');
+    setSelectedCategory('all');
     setSortType('date');
   }, []);
 
@@ -91,9 +100,11 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     filteredEvents,
     selectedState,
     selectedMonth,
+    selectedCategory,
     sortType,
     setSelectedState,
     setSelectedMonth,
+    setSelectedCategory,
     setSortType,
     resetFilters,
     getEventCountByState,
