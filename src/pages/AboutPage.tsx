@@ -124,12 +124,12 @@ const AboutPage = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a
-                  href="mailto:info@ramble66.com"
+              <a
+                  href="mailto:hello@ramble66.com"
                   className="inline-flex items-center gap-2 bg-route66-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-route66-primary-dark transition-colors"
                 >
                   <Mail className="h-5 w-5" />
-                  info@ramble66.com
+                  hello@ramble66.com
                 </a>
                 
                 <span className="text-route66-text-muted">or</span>
