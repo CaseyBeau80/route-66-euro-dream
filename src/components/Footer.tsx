@@ -58,8 +58,8 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2">
               <li>
-                <a href="mailto:info@ramble66.com" className="text-white/70 hover:text-white transition-colors text-sm">
-                  info@ramble66.com
+                <a href="mailto:hello@ramble66.com" className="text-white/70 hover:text-white transition-colors text-sm">
+                  hello@ramble66.com
                 </a>
               </li>
             </ul>
@@ -70,7 +70,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between">
           <div className="text-white/60 text-sm mb-4 md:mb-0">
-            © 2025 Ramble66 | Contact: <a href="mailto:info@ramble66.com" className="text-white/70 hover:text-white transition-colors">info@ramble66.com</a>
+            © 2025 Ramble66 | Contact: <a href="mailto:hello@ramble66.com" className="text-white/70 hover:text-white transition-colors">hello@ramble66.com</a>
           </div>
           <div>
             <Link to="#" className="text-white/60 text-sm hover:text-white transition-colors">

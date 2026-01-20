@@ -60,10 +60,10 @@ const ContactPage = () => {
                       <div>
                         <h3 className="font-semibold text-route66-text-primary mb-1">Email</h3>
                         <a 
-                          href="mailto:info@ramble66.com" 
+                          href="mailto:hello@ramble66.com" 
                           className="text-route66-primary hover:underline"
                         >
-                          info@ramble66.com
+                          hello@ramble66.com
                         </a>
                         <p className="text-route66-text-secondary text-sm mt-1">
                           General inquiries, partnerships, and support
@@ -148,7 +148,7 @@ const ContactPage = () => {
                       className="w-full bg-route66-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-route66-primary-dark transition-colors"
                       onClick={(e) => {
                         e.preventDefault();
-                        window.location.href = 'mailto:info@ramble66.com?subject=Contact Form Inquiry';
+                        window.location.href = 'mailto:hello@ramble66.com?subject=Contact Form Inquiry';
                       }}
                     >
                       Send Message
