@@ -83,7 +83,7 @@ export const DeferredComponent: React.FC<DeferredComponentProps> = ({
   }, [isVisible, delay, shouldRender]);
 
   return (
-    <div ref={elementRef}>
+    <div ref={elementRef} style={!shouldRender ? { minHeight: '100px' } : undefined}>
       {shouldRender ? children : fallback}
     </div>
   );
