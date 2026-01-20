@@ -40,7 +40,7 @@ export const usePhotoRotation = (config: UsePhotoRotationConfig = {}) => {
       setLoading(true);
       const { data, error } = await (supabase as any)
         .from('photo_challenges')
-        .select('id, photo_url, stop_id, created_at, is_trailblazer, user_session_id, location, hashtag')
+        .select('id, photo_url, stop_id, created_at, is_trailblazer, user_session_id, location, hashtag, moderation_result')
         .not('moderation_result', 'is', null)
         .order('created_at', { ascending: false })
         .limit(totalPhotos);
