@@ -80,19 +80,6 @@ const CentennialEventsCalendar: React.FC = () => {
           <FilterBar selectedState={selectedState} selectedMonth={selectedMonth} selectedCategory={selectedCategory} onStateChange={setSelectedState} onMonthChange={setSelectedMonth} onCategoryChange={setSelectedCategory} onReset={resetFilters} eventCount={filteredEvents.length} totalCount={totalEventCount} />
         </div>
 
-        {/* Submit Event CTA */}
-        <div className="mb-6 text-center">
-          <p className="text-slate-600 mb-3">
-            Have an event you'd like added to the calendar?
-          </p>
-          <a
-            href="mailto:hello@ramble66.com?subject=Event Submission for Route 66 Centennial&body=Event Title:%0A%0AEvent Date(s):%0A%0ALocation/State:%0A%0ADescription:%0A%0ALink (if any):%0A%0AYour Name / Contact Info:%0A%0AThanks for helping make the 2026 Route 66 calendar complete!"
-            className="inline-block bg-[#1B60A3] text-white px-6 py-2 rounded-md hover:bg-[#155187] transition-colors font-medium"
-          >
-            Submit Your Event →
-          </a>
-        </div>
-
         {/* Events Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredEvents.map(event => <EventCard key={event.id} event={event} onClick={handleEventClick} />)}
