@@ -17,9 +17,9 @@ export const useSocialPhotoUpload = () => {
     resultsRef
   } = useEnhancedPhotoUpload();
 
-  const handleSocialUpload = async (file: File) => {
+  const handleSocialUpload = async (file: File, location?: string, hashtag?: string) => {
     try {
-      const result = await baseHandleUpload(file, 'social-photo-spot');
+      const result = await baseHandleUpload(file, 'social-photo-spot', location, hashtag);
       
       // Track uploaded photos for the session
       if (result.success && result.photoUrl) {
