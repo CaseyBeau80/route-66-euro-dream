@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar, ExternalLink, Loader2 } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Calendar, Loader2, ChevronDown } from 'lucide-react';
 import { CentennialEvent } from '@/data/centennialEventsData';
 import { useCentennialEventsWithFallback } from '@/hooks/useCentennialEvents';
 import { useEventFilters } from './hooks/useEventFilters';
@@ -7,9 +7,16 @@ import EventCard from './components/EventCard';
 import EventModal from './components/EventModal';
 import FilterBar from './components/FilterBar';
 import FeaturedEvents from './components/FeaturedEvents';
+import { Button } from '@/components/ui/button';
+
+const ITEMS_PER_PAGE = 12;
+
 const CentennialEventsCalendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CentennialEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Fetch events from database with static fallback
   const {
@@ -39,6 +46,32 @@ const CentennialEventsCalendar: React.FC = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
   };
+
+  // Computed values for pagination
+  const displayedEvents = filteredEvents.slice(0, visibleCount);
+  const hasMoreEvents = visibleCount < filteredEvents.length;
+  const remainingCount = filteredEvents.length - visibleCount;
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [selectedState, selectedMonth, selectedCategory]);
+
+  // Smooth scroll to button after loading more
+  useEffect(() => {
+    if (visibleCount > ITEMS_PER_PAGE && loadMoreRef.current) {
+      loadMoreRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [visibleCount]);
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount(prev => prev + ITEMS_PER_PAGE);
+      setIsLoadingMore(false);
+    }, 300);
+  };
+
   return <section className="py-12 sm:py-16 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white" aria-labelledby="events-calendar-heading">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -80,10 +113,42 @@ const CentennialEventsCalendar: React.FC = () => {
           <FilterBar selectedState={selectedState} selectedMonth={selectedMonth} selectedCategory={selectedCategory} onStateChange={setSelectedState} onMonthChange={setSelectedMonth} onCategoryChange={setSelectedCategory} onReset={resetFilters} eventCount={filteredEvents.length} totalCount={totalEventCount} />
         </div>
 
-        {/* Events Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredEvents.map(event => <EventCard key={event.id} event={event} onClick={handleEventClick} />)}
+        {/* Events Grid with aria-live for screen readers */}
+        <div 
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          aria-live="polite"
+          aria-atomic="false"
+        >
+          {displayedEvents.map(event => <EventCard key={event.id} event={event} onClick={handleEventClick} />)}
         </div>
+
+        {/* See More Button */}
+        {hasMoreEvents && (
+          <div ref={loadMoreRef} className="flex flex-col items-center mt-8 gap-2">
+            <Button
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              variant="outline"
+              size="lg"
+              className="bg-white hover:bg-blue-50 border-[#1B60A3] text-[#1B60A3] hover:text-[#155187] font-medium px-8 py-3 disabled:opacity-70"
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4 mr-2" />
+                  See More Events
+                </>
+              )}
+            </Button>
+            <p className="text-sm text-slate-500">
+              {remainingCount} more event{remainingCount !== 1 ? 's' : ''} to explore
+            </p>
+          </div>
+        )}
 
         {/* Empty state */}
         {filteredEvents.length === 0 && !isLoading && <div className="text-center py-12">
