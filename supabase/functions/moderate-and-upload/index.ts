@@ -1,6 +1,14 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { Profanity } from "npm:@2toad/profanity";
+
+// Initialize profanity filter with partial word matching for leetspeak detection
+const profanity = new Profanity({ 
+  wholeWord: false  // Catches leetspeak variants like "a55hole"
+});
+// Optional: Add custom Route 66-specific blocked terms
+// profanity.addWords(['route66sucks', 'motherroadhate']);
 
 const ALLOWED_ORIGINS = new Set<string>([
   'https://ramble66.com',
@@ -91,6 +99,8 @@ serve(async (req) => {
     const tripId = String(formData.get('tripId') || '');
     const stopId = String(formData.get('stopId') || '');
     const userSessionId = String(formData.get('userSessionId') || '');
+    const location = String(formData.get('location') || '').trim().slice(0, 60);
+    const hashtag = String(formData.get('hashtag') || '').trim().slice(0, 30);
 
     console.log('📋 Form data received:', {
       hasImageFile: !!imageFile,
@@ -98,8 +108,30 @@ serve(async (req) => {
       imageFileSize: imageFile?.size,
       tripId: tripId ? '[provided]' : '[missing]',
       stopId: stopId ? '[provided]' : '[missing]',
-      userSessionId: userSessionId ? '[provided]' : '[missing]'
+      userSessionId: userSessionId ? '[provided]' : '[missing]',
+      location: location || '[empty]',
+      hashtag: hashtag || '[empty]'
     });
+
+    // Rate limiting: max 3 uploads per session per 10 minutes
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { count, error: countError } = await supabase
+      .from('photo_challenges')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_session_id', userSessionId)
+      .gte('created_at', tenMinutesAgo);
+
+    if (!countError && count !== null && count >= 3) {
+      console.log('🚫 Rate limit exceeded for session:', userSessionId, 'Count:', count);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "You've uploaded 3 photos recently. Please wait a few minutes before uploading more.",
+        rateLimited: true
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     if (!imageFile || !tripId || !stopId || !userSessionId) {
       console.log('❌ Missing required fields');
@@ -210,6 +242,35 @@ serve(async (req) => {
       });
     }
 
+    // Validate text fields for profanity
+    const textModerationFailed: { location?: boolean; hashtag?: boolean } = {};
+    if (location && profanity.exists(location)) {
+      textModerationFailed.location = true;
+    }
+    if (hashtag && profanity.exists(hashtag)) {
+      textModerationFailed.hashtag = true;
+    }
+
+    if (textModerationFailed.location || textModerationFailed.hashtag) {
+      console.log('🚫 Text rejected by profanity filter:', textModerationFailed);
+      
+      // Build specific error message
+      const failedFields: string[] = [];
+      if (textModerationFailed.location) failedFields.push('location');
+      if (textModerationFailed.hashtag) failedFields.push('hashtag');
+      
+      return new Response(JSON.stringify({
+        success: false,
+        allowed: false,
+        error: `Please remove inappropriate language from your ${failedFields.join(' and ')}.`,
+        textModerationFailed,
+        rejectedFields: failedFields
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Generate unique filename
     const fileExt = imageFile.name?.split('.').pop() || 'jpg';
     const fileName = `${crypto.randomUUID()}.${fileExt}`;
@@ -258,7 +319,9 @@ serve(async (req) => {
         trip_id: tripId,
         user_session_id: userSessionId,
         moderation_result: safeSearch,
-        is_trailblazer: isTrailblazer
+        is_trailblazer: isTrailblazer,
+        location: location || null,
+        hashtag: hashtag || null
       })
       .select()
       .single();

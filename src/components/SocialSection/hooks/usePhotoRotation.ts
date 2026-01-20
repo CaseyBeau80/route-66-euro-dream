@@ -8,6 +8,8 @@ interface GalleryPhoto {
   created_at: string;
   is_trailblazer: boolean;
   user_session_id: string;
+  location?: string;
+  hashtag?: string;
 }
 
 interface UsePhotoRotationConfig {
@@ -38,7 +40,7 @@ export const usePhotoRotation = (config: UsePhotoRotationConfig = {}) => {
       setLoading(true);
       const { data, error } = await (supabase as any)
         .from('photo_challenges')
-        .select('*')
+        .select('id, photo_url, stop_id, created_at, is_trailblazer, user_session_id, location, hashtag')
         .not('moderation_result', 'is', null)
         .order('created_at', { ascending: false })
         .limit(totalPhotos);

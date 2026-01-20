@@ -59,7 +59,12 @@ export const useEnhancedPhotoUpload = () => {
     setShowTrailblazerCelebration(false);
   };
 
-  const handleUpload = async (file: File, stopId: string = 'photo-spot'): Promise<EnhancedUploadResult> => {
+  const handleUpload = async (
+    file: File, 
+    stopId: string = 'photo-spot',
+    location?: string,
+    hashtag?: string
+  ): Promise<EnhancedUploadResult> => {
     try {
       // Check upload limit before processing
       if (!canUploadMore) {
@@ -104,6 +109,10 @@ export const useEnhancedPhotoUpload = () => {
       formData.append('tripId', 'b3c134a9-d90a-4a13-b789-10206ddf90ec');
       formData.append('stopId', stopId);
       formData.append('userSessionId', 'challenge-session-' + Date.now());
+      
+      // Add optional location and hashtag
+      if (location) formData.append('location', location);
+      if (hashtag) formData.append('hashtag', hashtag);
 
       console.log('📡 Calling Edge Function...');
 

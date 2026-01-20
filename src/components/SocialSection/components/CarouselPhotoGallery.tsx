@@ -7,7 +7,7 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from '@/components/ui/carousel';
-import { Trophy, Calendar, RotateCcw, Pause, Play } from 'lucide-react';
+import { Trophy, Calendar, RotateCcw, Pause, Play, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TrailblazerService } from '@/services/trailblazerService';
 import { usePhotoRotation } from '../hooks/usePhotoRotation';
@@ -209,9 +209,22 @@ const CarouselPhotoGallery: React.FC = () => {
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center text-xs text-route66-text-secondary">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(photo.created_at)}
+                      {photo.location && (
+                        <div className="flex items-center text-xs text-route66-text-secondary">
+                          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">{photo.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-xs text-route66-text-secondary">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {formatDate(photo.created_at)}
+                        </div>
+                        {photo.hashtag && (
+                          <Badge variant="outline" className="text-xs bg-route66-primary/10 border-route66-primary/30 text-route66-primary">
+                            {photo.hashtag}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
