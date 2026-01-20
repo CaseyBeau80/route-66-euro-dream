@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronDown } from 'lucide-react';
 import UnifiedItemCard from './UnifiedItemCard';
 import { UnifiedRoute66Item } from '../types';
 
@@ -8,96 +8,123 @@ interface VirtualizedCarouselProps {
   items: UnifiedRoute66Item[];
 }
 
-// Pagination settings
-const ITEMS_PER_PAGE = 6; // Show 6 items per page
-const MAX_VISIBLE_ITEMS = 500; // Allow all items to be accessible
+// Progressive loading settings
+const INITIAL_ITEMS_DESKTOP = 6;
+const INITIAL_ITEMS_MOBILE = 4;
+const LOAD_MORE_COUNT = 6;
 
 const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
-  const [currentPage, setCurrentPage] = useState(0);
-  
-  // Limit total items to prevent excessive DOM
-  const limitedItems = useMemo(() => 
-    items.slice(0, MAX_VISIBLE_ITEMS), 
-    [items]
+  const [visibleCount, setVisibleCount] = useState(INITIAL_ITEMS_DESKTOP);
+  const [isLoading, setIsLoading] = useState(false);
+  const [newlyLoadedIndices, setNewlyLoadedIndices] = useState<Set<number>>(new Set());
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile for responsive initial count
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Reset visible count when items change (filters/search) or mobile state changes
+  useEffect(() => {
+    setVisibleCount(isMobile ? INITIAL_ITEMS_MOBILE : INITIAL_ITEMS_DESKTOP);
+    setNewlyLoadedIndices(new Set());
+  }, [isMobile, items.length]);
+
+  const visibleItems = useMemo(() => 
+    items.slice(0, visibleCount), 
+    [items, visibleCount]
   );
-  
-  // Calculate pagination based on limited items
-  const totalPages = Math.ceil(limitedItems.length / ITEMS_PER_PAGE);
-  const startIndex = currentPage * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, limitedItems.length);
-  const currentItems = useMemo(() => 
-    limitedItems.slice(startIndex, endIndex), 
-    [limitedItems, startIndex, endIndex]
-  );
 
-  const canGoNext = currentPage < totalPages - 1;
-  const canGoPrev = currentPage > 0;
+  const hasMoreItems = visibleCount < items.length;
 
-  const handleNextPage = useCallback(() => {
-    if (canGoNext) {
-      setCurrentPage(prev => prev + 1);
-    }
-  }, [canGoNext]);
+  const handleSeeMore = useCallback(() => {
+    setIsLoading(true);
+    const currentCount = visibleCount;
+    
+    // Simulate loading delay for smooth UX
+    setTimeout(() => {
+      const newCount = Math.min(visibleCount + LOAD_MORE_COUNT, items.length);
+      
+      // Track newly loaded items for fade-in animation
+      const newIndices = new Set<number>();
+      for (let i = currentCount; i < newCount; i++) {
+        newIndices.add(i);
+      }
+      setNewlyLoadedIndices(newIndices);
+      setVisibleCount(newCount);
+      setIsLoading(false);
+      
+      // Smooth scroll to first new card after render
+      setTimeout(() => {
+        const firstNewCard = document.querySelector(`[data-index="${currentCount}"]`);
+        if (firstNewCard) {
+          firstNewCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      
+      // Clear animation tracking after animation completes
+      setTimeout(() => setNewlyLoadedIndices(new Set()), 700);
+    }, 300);
+  }, [visibleCount, items.length]);
 
-  const handlePrevPage = useCallback(() => {
-    if (canGoPrev) {
-      setCurrentPage(prev => prev - 1);
-    }
-  }, [canGoPrev]);
-
-  // Reset when items change
-  React.useEffect(() => {
-    setCurrentPage(0);
-  }, [limitedItems.length]);
-
-  if (limitedItems.length === 0) {
+  if (items.length === 0) {
     return null;
   }
 
   return (
-    <div className="space-y-4">
-      {/* Simplified navigation - only show when needed */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrevPage}
-            disabled={!canGoPrev}
-            className="h-8 w-8 p-0"
-            aria-label="Previous page"
+    <div className="space-y-6">
+      {/* Responsive grid layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        {visibleItems.map((item, index) => (
+          <div 
+            key={item.id}
+            data-index={index}
+            className={`w-full transition-all duration-500 ease-out ${
+              newlyLoadedIndices.has(index) ? 'animate-fade-in-up' : ''
+            }`}
           >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm px-2">
-            {currentPage + 1} / {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNextPage}
-            disabled={!canGoNext}
-            className="h-8 w-8 p-0"
-            aria-label="Next page"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-
-      {/* Simplified grid layout - no carousel complexity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {currentItems.map(item => (
-          <div key={item.id} className="w-full">
             <UnifiedItemCard item={item} />
           </div>
         ))}
       </div>
 
-      {/* Show total count info if items were limited */}
-      {items.length > MAX_VISIBLE_ITEMS && (
+      {/* "See More Directory" button */}
+      {hasMoreItems && (
+        <div className="flex justify-center mt-8">
+          <Button
+            onClick={handleSeeMore}
+            disabled={isLoading}
+            className="bg-route66-primary hover:bg-route66-primary-light text-white px-8 py-4 
+                       text-xl font-bold rounded-lg shadow-md hover:shadow-lg 
+                       hover:scale-105 transition-all duration-200 
+                       disabled:opacity-70 disabled:cursor-wait 
+                       min-w-[200px] md:min-w-[280px] h-auto"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Loading...
+              </>
+            ) : (
+              <>
+                See More Directory
+                <span className="ml-2 text-sm opacity-80">
+                  ({items.length - visibleCount} more)
+                </span>
+                <ChevronDown className="h-5 w-5 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* Show count info when all items visible */}
+      {!hasMoreItems && items.length > INITIAL_ITEMS_DESKTOP && (
         <div className="text-center text-sm text-route66-text-secondary">
-          Showing {MAX_VISIBLE_ITEMS} of {items.length} items
+          Showing all {items.length} items
         </div>
       )}
     </div>
