@@ -27,6 +27,19 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | 'all'>('all');
   const [sortType, setSortType] = useState<SortType>('date');
 
+  // Filter out past events - only show upcoming/current events
+  const upcomingEvents = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
+    
+    return events.filter(e => {
+      // Use dateEnd if available (for multi-day events), otherwise use dateStart
+      const eventDate = safeParseDate(e.dateEnd || e.dateStart);
+      if (!eventDate) return true; // Keep events with unparseable dates
+      return eventDate >= today;
+    });
+  }, [events]);
+
   // Sort events chronologically by default
   const sortEvents = useCallback((eventsToSort: CentennialEvent[]): CentennialEvent[] => {
     return [...eventsToSort].sort((a, b) => {
@@ -45,7 +58,7 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
 
   // Filter events based on current filters - COMBINABLE state + month + category
   const filteredEvents = useMemo(() => {
-    let filtered = [...events];
+    let filtered = [...upcomingEvents];
 
     // Apply state filter
     if (selectedState !== 'all') {
@@ -70,28 +83,28 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     }
 
     return sortEvents(filtered);
-  }, [events, selectedState, selectedMonth, selectedCategory, sortEvents]);
+  }, [upcomingEvents, selectedState, selectedMonth, selectedCategory, sortEvents]);
 
-  // Get highlighted/featured events - pure chronological sort
+  // Get highlighted/featured events - pure chronological sort (also excluding past)
   const highlightedEvents = useMemo(() => {
-    return events
+    return upcomingEvents
       .filter(e => e.isHighlight)
       .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
-  }, [events]);
+  }, [upcomingEvents]);
 
-  // Get event count by state
+  // Get event count by state (only upcoming events)
   const getEventCountByState = useCallback((state: EventState): number => {
-    return events.filter(e => e.state === state).length;
-  }, [events]);
+    return upcomingEvents.filter(e => e.state === state).length;
+  }, [upcomingEvents]);
 
-  // Get event count by month
+  // Get event count by month (only upcoming events)
   const getEventCountByMonth = useCallback((month: number): number => {
-    return events.filter(e => {
+    return upcomingEvents.filter(e => {
       const parsedDate = safeParseDate(e.dateStart);
       const eventMonth = parsedDate ? parsedDate.getMonth() : -1;
       return eventMonth === month;
     }).length;
-  }, [events]);
+  }, [upcomingEvents]);
 
   // Reset filters
   const resetFilters = useCallback(() => {
@@ -115,6 +128,6 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     getEventCountByState,
     getEventCountByMonth,
     highlightedEvents,
-    totalEventCount: events.length,
+    totalEventCount: upcomingEvents.length,
   };
 };
