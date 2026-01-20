@@ -260,6 +260,9 @@ const FilterBar: React.FC<FilterBarProps> = ({
             Submit an Event
           </a>
 
+          {/* Vertical Separator */}
+          <div className="h-5 w-px bg-slate-300" />
+
           <div className="text-sm text-slate-600">
             Showing{' '}
             <Badge variant="secondary" className="bg-blue-100 text-[#1B60A3] mx-1">
