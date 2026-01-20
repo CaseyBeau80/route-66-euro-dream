@@ -70,9 +70,9 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
 
   // Use either title or name for display
   const displayName = item.title || item.name;
-  return <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-3 border-route66-primary bg-white shadow-lg hover:border-route66-primary-dark">
-      {/* Image Section */}
-      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-route66-background-section to-route66-background-alt">
+  return <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-3 border-route66-primary bg-white shadow-lg hover:border-route66-primary-dark h-full flex flex-col">
+      {/* Image Section - Fixed height */}
+      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-route66-background-section to-route66-background-alt flex-shrink-0">
         {!imageError && <img src={imageUrl} alt={displayName} loading="lazy" className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setImageLoaded(true)} onError={() => {
         setImageError(true);
         setImageLoaded(true);
@@ -100,9 +100,9 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
         {item.featured}
       </div>
 
-      <CardContent className="p-5 bg-white">
-        {/* Title */}
-        <h3 className="font-semibold text-lg text-route66-text-primary mb-2 line-clamp-2 group-hover:text-route66-primary transition-colors">
+      <CardContent className="p-5 bg-white flex-1 flex flex-col">
+        {/* Title - Fixed 2 lines */}
+        <h3 className="font-semibold text-lg text-route66-text-primary mb-2 line-clamp-2 min-h-[3.5rem] group-hover:text-route66-primary transition-colors">
           {displayName}
         </h3>
 
@@ -112,34 +112,24 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
           <span className="truncate">{item.city_name}{item.state && `, ${item.state}`}</span>
         </div>
 
-        {/* Description */}
-        {item.description && <p className="text-sm text-route66-text-muted mb-4 line-clamp-3 flex-1">
-            {item.description}
-          </p>}
+        {/* Description - Fixed 3 lines height */}
+        <p className="text-sm text-route66-text-muted mb-4 line-clamp-3 min-h-[4.5rem]">
+          {item.description || 'A classic Route 66 destination worth exploring on your road trip adventure.'}
+        </p>
 
-        {/* Year Info */}
-        {(item.founded_year || item.year_opened) && <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-4">
-            <Calendar className="h-4 w-4 flex-shrink-0" />
-            <span>
-              {item.founded_year ? `Founded ${item.founded_year}` : `Opened ${item.year_opened}`}
-            </span>
-          </div>}
-
-        {/* Tags */}
-        {item.tags && item.tags.length > 0 && <div className="flex flex-wrap gap-2 mb-4">
-            <div className="flex items-center gap-1 text-xs text-route66-text-muted">
-              <Tag className="h-3 w-3" />
-              <span>Tags:</span>
+        {/* Year Info - Fixed height slot */}
+        <div className="h-6 mb-4">
+          {(item.founded_year || item.year_opened) && (
+            <div className="flex items-center gap-1 text-sm text-route66-text-secondary">
+              <Calendar className="h-4 w-4 flex-shrink-0" />
+              <span>
+                {item.founded_year ? `Founded ${item.founded_year}` : `Opened ${item.year_opened}`}
+              </span>
             </div>
-            {item.tags.slice(0, 3).map((tag, index) => <span key={index} className="bg-route66-background-section text-route66-text-muted px-2 py-1 rounded text-xs border border-route66-divider">
-                {tag}
-              </span>)}
-            {item.tags.length > 3 && <span className="text-xs text-route66-text-muted">
-                +{item.tags.length - 3} more
-              </span>}
-          </div>}
+          )}
+        </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Always at bottom */}
         <div className="flex gap-2 mt-auto">
           {item.website && <Button variant="outline" size="sm" className="flex-1 h-9 border-route66-border text-route66-text-secondary hover:bg-route66-primary hover:text-white hover:border-route66-primary transition-all duration-200 shadow-sm" onClick={handleWebsiteClick}>
               <ExternalLink className="h-4 w-4 mr-1" />
