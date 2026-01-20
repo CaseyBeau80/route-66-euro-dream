@@ -82,7 +82,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       {/* Additional SEO Meta Tags */}
       <meta name="application-name" content="Ramble 66" />
       <meta name="apple-mobile-web-app-title" content="Ramble 66" />
-      <meta name="msapplication-TileColor" content="#D2041A" />
+      <meta name="msapplication-TileColor" content="#1B60A3" />
       
       {/* Canonical URL */}
       <link rel="canonical" href={canonicalUrl} />
