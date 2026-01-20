@@ -52,21 +52,31 @@ const STATE_OPTIONS: { value: EventState | 'all'; label: string }[] = [
   { value: 'CA', label: 'California' },
 ];
 
-// Category options with icons
+// Category options with icons - popular types first
 const CATEGORY_OPTIONS: { value: EventCategory | 'all'; label: string }[] = [
-  { value: 'all', label: 'All Categories' },
-  { value: 'kickoff', label: `${categoryMetadata['kickoff']?.emoji || '🎉'} Kickoff` },
-  { value: 'parade', label: `${categoryMetadata['parade']?.emoji || '🚗'} Parade` },
-  { value: 'festival', label: `${categoryMetadata['festival']?.emoji || '🎪'} Festival` },
+  { value: 'all', label: '🎯 All Event Types' },
+  // Most popular first
   { value: 'car-show', label: `${categoryMetadata['car-show']?.emoji || '🏎️'} Car Show` },
-  { value: 'concert', label: `${categoryMetadata['concert']?.emoji || '🎵'} Concert` },
-  { value: 'caravan', label: `${categoryMetadata['caravan']?.emoji || '🚐'} Caravan` },
-  { value: 'screening', label: `${categoryMetadata['screening']?.emoji || '🎬'} Screening` },
-  { value: 'speaker-series', label: `${categoryMetadata['speaker-series']?.emoji || '🎤'} Speaker Series` },
-  { value: 'bicycles', label: `${categoryMetadata['bicycles']?.emoji || '🚴'} Bicycles` },
   { value: 'motorcycles', label: `${categoryMetadata['motorcycles']?.emoji || '🏍️'} Motorcycles` },
   { value: 'runs', label: `${categoryMetadata['runs']?.emoji || '🏃'} Runs` },
+  { value: 'festival', label: `${categoryMetadata['festival']?.emoji || '🎪'} Festival` },
+  { value: 'parade', label: `${categoryMetadata['parade']?.emoji || '🚗'} Parade` },
+  // Then the rest
+  { value: 'caravan', label: `${categoryMetadata['caravan']?.emoji || '🚐'} Caravan` },
+  { value: 'bicycles', label: `${categoryMetadata['bicycles']?.emoji || '🚴'} Bicycles` },
+  { value: 'concert', label: `${categoryMetadata['concert']?.emoji || '🎵'} Concert` },
+  { value: 'kickoff', label: `${categoryMetadata['kickoff']?.emoji || '🎉'} Kickoff` },
+  { value: 'screening', label: `${categoryMetadata['screening']?.emoji || '🎬'} Screening` },
+  { value: 'speaker-series', label: `${categoryMetadata['speaker-series']?.emoji || '🎤'} Speaker Series` },
   { value: 'other', label: `${categoryMetadata['other']?.emoji || '📅'} Other` },
+];
+
+// Quick-tap popular categories
+const QUICK_CATEGORIES: { value: EventCategory; label: string }[] = [
+  { value: 'motorcycles', label: '🏍️ Motorcycles' },
+  { value: 'car-show', label: '🏎️ Car Show' },
+  { value: 'runs', label: '🏃 Runs' },
+  { value: 'festival', label: '🎪 Festival' },
 ];
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -98,7 +108,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   };
 
   const getCategoryDisplayName = (category: EventCategory | 'all'): string => {
-    if (category === 'all') return 'All Categories';
+    if (category === 'all') return '🎯 Choose Event Type';
     const meta = categoryMetadata[category];
     return meta ? `${meta.emoji} ${meta.label}` : category;
   };
@@ -133,7 +143,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             value={selectedCategory}
             onValueChange={(value) => onCategoryChange(value as EventCategory | 'all')}
           >
-            <SelectTrigger className="w-full sm:w-[180px] bg-white">
+            <SelectTrigger className="w-full sm:w-[200px] bg-white border-2 border-amber-300 hover:border-amber-400 hover:bg-amber-50 focus:ring-amber-400 transition-all duration-200">
               <SelectValue placeholder="Select category">
                 {getCategoryDisplayName(selectedCategory)}
               </SelectValue>
@@ -147,6 +157,27 @@ const FilterBar: React.FC<FilterBarProps> = ({
             </SelectContent>
           </Select>
         </div>
+
+        {/* Quick Category Chips */}
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <span className="text-xs text-slate-500 mr-1">Quick:</span>
+          {QUICK_CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => onCategoryChange(cat.value)}
+              className={`text-xs px-3 py-1 rounded-full transition-all duration-200 font-medium
+                ${selectedCategory === cat.value
+                  ? 'bg-amber-400 text-amber-900 shadow-sm'
+                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-slate-500 mt-1 hidden sm:block">
+          Car Shows, Motorcycles, Runs, Parades & more...
+        </p>
       </div>
 
       {/* Month Filter Row */}
