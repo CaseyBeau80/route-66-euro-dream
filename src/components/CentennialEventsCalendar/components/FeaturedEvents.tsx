@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Clock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CentennialEvent, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
@@ -49,28 +49,43 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
           </Badge>
         </div>
         
-        {/* Navigation arrows */}
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            className="h-8 w-8"
-            aria-label="Previous featured events"
+        {/* Submit Event CTA + Navigation arrows */}
+        <div className="flex items-center gap-3">
+          {/* Submit Event CTA */}
+          <a
+            href="mailto:hello@ramble66.com?subject=Event Submission for Route 66 Centennial&body=Event Title:%0A%0AEvent Date(s):%0A%0ALocation/State:%0A%0ADescription:%0A%0ALink (if any):%0A%0AYour Name / Contact Info:%0A%0AThanks for helping make the 2026 Route 66 calendar complete!"
+            className="text-sm text-[#1B60A3] hover:text-[#155187] font-medium hover:underline flex items-center gap-1.5"
           >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNext}
-            disabled={currentIndex >= maxIndex}
-            className="h-8 w-8"
-            aria-label="Next featured events"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+            <Mail className="h-3.5 w-3.5" />
+            Submit an Event
+          </a>
+
+          {/* Vertical Separator */}
+          <div className="h-5 w-px bg-slate-300" />
+
+          {/* Navigation arrows */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePrev}
+              disabled={currentIndex === 0}
+              className="h-8 w-8"
+              aria-label="Previous featured events"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNext}
+              disabled={currentIndex >= maxIndex}
+              className="h-8 w-8"
+              aria-label="Next featured events"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
