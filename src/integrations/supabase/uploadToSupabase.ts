@@ -1,6 +1,6 @@
 // src/integrations/supabase/uploadToSupabase.ts
 
-import { supabase } from './client'; // assuming client.ts exports `supabase`
+import { supabase } from '@/lib/supabase';
 
 export async function uploadToSupabase(file: File) {
   const filePath = `uploads/${file.name}`;
