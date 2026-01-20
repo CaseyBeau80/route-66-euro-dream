@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { ChevronLeft, ChevronRight, X, RotateCcw, Mail } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -250,29 +250,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Submit Event CTA */}
-          <a
-            href="mailto:hello@ramble66.com?subject=Event Submission for Route 66 Centennial&body=Event Title:%0A%0AEvent Date(s):%0A%0ALocation/State:%0A%0ADescription:%0A%0ALink (if any):%0A%0AYour Name / Contact Info:%0A%0AThanks for helping make the 2026 Route 66 calendar complete!"
-            className="text-sm text-[#1B60A3] hover:text-[#155187] font-medium hover:underline flex items-center gap-1.5"
-          >
-            <Mail className="h-3.5 w-3.5" />
-            Submit an Event
-          </a>
-
-          {/* Vertical Separator */}
-          <div className="h-5 w-px bg-slate-300" />
-
-          <div className="text-sm text-slate-600">
-            Showing{' '}
-            <Badge variant="secondary" className="bg-blue-100 text-[#1B60A3] mx-1">
-              {eventCount}
-            </Badge>
-            {eventCount !== totalCount && (
-              <span className="text-slate-400">of {totalCount}</span>
-            )}{' '}
-            events
-          </div>
+        <div className="text-sm text-slate-600">
+          Showing{' '}
+          <Badge variant="secondary" className="bg-blue-100 text-[#1B60A3] mx-1">
+            {eventCount}
+          </Badge>
+          {eventCount !== totalCount && (
+            <span className="text-slate-400">of {totalCount}</span>
+          )}{' '}
+          events
         </div>
       </div>
     </div>
