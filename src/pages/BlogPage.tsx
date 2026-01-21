@@ -4,6 +4,7 @@ import MainLayout from '@/components/MainLayout';
 import BlogHero from '@/components/Blog/BlogHero';
 import BlogGrid from '@/components/Blog/BlogGrid';
 import BlogSidebar from '@/components/Blog/BlogSidebar';
+import BlogFooterBanner from '@/components/Blog/BlogFooterBanner';
 import { useBlogPosts } from '@/components/Blog/hooks/useBlogPosts';
 
 const BlogPage: React.FC = () => {
@@ -55,6 +56,8 @@ const BlogPage: React.FC = () => {
           </div>
         </div>
       </section>
+      
+      <BlogFooterBanner />
     </MainLayout>
   );
 };

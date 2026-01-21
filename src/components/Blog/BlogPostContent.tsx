@@ -353,6 +353,19 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         <div className="prose prose-lg max-w-none">
           {renderContent(content)}
         </div>
+        
+        {/* Big Bo Author Note */}
+        <div className="mt-10 p-5 bg-route66-cream/50 rounded-xl border border-route66-sand/50">
+          <p className="text-route66-brown/80 italic leading-relaxed">
+            <span className="font-semibold text-route66-brown not-italic">Big Bo Ramble here</span> — 
+            planning weekly posts with the freshest Route 66 news and tips. Got ideas or photos? 
+            Drop them on the{' '}
+            <Link to="/#social" className="text-route66-primary font-medium hover:underline">
+              Photo Wall
+            </Link>
+            {' '}and let me know!
+          </p>
+        </div>
       </div>
     </article>
   );

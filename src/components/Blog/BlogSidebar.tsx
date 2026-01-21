@@ -81,6 +81,17 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ relatedPosts = [] }) => {
           </Button>
         </Link>
       </div>
+      
+      {/* Weekly Updates Info */}
+      <div className="bg-white rounded-xl p-5 border border-route66-primary/20 shadow-sm">
+        <h3 className="text-base font-bold text-route66-primary mb-2 flex items-center gap-2">
+          🗓️ Fresh Every Week!
+        </h3>
+        <p className="text-route66-brown/70 text-sm leading-relaxed">
+          New Route 66 content every week — latest centennial news, Tulsa tips, hidden gems, events, 
+          and Photo Wall highlights from right here on the Mother Road. Subscribe above so you never miss an update!
+        </p>
+      </div>
     </aside>
   );
 };
