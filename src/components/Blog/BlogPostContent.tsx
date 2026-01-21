@@ -1,10 +1,10 @@
 import React from 'react';
-import { Calendar, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Calendar, ArrowLeft, ExternalLink, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import AuthorBadge from './AuthorBadge';
 import YouTubeEmbed from '../YouTubeEmbed';
-
+import SharePost from './SharePost';
 // Extract YouTube video ID from various URL formats
 const extractYouTubeId = (url: string): string | null => {
   const patterns = [
@@ -207,11 +207,39 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
       // Empty lines
       if (trimmed === '') return null;
       
+      // Handle "Worth Watching:" sections with YouTube - special featured rendering
+      if (trimmed.toLowerCase().startsWith('worth watching:')) {
+        const youtubeUrlInLine = trimmed.match(/(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        
+        if (youtubeUrlInLine && youtubeUrlInLine[4] && youtubeUrlInLine[4].length === 11) {
+          const videoId = youtubeUrlInLine[4];
+          return (
+            <div key={idx} className="my-10 w-full max-w-[800px] mx-auto">
+              <div className="text-lg font-semibold text-route66-primary mb-4 flex items-center gap-2">
+                <Play className="h-5 w-5" />
+                Worth Watching
+              </div>
+              <YouTubeEmbed 
+                videoId={videoId} 
+                title="Worth Watching - Route 66 Video"
+              />
+            </div>
+          );
+        } else {
+          // Fallback: Show as regular paragraph with the link
+          return (
+            <p key={idx} className="mb-4 leading-relaxed text-route66-brown/80">
+              {processInlineElements(trimmed, `p-${idx}`)}
+            </p>
+          );
+        }
+      }
+      
       // Handle standalone YouTube URLs (line is just a URL)
       const youtubeId = extractYouTubeId(trimmed);
       if (youtubeId && /^(https?:\/\/)?(www\.)?youtu/.test(trimmed)) {
         return (
-          <div key={idx} className="my-8 max-w-2xl mx-auto">
+          <div key={idx} className="my-8 w-full max-w-[800px] mx-auto">
             <YouTubeEmbed videoId={youtubeId} title="Route 66 Video" />
           </div>
         );
@@ -221,20 +249,31 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
       const youtubeUrlMatch = trimmed.match(/(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
       if (youtubeUrlMatch) {
         const inlineYoutubeId = youtubeUrlMatch[4];
-        const textWithoutUrl = trimmed.replace(youtubeUrlMatch[0], '').trim();
         
-        return (
-          <React.Fragment key={idx}>
-            {textWithoutUrl && (
-              <p className="mb-4 leading-relaxed text-route66-brown/80">
-                {processInlineElements(textWithoutUrl, `p-${idx}`)}
-              </p>
-            )}
-            <div className="my-8 max-w-2xl mx-auto">
-              <YouTubeEmbed videoId={inlineYoutubeId} title="Route 66 Video" />
-            </div>
-          </React.Fragment>
-        );
+        // Validate the extracted ID
+        if (inlineYoutubeId && inlineYoutubeId.length === 11) {
+          const textWithoutUrl = trimmed.replace(youtubeUrlMatch[0], '').trim();
+          
+          return (
+            <React.Fragment key={idx}>
+              {textWithoutUrl && (
+                <p className="mb-4 leading-relaxed text-route66-brown/80">
+                  {processInlineElements(textWithoutUrl, `p-${idx}`)}
+                </p>
+              )}
+              <div className="my-8 w-full max-w-[800px] mx-auto">
+                <YouTubeEmbed videoId={inlineYoutubeId} title="Route 66 Video" />
+              </div>
+            </React.Fragment>
+          );
+        } else {
+          // Fallback: ID extraction failed, show as clickable link
+          return (
+            <p key={idx} className="mb-4 leading-relaxed text-route66-brown/80">
+              {processInlineElements(trimmed, `p-${idx}`)}
+            </p>
+          );
+        }
       }
       
       // Process paragraphs with inline elements
@@ -276,7 +315,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         </h1>
         
         {/* Author and Date Section */}
-        <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-route66-sand/50">
+        <div className="flex flex-wrap items-center gap-4 mb-4 pb-4 border-b border-route66-sand/50">
           {/* Author Badge with Mascot */}
           <div className="flex items-center gap-3 bg-route66-primary/10 
             px-4 py-2 rounded-full border border-route66-primary/30">
@@ -291,6 +330,12 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
             </span>
           </div>
         </div>
+        
+        {/* Share Section */}
+        <SharePost 
+          title={title} 
+          url={typeof window !== 'undefined' ? window.location.href : ''}
+        />
         
         {/* Tags */}
         {tags && tags.length > 0 && (
