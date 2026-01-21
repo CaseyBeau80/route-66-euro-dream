@@ -41,7 +41,7 @@ const BlogPage: React.FC = () => {
             <div className="lg:col-span-3">
               {error ? (
                 <div className="text-center py-12">
-                  <p className="text-route66-rust">{error}</p>
+                  <p className="text-route66-primary">{error}</p>
                 </div>
               ) : (
                 <BlogGrid posts={posts} isLoading={isLoading} />
