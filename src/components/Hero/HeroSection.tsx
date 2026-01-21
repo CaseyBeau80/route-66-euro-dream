@@ -19,9 +19,9 @@ const heroContent = {
     headline: "100 Years of Hidden Gems, Classic Diners & Must-See Stops",
     subtitle: "Along the Mother Road",
     painPoints: [
-      "Too much time spent spinning your Route 66 wheels?",
-      "Are you bouncing between websites, still unsure where or how to start your Route 66 trip?",
-      "Wondering where others go to plan their Route 66 trip — city events, attractions, hidden gems, drive-ins, diners, weather, driving times, and destination stops?",
+      "Spinning your wheels planning your Route 66 trip?",
+      "Bouncing between websites, still unsure where to start?",
+      "Looking for Route 66 news, events, hidden gems, drive-ins, diners, weather, and drive times — all in one place?",
       "Here. You come right here (and it's all free)."
     ],
     ctaButton: "Start Exploring",
@@ -32,9 +32,9 @@ const heroContent = {
     headline: "100 Jahre Versteckte Perlen, Klassische Diners & Sehenswertes",
     subtitle: "Entlang der Mother Road",
     painPoints: [
-      "Zu viel Zeit damit verbracht, die Route 66 Räder zu drehen?",
-      "Springst du zwischen Websites hin und her, immer noch unsicher, wo oder wie du deine Route 66-Reise beginnen sollst?",
-      "Fragst du dich, wo andere hingehen, um ihre Route 66-Reise zu planen — Stadtveranstaltungen, Attraktionen, versteckte Perlen, Drive-Ins, Diners, Wetter, Fahrzeiten und Zielstopps?",
+      "Drehst du dich im Kreis bei der Planung deiner Route 66-Reise?",
+      "Springst du zwischen Websites hin und her, immer noch unsicher, wo du anfangen sollst?",
+      "Suchst du Route 66 Neuigkeiten, Events, versteckte Perlen, Drive-Ins, Diners, Wetter und Fahrzeiten — alles an einem Ort?",
       "Hier. Du kommst genau hierher — und es ist alles kostenlos."
     ],
     ctaButton: "Erkunden Beginnen",
@@ -45,9 +45,9 @@ const heroContent = {
     headline: "100 Ans de Joyaux Cachés, Diners Classiques & Incontournables",
     subtitle: "Le Long de la Mother Road",
     painPoints: [
-      "Trop de temps passé à faire tourner vos roues de Route 66?",
-      "Vous sautez entre les sites web, toujours incertain de où ou comment commencer votre voyage Route 66?",
-      "Vous vous demandez où les autres vont pour planifier leur voyage Route 66 — événements de ville, attractions, joyaux cachés, drive-ins, restaurants, météo?",
+      "Vous tournez en rond pour planifier votre voyage Route 66?",
+      "Vous sautez entre les sites web, toujours incertain par où commencer?",
+      "Vous cherchez les actualités Route 66, événements, joyaux cachés, drive-ins, restaurants, météo et temps de trajet — tout en un seul endroit?",
       "Ici. Vous venez exactement ici — et c'est tout gratuit."
     ],
     ctaButton: "Commencer l'Exploration",
@@ -58,9 +58,9 @@ const heroContent = {
     headline: "100 Años de Joyas Ocultas, Diners Clásicos & Paradas Imperdibles",
     subtitle: "A Lo Largo de la Mother Road",
     painPoints: [
-      "¿Demasiado tiempo perdido girando las ruedas en la Ruta 66?",
-      "¿Saltando entre sitios web, aún sin saber dónde o cómo empezar tu viaje por la Ruta 66?",
-      "¿Te preguntas dónde otros planifican su viaje por la Ruta 66 — eventos, atracciones, joyas ocultas, drive-ins, diners, clima y paradas?",
+      "¿Dando vueltas planificando tu viaje por la Ruta 66?",
+      "¿Saltando entre sitios web, aún sin saber por dónde empezar?",
+      "¿Buscando noticias de la Ruta 66, eventos, joyas ocultas, drive-ins, diners, clima y tiempos de viaje — todo en un solo lugar?",
       "Aquí. Vienes exactamente aquí — y todo es gratis."
     ],
     ctaButton: "Empezar a Explorar",
@@ -71,9 +71,9 @@ const heroContent = {
     headline: "100 Anos de Joias Escondidas, Diners Clássicos & Paradas Imperdíveis",
     subtitle: "Ao Longo da Mother Road",
     painPoints: [
-      "Muito tempo gasto girando as rodas da Rota 66?",
-      "Você está saltando entre sites, ainda incerto sobre onde ou como começar sua viagem na Rota 66?",
-      "Imaginando onde outros vão para planejar sua viagem na Rota 66 — eventos da cidade, atrações, joias escondidas, drive-ins, restaurantes, clima?",
+      "Girando as rodas planejando sua viagem na Rota 66?",
+      "Pulando entre sites, ainda sem saber por onde começar?",
+      "Procurando notícias da Rota 66, eventos, joias escondidas, drive-ins, restaurantes, clima e tempos de viagem — tudo em um só lugar?",
       "Aqui. Você vem exatamente aqui — e é tudo gratuito."
     ],
     ctaButton: "Começar a Explorar",

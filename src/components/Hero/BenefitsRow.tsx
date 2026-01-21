@@ -34,6 +34,11 @@ const benefitsContent: Record<string, Benefit[]> = {
       title: "Route 66 Events Calendar",
       subtitle: "Discover centennial celebrations, festivals, and car shows across all 8 states",
       targetId: "events-calendar"
+    },
+    {
+      title: "Route 66 Blog & News",
+      subtitle: "Centennial updates, local stories, and what's happening along the Mother Road",
+      targetId: "blog"
     }
   ],
   de: [
@@ -56,6 +61,11 @@ const benefitsContent: Record<string, Benefit[]> = {
       title: "Route 66 Veranstaltungskalender",
       subtitle: "Entdecken Sie Jubiläumsfeiern, Festivals und Autoshows in allen 8 Bundesstaaten",
       targetId: "events-calendar"
+    },
+    {
+      title: "Route 66 Blog & Nachrichten",
+      subtitle: "Jubiläums-Updates, lokale Geschichten und was entlang der Mother Road passiert",
+      targetId: "blog"
     }
   ],
   fr: [
@@ -78,6 +88,11 @@ const benefitsContent: Record<string, Benefit[]> = {
       title: "Calendrier des Événements Route 66",
       subtitle: "Découvrez les célébrations du centenaire, festivals et expositions automobiles dans les 8 états",
       targetId: "events-calendar"
+    },
+    {
+      title: "Blog & Actualités Route 66",
+      subtitle: "Mises à jour du centenaire, histoires locales et ce qui se passe le long de la Mother Road",
+      targetId: "blog"
     }
   ],
   "pt-BR": [
@@ -100,6 +115,11 @@ const benefitsContent: Record<string, Benefit[]> = {
       title: "Calendário de Eventos da Rota 66",
       subtitle: "Descubra celebrações do centenário, festivais e shows de carros em todos os 8 estados",
       targetId: "events-calendar"
+    },
+    {
+      title: "Blog & Notícias da Rota 66",
+      subtitle: "Atualizações do centenário, histórias locais e o que está acontecendo ao longo da Mother Road",
+      targetId: "blog"
     }
   ]
 };
@@ -109,7 +129,7 @@ const BenefitsRow: React.FC<BenefitsRowProps> = ({ language }) => {
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {benefits.map((benefit, index) => (
           <button 
             key={index}
