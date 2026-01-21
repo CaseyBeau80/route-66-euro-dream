@@ -17,6 +17,8 @@ import Index from "./pages/Index";
 // Route-based code splitting - lazy load non-critical pages
 const LazyContactPage = lazy(() => import("./pages/ContactPage"));
 const LazyAboutPage = lazy(() => import("./pages/AboutPage"));
+const LazyBlogPage = lazy(() => import("./pages/BlogPage"));
+const LazyBlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const LazySharedTripPage = lazy(() => import("./pages/SharedTripPage"));
 const LazyNotFound = lazy(() => import("./pages/NotFound"));
 const LazyRobotsTxtPage = lazy(() => import("./pages/RobotsTxtPage"));
@@ -79,6 +81,16 @@ function App() {
                 <Route path="/about" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyAboutPage />
+                  </Suspense>
+                } />
+                <Route path="/blog" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyBlogPage />
+                  </Suspense>
+                } />
+                <Route path="/blog/:slug" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyBlogPostPage />
                   </Suspense>
                 } />
                 <Route path="/trip/:shareCode" element={
