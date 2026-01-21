@@ -263,7 +263,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         {/* Back to Blog */}
         <Link 
           to="/blog" 
-          className="inline-flex items-center gap-2 text-route66-rust hover:text-route66-orange 
+          className="inline-flex items-center gap-2 text-route66-primary hover:text-route66-primary/70 
             transition-colors mb-6 font-medium"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -296,8 +296,8 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {tags.map((tag) => (
-              <span key={tag} className="px-3 py-1 bg-route66-rust/10 
-                text-route66-rust text-sm rounded-full font-medium">
+              <span key={tag} className="px-3 py-1 bg-route66-primary/10 
+                text-route66-primary text-sm rounded-full font-medium">
                 #{tag}
               </span>
             ))}
