@@ -11,6 +11,7 @@ import { Trophy, Calendar, RotateCcw, Pause, Play, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TrailblazerService } from '@/services/trailblazerService';
 import { usePhotoRotation } from '../hooks/usePhotoRotation';
+import { usePhotoGalleryRefresh } from '../context/PhotoGalleryContext';
 
 // No props needed - English only
 
@@ -59,6 +60,7 @@ const content = {
 
 const CarouselPhotoGallery: React.FC = () => {
   const galleryContent = content.en; // Always use English
+  const { refreshKey } = usePhotoGalleryRefresh();
   
   const {
     photos,
@@ -72,7 +74,7 @@ const CarouselPhotoGallery: React.FC = () => {
     totalPhotos: 30,
     displayCount: 6,
     rotationInterval: 8000,
-  });
+  }, refreshKey);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

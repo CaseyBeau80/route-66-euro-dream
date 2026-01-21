@@ -3,6 +3,7 @@ import { Instagram, Users, Heart, MessageCircle } from 'lucide-react';
 import SimpleInstagramCarousel from '../InstagramCarousel/components/SimpleInstagramCarousel';
 import PhotoUploadSection from './components/PhotoUploadSection';
 import CommunityGallery from './components/CommunityGallery';
+import { PhotoGalleryProvider } from './context/PhotoGalleryContext';
 // No props needed - English only
 const socialContent = {
   en: {
@@ -92,32 +93,36 @@ const socialContent = {
 };
 const SocialSection: React.FC = () => {
   const content = socialContent.en; // Always use English
-  return <section className="py-6 bg-route66-background-alt">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="max-w-6xl mx-auto mb-4">
-          <div className="bg-white rounded-xl border-2 border-route66-primary p-2 text-center">
-            <h2 className="text-lg md:text-xl font-bold uppercase text-route66-primary">
-              Join the Photo Wall
-            </h2>
+  return (
+    <PhotoGalleryProvider>
+      <section className="py-6 bg-route66-background-alt">
+        <div className="container mx-auto px-4">
+          {/* Header */}
+          <div className="max-w-6xl mx-auto mb-4">
+            <div className="bg-white rounded-xl border-2 border-route66-primary p-2 text-center">
+              <h2 className="text-lg md:text-xl font-bold uppercase text-route66-primary">
+                Join the Photo Wall
+              </h2>
+            </div>
+          </div>
+
+          {/* Community Gallery */}
+          <div className="mb-4">
+            <CommunityGallery />
+          </div>
+
+          {/* Photo Upload Section */}
+          <div className="mb-4">
+            <PhotoUploadSection />
+          </div>
+
+          {/* Instagram Carousel */}
+          <div className="bg-white p-4 rounded-xl border-2 border-route66-border shadow-lg">
+            <SimpleInstagramCarousel />
           </div>
         </div>
-
-        {/* Community Gallery */}
-        <div className="mb-4">
-          <CommunityGallery />
-        </div>
-
-        {/* Photo Upload Section */}
-        <div className="mb-4">
-          <PhotoUploadSection />
-        </div>
-
-        {/* Instagram Carousel */}
-        <div className="bg-white p-4 rounded-xl border-2 border-route66-border shadow-lg">
-          <SimpleInstagramCarousel />
-        </div>
-      </div>
-    </section>;
+      </section>
+    </PhotoGalleryProvider>
+  );
 };
 export default SocialSection;
