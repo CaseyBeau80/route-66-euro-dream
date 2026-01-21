@@ -113,7 +113,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
         </div>
 
         {/* Description - Fixed 3 lines height */}
-        <p className="text-sm text-route66-text-muted mb-4 line-clamp-3 min-h-[4.5rem]">
+        <p className="text-sm text-route66-text-muted mb-4 line-clamp-3 h-[4.5rem] overflow-hidden">
           {item.description || 'A classic Route 66 destination worth exploring on your road trip adventure.'}
         </p>
 
