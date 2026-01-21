@@ -26,13 +26,13 @@ const AuthorBadge: React.FC<AuthorBadgeProps> = ({
 
   return (
     <div className="flex items-center gap-2">
-      <Avatar className={`${sizeClasses[size]} border-2 border-route66-orange ring-2 ring-route66-rust/20`}>
+      <Avatar className={`${sizeClasses[size]} border-2 border-route66-primary ring-2 ring-route66-primary/20`}>
         <AvatarImage 
           src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
           alt="Big Bo Ramble - Route 66 Mascot"
           className="object-cover"
         />
-        <AvatarFallback className="bg-route66-orange text-white font-bold text-xs">
+        <AvatarFallback className="bg-route66-primary text-white font-bold text-xs">
           BB
         </AvatarFallback>
       </Avatar>

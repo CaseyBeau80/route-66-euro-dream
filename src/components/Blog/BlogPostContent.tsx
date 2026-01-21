@@ -86,8 +86,8 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         {/* Author and Date Section */}
         <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-route66-sand/50">
           {/* Author Badge with Mascot */}
-          <div className="flex items-center gap-3 bg-route66-orange/10 
-            px-4 py-2 rounded-full border border-route66-orange/30">
+          <div className="flex items-center gap-3 bg-route66-primary/10 
+            px-4 py-2 rounded-full border border-route66-primary/30">
             <AuthorBadge authorName={authorName} size="lg" />
           </div>
           
