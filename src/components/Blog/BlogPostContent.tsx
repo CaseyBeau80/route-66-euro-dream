@@ -3,7 +3,20 @@ import { Calendar, ArrowLeft, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import AuthorBadge from './AuthorBadge';
+import YouTubeEmbed from '../YouTubeEmbed';
 
+// Extract YouTube video ID from various URL formats
+const extractYouTubeId = (url: string): string | null => {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+};
 interface BlogPostContentProps {
   title: string;
   content: string;
@@ -193,6 +206,16 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
       
       // Empty lines
       if (trimmed === '') return null;
+      
+      // Handle standalone YouTube URLs
+      const youtubeId = extractYouTubeId(trimmed);
+      if (youtubeId && (trimmed.startsWith('http') || trimmed.startsWith('www'))) {
+        return (
+          <div key={idx} className="my-8 max-w-2xl mx-auto">
+            <YouTubeEmbed videoId={youtubeId} title="Route 66 Video" />
+          </div>
+        );
+      }
       
       // Process paragraphs with inline elements
       return (
