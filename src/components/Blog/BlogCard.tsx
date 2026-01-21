@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar } from 'lucide-react';
+import { ArrowRight, Calendar, Share2 } from 'lucide-react';
 import AuthorBadge from './AuthorBadge';
 import { format } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BlogCardProps {
   slug: string;
@@ -17,6 +18,17 @@ interface BlogCardProps {
 const BlogCard: React.FC<BlogCardProps> = ({
   slug, title, excerpt, featuredImageUrl, publishedAt, authorName, tags
 }) => {
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const postUrl = `${window.location.origin}/blog/${slug}`;
+    const tweetText = encodeURIComponent(`${title} #Route66Centennial`);
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(postUrl)}`;
+    
+    window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <article className="bg-white rounded-xl shadow-md overflow-hidden 
       hover:shadow-xl transition-all duration-300 group border border-route66-sand/30">
@@ -68,14 +80,34 @@ const BlogCard: React.FC<BlogCardProps> = ({
           </div>
         )}
         
-        {/* Read More */}
-        <Link 
-          to={`/blog/${slug}`}
-          className="inline-flex items-center gap-1 text-route66-primary 
-            font-semibold hover:gap-2 transition-all group-hover:underline"
-        >
-          Read More <ArrowRight className="h-4 w-4" />
-        </Link>
+        {/* Footer: Read More + Share */}
+        <div className="flex items-center justify-between">
+          <Link 
+            to={`/blog/${slug}`}
+            className="inline-flex items-center gap-1 text-route66-primary 
+              font-semibold hover:gap-2 transition-all group-hover:underline"
+          >
+            Read More <ArrowRight className="h-4 w-4" />
+          </Link>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleShare}
+                  className="p-2 text-route66-brown/40 hover:text-route66-primary 
+                    hover:bg-route66-primary/10 rounded-full transition-colors"
+                  aria-label="Share this post on X"
+                >
+                  <Share2 className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Share this post</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </article>
   );
