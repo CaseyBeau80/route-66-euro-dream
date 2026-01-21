@@ -17,7 +17,7 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ relatedPosts = [] }) => {
   return (
     <aside className="space-y-6">
       {/* Photo Wall CTA - Links to /#social */}
-      <div className="bg-gradient-to-br from-route66-orange-700 to-route66-orange 
+      <div className="bg-gradient-to-br from-route66-primary-dark to-route66-primary 
         rounded-xl p-6 text-white shadow-lg">
         <div className="flex items-center gap-3 mb-4">
           <Camera className="h-8 w-8" />
@@ -29,7 +29,7 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ relatedPosts = [] }) => {
         <Link to="/#social">
           <Button 
             className="w-full bg-white hover:bg-route66-cream 
-              text-route66-rust font-semibold gap-2"
+              text-route66-primary font-semibold gap-2"
           >
             <Camera className="h-4 w-4" />
             Upload Photo
@@ -76,7 +76,7 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ relatedPosts = [] }) => {
           Get the latest Route 66 news and travel tips delivered to your inbox.
         </p>
         <Link to="/contact">
-          <Button variant="outline" className="w-full border-route66-rust text-route66-rust hover:bg-route66-rust hover:text-white">
+          <Button variant="outline" className="w-full border-route66-primary text-route66-primary hover:bg-route66-primary hover:text-white">
             Subscribe
           </Button>
         </Link>
