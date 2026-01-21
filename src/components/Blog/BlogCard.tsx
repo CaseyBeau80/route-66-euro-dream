@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar, Share2 } from 'lucide-react';
+import { ArrowRight, Calendar, Share2, Check } from 'lucide-react';
 import AuthorBadge from './AuthorBadge';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
 
 interface BlogCardProps {
   slug: string;
@@ -18,15 +19,38 @@ interface BlogCardProps {
 const BlogCard: React.FC<BlogCardProps> = ({
   slug, title, excerpt, featuredImageUrl, publishedAt, authorName, tags
 }) => {
-  const handleShare = (e: React.MouseEvent) => {
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+
+  const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     const postUrl = `${window.location.origin}/blog/${slug}`;
-    const tweetText = encodeURIComponent(`${title} #Route66Centennial`);
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(postUrl)}`;
     
-    window.open(twitterUrl, '_blank', 'noopener,noreferrer');
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Share this post with your friends.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = postUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Share this post with your friends.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -97,9 +121,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
                   onClick={handleShare}
                   className="p-2 text-route66-brown/40 hover:text-route66-primary 
                     hover:bg-route66-primary/10 rounded-full transition-colors"
-                  aria-label="Share this post on X"
+                  aria-label="Copy link to share"
                 >
-                  <Share2 className="h-4 w-4" />
+                  {copied ? (
+                    <Check className="h-4 w-4 text-route66-primary" />
+                  ) : (
+                    <Share2 className="h-4 w-4" />
+                  )}
                 </button>
               </TooltipTrigger>
               <TooltipContent>
