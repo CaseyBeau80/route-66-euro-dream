@@ -24,7 +24,7 @@ const DEFAULT_CONFIG: Required<UsePhotoRotationConfig> = {
   rotationInterval: 8000, // 8 seconds
 };
 
-export const usePhotoRotation = (config: UsePhotoRotationConfig = {}) => {
+export const usePhotoRotation = (config: UsePhotoRotationConfig = {}, refreshKey?: number) => {
   const { totalPhotos, displayCount, rotationInterval } = { ...DEFAULT_CONFIG, ...config };
   
   const [allPhotos, setAllPhotos] = useState<GalleryPhoto[]>([]);
@@ -115,6 +115,13 @@ export const usePhotoRotation = (config: UsePhotoRotationConfig = {}) => {
   useEffect(() => {
     fetchPhotos();
   }, [fetchPhotos]);
+
+  // Re-fetch when refreshKey changes (triggered by upload)
+  useEffect(() => {
+    if (refreshKey !== undefined && refreshKey > 0) {
+      fetchPhotos();
+    }
+  }, [refreshKey, fetchPhotos]);
 
   // Get currently visible photos
   const currentPhotos = visiblePhotoIndices.map(index => allPhotos[index]).filter(Boolean);

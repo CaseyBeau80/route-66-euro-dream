@@ -12,6 +12,7 @@ import TrailblazerCelebration from '@/components/TestUpload/components/Trailblaz
 import UploadSuccessCelebration from './UploadSuccessCelebration';
 import { Profanity } from '@2toad/profanity';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePhotoGalleryRefresh } from '../context/PhotoGalleryContext';
 
 // Initialize profanity filter
 const profanity = new Profanity({ wholeWord: false });
@@ -25,6 +26,8 @@ const content = {
 };
 
 const PhotoUploadSection: React.FC = () => {
+  const { triggerRefresh } = usePhotoGalleryRefresh();
+  
   const [showUpload, setShowUpload] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -144,6 +147,9 @@ const PhotoUploadSection: React.FC = () => {
         setUploadedHashtag(hashtag);
         setPendingConfirmation(false);
         setSelectedFile(null);
+        
+        // Trigger gallery refresh immediately after successful upload
+        triggerRefresh();
         
         // Show success celebration (unless trailblazer celebration takes priority)
         if (!('isTrailblazer' in result && result.isTrailblazer)) {
