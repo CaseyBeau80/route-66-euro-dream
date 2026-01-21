@@ -46,7 +46,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
         {/* Title */}
         <Link to={`/blog/${slug}`}>
           <h3 className="text-xl font-bold text-route66-brown mb-3 
-            group-hover:text-route66-rust transition-colors line-clamp-2">
+            group-hover:text-route66-primary transition-colors line-clamp-2">
             {title}
           </h3>
         </Link>
@@ -60,8 +60,8 @@ const BlogCard: React.FC<BlogCardProps> = ({
         {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {tags.slice(0, 3).map((tag) => (
-              <span key={tag} className="px-2 py-1 bg-route66-orange/10 
-                text-route66-rust text-xs rounded-full font-medium">
+              <span key={tag} className="px-2 py-1 bg-route66-primary/10 
+                text-route66-primary text-xs rounded-full font-medium">
                 {tag}
               </span>
             ))}
@@ -71,7 +71,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
         {/* Read More */}
         <Link 
           to={`/blog/${slug}`}
-          className="inline-flex items-center gap-1 text-route66-rust 
+          className="inline-flex items-center gap-1 text-route66-primary 
             font-semibold hover:gap-2 transition-all group-hover:underline"
         >
           Read More <ArrowRight className="h-4 w-4" />
