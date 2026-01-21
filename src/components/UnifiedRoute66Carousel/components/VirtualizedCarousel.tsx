@@ -76,6 +76,11 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
 
   return (
     <div className="space-y-6">
+      {/* Showing count indicator */}
+      <div className="text-center text-sm text-route66-text-muted">
+        Showing {Math.min(visibleCount, items.length)} of {items.length} locations
+      </div>
+
       {/* Responsive grid layout */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {visibleItems.map((item, index) => (
@@ -121,12 +126,6 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
         </div>
       )}
 
-      {/* Show count info when all items visible */}
-      {!hasMoreItems && items.length > INITIAL_ITEMS_DESKTOP && (
-        <div className="text-center text-sm text-route66-text-secondary">
-          Showing all {items.length} items
-        </div>
-      )}
     </div>
   );
 };
