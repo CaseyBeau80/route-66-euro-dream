@@ -2,6 +2,7 @@
 import React from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import { smoothScrollToSection } from '@/utils/smoothScroll';
+import { useNavigate } from 'react-router-dom';
 
 interface BenefitsRowProps {
   language: string;
@@ -11,6 +12,7 @@ interface Benefit {
   title: string;
   subtitle: string;
   targetId: string;
+  isExternalLink?: boolean;
 }
 
 const benefitsContent: Record<string, Benefit[]> = {
@@ -38,7 +40,8 @@ const benefitsContent: Record<string, Benefit[]> = {
     {
       title: "Route 66 Blog & News",
       subtitle: "Centennial updates, local stories, and what's happening along the Mother Road",
-      targetId: "blog"
+      targetId: "/blog",
+      isExternalLink: true
     }
   ],
   de: [
@@ -65,7 +68,8 @@ const benefitsContent: Record<string, Benefit[]> = {
     {
       title: "Route 66 Blog & Nachrichten",
       subtitle: "Jubiläums-Updates, lokale Geschichten und was entlang der Mother Road passiert",
-      targetId: "blog"
+      targetId: "/blog",
+      isExternalLink: true
     }
   ],
   fr: [
@@ -92,7 +96,8 @@ const benefitsContent: Record<string, Benefit[]> = {
     {
       title: "Blog & Actualités Route 66",
       subtitle: "Mises à jour du centenaire, histoires locales et ce qui se passe le long de la Mother Road",
-      targetId: "blog"
+      targetId: "/blog",
+      isExternalLink: true
     }
   ],
   "pt-BR": [
@@ -119,13 +124,23 @@ const benefitsContent: Record<string, Benefit[]> = {
     {
       title: "Blog & Notícias da Rota 66",
       subtitle: "Atualizações do centenário, histórias locais e o que está acontecendo ao longo da Mother Road",
-      targetId: "blog"
+      targetId: "/blog",
+      isExternalLink: true
     }
   ]
 };
 
 const BenefitsRow: React.FC<BenefitsRowProps> = ({ language }) => {
   const benefits = benefitsContent[language] || benefitsContent.en;
+  const navigate = useNavigate();
+
+  const handleClick = (benefit: Benefit) => {
+    if (benefit.isExternalLink) {
+      navigate(benefit.targetId);
+    } else {
+      smoothScrollToSection(benefit.targetId);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -133,7 +148,7 @@ const BenefitsRow: React.FC<BenefitsRowProps> = ({ language }) => {
         {benefits.map((benefit, index) => (
           <button 
             key={index}
-            onClick={() => smoothScrollToSection(benefit.targetId)}
+            onClick={() => handleClick(benefit)}
             className="bg-white/95 backdrop-blur-sm rounded-xl border border-route66-primary/20 p-6 shadow-lg hover:shadow-xl transition-all duration-300 group text-left cursor-pointer hover:border-route66-primary/40"
           >
             <div className="flex items-start gap-4">
