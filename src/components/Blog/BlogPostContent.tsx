@@ -3,6 +3,7 @@ import { Calendar, ArrowLeft, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import AuthorBadge from './AuthorBadge';
+
 interface BlogPostContentProps {
   title: string;
   content: string;
@@ -19,28 +20,18 @@ const AUTO_LINKS: Record<string, string> = {
   "ROUTE Magazine Centennial Sweepstakes": "https://www.routemagazine.us/centennialsweepstakes",
   "Route 66 Centennial Monument Project": "https://route66centennial.org/commemorate-programs-projects/centennial-monument-project"
 };
+
 const BlogPostContent: React.FC<BlogPostContentProps> = ({
-  title,
-  content,
-  publishedAt,
-  authorName,
-  featuredImageUrl,
-  tags
+  title, content, publishedAt, authorName, featuredImageUrl, tags
 }) => {
   // Process inline elements (markdown links, auto-links, bold)
   const processInlineElements = (text: string, keyPrefix: string): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
     let lastIndex = 0;
-
+    
     // Collect all link matches (markdown links first, then auto-links)
-    const linkMatches: {
-      start: number;
-      end: number;
-      text: string;
-      url: string;
-      isMarkdown: boolean;
-    }[] = [];
-
+    const linkMatches: { start: number; end: number; text: string; url: string; isMarkdown: boolean }[] = [];
+    
     // 1. Find markdown links [text](url)
     const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
     let match;
@@ -53,44 +44,42 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         isMarkdown: true
       });
     }
-
+    
     // 2. Find auto-link phrases (only if not overlapping with markdown links)
     Object.entries(AUTO_LINKS).forEach(([phrase, url]) => {
       let index = text.indexOf(phrase);
       while (index !== -1) {
         // Check if this overlaps with any markdown link
-        const overlaps = linkMatches.some(m => m.isMarkdown && index >= m.start && index < m.end);
+        const overlaps = linkMatches.some(m => 
+          m.isMarkdown && index >= m.start && index < m.end
+        );
         if (!overlaps) {
-          linkMatches.push({
-            start: index,
-            end: index + phrase.length,
-            text: phrase,
-            url,
-            isMarkdown: false
-          });
+          linkMatches.push({ start: index, end: index + phrase.length, text: phrase, url, isMarkdown: false });
         }
         index = text.indexOf(phrase, index + phrase.length);
       }
     });
-
+    
     // 3. Check for "Photo Wall" internal link
     const photoWallIndex = text.indexOf("Photo Wall");
     if (photoWallIndex !== -1) {
-      const overlaps = linkMatches.some(m => m.isMarkdown && photoWallIndex >= m.start && photoWallIndex < m.end);
+      const overlaps = linkMatches.some(m => 
+        m.isMarkdown && photoWallIndex >= m.start && photoWallIndex < m.end
+      );
       if (!overlaps) {
-        linkMatches.push({
-          start: photoWallIndex,
-          end: photoWallIndex + "Photo Wall".length,
-          text: "Photo Wall",
+        linkMatches.push({ 
+          start: photoWallIndex, 
+          end: photoWallIndex + "Photo Wall".length, 
+          text: "Photo Wall", 
           url: "/#social",
           isMarkdown: false
         });
       }
     }
-
+    
     // Sort matches by position
     linkMatches.sort((a, b) => a.start - b.start);
-
+    
     // Build elements array
     linkMatches.forEach((linkMatch, idx) => {
       // Add text before this match
@@ -98,30 +87,46 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         const beforeText = text.slice(lastIndex, linkMatch.start);
         elements.push(...processTextWithBold(beforeText, `${keyPrefix}-pre-${idx}`));
       }
-
+      
       // Add the link
       if (linkMatch.url.startsWith('/') || linkMatch.url.startsWith('#')) {
         // Internal link
-        elements.push(<Link key={`${keyPrefix}-link-${idx}`} to={linkMatch.url} className="text-route66-primary font-medium hover:underline">
+        elements.push(
+          <Link 
+            key={`${keyPrefix}-link-${idx}`}
+            to={linkMatch.url}
+            className="text-route66-primary font-medium hover:underline"
+          >
             {linkMatch.text}
-          </Link>);
+          </Link>
+        );
       } else {
         // External link
-        elements.push(<a key={`${keyPrefix}-link-${idx}`} href={linkMatch.url} target="_blank" rel="noopener noreferrer" className="text-route66-primary hover:underline inline-flex items-center gap-1">
+        elements.push(
+          <a 
+            key={`${keyPrefix}-link-${idx}`}
+            href={linkMatch.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-route66-primary hover:underline inline-flex items-center gap-1"
+          >
             {linkMatch.text}
             <ExternalLink className="h-3 w-3" />
-          </a>);
+          </a>
+        );
       }
+      
       lastIndex = linkMatch.end;
     });
-
+    
     // Add remaining text
     if (lastIndex < text.length) {
       elements.push(...processTextWithBold(text.slice(lastIndex), `${keyPrefix}-end`));
     }
+    
     return elements.length > 0 ? elements : processTextWithBold(text, keyPrefix);
   };
-
+  
   // Process bold text with **
   const processTextWithBold = (text: string, keyPrefix: string): React.ReactNode[] => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -137,57 +142,87 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
   const renderContent = (text: string) => {
     return text.split('\n').map((line, idx) => {
       const trimmed = line.trim();
-
+      
       // Handle ### headings (subsections)
       if (trimmed.startsWith('### ')) {
-        return <h4 key={idx} className="text-lg md:text-xl font-semibold text-route66-brown mt-5 mb-2">
+        return (
+          <h4 key={idx} className="text-lg md:text-xl font-semibold text-route66-brown mt-5 mb-2">
             {trimmed.slice(4)}
-          </h4>;
+          </h4>
+        );
       }
-
+      
       // Handle ## headings (main sections)
       if (trimmed.startsWith('## ')) {
-        return <h3 key={idx} className="text-xl md:text-2xl font-bold text-route66-brown mt-6 mb-3">
+        return (
+          <h3 key={idx} className="text-xl md:text-2xl font-bold text-route66-brown mt-6 mb-3">
             {trimmed.slice(3)}
-          </h3>;
+          </h3>
+        );
       }
-
+      
       // Handle # headings
       if (trimmed.startsWith('# ')) {
-        return <h2 key={idx} className="text-2xl md:text-3xl font-bold text-route66-brown mt-8 mb-4">
+        return (
+          <h2 key={idx} className="text-2xl md:text-3xl font-bold text-route66-brown mt-8 mb-4">
             {trimmed.slice(2)}
-          </h2>;
+          </h2>
+        );
       }
-
+      
       // Handle inline images ![alt](url) or ![alt](url "caption")
       const imageMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)"]+)(?:\s+"([^"]*)")?\)$/);
       if (imageMatch) {
         const [, alt, src, caption] = imageMatch;
-        return <figure key={idx} className="my-8 max-w-2xl mx-auto">
-            <img src={src} alt={alt} className="rounded-lg shadow-md w-full" loading="lazy" />
-            {caption && <figcaption className="text-sm italic text-route66-brown/60 text-center mt-2">
+        return (
+          <figure key={idx} className="my-8 max-w-2xl mx-auto">
+            <img 
+              src={src} 
+              alt={alt} 
+              className="rounded-lg shadow-md w-full"
+              loading="lazy"
+            />
+            {caption && (
+              <figcaption className="text-sm italic text-route66-brown/60 text-center mt-2">
                 {caption}
-              </figcaption>}
-          </figure>;
+              </figcaption>
+            )}
+          </figure>
+        );
       }
-
+      
       // Empty lines
       if (trimmed === '') return null;
-
+      
       // Process paragraphs with inline elements
-      return;
+      return (
+        <p key={idx} className="mb-4 leading-relaxed text-route66-brown/80">
+          {processInlineElements(trimmed, `p-${idx}`)}
+        </p>
+      );
     });
   };
-  return <article className="bg-white rounded-xl shadow-md overflow-hidden">
+
+  return (
+    <article className="bg-white rounded-xl shadow-md overflow-hidden">
       {/* Featured Image */}
-      {featuredImageUrl && <div className="aspect-video w-full overflow-hidden">
-          <img src={featuredImageUrl} alt={title} className="w-full h-full object-cover" />
-        </div>}
+      {featuredImageUrl && (
+        <div className="aspect-video w-full overflow-hidden">
+          <img 
+            src={featuredImageUrl} 
+            alt={title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
       
       <div className="p-6 md:p-8 lg:p-10">
         {/* Back to Blog */}
-        <Link to="/blog" className="inline-flex items-center gap-2 text-route66-rust hover:text-route66-orange 
-            transition-colors mb-6 font-medium">
+        <Link 
+          to="/blog" 
+          className="inline-flex items-center gap-2 text-route66-rust hover:text-route66-orange 
+            transition-colors mb-6 font-medium"
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to Blog
         </Link>
@@ -215,18 +250,24 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         </div>
         
         {/* Tags */}
-        {tags && tags.length > 0 && <div className="flex flex-wrap gap-2 mb-6">
-            {tags.map(tag => <span key={tag} className="px-3 py-1 bg-route66-rust/10 
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {tags.map((tag) => (
+              <span key={tag} className="px-3 py-1 bg-route66-rust/10 
                 text-route66-rust text-sm rounded-full font-medium">
                 #{tag}
-              </span>)}
-          </div>}
+              </span>
+            ))}
+          </div>
+        )}
         
         {/* Content */}
         <div className="prose prose-lg max-w-none">
           {renderContent(content)}
         </div>
       </div>
-    </article>;
+    </article>
+  );
 };
+
 export default BlogPostContent;
