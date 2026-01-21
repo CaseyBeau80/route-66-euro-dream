@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, ArrowLeft } from 'lucide-react';
+import { Calendar, ArrowLeft, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import AuthorBadge from './AuthorBadge';
@@ -13,21 +13,122 @@ interface BlogPostContentProps {
   tags?: string[];
 }
 
+// Auto-link map for specific phrases
+const AUTO_LINKS: Record<string, string> = {
+  "Route 66 Capital Cruise": "https://www.capitalofroute66.com",
+  "AAA Route 66 Road Fest": "https://route66roadfest.com",
+  "ROUTE Magazine Centennial Sweepstakes": "https://www.routemagazine.us/centennialsweepstakes",
+  "Route 66 Centennial Monument Project": "https://route66centennial.org/commemorate-programs-projects/centennial-monument-project",
+  "Azusa, CA Centennial Monument": "https://route66monuments.com/azusa-california-route-66-centennial-monument"
+};
+
 const BlogPostContent: React.FC<BlogPostContentProps> = ({
   title, content, publishedAt, authorName, featuredImageUrl, tags
 }) => {
-  // Simple markdown-like rendering
+  // Process inline elements (bold, links, auto-links)
+  const processInlineElements = (text: string, keyPrefix: string): React.ReactNode[] => {
+    let processedText = text;
+    const elements: React.ReactNode[] = [];
+    let lastIndex = 0;
+    
+    // First, find all auto-link phrases and mark them
+    const linkMatches: { start: number; end: number; phrase: string; url: string }[] = [];
+    
+    Object.entries(AUTO_LINKS).forEach(([phrase, url]) => {
+      let index = processedText.indexOf(phrase);
+      while (index !== -1) {
+        linkMatches.push({ start: index, end: index + phrase.length, phrase, url });
+        index = processedText.indexOf(phrase, index + phrase.length);
+      }
+    });
+    
+    // Check for "Photo Wall" internal link
+    const photoWallIndex = processedText.indexOf("Photo Wall");
+    if (photoWallIndex !== -1) {
+      linkMatches.push({ 
+        start: photoWallIndex, 
+        end: photoWallIndex + "Photo Wall".length, 
+        phrase: "Photo Wall", 
+        url: "/#social" 
+      });
+    }
+    
+    // Sort matches by position
+    linkMatches.sort((a, b) => a.start - b.start);
+    
+    // Build elements array
+    linkMatches.forEach((match, idx) => {
+      // Add text before this match
+      if (match.start > lastIndex) {
+        const beforeText = processedText.slice(lastIndex, match.start);
+        elements.push(...processTextWithBold(beforeText, `${keyPrefix}-pre-${idx}`));
+      }
+      
+      // Add the link
+      if (match.url.startsWith('/') || match.url.startsWith('#')) {
+        // Internal link
+        elements.push(
+          <Link 
+            key={`${keyPrefix}-link-${idx}`}
+            to={match.url}
+            className="text-route66-primary font-medium hover:underline"
+          >
+            {match.phrase}
+          </Link>
+        );
+      } else {
+        // External link
+        elements.push(
+          <a 
+            key={`${keyPrefix}-link-${idx}`}
+            href={match.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-route66-primary hover:underline inline-flex items-center gap-1"
+          >
+            {match.phrase}
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        );
+      }
+      
+      lastIndex = match.end;
+    });
+    
+    // Add remaining text
+    if (lastIndex < processedText.length) {
+      elements.push(...processTextWithBold(processedText.slice(lastIndex), `${keyPrefix}-end`));
+    }
+    
+    return elements.length > 0 ? elements : processTextWithBold(text, keyPrefix);
+  };
+  
+  // Process bold text with **
+  const processTextWithBold = (text: string, keyPrefix: string): React.ReactNode[] => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={`${keyPrefix}-bold-${i}`} className="text-route66-brown">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    }).filter(part => part !== '');
+  };
+
+  // Enhanced markdown-like rendering
   const renderContent = (text: string) => {
     return text.split('\n').map((line, idx) => {
       const trimmed = line.trim();
       
-      if (trimmed.startsWith('# ')) {
+      // Handle ### headings (subsections)
+      if (trimmed.startsWith('### ')) {
         return (
-          <h2 key={idx} className="text-2xl md:text-3xl font-bold text-route66-brown mt-8 mb-4">
-            {trimmed.slice(2)}
-          </h2>
+          <h4 key={idx} className="text-lg md:text-xl font-semibold text-route66-brown mt-5 mb-2">
+            {trimmed.slice(4)}
+          </h4>
         );
       }
+      
+      // Handle ## headings (main sections)
       if (trimmed.startsWith('## ')) {
         return (
           <h3 key={idx} className="text-xl md:text-2xl font-bold text-route66-brown mt-6 mb-3">
@@ -35,20 +136,44 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
           </h3>
         );
       }
+      
+      // Handle # headings
+      if (trimmed.startsWith('# ')) {
+        return (
+          <h2 key={idx} className="text-2xl md:text-3xl font-bold text-route66-brown mt-8 mb-4">
+            {trimmed.slice(2)}
+          </h2>
+        );
+      }
+      
+      // Handle inline images ![alt](url) or ![alt](url "caption")
+      const imageMatch = trimmed.match(/^!\[([^\]]*)\]\(([^)"]+)(?:\s+"([^"]*)")?\)$/);
+      if (imageMatch) {
+        const [, alt, src, caption] = imageMatch;
+        return (
+          <figure key={idx} className="my-8 max-w-2xl mx-auto">
+            <img 
+              src={src} 
+              alt={alt} 
+              className="rounded-lg shadow-md w-full"
+              loading="lazy"
+            />
+            {caption && (
+              <figcaption className="text-sm italic text-route66-brown/60 text-center mt-2">
+                {caption}
+              </figcaption>
+            )}
+          </figure>
+        );
+      }
+      
+      // Empty lines
       if (trimmed === '') return null;
       
-      // Handle bold text with **
-      const parts = trimmed.split(/(\*\*.*?\*\*)/g);
-      const formattedLine = parts.map((part, i) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={i} className="text-route66-brown">{part.slice(2, -2)}</strong>;
-        }
-        return part;
-      });
-      
+      // Process paragraphs with inline elements
       return (
         <p key={idx} className="mb-4 leading-relaxed text-route66-brown/80">
-          {formattedLine}
+          {processInlineElements(trimmed, `p-${idx}`)}
         </p>
       );
     });

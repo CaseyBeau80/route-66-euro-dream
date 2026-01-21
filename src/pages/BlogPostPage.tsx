@@ -72,7 +72,7 @@ const BlogPostPage: React.FC = () => {
         <link rel="canonical" href={`https://ramble66.lovable.app/blog/${post.slug}`} />
         
         {/* Open Graph */}
-        <meta property="og:title" content={post.title} />
+        <meta property="og:title" content={`${post.title} | Ramble66 - Route 66 Adventures`} />
         <meta property="og:description" content={post.excerpt} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://ramble66.lovable.app/blog/${post.slug}`} />
@@ -84,7 +84,7 @@ const BlogPostPage: React.FC = () => {
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:title" content={`${post.title} | Ramble66 - Route 66 Adventures`} />
         <meta name="twitter:description" content={post.excerpt} />
         {post.featured_image_url && (
           <meta name="twitter:image" content={post.featured_image_url} />
