@@ -19,6 +19,7 @@ export const useSocialPhotoUpload = () => {
 
   const handleSocialUpload = async (file: File, location?: string, hashtag?: string) => {
     try {
+      console.log('🚀 useSocialPhotoUpload.handleSocialUpload called with:', { location, hashtag });
       const result = await baseHandleUpload(file, 'social-photo-spot', location, hashtag);
       
       // Track uploaded photos for the session

@@ -140,6 +140,7 @@ const PhotoUploadSection: React.FC = () => {
     setIsConfirming(true);
     
     try {
+      console.log('📸 Uploading photo with metadata:', { location, hashtag });
       const result = await handleUpload(selectedFile, location, hashtag);
       
       if (result.success && 'allowed' in result && result.allowed) {
