@@ -17,7 +17,7 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ relatedPosts = [] }) => {
   return (
     <aside className="space-y-6">
       {/* Photo Wall CTA - Links to /#social */}
-      <div className="bg-gradient-to-br from-route66-rust to-route66-orange 
+      <div className="bg-gradient-to-br from-route66-orange-700 to-route66-orange 
         rounded-xl p-6 text-white shadow-lg">
         <div className="flex items-center gap-3 mb-4">
           <Camera className="h-8 w-8" />
