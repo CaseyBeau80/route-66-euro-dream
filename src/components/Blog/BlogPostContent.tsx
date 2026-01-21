@@ -207,13 +207,33 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
       // Empty lines
       if (trimmed === '') return null;
       
-      // Handle standalone YouTube URLs
+      // Handle standalone YouTube URLs (line is just a URL)
       const youtubeId = extractYouTubeId(trimmed);
-      if (youtubeId && (trimmed.startsWith('http') || trimmed.startsWith('www'))) {
+      if (youtubeId && /^(https?:\/\/)?(www\.)?youtu/.test(trimmed)) {
         return (
           <div key={idx} className="my-8 max-w-2xl mx-auto">
             <YouTubeEmbed videoId={youtubeId} title="Route 66 Video" />
           </div>
+        );
+      }
+      
+      // Check if paragraph contains a YouTube URL (inline) - extract and render separately
+      const youtubeUrlMatch = trimmed.match(/(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      if (youtubeUrlMatch) {
+        const inlineYoutubeId = youtubeUrlMatch[4];
+        const textWithoutUrl = trimmed.replace(youtubeUrlMatch[0], '').trim();
+        
+        return (
+          <React.Fragment key={idx}>
+            {textWithoutUrl && (
+              <p className="mb-4 leading-relaxed text-route66-brown/80">
+                {processInlineElements(textWithoutUrl, `p-${idx}`)}
+              </p>
+            )}
+            <div className="my-8 max-w-2xl mx-auto">
+              <YouTubeEmbed videoId={inlineYoutubeId} title="Route 66 Video" />
+            </div>
+          </React.Fragment>
         );
       }
       
