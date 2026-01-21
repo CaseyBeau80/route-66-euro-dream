@@ -94,13 +94,25 @@ const PhotoUploadSection: React.FC = () => {
   };
 
   const handleHashtagChange = (value: string) => {
-    // Strip duplicate # prefixes, ensure single # at start
-    let normalized = value.replace(/^#+/, '').trim();
-    if (normalized) normalized = '#' + normalized;
-    normalized = normalized.slice(0, 30);
-    setHashtag(normalized);
-    if (normalized) validateTextField(normalized, 'hashtag');
-    else setTextErrors(prev => ({ ...prev, hashtag: undefined }));
+    // Remove ALL # characters first (we'll add our own)
+    let cleaned = value.replace(/#/g, '');
+    
+    // Remove any characters that aren't alphanumeric or underscore
+    cleaned = cleaned.replace(/[^a-zA-Z0-9_]/g, '');
+    
+    // Always prefix with # if there's content, otherwise allow empty
+    const normalized = cleaned ? '#' + cleaned : '';
+    
+    // Apply length limit (30 chars including the #)
+    const final = normalized.slice(0, 30);
+    
+    setHashtag(final);
+    
+    if (final) {
+      validateTextField(final, 'hashtag');
+    } else {
+      setTextErrors(prev => ({ ...prev, hashtag: undefined }));
+    }
   };
 
   const handleFileSelect = (file: File) => {
