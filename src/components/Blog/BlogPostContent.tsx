@@ -13,67 +13,91 @@ interface BlogPostContentProps {
   tags?: string[];
 }
 
-// Auto-link map for specific phrases
+// Auto-link map for specific phrases (no Azusa - now uses inline markdown link)
 const AUTO_LINKS: Record<string, string> = {
   "Route 66 Capital Cruise": "https://www.capitalofroute66.com",
   "AAA Route 66 Road Fest": "https://route66roadfest.com",
   "ROUTE Magazine Centennial Sweepstakes": "https://www.routemagazine.us/centennialsweepstakes",
-  "Route 66 Centennial Monument Project": "https://route66centennial.org/commemorate-programs-projects/centennial-monument-project",
-  "Azusa, CA Centennial Monument": "https://route66monuments.com/azusa-california-route-66-centennial-monument"
+  "Route 66 Centennial Monument Project": "https://route66centennial.org/commemorate-programs-projects/centennial-monument-project"
 };
 
 const BlogPostContent: React.FC<BlogPostContentProps> = ({
   title, content, publishedAt, authorName, featuredImageUrl, tags
 }) => {
-  // Process inline elements (bold, links, auto-links)
+  // Process inline elements (markdown links, auto-links, bold)
   const processInlineElements = (text: string, keyPrefix: string): React.ReactNode[] => {
-    let processedText = text;
     const elements: React.ReactNode[] = [];
     let lastIndex = 0;
     
-    // First, find all auto-link phrases and mark them
-    const linkMatches: { start: number; end: number; phrase: string; url: string }[] = [];
+    // Collect all link matches (markdown links first, then auto-links)
+    const linkMatches: { start: number; end: number; text: string; url: string; isMarkdown: boolean }[] = [];
     
+    // 1. Find markdown links [text](url)
+    const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let match;
+    while ((match = markdownLinkRegex.exec(text)) !== null) {
+      linkMatches.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        text: match[1],
+        url: match[2],
+        isMarkdown: true
+      });
+    }
+    
+    // 2. Find auto-link phrases (only if not overlapping with markdown links)
     Object.entries(AUTO_LINKS).forEach(([phrase, url]) => {
-      let index = processedText.indexOf(phrase);
+      let index = text.indexOf(phrase);
       while (index !== -1) {
-        linkMatches.push({ start: index, end: index + phrase.length, phrase, url });
-        index = processedText.indexOf(phrase, index + phrase.length);
+        // Check if this overlaps with any markdown link
+        const overlaps = linkMatches.some(m => 
+          m.isMarkdown && index >= m.start && index < m.end
+        );
+        if (!overlaps) {
+          linkMatches.push({ start: index, end: index + phrase.length, text: phrase, url, isMarkdown: false });
+        }
+        index = text.indexOf(phrase, index + phrase.length);
       }
     });
     
-    // Check for "Photo Wall" internal link
-    const photoWallIndex = processedText.indexOf("Photo Wall");
+    // 3. Check for "Photo Wall" internal link
+    const photoWallIndex = text.indexOf("Photo Wall");
     if (photoWallIndex !== -1) {
-      linkMatches.push({ 
-        start: photoWallIndex, 
-        end: photoWallIndex + "Photo Wall".length, 
-        phrase: "Photo Wall", 
-        url: "/#social" 
-      });
+      const overlaps = linkMatches.some(m => 
+        m.isMarkdown && photoWallIndex >= m.start && photoWallIndex < m.end
+      );
+      if (!overlaps) {
+        linkMatches.push({ 
+          start: photoWallIndex, 
+          end: photoWallIndex + "Photo Wall".length, 
+          text: "Photo Wall", 
+          url: "/#social",
+          isMarkdown: false
+        });
+      }
     }
     
     // Sort matches by position
     linkMatches.sort((a, b) => a.start - b.start);
     
     // Build elements array
-    linkMatches.forEach((match, idx) => {
+    linkMatches.forEach((linkMatch, idx) => {
       // Add text before this match
-      if (match.start > lastIndex) {
-        const beforeText = processedText.slice(lastIndex, match.start);
+      if (linkMatch.start > lastIndex) {
+        const beforeText = text.slice(lastIndex, linkMatch.start);
         elements.push(...processTextWithBold(beforeText, `${keyPrefix}-pre-${idx}`));
       }
       
       // Add the link
-      if (match.url.startsWith('/') || match.url.startsWith('#')) {
+      if (linkMatch.url.startsWith('/') || linkMatch.url.startsWith('#')) {
         // Internal link
         elements.push(
           <Link 
             key={`${keyPrefix}-link-${idx}`}
-            to={match.url}
+            to={linkMatch.url}
             className="text-route66-primary font-medium hover:underline"
           >
-            {match.phrase}
+            {linkMatch.text}
           </Link>
         );
       } else {
@@ -81,23 +105,23 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         elements.push(
           <a 
             key={`${keyPrefix}-link-${idx}`}
-            href={match.url}
+            href={linkMatch.url}
             target="_blank"
             rel="noopener noreferrer"
             className="text-route66-primary hover:underline inline-flex items-center gap-1"
           >
-            {match.phrase}
+            {linkMatch.text}
             <ExternalLink className="h-3 w-3" />
           </a>
         );
       }
       
-      lastIndex = match.end;
+      lastIndex = linkMatch.end;
     });
     
     // Add remaining text
-    if (lastIndex < processedText.length) {
-      elements.push(...processTextWithBold(processedText.slice(lastIndex), `${keyPrefix}-end`));
+    if (lastIndex < text.length) {
+      elements.push(...processTextWithBold(text.slice(lastIndex), `${keyPrefix}-end`));
     }
     
     return elements.length > 0 ? elements : processTextWithBold(text, keyPrefix);
