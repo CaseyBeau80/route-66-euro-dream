@@ -117,6 +117,10 @@ const HeroSection: React.FC = () => {
     forceRenderAllSections();
     navigateToSection('social');
   };
+
+  const navigateToBlog = () => {
+    window.location.href = '/blog';
+  };
   return <>
       <section className="relative min-h-fit bg-gradient-to-br from-route66-background via-route66-background-alt to-route66-background-section overflow-hidden">
         {/* Background Pattern */}
@@ -220,6 +224,19 @@ const HeroSection: React.FC = () => {
                       <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
                     </div>
                     <div className="text-route66-text-secondary text-sm lg:text-base">Discover centennial celebrations, festivals, and car shows across all 8 states</div>
+                  </div>
+                </button>
+                <button 
+                  onClick={navigateToBlog}
+                  className="flex items-center gap-2 text-left hover:bg-route66-primary/5 rounded-lg p-2 -ml-2 transition-colors group cursor-pointer w-full"
+                >
+                  <Check className="w-5 h-5 text-green-600 font-bold flex-shrink-0" strokeWidth={3} />
+                  <div>
+                    <div className="text-route66-primary font-semibold text-lg lg:text-xl group-hover:text-route66-primary-dark group-hover:underline transition-colors">
+                      Route 66 Blog & News
+                      <span className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                    </div>
+                    <div className="text-route66-text-secondary text-sm lg:text-base">Centennial updates, local stories, and what's happening along the Mother Road</div>
                   </div>
                 </button>
               </div>
