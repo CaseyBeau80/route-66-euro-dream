@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import MainLayout from '@/components/MainLayout';
 import BlogPostContent from '@/components/Blog/BlogPostContent';
 import BlogSidebar from '@/components/Blog/BlogSidebar';
+import BlogFooterBanner from '@/components/Blog/BlogFooterBanner';
 import { useBlogPost } from '@/components/Blog/hooks/useBlogPost';
 
 const BlogPostPage: React.FC = () => {
@@ -118,6 +119,8 @@ const BlogPostPage: React.FC = () => {
           </div>
         </div>
       </section>
+      
+      <BlogFooterBanner />
     </MainLayout>
   );
 };
