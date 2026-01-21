@@ -8,30 +8,53 @@ interface VirtualizedCarouselProps {
   items: UnifiedRoute66Item[];
 }
 
-// Progressive loading settings
-const INITIAL_ITEMS_DESKTOP = 6;
-const INITIAL_ITEMS_MOBILE = 4;
-const LOAD_MORE_COUNT = 6;
-
 const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
-  const [visibleCount, setVisibleCount] = useState(INITIAL_ITEMS_DESKTOP);
-  const [isLoading, setIsLoading] = useState(false);
-  const [newlyLoadedIndices, setNewlyLoadedIndices] = useState<Set<number>>(new Set());
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile for responsive initial count
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+  // Get current column count based on breakpoints matching CSS grid
+  const getColumnCount = useCallback(() => {
+    if (typeof window === 'undefined') return 4;
+    const width = window.innerWidth;
+    if (width >= 1280) return 4;  // xl:grid-cols-4
+    if (width >= 1024) return 3;  // lg:grid-cols-3
+    if (width >= 640) return 2;   // sm:grid-cols-2
+    return 1;                      // grid-cols-1
   }, []);
 
-  // Reset visible count when items change (filters/search) or mobile state changes
+  // Get initial visible count (2 full rows)
+  const getInitialVisibleCount = useCallback(() => {
+    return getColumnCount() * 2;
+  }, [getColumnCount]);
+
+  // Get load-more count (2 full rows per load)
+  const getLoadMoreCount = useCallback(() => {
+    return getColumnCount() * 2;
+  }, [getColumnCount]);
+
+  const [visibleCount, setVisibleCount] = useState(() => getInitialVisibleCount());
+  const [isLoading, setIsLoading] = useState(false);
+  const [newlyLoadedIndices, setNewlyLoadedIndices] = useState<Set<number>>(new Set());
+
+  // Handle resize: round up visible items to nearest multiple of columns
   useEffect(() => {
-    setVisibleCount(isMobile ? INITIAL_ITEMS_MOBILE : INITIAL_ITEMS_DESKTOP);
+    const handleResize = () => {
+      const cols = getColumnCount();
+      setVisibleCount(prev => {
+        // Round up current visible to nearest multiple of new column count
+        const rows = Math.ceil(prev / cols);
+        const newCount = Math.min(rows * cols, items.length);
+        return newCount || cols * 2;
+      });
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [getColumnCount, items.length]);
+
+  // Reset when items change (filters/search)
+  useEffect(() => {
+    setVisibleCount(getInitialVisibleCount());
     setNewlyLoadedIndices(new Set());
-  }, [isMobile, items.length]);
+  }, [items.length, getInitialVisibleCount]);
 
   const visibleItems = useMemo(() => 
     items.slice(0, visibleCount), 
@@ -43,10 +66,11 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
   const handleSeeMore = useCallback(() => {
     setIsLoading(true);
     const currentCount = visibleCount;
+    const loadMoreCount = getLoadMoreCount();
     
     // Simulate loading delay for smooth UX
     setTimeout(() => {
-      const newCount = Math.min(visibleCount + LOAD_MORE_COUNT, items.length);
+      const newCount = Math.min(visibleCount + loadMoreCount, items.length);
       
       // Track newly loaded items for fade-in animation
       const newIndices = new Set<number>();
@@ -68,7 +92,7 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
       // Clear animation tracking after animation completes
       setTimeout(() => setNewlyLoadedIndices(new Set()), 700);
     }, 300);
-  }, [visibleCount, items.length]);
+  }, [visibleCount, items.length, getLoadMoreCount]);
 
   if (items.length === 0) {
     return null;
