@@ -10,20 +10,24 @@ interface SingleRouteRendererProps {
 const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapReady }) => {
   const { waypoints, isLoading, error } = useSupabaseRoute66();
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
-  const hasRendered = useRef(false);
+  const lastMapIdRef = useRef<string | null>(null);
 
   console.log('🛣️ SingleRouteRenderer: Starting with waypoints:', waypoints.length);
 
+  // Determine if we should skip rendering based on map instance stability
+  const currentMapId = map ? String((map as any).__gm?.id || 'map-' + Date.now()) : null;
+  const shouldSkipRender = currentMapId === lastMapIdRef.current && polylinesRef.current.length > 0;
+
   useEffect(() => {
     // Don't render if conditions aren't met
-    if (!map || !isMapReady || isLoading || error || waypoints.length === 0 || hasRendered.current) {
+    if (!map || !isMapReady || isLoading || error || waypoints.length === 0 || shouldSkipRender) {
       console.log('🛣️ SingleRouteRenderer: Skipping render', {
         hasMap: !!map,
         isMapReady,
         isLoading,
         error: !!error,
         waypointsCount: waypoints.length,
-        hasRendered: hasRendered.current
+        shouldSkipRender
       });
       return;
     }
@@ -128,9 +132,9 @@ const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapRea
     roadSurface.setMap(map);
     centerLine.setMap(map);
     
-    // Store references for cleanup
+    // Store references for cleanup and track current map
     polylinesRef.current = [baseRoad, roadSurface, centerLine];
-    hasRendered.current = true;
+    lastMapIdRef.current = currentMapId;
 
     // Fit map to route bounds
     const bounds = new google.maps.LatLngBounds();
@@ -145,7 +149,7 @@ const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapRea
 
     console.log('✅ Route 66 road with yellow striping created successfully');
 
-  }, [map, isMapReady, waypoints, isLoading, error]);
+  }, [map, isMapReady, waypoints, isLoading, error, shouldSkipRender, currentMapId]);
 
   // Cleanup on unmount
   useEffect(() => {

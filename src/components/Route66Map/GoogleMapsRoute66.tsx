@@ -42,8 +42,11 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
     console.log('🗺️ GoogleMapsRoute66: Map loaded successfully, setting ready state');
     mapRef.current = map;
     
-    // Set map ready immediately to prevent flickering
-    setIsMapReady(true);
+    // Short delay to ensure map is fully initialized before rendering markers
+    setTimeout(() => {
+      console.log('🗺️ GoogleMapsRoute66: Setting isMapReady to true after delay');
+      setIsMapReady(true);
+    }, 100);
   }, []);
 
   const handleMapClick = useCallback(() => {
