@@ -49,6 +49,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 <SelectItem value="attractions">Historic Attractions</SelectItem>
                 <SelectItem value="drive_ins">Drive-In Theaters</SelectItem>
                 <SelectItem value="hidden_gems">Hidden Gems</SelectItem>
+                <SelectItem value="native_american">Native American Heritage</SelectItem>
               </SelectContent>
             </Select>
           </div>

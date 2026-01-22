@@ -23,6 +23,11 @@ export const useCategoryConfig = (): Record<string, Omit<CategoryData, 'items' |
       color: 'bg-orange-500',
       icon: '💎'
     },
+    native_american: {
+      title: 'Native American Heritage',
+      color: 'bg-amber-700',
+      icon: '🪶'
+    },
     route66_waypoints: {
       title: 'Route 66 Waypoints',
       color: 'bg-red-500',
