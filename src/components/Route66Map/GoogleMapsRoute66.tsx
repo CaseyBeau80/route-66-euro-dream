@@ -4,7 +4,6 @@ import { useGoogleMapsContext } from './components/GoogleMapsProvider';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMapFilters } from '@/contexts/MapFiltersContext';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
-import InteractiveMapLegend from '../InteractiveMap/components/InteractiveMapLegend';
 import GoogleMapsZoomControls from '../InteractiveMap/components/GoogleMapsZoomControls';
 import MapFiltersControl from './components/MapFilters';
 import SingleRouteRenderer from './components/SingleRouteRenderer';
@@ -132,11 +131,8 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
         )}
       </InteractiveGoogleMap>
 
-      {/* Map Filters Control - top-right (desktop) / bottom-left button (mobile) */}
+      {/* Map Layers Control - top-left (desktop panel) / bottom-left button (mobile) */}
       <MapFiltersControl />
-
-      {/* Map Legend - positioned to avoid conflicts */}
-      <InteractiveMapLegend />
 
       {/* Custom Zoom Controls - positioned bottom-right */}
       <GoogleMapsZoomControls 
