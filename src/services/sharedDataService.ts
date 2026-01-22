@@ -33,13 +33,15 @@ export const fetchAllRoute66Data = () => {
       hiddenGemsResult,
       driveInsResult,
       waypointsResult,
-      destinationCitiesResult
+      destinationCitiesResult,
+      nativeAmericanSitesResult
     ] = await Promise.all([
       (supabase as any).from('attractions').select('*').order('name'),
       (supabase as any).from('hidden_gems').select('*').order('title'),
       (supabase as any).from('drive_ins').select('*').order('name'),
       (supabase as any).from('route66_waypoints').select('*').order('sequence_order'),
-      (supabase as any).from('destination_cities').select('*')
+      (supabase as any).from('destination_cities').select('*'),
+      (supabase as any).from('native_american_sites').select('*').order('name')
     ]);
 
     console.log('✅ All Route 66 data fetched in single batch');
@@ -49,7 +51,8 @@ export const fetchAllRoute66Data = () => {
       hiddenGems: hiddenGemsResult.data || [],
       driveIns: driveInsResult.data || [],
       waypoints: waypointsResult.data || [],
-      destinationCities: destinationCitiesResult.data || []
+      destinationCities: destinationCitiesResult.data || [],
+      nativeAmericanSites: nativeAmericanSitesResult.data || []
     };
   });
 };
@@ -101,6 +104,16 @@ export const getDestinationCities = () => {
   return getCachedData('destination-cities', async () => {
     const data = await fetchAllRoute66Data();
     return data.destinationCities;
+  });
+};
+
+/**
+ * Get native american sites data (cached)
+ */
+export const getNativeAmericanSites = () => {
+  return getCachedData('native-american-sites', async () => {
+    const data = await fetchAllRoute66Data();
+    return data.nativeAmericanSites;
   });
 };
 
