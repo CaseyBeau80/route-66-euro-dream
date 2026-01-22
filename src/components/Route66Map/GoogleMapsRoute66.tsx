@@ -2,9 +2,11 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useGoogleMapsContext } from './components/GoogleMapsProvider';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMapFilters } from '@/contexts/MapFiltersContext';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
 import InteractiveMapLegend from '../InteractiveMap/components/InteractiveMapLegend';
 import GoogleMapsZoomControls from '../InteractiveMap/components/GoogleMapsZoomControls';
+import MapFiltersControl from './components/MapFilters';
 import SingleRouteRenderer from './components/SingleRouteRenderer';
 import DestinationCitiesContainer from './components/DestinationCitiesContainer';
 import AttractionsContainer from './components/AttractionsContainer';
@@ -26,6 +28,7 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
 }) => {
   const { isLoaded, loadError } = useGoogleMapsContext();
   const isMobile = useIsMobile();
+  const { filters } = useMapFilters();
   const mapRef = useRef<google.maps.Map | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
 
@@ -77,47 +80,60 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
             <SingleRouteRenderer map={mapRef.current} isMapReady={true} />
             
             {/* Destination Cities - Route 66 shield markers */}
-            <DestinationCitiesContainer 
-              map={mapRef.current}
-              onDestinationClick={(destination) => {
-                console.log('🏛️ Destination clicked:', destination.name);
-              }}
-            />
+            {filters.cities && (
+              <DestinationCitiesContainer 
+                map={mapRef.current}
+                onDestinationClick={(destination) => {
+                  console.log('🏛️ Destination clicked:', destination.name);
+                }}
+              />
+            )}
             
             {/* Attractions - Red pin markers */}
-            <AttractionsContainer 
-              map={mapRef.current}
-              onAttractionClick={(attraction) => {
-                console.log('🎯 Attraction clicked:', attraction.name);
-              }}
-            />
+            {filters.attractions && (
+              <AttractionsContainer 
+                map={mapRef.current}
+                onAttractionClick={(attraction) => {
+                  console.log('🎯 Attraction clicked:', attraction.name);
+                }}
+              />
+            )}
             
             {/* Hidden Gems - Diamond markers */}
-            <HiddenGemsContainer 
-              map={mapRef.current}
-              onGemClick={(gem) => {
-                console.log('💎 Hidden gem clicked:', gem.title);
-              }}
-            />
+            {filters.hiddenGems && (
+              <HiddenGemsContainer 
+                map={mapRef.current}
+                onGemClick={(gem) => {
+                  console.log('💎 Hidden gem clicked:', gem.title);
+                }}
+              />
+            )}
             
             {/* Drive-In Theaters - Movie markers */}
-            <DriveInsContainer 
-              map={mapRef.current}
-              onDriveInClick={(driveIn) => {
-                console.log('🎬 Drive-in clicked:', driveIn.name);
-              }}
-            />
+            {filters.driveIns && (
+              <DriveInsContainer 
+                map={mapRef.current}
+                onDriveInClick={(driveIn) => {
+                  console.log('🎬 Drive-in clicked:', driveIn.name);
+                }}
+              />
+            )}
             
             {/* Native American Heritage Sites - Feather markers */}
-            <NativeAmericanSitesContainer 
-              map={mapRef.current}
-              onSiteClick={(site) => {
-                console.log('🪶 Native American site clicked:', site.name);
-              }}
-            />
+            {filters.nativeAmerican && (
+              <NativeAmericanSitesContainer 
+                map={mapRef.current}
+                onSiteClick={(site) => {
+                  console.log('🪶 Native American site clicked:', site.name);
+                }}
+              />
+            )}
           </>
         )}
       </InteractiveGoogleMap>
+
+      {/* Map Filters Control - top-right (desktop) / bottom-left button (mobile) */}
+      <MapFiltersControl />
 
       {/* Map Legend - positioned to avoid conflicts */}
       <InteractiveMapLegend />
