@@ -103,6 +103,32 @@ export const useUnifiedData = () => {
         });
       }
 
+      // Process Native American heritage sites
+      if (data.nativeAmericanSites) {
+        console.log(`🪶 Processing ${data.nativeAmericanSites.length} Native American heritage sites`);
+        data.nativeAmericanSites.forEach(site => {
+          unifiedItems.push({
+            id: `native-american-${site.id}`,
+            name: site.name,
+            title: site.title || site.name,
+            description: site.description,
+            city_name: site.city_name,
+            state: site.state || undefined,
+            image_url: site.image_url,
+            thumbnail_url: site.thumbnail_url,
+            website: site.website,
+            latitude: site.latitude,
+            longitude: site.longitude,
+            category: 'native_american',
+            tags: site.tags || [],
+            founded_year: site.founded_year || undefined,
+            year_opened: site.year_opened || undefined,
+            featured: Boolean(site.featured),
+            slug: site.slug || site.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+          });
+        });
+      }
+
       console.log(`✅ Loaded ${unifiedItems.length} unified Route 66 items with standardized schema`);
       setItems(unifiedItems);
     } catch (error) {

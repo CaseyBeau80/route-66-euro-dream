@@ -11,7 +11,7 @@ export interface UnifiedRoute66Item {
   website?: string | null;
   latitude?: number;
   longitude?: number;
-  category: 'attractions' | 'drive_ins' | 'hidden_gems';
+  category: 'attractions' | 'drive_ins' | 'hidden_gems' | 'native_american';
   tags: string[];
   founded_year?: number;
   year_opened?: number;
@@ -20,7 +20,7 @@ export interface UnifiedRoute66Item {
 }
 
 export interface FilterState {
-  type: 'all' | 'attractions' | 'drive_ins' | 'hidden_gems';
+  type: 'all' | 'attractions' | 'drive_ins' | 'hidden_gems' | 'native_american';
   state: string;
   city: string;
   search: string;
