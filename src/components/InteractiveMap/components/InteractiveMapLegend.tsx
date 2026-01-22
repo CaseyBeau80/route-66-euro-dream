@@ -1,7 +1,19 @@
 import React from 'react';
 import { MapPin } from 'lucide-react';
+import { useMapFilters, MapLayerCategory } from '@/contexts/MapFiltersContext';
+import { cn } from '@/lib/utils';
+
+// Map legend items to filter categories
+const LEGEND_FILTER_MAP: MapLayerCategory[] = [
+  'cities',
+  'attractions', 
+  'hiddenGems',
+  'driveIns',
+  'nativeAmerican'
+];
 
 const InteractiveMapLegend: React.FC = () => {
+  const { filters } = useMapFilters();
   const legendItems = [
     {
       icon: (
@@ -168,24 +180,35 @@ const InteractiveMapLegend: React.FC = () => {
         </h3>
         
         <div className="space-y-3">
-          {legendItems.map((item, index) => (
-            <div 
-              key={index}
-              className="flex items-start gap-3 text-xs"
-            >
-              <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 mt-0.5">
-                {item.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-gray-700 leading-tight mb-1">
-                  {item.label}
+          {legendItems.map((item, index) => {
+            const filterKey = LEGEND_FILTER_MAP[index];
+            const isActive = filters[filterKey];
+            
+            return (
+              <div 
+                key={index}
+                className={cn(
+                  "flex items-start gap-3 text-xs transition-all duration-200",
+                  !isActive && "opacity-40 grayscale"
+                )}
+              >
+                <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 mt-0.5">
+                  {item.icon}
                 </div>
-                <div className="text-gray-500 text-xs leading-tight">
-                  {item.description}
+                <div className="flex-1 min-w-0">
+                  <div className={cn(
+                    "font-medium leading-tight mb-1 transition-colors",
+                    isActive ? "text-gray-700" : "text-gray-500"
+                  )}>
+                    {item.label}
+                  </div>
+                  <div className="text-gray-500 text-xs leading-tight">
+                    {item.description}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

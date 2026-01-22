@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { UnitProvider } from "@/contexts/UnitContext";
+import { MapFiltersProvider } from "@/contexts/MapFiltersContext";
 import SvgDefinitions from "@/components/shared/SvgDefinitions";
 import { LayoutOptimizer } from "@/components/Route66Map/utils/LayoutOptimizer";
 import { preloadCriticalData } from "@/services/sharedDataService";
@@ -63,6 +64,7 @@ function App() {
       <SWRConfig value={swrConfig}>
         <HelmetProvider>
           <UnitProvider>
+            <MapFiltersProvider>
             <TooltipProvider>
               <SvgDefinitions />
               <Toaster />
@@ -116,6 +118,7 @@ function App() {
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+            </MapFiltersProvider>
           </UnitProvider>
         </HelmetProvider>
       </SWRConfig>
