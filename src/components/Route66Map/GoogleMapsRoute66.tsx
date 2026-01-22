@@ -1,8 +1,7 @@
 
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useGoogleMapsContext } from './components/GoogleMapsProvider';
 import { useIsMobile } from '@/hooks/use-mobile';
-import MapLoadingStates from './components/MapLoadingStates';
 import InteractiveGoogleMap from '../InteractiveGoogleMap/InteractiveGoogleMap';
 import InteractiveMapLegend from '../InteractiveMap/components/InteractiveMapLegend';
 import GoogleMapsZoomControls from '../InteractiveMap/components/GoogleMapsZoomControls';
@@ -11,6 +10,7 @@ import DestinationCitiesContainer from './components/DestinationCitiesContainer'
 import AttractionsContainer from './components/AttractionsContainer';
 import HiddenGemsContainer from './components/HiddenGemsContainer';
 import DriveInsContainer from './components/DriveIns/DriveInsContainer';
+import NativeAmericanSitesContainer from './components/NativeAmericanSitesContainer';
 import StateStyling from './components/StateStyling';
 
 interface GoogleMapsRoute66Props {
@@ -102,6 +102,14 @@ const GoogleMapsRoute66: React.FC<GoogleMapsRoute66Props> = ({
               map={mapRef.current}
               onDriveInClick={(driveIn) => {
                 console.log('🎬 Drive-in clicked:', driveIn.name);
+              }}
+            />
+            
+            {/* Native American Heritage Sites - Feather markers */}
+            <NativeAmericanSitesContainer 
+              map={mapRef.current}
+              onSiteClick={(site) => {
+                console.log('🪶 Native American site clicked:', site.name);
               }}
             />
           </>

@@ -129,6 +129,34 @@ const InteractiveMapLegend: React.FC = () => {
       ),
       label: "Drive-In Theaters",
       description: "Classic American drive-ins"
+    },
+    {
+      icon: (
+        <div className="w-6 h-6 flex items-center justify-center">
+          <svg width="20" height="22" viewBox="0 0 20 22" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="featherGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor:'#CD5C5C', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor:'#8B4513', stopOpacity:1}} />
+              </linearGradient>
+            </defs>
+            {/* Feather body */}
+            <path d="M10,2 C8,6 6,10 5,16 L10,13 L15,16 C14,10 12,6 10,2 Z" 
+                  fill="url(#featherGradient)" 
+                  stroke="#40E0D0" 
+                  strokeWidth="1.5"/>
+            {/* Central quill */}
+            <line x1="10" y1="4" x2="10" y2="14" 
+                  stroke="#D2B48C" 
+                  strokeWidth="1.5" 
+                  strokeLinecap="round"/>
+            {/* Turquoise bead */}
+            <circle cx="10" cy="6" r="1.5" fill="#40E0D0" stroke="#fff" strokeWidth="0.5"/>
+          </svg>
+        </div>
+      ),
+      label: "Native American Heritage",
+      description: "Indigenous cultural sites & history"
     }
   ];
 
