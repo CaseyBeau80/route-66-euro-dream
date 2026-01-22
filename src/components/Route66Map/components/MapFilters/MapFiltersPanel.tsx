@@ -72,10 +72,10 @@ const MapFiltersPanel: React.FC<MapFiltersPanelProps> = ({
       <div 
         role="region" 
         aria-labelledby="map-layers-heading"
-        className="bg-amber-50/95 backdrop-blur-sm rounded-lg shadow-xl border border-amber-200 p-4 w-80"
+        className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-4 w-80"
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-200">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
           <h3 
             id="map-layers-heading"
             className="text-sm font-bold text-gray-800 flex items-center gap-2"
@@ -88,7 +88,7 @@ const MapFiltersPanel: React.FC<MapFiltersPanelProps> = ({
           {showCloseButton && onClose && (
             <button
               onClick={onClose}
-              className="p-1 hover:bg-amber-100 rounded-md transition-colors"
+              className="p-1 hover:bg-gray-100 rounded-md transition-colors"
               aria-label="Close filters panel"
             >
               <X className="w-4 h-4 text-gray-500" />
@@ -103,7 +103,7 @@ const MapFiltersPanel: React.FC<MapFiltersPanelProps> = ({
             size="sm"
             onClick={showAll}
             aria-pressed={activeCount === 5}
-            className="flex-1 text-xs h-7 bg-white hover:bg-amber-100 border-amber-300 active:scale-95 transition-transform"
+            className="flex-1 text-xs h-7 bg-white hover:bg-gray-100 border-gray-300 active:scale-95 transition-transform"
           >
             All
           </Button>
@@ -112,7 +112,7 @@ const MapFiltersPanel: React.FC<MapFiltersPanelProps> = ({
             size="sm"
             onClick={hideAll}
             aria-pressed={activeCount === 0}
-            className="flex-1 text-xs h-7 bg-white hover:bg-amber-100 border-amber-300 active:scale-95 transition-transform"
+            className="flex-1 text-xs h-7 bg-white hover:bg-gray-100 border-gray-300 active:scale-95 transition-transform"
           >
             None
           </Button>
@@ -120,7 +120,7 @@ const MapFiltersPanel: React.FC<MapFiltersPanelProps> = ({
             variant="outline"
             size="sm"
             onClick={resetToDefault}
-            className="flex-1 text-xs h-7 bg-white hover:bg-amber-100 border-amber-300 active:scale-95 transition-transform gap-1"
+            className="flex-1 text-xs h-7 bg-white hover:bg-gray-100 border-gray-300 active:scale-95 transition-transform gap-1"
           >
             <RotateCcw className="w-3 h-3" />
             Reset

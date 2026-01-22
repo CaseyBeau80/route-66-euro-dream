@@ -31,7 +31,7 @@ const MapFilterItem: React.FC<MapFilterItemProps> = ({
       aria-labelledby={labelId}
       className={cn(
         "flex items-start justify-between py-2.5 px-2 rounded-md transition-all duration-200",
-        checked ? "opacity-100 bg-amber-50/50" : "opacity-60"
+        checked ? "opacity-100 bg-gray-50" : "opacity-60"
       )}
     >
       <div className="flex items-start gap-3 flex-1 min-w-0">
