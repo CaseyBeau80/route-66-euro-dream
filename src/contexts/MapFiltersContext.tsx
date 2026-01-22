@@ -30,6 +30,7 @@ interface MapFiltersContextType {
   toggleFilter: (category: MapLayerCategory) => void;
   showAll: () => void;
   hideAll: () => void;
+  resetToDefault: () => void;
   activeCount: number;
 }
 
@@ -86,10 +87,14 @@ export const MapFiltersProvider: React.FC<{ children: ReactNode }> = ({ children
     });
   }, []);
 
+  const resetToDefault = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+  }, []);
+
   const activeCount = Object.values(filters).filter(Boolean).length;
 
   return (
-    <MapFiltersContext.Provider value={{ filters, toggleFilter, showAll, hideAll, activeCount }}>
+    <MapFiltersContext.Provider value={{ filters, toggleFilter, showAll, hideAll, resetToDefault, activeCount }}>
       {children}
     </MapFiltersContext.Provider>
   );
