@@ -17,7 +17,9 @@ const ALLOWED_ORIGINS = new Set<string>([
 ]);
 
 function isPreviewOrigin(origin: string | null) {
-  if (!origin) return false;
+  // Only allow preview origins in development environment
+  const isDevelopment = Deno.env.get('ENVIRONMENT') === 'development';
+  if (!isDevelopment || !origin) return false;
   try {
     const hostname = new URL(origin).hostname;
     return hostname.endsWith('.lovable.dev') || hostname.endsWith('.webcontainer.io');
