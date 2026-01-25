@@ -24,6 +24,7 @@ const LazySharedTripPage = lazy(() => import("./pages/SharedTripPage"));
 const LazyNotFound = lazy(() => import("./pages/NotFound"));
 const LazyRobotsTxtPage = lazy(() => import("./pages/RobotsTxtPage"));
 const LazySitemapXmlPage = lazy(() => import("./pages/SitemapXmlPage"));
+const LazyPrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 
 // Route loading fallback
 const RouteLoadingFallback = () => (
@@ -108,6 +109,11 @@ function App() {
                 <Route path="/sitemap.xml" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazySitemapXmlPage />
+                  </Suspense>
+                } />
+                <Route path="/privacy" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyPrivacyPolicyPage />
                   </Suspense>
                 } />
                 <Route path="*" element={

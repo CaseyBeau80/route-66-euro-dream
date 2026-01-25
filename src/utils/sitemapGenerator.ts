@@ -39,6 +39,12 @@ export class SitemapGenerator {
         lastmod: new Date().toISOString().split('T')[0],
         changefreq: 'monthly',
         priority: 0.8
+      },
+      {
+        loc: '/privacy',
+        lastmod: new Date().toISOString().split('T')[0],
+        changefreq: 'monthly',
+        priority: 0.4
       }
     ];
 

@@ -73,8 +73,8 @@ const Footer = () => {
             © 2025 Ramble66 | Contact: <a href="mailto:hello@ramble66.com" className="text-white/70 hover:text-white transition-colors">hello@ramble66.com</a>
           </div>
           <div>
-            <Link to="#" className="text-white/60 text-sm hover:text-white transition-colors">
-              Terms & Privacy
+            <Link to="/privacy" className="text-white/60 text-sm hover:text-white transition-colors">
+              Privacy Policy
             </Link>
           </div>
         </div>
