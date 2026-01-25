@@ -93,6 +93,33 @@ const PrivacyPolicyPage: React.FC = () => {
               </p>
             </div>
 
+            {/* Data Deletion Request */}
+            <div className="bg-accent/30 rounded-lg p-6 border border-border">
+              <h2 className="text-2xl font-bold text-foreground mb-4">Data Deletion Request</h2>
+              <p className="text-muted-foreground mb-4">
+                You have the right to request deletion of your personal data. Here's how:
+              </p>
+              
+              <h3 className="text-lg font-semibold text-foreground mb-2">What Data Can Be Deleted</h3>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mb-4">
+                <li><strong>Photos you uploaded:</strong> Any photos you submitted to our Photo Wall or photo challenges</li>
+                <li><strong>Email address:</strong> If you signed up for our newsletter or Route 66 Starter Guide</li>
+              </ul>
+              
+              <h3 className="text-lg font-semibold text-foreground mb-2">How to Request Deletion</h3>
+              <ol className="list-decimal list-inside text-muted-foreground space-y-2 ml-4 mb-4">
+                <li>Send an email to <a href="mailto:hello@ramble66.com?subject=Data%20Deletion%20Request" className="text-route66-primary hover:underline font-medium">hello@ramble66.com</a></li>
+                <li>Use the subject line: <strong>"Data Deletion Request"</strong></li>
+                <li>Include a description of the data you want deleted (e.g., "photos I uploaded" or "my email address")</li>
+                <li>If requesting photo deletion, please provide details to help identify your photos (approximate upload date, location shown, etc.)</li>
+              </ol>
+              
+              <h3 className="text-lg font-semibold text-foreground mb-2">Processing Time</h3>
+              <p className="text-muted-foreground">
+                We will process your deletion request within <strong>30 days</strong> of receiving it. You will receive a confirmation email once your data has been deleted.
+              </p>
+            </div>
+
             {/* Children's Privacy */}
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-4">Children's Privacy</h2>
