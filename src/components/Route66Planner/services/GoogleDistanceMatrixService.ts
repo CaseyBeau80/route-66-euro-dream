@@ -40,14 +40,8 @@ export class GoogleDistanceMatrixService {
       return this.apiKey.trim();
     }
     
-    // 3. Use hardcoded key as last resort
-    const hardcodedApiKey = 'AIzaSyCj2hJjT8wA0G3gBmUaK7qmhKX8Uv3mDH8';
-    if (hardcodedApiKey && hardcodedApiKey.trim() !== '') {
-      console.log('🔑 GoogleDistanceMatrix using hardcoded API key fallback');
-      return hardcodedApiKey.trim();
-    }
-    
-    console.warn('❌ GoogleDistanceMatrix: No API key available');
+    // No API key available
+    console.warn('❌ GoogleDistanceMatrix: No API key configured');
     return null;
   }
 
