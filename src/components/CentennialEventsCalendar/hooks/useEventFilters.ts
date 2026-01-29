@@ -3,6 +3,20 @@ import { CentennialEvent, EventState, EventCategory } from '@/data/centennialEve
 import { safeParseDate } from '../utils/eventCalendarHelpers';
 export type SortType = 'date' | 'state' | 'category';
 
+/**
+ * Helper for consistent date comparison using safeParseDate.
+ * Avoids inconsistent browser parsing and timezone issues.
+ * Invalid dates are pushed to the end of sorted lists.
+ */
+const compareDates = (aDate: string, bDate: string): number => {
+  const dateA = safeParseDate(aDate);
+  const dateB = safeParseDate(bDate);
+  if (!dateA && !dateB) return 0;  // Both invalid: keep relative order
+  if (!dateA) return 1;             // Push invalid A to end
+  if (!dateB) return -1;            // Push invalid B to end
+  return dateA.getTime() - dateB.getTime();
+};
+
 interface UseEventFiltersReturn {
   filteredEvents: CentennialEvent[];
   selectedState: EventState | 'all';
@@ -40,18 +54,18 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     });
   }, [events]);
 
-  // Sort events chronologically by default
+  // Sort events - default is chronological (soonest first)
   const sortEvents = useCallback((eventsToSort: CentennialEvent[]): CentennialEvent[] => {
     return [...eventsToSort].sort((a, b) => {
       switch (sortType) {
-        case 'date':
-          return new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime();
         case 'state':
           return a.state.localeCompare(b.state);
         case 'category':
           return a.category.localeCompare(b.category);
+        case 'date':
         default:
-          return new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime();
+          // Date sort is the default behavior
+          return compareDates(a.dateStart, b.dateStart);
       }
     });
   }, [sortType]);
@@ -85,11 +99,11 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
     return sortEvents(filtered);
   }, [upcomingEvents, selectedState, selectedMonth, selectedCategory, sortEvents]);
 
-  // Get highlighted/featured events - pure chronological sort (also excluding past)
+  // Get highlighted/featured events - chronological sort (soonest first)
   const highlightedEvents = useMemo(() => {
     return upcomingEvents
       .filter(e => e.isHighlight)
-      .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
+      .sort((a, b) => compareDates(a.dateStart, b.dateStart));
   }, [upcomingEvents]);
 
   // Get event count by state (only upcoming events)
