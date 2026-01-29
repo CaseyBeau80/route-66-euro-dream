@@ -22,7 +22,7 @@ const BannerContent: React.FC = () => {
             filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))'
           }}
         >
-          ROUTE 66 INTERACTIVE MAP
+          INTERACTIVE ROUTE 66 GOOGLE MAP
         </h2>
         
         {/* Vintage Subtitle */}

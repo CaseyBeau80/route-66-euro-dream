@@ -3,7 +3,7 @@ import { MapPin, Pin, Gem } from 'lucide-react';
 
 export const mapContent = {
   en: {
-    title: "Explore Route 66 Google Map",
+    title: "Interactive Route 66 Google Map",
     subtitle: "Your personalized, interactive Route 66 travel map.",
     exploreButton: "Start Exploring",
     features: [
@@ -28,7 +28,7 @@ export const mapContent = {
     ]
   },
   de: {
-    title: "Erkunde Route 66 Google Map",
+    title: "Interaktive Route 66 Google Map",
     subtitle: "Ihre personalisierte, interaktive Route 66 Reisekarte.",
     exploreButton: "Erkunden Beginnen",
     features: [
@@ -53,7 +53,7 @@ export const mapContent = {
     ]
   },
   fr: {
-    title: "Explorez Route 66 Google Map",
+    title: "Route 66 Google Map Interactive",
     subtitle: "Votre carte de voyage Route 66 personnalisée et interactive.",
     exploreButton: "Commencer l'Exploration",
     features: [
@@ -78,7 +78,7 @@ export const mapContent = {
     ]
   },
   "pt-BR": {
-    title: "Explore Route 66 Google Map",
+    title: "Mapa Interativo Google da Rota 66",
     subtitle: "Seu mapa de viagem Route 66 personalizado e interativo.",
     exploreButton: "Começar a Explorar",
     features: [
