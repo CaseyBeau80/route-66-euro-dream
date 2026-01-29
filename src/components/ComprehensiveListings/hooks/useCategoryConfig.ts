@@ -9,7 +9,7 @@ export const useCategoryConfig = (): Record<string, Omit<CategoryData, 'items' |
       icon: '🏙️'
     },
     attractions: {
-      title: 'Historic Attractions',
+      title: 'Attractions',
       color: 'bg-green-500',
       icon: '🏛️'
     },
