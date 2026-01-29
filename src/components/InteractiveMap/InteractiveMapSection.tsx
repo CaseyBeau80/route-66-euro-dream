@@ -12,10 +12,10 @@ const InteractiveMapSection: React.FC = () => {
         <div className="text-center mb-12">
           <div className="bg-route66-background rounded-xl p-6 border-4 border-route66-primary shadow-xl max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-route66 text-route66-primary font-bold uppercase mb-4 tracking-wide">
-              Explore Route 66 with Our Interactive Map
+              Interactive Route 66 Google Map
             </h2>
             <p className="text-lg text-route66-text-secondary max-w-2xl mx-auto leading-relaxed">
-              Navigate America's most iconic highway with our interactive map featuring historic towns, attractions, and hidden gems along the Mother Road
+              Explore attractions, destinations, and hidden gems with interactive filtering
             </p>
           </div>
         </div>

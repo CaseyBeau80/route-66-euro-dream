@@ -25,7 +25,7 @@ const Index = () => {
       <SocialMetaTags 
         path="/" 
         title="Ramble 66" 
-        description="Plan your ultimate Route 66 road trip with our interactive map and comprehensive guide. Discover hidden gems, classic diners, retro motels, and iconic attractions."
+        description="Plan your ultimate Route 66 road trip with our Interactive Route 66 Google Map and Shareable Travel Planner. Discover hidden gems, classic diners, retro motels, and iconic attractions."
         includeFaqSchema={true}
         includeHowToSchema={true}
         includeAttractionsSchema={true}

@@ -13,24 +13,24 @@ const BlogPage: React.FC = () => {
   return (
     <MainLayout>
       <Helmet>
-        <title>Route 66 Blog | Ramble66 - Stories from the Mother Road</title>
+        <title>Route 66 Blog & News | Ramble 66</title>
         <meta 
           name="description" 
-          content="Explore Route 66 stories, travel tips, hidden gems, and road trip guides. Get inspired for your Mother Road adventure with Big Bo Ramble." 
+          content="Route 66 Blog & News: Centennial updates, local stories, and what's happening along the Mother Road. Get inspired for your Route 66 adventure." 
         />
-        <meta name="keywords" content="Route 66 blog, Mother Road stories, road trip tips, Route 66 travel guide, Big Bo Ramble" />
-        <link rel="canonical" href="https://ramble66.lovable.app/blog" />
+        <meta name="keywords" content="Route 66 blog, Route 66 news, Mother Road stories, road trip tips, Route 66 travel guide, centennial updates" />
+        <link rel="canonical" href="https://ramble66.com/blog" />
         
         {/* Open Graph */}
-        <meta property="og:title" content="Route 66 Blog | Ramble66" />
-        <meta property="og:description" content="Stories, tips, and adventures from the Mother Road" />
+        <meta property="og:title" content="Route 66 Blog & News | Ramble 66" />
+        <meta property="og:description" content="Route 66 Blog & News: Centennial updates, local stories, and what's happening along the Mother Road." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://ramble66.lovable.app/blog" />
+        <meta property="og:url" content="https://ramble66.com/blog" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Route 66 Blog | Ramble66" />
-        <meta name="twitter:description" content="Stories, tips, and adventures from the Mother Road" />
+        <meta name="twitter:title" content="Route 66 Blog & News | Ramble 66" />
+        <meta name="twitter:description" content="Route 66 Blog & News: Centennial updates, local stories, and what's happening along the Mother Road." />
       </Helmet>
 
       <BlogHero />

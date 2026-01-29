@@ -23,8 +23,8 @@ const Route66Planner = () => {
     <div className="min-h-screen bg-[#f8f9ff]">
       <SocialMetaTags 
         path="/planner"
-        title="Route 66 Travel Planner – Ramble 66"
-        description="Plan your perfect Route 66 journey with destination cities, attractions, and day-by-day itineraries."
+        title="Shareable Travel Planner – Ramble 66"
+        description="Shareable Travel Planner: Build custom Route 66 trips and share them with friends and family. Plan your perfect journey with destination cities and day-by-day itineraries."
       />
       <NavigationBar />
       

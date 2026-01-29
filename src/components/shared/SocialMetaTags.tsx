@@ -23,7 +23,7 @@ interface SocialMetaTagsProps {
 
 const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
   title = 'Ramble 66',
-  description = 'Plan and share your ultimate Route 66 road trip with our interactive map and shareable travel planner. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
+  description = 'Plan and share your ultimate Route 66 road trip with our Interactive Route 66 Google Map and Shareable Travel Planner. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
   imageUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png',
   path,
   url,
@@ -57,7 +57,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       {/* Basic Meta Tags */}
       <title>{title}</title>
       <meta name="description" content={description} />
-      <meta name="keywords" content="Route 66, road trip planner, interactive map, classic diners, retro motels, hidden gems, Mother Road, Chicago to Santa Monica, travel attractions, historic route, Ramble 66, Ramble66" />
+      <meta name="keywords" content="Route 66, road trip planner, Interactive Route 66 Google Map, Shareable Travel Planner, Route 66 Events Calendar, Route 66 Blog & News, classic diners, retro motels, hidden gems, Mother Road, Chicago to Santa Monica, travel attractions, historic route, Ramble 66, Ramble66" />
       <meta name="author" content="Ramble 66" />
       <meta name="robots" content="index, follow" />
       

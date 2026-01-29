@@ -82,12 +82,11 @@ const CentennialEventsCalendar: React.FC = () => {
           </div>
           
           <h2 id="events-calendar-heading" className="text-3xl sm:text-4xl font-bold text-slate-800 mb-3">
-            Route 66 Turns 100! 🎉
+            Route 66 Events Calendar
           </h2>
           
           <p className="text-slate-600 max-w-2xl mx-auto mb-4">
-            Year-long celebrations across all 8 states! Plan ahead for parades, festivals, 
-            car shows, and more along the Mother Road.
+            Discover centennial celebrations, festivals, and car shows across all 8 states
           </p>
 
           {/* Pro tip callout */}

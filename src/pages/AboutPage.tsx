@@ -10,7 +10,7 @@ const AboutPage = () => {
       <SocialMetaTags 
         path="/about"
         title="About Ramble 66 – Route 66 Trip Planner" 
-        description="Learn about Ramble 66—your Route 66 trip planner. We help travelers discover hidden gems, classic diners, retro motels, and iconic attractions from Chicago to Santa Monica."
+        description="About Ramble 66: Your one-stop shop for Interactive Route 66 Google Map, Shareable Travel Planner, Route 66 Events Calendar, and Route 66 Blog & News."
       />
       
       <main className="min-h-screen bg-background">
