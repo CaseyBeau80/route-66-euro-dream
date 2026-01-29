@@ -41,7 +41,7 @@ const CarouselFilters: React.FC<CarouselFiltersProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="attractions">Historic Attractions</SelectItem>
+            <SelectItem value="attractions">Attractions</SelectItem>
             <SelectItem value="drive_ins">Drive-In Theaters</SelectItem>
             <SelectItem value="hidden_gems">Hidden Gems</SelectItem>
             <SelectItem value="native_american">Native American Heritage</SelectItem>
