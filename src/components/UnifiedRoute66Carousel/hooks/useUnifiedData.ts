@@ -81,13 +81,22 @@ export const useUnifiedData = () => {
       if (data.hiddenGems) {
         console.log(`💎 Processing ${data.hiddenGems.length} hidden gems`);
         data.hiddenGems.forEach(gem => {
+          // Extract state from city_name if not provided (e.g., "Springfield, MO" -> "MO")
+          let derivedState = gem.state;
+          if (!derivedState && gem.city_name) {
+            const stateMatch = gem.city_name.match(/,\s*([A-Z]{2})$/i);
+            if (stateMatch) {
+              derivedState = stateMatch[1].toUpperCase();
+            }
+          }
+          
           unifiedItems.push({
             id: `hidden-gem-${gem.id}`,
             name: gem.name || gem.title,
             title: gem.title,
             description: gem.description,
             city_name: gem.city_name,
-            state: gem.state || undefined,
+            state: derivedState || undefined,
             image_url: gem.image_url,
             thumbnail_url: gem.thumbnail_url,
             website: gem.website,
