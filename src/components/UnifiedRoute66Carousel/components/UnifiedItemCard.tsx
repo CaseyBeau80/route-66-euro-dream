@@ -22,7 +22,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case 'attractions':
-        return 'Historic Attraction';
+        return 'Attraction';
       case 'drive_ins':
         return 'Drive-In Theater';
       case 'hidden_gems':
