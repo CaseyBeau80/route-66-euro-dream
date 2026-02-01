@@ -109,7 +109,12 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
         {/* Location */}
         <div className="flex items-center gap-1 text-sm text-route66-text-secondary mb-3">
           <MapPin className="h-4 w-4 flex-shrink-0" />
-          <span className="truncate">{item.city_name}{item.state && `, ${item.state}`}</span>
+          <span className="truncate">
+            {/* Avoid duplicating state if city_name already contains it */}
+            {item.city_name && item.state && item.city_name.includes(item.state) 
+              ? item.city_name 
+              : `${item.city_name || ''}${item.state ? `, ${item.state}` : ''}`}
+          </span>
         </div>
 
         {/* Description - Fixed 3 lines height */}
