@@ -76,7 +76,7 @@ export const useUnifiedData = () => {
             name: driveIn.name,
             description: driveIn.description,
             city_name: driveIn.city_name,
-            state: driveIn.state,
+            state: normalizeState(driveIn.state),
             image_url: driveIn.image_url,
             thumbnail_url: driveIn.thumbnail_url,
             website: driveIn.website,
