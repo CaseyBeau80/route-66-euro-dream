@@ -51,7 +51,7 @@ export const useUnifiedData = () => {
             title: attraction.title || attraction.name,
             description: attraction.description,
             city_name: attraction.city_name,
-            state: attraction.state,
+            state: normalizeState(attraction.state),
             image_url: attraction.image_url,
             thumbnail_url: attraction.thumbnail_url,
             website: attraction.website,
