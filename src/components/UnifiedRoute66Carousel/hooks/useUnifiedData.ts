@@ -2,6 +2,20 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { UnifiedRoute66Item, FilterState } from '../types';
 
+const stateNameToAbbr: Record<string, string> = {
+  'illinois': 'IL', 'missouri': 'MO', 'kansas': 'KS', 'oklahoma': 'OK',
+  'texas': 'TX', 'new mexico': 'NM', 'arizona': 'AZ', 'california': 'CA',
+};
+
+/** Normalize state to 2-letter abbreviation */
+const normalizeState = (state?: string | null): string | undefined => {
+  if (!state) return undefined;
+  const trimmed = state.trim();
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  const abbr = stateNameToAbbr[trimmed.toLowerCase()];
+  return abbr || trimmed;
+};
+
 export const useUnifiedData = () => {
   const [items, setItems] = useState<UnifiedRoute66Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +51,7 @@ export const useUnifiedData = () => {
             title: attraction.title || attraction.name,
             description: attraction.description,
             city_name: attraction.city_name,
-            state: attraction.state,
+            state: normalizeState(attraction.state),
             image_url: attraction.image_url,
             thumbnail_url: attraction.thumbnail_url,
             website: attraction.website,
@@ -62,7 +76,7 @@ export const useUnifiedData = () => {
             name: driveIn.name,
             description: driveIn.description,
             city_name: driveIn.city_name,
-            state: driveIn.state,
+            state: normalizeState(driveIn.state),
             image_url: driveIn.image_url,
             thumbnail_url: driveIn.thumbnail_url,
             website: driveIn.website,
@@ -96,7 +110,7 @@ export const useUnifiedData = () => {
             title: gem.title,
             description: gem.description,
             city_name: gem.city_name,
-            state: derivedState || undefined,
+            state: normalizeState(derivedState),
             image_url: gem.image_url,
             thumbnail_url: gem.thumbnail_url,
             website: gem.website,
@@ -122,7 +136,7 @@ export const useUnifiedData = () => {
             title: site.title || site.name,
             description: site.description,
             city_name: site.city_name,
-            state: site.state || undefined,
+            state: normalizeState(site.state),
             image_url: site.image_url,
             thumbnail_url: site.thumbnail_url,
             website: site.website,
