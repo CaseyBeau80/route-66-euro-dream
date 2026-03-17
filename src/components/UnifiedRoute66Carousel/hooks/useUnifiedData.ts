@@ -136,7 +136,7 @@ export const useUnifiedData = () => {
             title: site.title || site.name,
             description: site.description,
             city_name: site.city_name,
-            state: site.state || undefined,
+            state: normalizeState(site.state),
             image_url: site.image_url,
             thumbnail_url: site.thumbnail_url,
             website: site.website,
