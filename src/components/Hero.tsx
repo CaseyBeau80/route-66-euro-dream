@@ -61,7 +61,7 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
           <img 
             src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png" 
             alt="Big Bo - Route 66 Mascot" 
-            className="w-32 h-40 object-cover rounded-lg shadow-2xl border-4 border-white"
+            className="w-32 h-40 object-cover shadow-2xl border-4 border-white"
           />
         </div>
         

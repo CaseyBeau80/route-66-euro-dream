@@ -314,7 +314,7 @@ const HeroSection: React.FC = () => {
                 <img 
                   src="/lovable-uploads/8f23e082-56b6-4339-abeb-dc34f7a2c0c2.png"
                   alt={content.mascotAlt}
-                  className="w-full h-auto object-contain rounded-3xl shadow-2xl lcp-hero-image"
+                  className="w-full h-auto object-contain shadow-2xl lcp-hero-image"
                   width={588}
                   height={803}
                   loading="eager"
