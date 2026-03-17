@@ -2,6 +2,20 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { UnifiedRoute66Item, FilterState } from '../types';
 
+const stateNameToAbbr: Record<string, string> = {
+  'illinois': 'IL', 'missouri': 'MO', 'kansas': 'KS', 'oklahoma': 'OK',
+  'texas': 'TX', 'new mexico': 'NM', 'arizona': 'AZ', 'california': 'CA',
+};
+
+/** Normalize state to 2-letter abbreviation */
+const normalizeState = (state?: string | null): string | undefined => {
+  if (!state) return undefined;
+  const trimmed = state.trim();
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  const abbr = stateNameToAbbr[trimmed.toLowerCase()];
+  return abbr || trimmed;
+};
+
 export const useUnifiedData = () => {
   const [items, setItems] = useState<UnifiedRoute66Item[]>([]);
   const [loading, setLoading] = useState(true);
