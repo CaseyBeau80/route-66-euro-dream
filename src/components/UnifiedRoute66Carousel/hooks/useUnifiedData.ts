@@ -110,7 +110,7 @@ export const useUnifiedData = () => {
             title: gem.title,
             description: gem.description,
             city_name: gem.city_name,
-            state: derivedState || undefined,
+            state: normalizeState(derivedState),
             image_url: gem.image_url,
             thumbnail_url: gem.thumbnail_url,
             website: gem.website,
