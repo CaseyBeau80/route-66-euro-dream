@@ -163,7 +163,7 @@ export default function TripPlannerChatWidget() {
               className="text-white text-2xl font-black leading-none"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Ramble<span className="text-route66-gold">66</span>
+              Ramble <span className="text-route66-gold">66</span>
             </h2>
             <p
               className="text-white text-[10px] tracking-[2px] mt-1"
