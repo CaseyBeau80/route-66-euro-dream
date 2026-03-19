@@ -203,10 +203,9 @@ export default function TripPlannerChatWidget() {
                         <button
                           key={chip}
                           onClick={() => sendMessage(chip)}
-                          className="text-[10px] px-3 py-1 border border-route66-primary text-route66-primary rounded-sm hover:bg-route66-primary hover:text-white transition-colors"
+                          className="text-xs px-3 py-1.5 border-2 border-route66-primary text-route66-primary rounded-sm hover:bg-route66-primary hover:text-white transition-colors font-medium"
                           style={{
-                            fontFamily: "'Special Elite', cursive",
-                            letterSpacing: "0.5px",
+                            fontFamily: "'Libre Baskerville', Georgia, serif",
                           }}
                         >
                           {chip}
