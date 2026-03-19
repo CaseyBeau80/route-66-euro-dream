@@ -27,7 +27,7 @@ const BackToTopButton: React.FC = () => {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-8 right-8 z-40 bg-route66-primary hover:bg-route66-primary-dark text-white p-3 rounded-full shadow-2xl hover:shadow-xl transform hover:scale-110 transition-all duration-300 border-2 border-white/10 backdrop-blur-sm"
+      className="fixed bottom-24 right-8 z-40 bg-route66-primary hover:bg-route66-primary-dark text-white p-3 rounded-full shadow-2xl hover:shadow-xl transform hover:scale-110 transition-all duration-300 border-2 border-white/10 backdrop-blur-sm"
       aria-label="Back to top"
     >
       <ChevronUp size={24} />
