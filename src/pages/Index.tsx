@@ -144,7 +144,6 @@ const Index = () => {
       {/* Back to Top Button */}
       <BackToTopButton />
     </MainLayout>
-    </MainLayout>
   );
 };
 
