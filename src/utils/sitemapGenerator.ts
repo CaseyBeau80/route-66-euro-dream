@@ -5,6 +5,32 @@ interface SitemapUrl {
   priority?: number;
 }
 
+/** Returns true if the value looks like a valid URL slug (no spaces, no http, no query chars) */
+export function isValidSlug(value: string): boolean {
+  if (!value || value.length > 200) return false;
+  if (value.startsWith('http')) return false;
+  if (/[\s?#&]/.test(value)) return false;
+  return true;
+}
+
+/** URL-encode a value for use in a sitemap loc, but skip garbage entries */
+export function sanitizeEventId(value: string): string | null {
+  if (!value || value.length > 200) return null;
+  if (value.startsWith('http')) return null;
+  if (/[?#&]/.test(value)) return null;
+  return encodeURIComponent(value);
+}
+
+/** XML-escape special characters in a URL string */
+function xmlEscape(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/'/g, '&apos;')
+    .replace(/"/g, '&quot;');
+}
+
 export class SitemapGenerator {
   private baseUrl: string;
   private urls: SitemapUrl[] = [];
@@ -30,7 +56,6 @@ export class SitemapGenerator {
       { loc: '/hidden-gems', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/about', lastmod: today, changefreq: 'yearly', priority: 0.6 },
       { loc: '/contact', lastmod: today, changefreq: 'yearly', priority: 0.5 },
-      // State pages
       { loc: '/illinois', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/missouri', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/kansas', lastmod: today, changefreq: 'weekly', priority: 0.9 },
@@ -45,21 +70,21 @@ export class SitemapGenerator {
 
   addAttractionRoutes(slugs: string[]): void {
     const today = new Date().toISOString().split('T')[0];
-    slugs.forEach(slug => {
+    slugs.filter(isValidSlug).forEach(slug => {
       this.addUrl({ loc: `/attractions/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
     });
   }
 
   addHiddenGemRoutes(slugs: string[]): void {
     const today = new Date().toISOString().split('T')[0];
-    slugs.forEach(slug => {
+    slugs.filter(isValidSlug).forEach(slug => {
       this.addUrl({ loc: `/hidden-gems/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
     });
   }
 
   addBlogRoutes(slugs: string[]): void {
     const today = new Date().toISOString().split('T')[0];
-    slugs.forEach(slug => {
+    slugs.filter(isValidSlug).forEach(slug => {
       this.addUrl({ loc: `/blog/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
     });
   }
@@ -67,20 +92,23 @@ export class SitemapGenerator {
   addEventRoutes(eventIds: string[]): void {
     const today = new Date().toISOString().split('T')[0];
     eventIds.forEach(id => {
-      this.addUrl({ loc: `/events/${id}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
+      const sanitized = sanitizeEventId(id);
+      if (sanitized) {
+        this.addUrl({ loc: `/events/${sanitized}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
+      }
     });
   }
 
   addNativeSiteRoutes(slugs: string[]): void {
     const today = new Date().toISOString().split('T')[0];
-    slugs.forEach(slug => {
+    slugs.filter(isValidSlug).forEach(slug => {
       this.addUrl({ loc: `/native-sites/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
     });
   }
 
   addTripRoutes(tripCodes: string[]): void {
     const today = new Date().toISOString().split('T')[0];
-    tripCodes.forEach(code => {
+    tripCodes.filter(isValidSlug).forEach(code => {
       this.addUrl({ loc: `/trip/${code}`, lastmod: today, changefreq: 'monthly', priority: 0.7 });
     });
   }
@@ -90,7 +118,8 @@ export class SitemapGenerator {
     const footer = '</urlset>';
 
     const urlEntries = this.urls.map(url => {
-      let entry = `  <url>\n    <loc>${url.loc}</loc>`;
+      const escapedLoc = xmlEscape(url.loc);
+      let entry = `  <url>\n    <loc>${escapedLoc}</loc>`;
       if (url.lastmod) entry += `\n    <lastmod>${url.lastmod}</lastmod>`;
       if (url.changefreq) entry += `\n    <changefreq>${url.changefreq}</changefreq>`;
       if (url.priority !== undefined) entry += `\n    <priority>${url.priority}</priority>`;
