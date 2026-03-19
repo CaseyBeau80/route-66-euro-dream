@@ -3,7 +3,6 @@ import MainLayout from "../components/MainLayout";
 import FadeInSection from "../components/FadeInSection";
 import BackToTopButton from "../components/BackToTopButton";
 import HeroSection from "../components/Hero/HeroSection";
-import TripPlannerChatWidget from "../components/TripPlannerChatWidget";
 import SocialMetaTags from "../components/shared/SocialMetaTags";
 import { DeferredComponent } from "../components/performance/DeferredComponent";
 import {
