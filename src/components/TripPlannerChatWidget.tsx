@@ -158,7 +158,7 @@ export default function TripPlannerChatWidget() {
               Ramble<span className="text-route66-gold">66</span>
             </h2>
             <p
-              className="text-[#999] text-[10px] tracking-[2px] mt-1"
+              className="text-white/70 text-[10px] tracking-[2px] mt-1"
               style={{ fontFamily: "'Special Elite', cursive" }}
             >
               Trip Planner — Ask Big Bo Anything
