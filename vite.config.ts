@@ -6,6 +6,31 @@ import { componentTagger } from "lovable-tagger";
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { generateSitemapFile } from "./src/utils/sitemapGenerator";
 
+// External Supabase credentials (same as src/lib/supabase.ts)
+const SUPABASE_URL = "https://xbwaphzntaxmdfzfsmvt.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo";
+
+async function fetchTable(table: string, select: string, filters?: string): Promise<any[]> {
+  let url = `${SUPABASE_URL}/rest/v1/${table}?select=${select}`;
+  if (filters) url += `&${filters}`;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+    });
+    if (!res.ok) {
+      console.warn(`[sitemap-plugin] Failed to fetch ${table}: ${res.status}`);
+      return [];
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn(`[sitemap-plugin] Error fetching ${table}:`, err);
+    return [];
+  }
+}
+
 // https://vitejs.dev/config/
 // Vite plugin to generate sitemap.xml into the final build output
 const sitemapPlugin = () => {
@@ -14,15 +39,30 @@ const sitemapPlugin = () => {
     name: 'sitemap-generator',
     apply: 'build' as const,
     configResolved(config: any) {
-      // capture outDir for later
       outDir = (config?.build?.outDir as string) || 'dist';
     },
-    closeBundle() {
+    async closeBundle() {
       try {
-        const xml = generateSitemapFile();
+        // Fetch all dynamic slugs/ids from external Supabase in parallel
+        const [attractions, hiddenGems, blogPosts, events, nativeSites] = await Promise.all([
+          fetchTable('attractions', 'slug'),
+          fetchTable('hidden_gems', 'slug'),
+          fetchTable('blog_posts', 'slug', 'is_published=eq.true'),
+          fetchTable('centennial_events', 'event_id'),
+          fetchTable('native_american_sites', 'slug'),
+        ]);
+
+        const xml = generateSitemapFile({
+          attractionSlugs: attractions.map((r: any) => r.slug),
+          hiddenGemSlugs: hiddenGems.map((r: any) => r.slug),
+          blogSlugs: blogPosts.map((r: any) => r.slug),
+          eventIds: events.map((r: any) => r.event_id),
+          nativeSiteSlugs: nativeSites.map((r: any) => r.slug),
+        });
+
         const target = path.resolve(outDir, 'sitemap.xml');
         writeFileSync(target, xml, 'utf8');
-        console.log('[sitemap-plugin] Wrote', target);
+        console.log(`[sitemap-plugin] Wrote ${target} with ${attractions.length} attractions, ${hiddenGems.length} hidden gems, ${blogPosts.length} blog posts, ${events.length} events, ${nativeSites.length} native sites`);
 
         // Ensure robots.txt is present in final build output
         const robotsIn = path.resolve('public', 'robots.txt');
@@ -52,7 +92,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        // Ensure consistent file naming for better caching
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'

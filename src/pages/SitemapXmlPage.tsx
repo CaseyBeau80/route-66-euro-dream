@@ -7,17 +7,24 @@ export default function SitemapXmlPage() {
   const [xml, setXml] = useState(() => generateSitemapFile());
 
   useEffect(() => {
-    const fetchBlogSlugs = async () => {
-      const { data } = await supabase
-        .from('blog_posts')
-        .select('slug')
-        .eq('is_published', true)
-        .lte('published_at', new Date().toISOString());
+    const fetchAllSlugs = async () => {
+      const [attractions, hiddenGems, blogPosts, events, nativeSites] = await Promise.all([
+        supabase.from('attractions').select('slug'),
+        supabase.from('hidden_gems').select('slug'),
+        supabase.from('blog_posts').select('slug').eq('is_published', true).lte('published_at', new Date().toISOString()),
+        supabase.from('centennial_events').select('event_id'),
+        supabase.from('native_american_sites').select('slug'),
+      ]);
 
-      const slugs = data?.map(p => p.slug) ?? [];
-      setXml(generateSitemapFile([], slugs));
+      setXml(generateSitemapFile({
+        attractionSlugs: attractions.data?.map(r => r.slug) ?? [],
+        hiddenGemSlugs: hiddenGems.data?.map(r => r.slug) ?? [],
+        blogSlugs: blogPosts.data?.map(r => r.slug) ?? [],
+        eventIds: events.data?.map(r => r.event_id) ?? [],
+        nativeSiteSlugs: nativeSites.data?.map(r => r.slug) ?? [],
+      }));
     };
-    fetchBlogSlugs();
+    fetchAllSlugs();
   }, []);
 
   return (
