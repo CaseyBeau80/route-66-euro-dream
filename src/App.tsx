@@ -25,6 +25,8 @@ const LazyNotFound = lazy(() => import("./pages/NotFound"));
 const LazyRobotsTxtPage = lazy(() => import("./pages/RobotsTxtPage"));
 const LazySitemapXmlPage = lazy(() => import("./pages/SitemapXmlPage"));
 const LazyPrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const LazyAttractionPage = lazy(() => import("./pages/AttractionPage"));
+const LazyStatePage = lazy(() => import("./pages/StatePage"));
 
 // Route loading fallback
 const RouteLoadingFallback = () => (
@@ -116,6 +118,21 @@ function App() {
                     <LazyPrivacyPolicyPage />
                   </Suspense>
                 } />
+                <Route path="/attractions/:slug" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyAttractionPage />
+                  </Suspense>
+                } />
+                {/* State pages - explicit routes for each Route 66 state */}
+                {['illinois', 'missouri', 'kansas', 'oklahoma', 'texas', 'new-mexico', 'arizona', 'california'].map(
+                  (stateSlug) => (
+                    <Route key={stateSlug} path={`/${stateSlug}`} element={
+                      <Suspense fallback={<RouteLoadingFallback />}>
+                        <LazyStatePage />
+                      </Suspense>
+                    } />
+                  )
+                )}
                 <Route path="*" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyNotFound />
