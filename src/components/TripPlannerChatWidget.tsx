@@ -146,19 +146,19 @@ export default function TripPlannerChatWidget() {
           <div className="bg-route66-asphalt border-b-4 border-route66-primary px-4 py-3 text-center relative">
             <div className="absolute bottom-[-10px] left-0 right-0 h-[6px] bg-route66-gold z-10" />
             <p
-              className="text-route66-gold text-[10px] tracking-[3px] uppercase mb-1"
+              className="text-white text-[10px] tracking-[3px] uppercase mb-1"
               style={{ fontFamily: "'Special Elite', cursive" }}
             >
               Est. 1926 — Chicago to Santa Monica
             </p>
             <h2
-              className="text-route66-surface text-2xl font-black leading-none"
+              className="text-white text-2xl font-black leading-none"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Ramble<span className="text-route66-gold">66</span>
             </h2>
             <p
-              className="text-white/70 text-[10px] tracking-[2px] mt-1"
+              className="text-white text-[10px] tracking-[2px] mt-1"
               style={{ fontFamily: "'Special Elite', cursive" }}
             >
               Trip Planner — Ask Big Bo Anything
