@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import bigBoHead from "@/assets/big-bo-ramble-head.png";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/trip-planner-chat`;
 
@@ -173,16 +174,20 @@ export default function TripPlannerChatWidget() {
                 className={`flex gap-2 items-start ${msg.role === "user" ? "flex-row-reverse" : ""}`}
               >
                 {/* Avatar */}
-                <div
-                  className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold border-2 border-route66-border ${
-                    msg.role === "user"
-                      ? "bg-route66-gold text-route66-text"
-                      : "bg-route66-primary text-white"
-                  }`}
-                  style={{ fontFamily: "'Special Elite', cursive" }}
-                >
-                  {msg.role === "user" ? "You" : "BB"}
-                </div>
+                {msg.role === "user" ? (
+                  <div
+                    className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold border-2 border-route66-border bg-route66-gold text-route66-text"
+                    style={{ fontFamily: "'Special Elite', cursive" }}
+                  >
+                    You
+                  </div>
+                ) : (
+                  <img
+                    src={bigBoHead}
+                    alt="Big Bo Ramble"
+                    className="w-8 h-8 rounded-full flex-shrink-0 border-2 border-route66-border object-cover"
+                  />
+                )}
 
                 {/* Bubble */}
                 <div
@@ -220,12 +225,11 @@ export default function TripPlannerChatWidget() {
             {/* Typing indicator */}
             {loading && (
               <div className="flex gap-2 items-start">
-                <div
-                  className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold border-2 border-route66-border bg-route66-primary text-white"
-                  style={{ fontFamily: "'Special Elite', cursive" }}
-                >
-                  BB
-                </div>
+                <img
+                  src={bigBoHead}
+                  alt="Big Bo Ramble"
+                  className="w-8 h-8 rounded-full flex-shrink-0 border-2 border-route66-border object-cover"
+                />
                 <div className="bg-route66-surface border border-[#E8D9B8] rounded-sm px-3 py-3 flex gap-1 items-center">
                   {[0, 1, 2].map((i) => (
                     <span
