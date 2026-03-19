@@ -10,7 +10,7 @@ import { generateSitemapFile } from "./src/utils/sitemapGenerator";
 const SUPABASE_URL = "https://xbwaphzntaxmdfzfsmvt.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo";
 
-async function fetchTable(table: string, select: string, filters?: string): Promise<any[]> {
+async function fetchTable(table: string, select: string, filters?: string): Promise<Record<string, string>[]> {
   let url = `${SUPABASE_URL}/rest/v1/${table}?select=${select}`;
   if (filters) url += `&${filters}`;
   try {
