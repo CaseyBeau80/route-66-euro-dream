@@ -21,31 +21,21 @@ export class SitemapGenerator {
   }
 
   addStaticRoutes(): void {
+    const today = new Date().toISOString().split('T')[0];
     const staticRoutes: SitemapUrl[] = [
-      {
-        loc: '/',
-        lastmod: new Date().toISOString().split('T')[0],
-        changefreq: 'weekly',
-        priority: 1.0
-      },
-      {
-        loc: '/contact',
-        lastmod: new Date().toISOString().split('T')[0],
-        changefreq: 'monthly',
-        priority: 0.8
-      },
-      {
-        loc: '/about',
-        lastmod: new Date().toISOString().split('T')[0],
-        changefreq: 'monthly',
-        priority: 0.8
-      },
-      {
-        loc: '/privacy',
-        lastmod: new Date().toISOString().split('T')[0],
-        changefreq: 'monthly',
-        priority: 0.4
-      }
+      { loc: '/', lastmod: today, changefreq: 'weekly', priority: 1.0 },
+      { loc: '/contact', lastmod: today, changefreq: 'monthly', priority: 0.8 },
+      { loc: '/about', lastmod: today, changefreq: 'monthly', priority: 0.8 },
+      { loc: '/privacy', lastmod: today, changefreq: 'monthly', priority: 0.4 },
+      // State pages
+      { loc: '/illinois', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/missouri', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/kansas', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/oklahoma', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/texas', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/new-mexico', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/arizona', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/california', lastmod: today, changefreq: 'weekly', priority: 0.9 },
     ];
 
     staticRoutes.forEach(route => this.addUrl(route));
