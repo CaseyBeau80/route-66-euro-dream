@@ -2,6 +2,7 @@
 import { ReactNode } from 'react';
 import NavigationBar from "./NavigationBar";
 import Footer from "./Footer";
+import TripPlannerChatWidget from "./TripPlannerChatWidget";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -20,6 +21,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       {/* Footer with React Router Links */}
       <Footer />
+
+      {/* Big Bo Ramble Chatbot */}
+      <TripPlannerChatWidget />
     </div>
   );
 };
