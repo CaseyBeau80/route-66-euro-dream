@@ -1,10 +1,25 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { generateSitemapFile } from "@/utils/sitemapGenerator";
-
-const xml = generateSitemapFile();
+import { supabase } from "@/lib/supabase";
 
 export default function SitemapXmlPage() {
+  const [xml, setXml] = useState(() => generateSitemapFile());
+
+  useEffect(() => {
+    const fetchBlogSlugs = async () => {
+      const { data } = await supabase
+        .from('blog_posts')
+        .select('slug')
+        .eq('is_published', true)
+        .lte('published_at', new Date().toISOString());
+
+      const slugs = data?.map(p => p.slug) ?? [];
+      setXml(generateSitemapFile([], slugs));
+    };
+    fetchBlogSlugs();
+  }, []);
+
   return (
     <>
       <Helmet>
