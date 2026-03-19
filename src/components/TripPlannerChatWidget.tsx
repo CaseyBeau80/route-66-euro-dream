@@ -200,7 +200,7 @@ export default function TripPlannerChatWidget() {
                 <div
                   className={`max-w-[78%] px-3 py-2 rounded-sm text-sm leading-relaxed border ${
                     msg.role === "user"
-                      ? "bg-route66-asphalt text-route66-surface border-route66-text"
+                      ? "bg-route66-asphalt text-white border-route66-text"
                       : "bg-route66-surface text-route66-text border-[#E8D9B8]"
                   }`}
                 >
