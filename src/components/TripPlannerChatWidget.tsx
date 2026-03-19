@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import bigBoHead from "@/assets/big-bo-ramble-head.png";
+import bigBoAvatar from "@/assets/big-bo-ramble-avatar.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/trip-planner-chat`;
 
@@ -131,10 +132,16 @@ export default function TripPlannerChatWidget() {
       {/* Floating toggle button */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center border-2 border-route66-border shadow-[4px_4px_0_rgba(27,96,163,0.3)] transition-colors bg-route66-primary hover:bg-route66-primary/85 text-white"
+        className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full overflow-hidden border-2 border-route66-border shadow-[4px_4px_0_rgba(27,96,163,0.3)] transition-transform hover:scale-110"
         aria-label={open ? "Close chat" : "Open chat"}
       >
-        {open ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {open ? (
+          <div className="w-full h-full bg-route66-primary flex items-center justify-center">
+            <X className="w-6 h-6 text-white" />
+          </div>
+        ) : (
+          <img src={bigBoAvatar} alt="Chat with Big Bo" className="w-full h-full object-cover object-top" />
+        )}
       </button>
 
       {/* Chat panel */}
