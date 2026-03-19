@@ -21,6 +21,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       
       {/* Footer with React Router Links */}
       <Footer />
+
+      {/* Big Bo Ramble Chatbot */}
+      <TripPlannerChatWidget />
     </div>
   );
 };
