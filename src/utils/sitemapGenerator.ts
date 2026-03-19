@@ -52,6 +52,19 @@ export class SitemapGenerator {
     });
   }
 
+  addBlogRoutes(slugs: string[]): void {
+    const today = new Date().toISOString().split('T')[0];
+    this.addUrl({ loc: '/blog', lastmod: today, changefreq: 'weekly', priority: 0.9 });
+    slugs.forEach(slug => {
+      this.addUrl({
+        loc: `/blog/${slug}`,
+        lastmod: today,
+        changefreq: 'weekly',
+        priority: 0.8
+      });
+    });
+  }
+
   generateXML(): string {
     const header = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
     const footer = '</urlset>';
