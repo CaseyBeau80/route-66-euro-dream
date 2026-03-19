@@ -24,7 +24,7 @@ async function fetchTable(table: string, select: string, filters?: string): Prom
       console.warn(`[sitemap-plugin] Failed to fetch ${table}: ${res.status}`);
       return [];
     }
-    return await res.json();
+    return (await res.json()) as Record<string, string>[];
   } catch (err) {
     console.warn(`[sitemap-plugin] Error fetching ${table}:`, err);
     return [];
