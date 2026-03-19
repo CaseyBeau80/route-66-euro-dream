@@ -97,9 +97,10 @@ export class SitemapGenerator {
 }
 
 // Utility function to generate and download sitemap
-export const generateSitemapFile = (tripCodes: string[] = []): string => {
+export const generateSitemapFile = (tripCodes: string[] = [], blogSlugs: string[] = []): string => {
   const generator = new SitemapGenerator();
   generator.addStaticRoutes();
   generator.addTripRoutes(tripCodes);
+  generator.addBlogRoutes(blogSlugs);
   return generator.generateXML();
 };
