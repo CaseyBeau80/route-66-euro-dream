@@ -143,9 +143,7 @@ const Index = () => {
 
       {/* Back to Top Button */}
       <BackToTopButton />
-
-      {/* Big Bo Ramble Chatbot */}
-      <TripPlannerChatWidget />
+    </MainLayout>
     </MainLayout>
   );
 };
