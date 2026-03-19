@@ -50,6 +50,19 @@ const Index = () => {
         </FadeInSection>
       </DeferredComponent>
 
+      {/* Centennial Events Calendar */}
+      <DeferredComponent 
+        fallback={<ComponentLoadingFallback />}
+        rootMargin="600px"
+        delay={0}
+      >
+        <FadeInSection id="events-calendar" delay={200}>
+          <Suspense fallback={<ComponentLoadingFallback />}>
+            <LazyCentennialEventsCalendar />
+          </Suspense>
+        </FadeInSection>
+      </DeferredComponent>
+
       {/* Trip Planner Section */}
       <DeferredComponent 
         fallback={<ComponentLoadingFallback />}
@@ -85,19 +98,6 @@ const Index = () => {
         <FadeInSection id="social" delay={200}>
           <Suspense fallback={<ComponentLoadingFallback />}>
             <LazySocialSection />
-          </Suspense>
-        </FadeInSection>
-      </DeferredComponent>
-
-      {/* Centennial Events Calendar */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="events-calendar" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazyCentennialEventsCalendar />
           </Suspense>
         </FadeInSection>
       </DeferredComponent>
