@@ -124,6 +124,11 @@ function App() {
                     <LazyAttractionPage />
                   </Suspense>
                 } />
+                <Route path="/storymap" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyStoryMapPage />
+                  </Suspense>
+                } />
                 {/* State pages - explicit routes for each Route 66 state */}
                 {['illinois', 'missouri', 'kansas', 'oklahoma', 'texas', 'new-mexico', 'arizona', 'california'].map(
                   (stateSlug) => (
