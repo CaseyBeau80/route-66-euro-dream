@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Calendar, Loader2, ChevronDown } from 'lucide-react';
+import { Calendar, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { CentennialEvent } from '@/data/centennialEventsData';
 import { useCentennialEventsWithFallback } from '@/hooks/useCentennialEvents';
 import { useEventFilters } from './hooks/useEventFilters';
