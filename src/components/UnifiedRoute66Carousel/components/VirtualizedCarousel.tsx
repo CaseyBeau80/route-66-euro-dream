@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Loader2, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import UnifiedItemCard from './UnifiedItemCard';
 import { UnifiedRoute66Item } from '../types';
 
@@ -94,6 +94,19 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
     }, 300);
   }, [visibleCount, items.length, getLoadMoreCount]);
 
+  const handleCollapse = useCallback(() => {
+    const initialCount = getInitialVisibleCount();
+    setVisibleCount(initialCount);
+    setNewlyLoadedIndices(new Set());
+    // Scroll back to the section header
+    const sectionHeader = document.querySelector('[data-index="0"]');
+    if (sectionHeader) {
+      sectionHeader.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [getInitialVisibleCount]);
+
+  const isExpandedBeyondInitial = visibleCount > getInitialVisibleCount();
+
   if (items.length === 0) {
     return null;
   }
@@ -120,9 +133,9 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
         ))}
       </div>
 
-      {/* "See More Directory" button */}
-      {hasMoreItems && (
-        <div className="flex justify-center mt-8">
+      {/* "See More Directory" / "Show Less" buttons */}
+      <div className="flex justify-center gap-4 mt-8 flex-wrap">
+        {hasMoreItems && (
           <Button
             onClick={handleSeeMore}
             disabled={isLoading}
@@ -147,8 +160,21 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
               </>
             )}
           </Button>
-        </div>
-      )}
+        )}
+        {isExpandedBeyondInitial && (
+          <Button
+            onClick={handleCollapse}
+            variant="outline"
+            className="border-2 border-route66-border text-route66-text hover:bg-route66-background-alt px-8 py-4 
+                       text-xl font-bold rounded-lg shadow-md hover:shadow-lg 
+                       hover:scale-105 transition-all duration-200 
+                       min-w-[200px] md:min-w-[280px] h-auto"
+          >
+            <ChevronUp className="h-5 w-5 mr-2" />
+            Show Less
+          </Button>
+        )}
+      </div>
 
     </div>
   );
