@@ -1,49 +1,50 @@
 
 
-## Fix Broken Sitemap URLs — Sanitize Slugs and Event IDs
+# StoryMap-Style Interactive Page for Route 66 Centennial
 
-### Problem
-1. **Event IDs with spaces** (e.g., "Route 66 UltraRun", "Andy Payne") produce invalid XML URLs
-2. **Garbage attraction slugs** (e.g., an image URL saved as a slug) pollute the sitemap
-3. No validation exists — any string from the database goes straight into the sitemap
+## Overview
+Create an immersive `/storymap` page with scroll-driven narrative, Google Map animations, before/after historical image sliders, and centennial event highlights — styled with a cinematic Ken Burns documentary tone.
 
-### Plan
+## New Files to Create
 
-#### 1. Add a slug validation/sanitization utility to `src/utils/sitemapGenerator.ts`
+### 1. Data file: `src/data/storyMapData.ts`
+- Per-state narration text (Ken Burns style), before/after image URLs, Street View coordinates
+- Chapter definitions with titles, narration prose, and associated coordinates
+- Cover text and CTA content
 
-Add two helper functions:
+### 2. Page: `src/pages/StoryMapPage.tsx`
+- Wraps content in `MainLayout`
+- Composes all StoryMap chapter components in scroll order
+- SEO metadata via Helmet
 
-- **`isValidSlug(value)`** — returns `false` if the string contains spaces, starts with `http`, or has non-URL-safe characters. This filters out garbage entries entirely.
-- **`sanitizeForUrl(value)`** — for event IDs that have spaces but are otherwise legitimate, URL-encode them (replace spaces with `%20` or convert to a hyphenated slug).
+### 3. Components (`src/components/StoryMap/`)
 
-#### 2. Apply filtering in each `add*Routes` method
-
-- **`addAttractionRoutes`** and **`addHiddenGemRoutes`**, **`addBlogRoutes`**, **`addNativeSiteRoutes`**: Skip any slug that fails `isValidSlug()` (contains spaces, starts with `http`, has special characters beyond hyphens/alphanumerics).
-- **`addEventRoutes`**: URL-encode the event ID so spaces become `%20`, but also skip entries that look like garbage (e.g., start with `http`).
-
-#### 3. Apply the same filtering in `vite.config.ts` (build-time) and `SitemapXmlPage.tsx` (client-side)
-
-Filter the arrays returned from the database before passing them to `generateSitemapFile()`:
-```
-attractionSlugs: attractions.map(r => r.slug).filter(isValidSlug)
-eventIds: events.map(r => r.event_id).filter(s => !s.startsWith('http'))
-```
-
-#### 4. XML-escape the `<loc>` values in `generateXML()`
-
-Encode `&`, `<`, `>`, `'`, `"` in all URL values to produce valid XML, as a safety net.
-
-### Validation rules (summary)
-
-| Check | Action |
+| Component | Purpose |
 |---|---|
-| Contains spaces | URL-encode for events, skip for slugs |
-| Starts with `http` | Skip entirely |
-| Contains `?`, `#`, `&` | Skip entirely |
-| Length > 200 chars | Skip entirely |
+| `StoryMapCover.tsx` | Full-screen parallax hero with title, subtitle, scroll-down indicator |
+| `StoryMapChapter.tsx` | Reusable section: cinematic narration (italic serif), media slot (image/map/slider) |
+| `StoryMapNavDots.tsx` | Fixed side dots indicating current chapter via Intersection Observer |
+| `StoryMapScrollMap.tsx` | Google Map panel that pans/zooms per chapter using existing `useGoogleMaps` hook + `@react-google-maps/api` |
+| `StoryMapBeforeAfter.tsx` | Before/after image slider using `img-comparison-slider` package (new dependency) |
+| `StoryMapEventHighlights.tsx` | Grid of centennial events from `useCentennialEvents` hook |
+| `StoryMapCTA.tsx` | Closing call-to-action with links to interactive map and events calendar |
 
-### Files Modified
-- `src/utils/sitemapGenerator.ts` — add validation helpers + apply in all route methods + XML-escape in `generateXML()`
-- `vite.config.ts` — filter slugs before passing to generator
-- `src/pages/SitemapXmlPage.tsx` — filter slugs before passing to generator
+### 4. Routing & Navigation
+- Add lazy route `const LazyStoryMapPage = lazy(...)` in `App.tsx` at path `/storymap`
+- Add "StoryMap" link to `navigationConfig.ts` (using `Map` or `BookOpen` icon)
+
+## Key Technical Details
+
+- **New dependency**: `img-comparison-slider` for the before/after sliders
+- **Google Maps API key**: Reuse existing `VITE_GOOGLE_MAPS_API_KEY` env var for Street View Static API URLs
+- **Scroll animations**: Framer Motion `useInView` triggers chapter transitions and map pan/zoom
+- **Before images**: Loaded from Supabase storage bucket `storymap` (9 historical B&W photos listed in the plan)
+- **After images**: Google Street View Static API with coordinates per state
+- **Styling**: Dark cinematic sections (`bg-gray-950 text-white`) alternating with light; narration in `font-serif italic`; full-bleed images with overlays
+- **Data reuse**: `timelineData.ts` milestones, `route66States` descriptions, `route66Towns` coordinates, `useCentennialEvents` hook
+- **Mobile**: Responsive layout, touch-friendly slider, nav dots hidden on small screens
+- **No database changes needed**
+
+## Storage Bucket Prerequisite
+A Supabase storage bucket named `storymap` needs to be created with the 9 historical photos uploaded. The before/after feature depends on these images being available.
 
