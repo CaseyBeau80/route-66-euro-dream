@@ -27,6 +27,7 @@ const LazySitemapXmlPage = lazy(() => import("./pages/SitemapXmlPage"));
 const LazyPrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const LazyAttractionPage = lazy(() => import("./pages/AttractionPage"));
 const LazyStatePage = lazy(() => import("./pages/StatePage"));
+const LazyStoryMapPage = lazy(() => import("./pages/StoryMapPage"));
 
 // Route loading fallback
 const RouteLoadingFallback = () => (
@@ -121,6 +122,11 @@ function App() {
                 <Route path="/attractions/:slug" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyAttractionPage />
+                  </Suspense>
+                } />
+                <Route path="/storymap" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyStoryMapPage />
                   </Suspense>
                 } />
                 {/* State pages - explicit routes for each Route 66 state */}
