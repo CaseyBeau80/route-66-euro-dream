@@ -27,6 +27,7 @@ const LazySitemapXmlPage = lazy(() => import("./pages/SitemapXmlPage"));
 const LazyPrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const LazyAttractionPage = lazy(() => import("./pages/AttractionPage"));
 const LazyStatePage = lazy(() => import("./pages/StatePage"));
+const LazyStoryMapPage = lazy(() => import("./pages/StoryMapPage"));
 
 // Route loading fallback
 const RouteLoadingFallback = () => (
