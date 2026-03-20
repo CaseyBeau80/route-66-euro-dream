@@ -31,7 +31,7 @@ const StoryMapScrollMap = ({ center, zoom }: StoryMapScrollMapProps) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: apiKey,
-    id: 'storymap-google-map',
+    id: 'google-map-script',
   });
 
   const mapRef = useRef<google.maps.Map | null>(null);
