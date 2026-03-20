@@ -94,6 +94,19 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
     }, 300);
   }, [visibleCount, items.length, getLoadMoreCount]);
 
+  const handleCollapse = useCallback(() => {
+    const initialCount = getInitialVisibleCount();
+    setVisibleCount(initialCount);
+    setNewlyLoadedIndices(new Set());
+    // Scroll back to the section header
+    const sectionHeader = document.querySelector('[data-index="0"]');
+    if (sectionHeader) {
+      sectionHeader.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [getInitialVisibleCount]);
+
+  const isExpandedBeyondInitial = visibleCount > getInitialVisibleCount();
+
   if (items.length === 0) {
     return null;
   }
