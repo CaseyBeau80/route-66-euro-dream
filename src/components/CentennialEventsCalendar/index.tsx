@@ -72,6 +72,16 @@ const CentennialEventsCalendar: React.FC = () => {
     }, 300);
   };
 
+  const handleCollapse = () => {
+    setVisibleCount(ITEMS_PER_PAGE);
+    const heading = document.getElementById('events-calendar-heading');
+    if (heading) {
+      heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const isExpanded = visibleCount > ITEMS_PER_PAGE;
+
   return <section className="py-12 sm:py-16 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white" aria-labelledby="events-calendar-heading">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
