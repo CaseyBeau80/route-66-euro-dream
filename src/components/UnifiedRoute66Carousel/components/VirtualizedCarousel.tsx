@@ -133,9 +133,9 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
         ))}
       </div>
 
-      {/* "See More Directory" button */}
-      {hasMoreItems && (
-        <div className="flex justify-center mt-8">
+      {/* "See More Directory" / "Show Less" buttons */}
+      <div className="flex justify-center gap-4 mt-8 flex-wrap">
+        {hasMoreItems && (
           <Button
             onClick={handleSeeMore}
             disabled={isLoading}
@@ -160,8 +160,21 @@ const VirtualizedCarousel: React.FC<VirtualizedCarouselProps> = ({ items }) => {
               </>
             )}
           </Button>
-        </div>
-      )}
+        )}
+        {isExpandedBeyondInitial && (
+          <Button
+            onClick={handleCollapse}
+            variant="outline"
+            className="border-2 border-route66-border text-route66-text hover:bg-route66-background-alt px-8 py-4 
+                       text-xl font-bold rounded-lg shadow-md hover:shadow-lg 
+                       hover:scale-105 transition-all duration-200 
+                       min-w-[200px] md:min-w-[280px] h-auto"
+          >
+            <ChevronUp className="h-5 w-5 mr-2" />
+            Show Less
+          </Button>
+        )}
+      </div>
 
     </div>
   );

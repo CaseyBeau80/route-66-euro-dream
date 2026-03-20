@@ -131,33 +131,46 @@ const CentennialEventsCalendar: React.FC = () => {
           {displayedEvents.map(event => <EventCard key={event.id} event={event} onClick={handleEventClick} />)}
         </div>
 
-        {/* See More Button */}
-        {hasMoreEvents && (
-          <div ref={loadMoreRef} className="flex flex-col items-center mt-8 gap-2">
+        {/* See More / Show Less Buttons */}
+        <div ref={loadMoreRef} className="flex flex-col items-center mt-8 gap-2">
+          {hasMoreEvents && (
+            <>
+              <Button
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                variant="outline"
+                size="lg"
+                className="bg-white hover:bg-blue-50 border-[#1B60A3] text-[#1B60A3] hover:text-[#155187] font-medium px-8 py-3 disabled:opacity-70"
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-4 w-4 mr-2" />
+                    See More Events
+                  </>
+                )}
+              </Button>
+              <p className="text-sm text-slate-500">
+                {remainingCount} more event{remainingCount !== 1 ? 's' : ''} to explore
+              </p>
+            </>
+          )}
+          {isExpanded && (
             <Button
-              onClick={handleLoadMore}
-              disabled={isLoadingMore}
+              onClick={handleCollapse}
               variant="outline"
               size="lg"
-              className="bg-white hover:bg-blue-50 border-[#1B60A3] text-[#1B60A3] hover:text-[#155187] font-medium px-8 py-3 disabled:opacity-70"
+              className="bg-white hover:bg-blue-50 border-slate-300 text-slate-600 hover:text-slate-800 font-medium px-8 py-3"
             >
-              {isLoadingMore ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4 mr-2" />
-                  See More Events
-                </>
-              )}
+              <ChevronUp className="h-4 w-4 mr-2" />
+              Show Less
             </Button>
-            <p className="text-sm text-slate-500">
-              {remainingCount} more event{remainingCount !== 1 ? 's' : ''} to explore
-            </p>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Empty state */}
         {filteredEvents.length === 0 && !isLoading && <div className="text-center py-12">
