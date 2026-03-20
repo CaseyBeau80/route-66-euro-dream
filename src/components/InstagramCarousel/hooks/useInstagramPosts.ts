@@ -28,9 +28,17 @@ export const useInstagramPosts = () => {
           return;
         }
 
-        console.log(`✅ Successfully fetched ${data?.length || 0} Route 66 relevant Instagram posts`);
+        // Deduplicate by media_url, keeping the earliest entry
+        const seen = new Set<string>();
+        const uniquePosts = (data || []).filter((post: any) => {
+          if (seen.has(post.media_url)) return false;
+          seen.add(post.media_url);
+          return true;
+        });
+
+        console.log(`✅ Fetched ${data?.length || 0} posts, ${uniquePosts.length} unique after dedup`);
         
-        setPosts((data || []) as InstagramPost[]);
+        setPosts(uniquePosts as InstagramPost[]);
       } catch (err) {
         console.error('❌ Unexpected error fetching Instagram posts:', err);
         setError('An unexpected error occurred while fetching posts');
