@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock, DollarSign, ExternalLink, Globe, MapPin, Tag } from 'lucide-react';
-import type { AttractionData } from '@/hooks/useAttraction';
+import type { AttractionData } from '@/types/attractionDetail';
 
 interface AttractionDetailSectionsProps {
   attraction: AttractionData;

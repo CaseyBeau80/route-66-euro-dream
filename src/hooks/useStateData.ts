@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { AttractionData } from './useAttraction';
+import type { AttractionData } from '@/types/attractionDetail';
 
 interface CityData {
   id: string;
