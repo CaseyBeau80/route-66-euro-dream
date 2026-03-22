@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAttraction } from '@/hooks/useAttraction';
 import { stateAbbrMap } from '@/data/route66States';
+import AttractionDetailSections from '@/components/attractions/AttractionDetailSections';
 import { MapPin, Globe, Clock, DollarSign, Tag, ArrowLeft, ChevronRight } from 'lucide-react';
 
 const AttractionPage: React.FC = () => {
@@ -31,7 +32,9 @@ const AttractionPage: React.FC = () => {
 
   const stateInfo = stateAbbrMap.get(attraction.state);
   const stateSlug = stateInfo?.slug || attraction.state.toLowerCase();
-  const canonicalUrl = `https://ramble66.com/attractions/${slug}`;
+  const detailBasePath = attraction.source_table === 'hidden_gems' ? 'hidden-gems' : 'attractions';
+  const canonicalUrl = `https://ramble66.com/${detailBasePath}/${slug}`;
+  const stateName = stateInfo?.name || attraction.state;
   const metaDescription = attraction.description
     ? attraction.description.substring(0, 155) + (attraction.description.length > 155 ? '…' : '')
     : `Discover ${attraction.name} in ${attraction.city_name}, ${attraction.state} along Route 66.`;
@@ -114,7 +117,7 @@ const AttractionPage: React.FC = () => {
         {/* Content */}
         <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12">
           <Link to={`/${stateSlug}`} className="inline-flex items-center gap-1 font-special text-xs uppercase text-muted-foreground hover:text-foreground mb-6">
-            <ArrowLeft className="w-3 h-3" /> Back to {stateInfo?.name || attraction.state}
+            <ArrowLeft className="w-3 h-3" /> Back to {stateName}
           </Link>
 
           {/* Description */}
@@ -176,34 +179,14 @@ const AttractionPage: React.FC = () => {
             </div>
           )}
 
-          {/* Nearby Attractions */}
-          {nearbyAttractions.length > 0 && (
-            <section>
-              <h2 className="font-heading text-2xl text-foreground mb-4">More in {stateInfo?.name || attraction.state}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {nearbyAttractions.map((item) => (
-                  <Link key={item.id} to={`/attractions/${item.slug}`}
-                    className="bg-surface border-2 border-border rounded-sm overflow-hidden hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
-                    {item.image_url && (
-                      <img src={item.image_url} alt={item.name} className="w-full h-32 object-cover" loading="lazy" />
-                    )}
-                    <div className="p-4">
-                      <h3 className="font-heading text-lg text-foreground">{item.name}</h3>
-                      <p className="font-special text-xs uppercase text-muted-foreground mt-1">{item.city_name}, {item.state}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+          <AttractionDetailSections
+            attraction={attraction}
+            nearbyStops={nearbyAttractions}
+            stateName={stateName}
+            fallbackImage={fallbackImage}
+          />
 
-          {/* CTA */}
-          <div className="mt-12 text-center">
-            <Link to="/"
-              className="inline-block font-special text-sm uppercase bg-primary text-primary-foreground px-8 py-3 border-2 border-primary rounded-sm shadow-[4px_4px_0_hsl(var(--primary)/0.3)] hover:bg-primary/90 transition-colors">
-              Plan Your Route 66 Trip
-            </Link>
-          </div>
+          {/* Nearby Attractions */}
         </div>
       </div>
     </>
