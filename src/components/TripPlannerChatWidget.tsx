@@ -36,6 +36,15 @@ export default function TripPlannerChatWidget() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  useEffect(() => {
+    const handleOpenChat = () => setOpen(true);
+    window.addEventListener('ramble66:open-chat', handleOpenChat as EventListener);
+
+    return () => {
+      window.removeEventListener('ramble66:open-chat', handleOpenChat as EventListener);
+    };
+  }, []);
+
   async function sendMessage(text?: string) {
     const userText = text || input.trim();
     if (!userText || loading) return;

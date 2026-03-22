@@ -124,6 +124,11 @@ function App() {
                     <LazyAttractionPage />
                   </Suspense>
                 } />
+                <Route path="/hidden-gems/:slug" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyAttractionPage />
+                  </Suspense>
+                } />
                 <Route path="/storymap" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyStoryMapPage />
