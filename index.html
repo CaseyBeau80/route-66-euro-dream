@@ -537,39 +537,6 @@
     
     <div id="root"></div>
     
-    <!-- Ultra-aggressive non-blocking CSS loading -->
-    <script>
-      // Completely eliminate CSS render-blocking
-      (function() {
-        // Load main CSS completely asynchronously
-        const loadMainCSS = () => {
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = '/assets/index-CqQAEEZr.css';
-          link.media = 'print'; // Load non-blocking
-          link.onload = function() { 
-            this.media = 'all'; // Apply once loaded
-            document.documentElement.classList.add('main-css-loaded');
-          };
-          link.onerror = function() {
-            console.warn('Main CSS loading failed');
-          };
-          
-          // Insert after a micro-delay to prevent any blocking
-          setTimeout(() => {
-            document.head.appendChild(link);
-          }, 1);
-        };
-        
-        // Start loading immediately but asynchronously
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', loadMainCSS);
-        } else {
-          loadMainCSS();
-        }
-      })();
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Ultra-aggressive LCP optimization - Hide skeleton after minimal delay
