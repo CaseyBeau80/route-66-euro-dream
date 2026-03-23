@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { centennialEvents } from '@/data/centennialEventsData';
+import { safeParseDate } from '../utils/eventCalendarHelpers';
 
 interface MonthlyViewProps {
   selectedMonth: number | 'all';
@@ -11,6 +12,17 @@ interface MonthlyViewProps {
 
 const MonthlyView: React.FC<MonthlyViewProps> = ({ selectedMonth, onMonthChange }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const upcomingEvents = centennialEvents.filter((event) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const eventDate = safeParseDate(event.dateEnd || event.dateStart);
+    if (!eventDate) return false;
+
+    eventDate.setHours(0, 0, 0, 0);
+    return eventDate >= today;
+  });
 
   const months = [
     { index: 0, name: 'January', short: 'Jan' },
@@ -29,16 +41,18 @@ const MonthlyView: React.FC<MonthlyViewProps> = ({ selectedMonth, onMonthChange 
 
   // Count events per month
   const getEventCount = (monthIndex: number): number => {
-    return centennialEvents.filter(e => {
-      const eventMonth = new Date(e.dateStart).getMonth();
+    return upcomingEvents.filter(e => {
+      const parsedDate = safeParseDate(e.dateStart);
+      const eventMonth = parsedDate?.getMonth();
       return eventMonth === monthIndex;
     }).length;
   };
 
   // Check if month has highlight events
   const hasHighlight = (monthIndex: number): boolean => {
-    return centennialEvents.some(e => {
-      const eventMonth = new Date(e.dateStart).getMonth();
+    return upcomingEvents.some(e => {
+      const parsedDate = safeParseDate(e.dateStart);
+      const eventMonth = parsedDate?.getMonth();
       return eventMonth === monthIndex && e.isHighlight;
     });
   };

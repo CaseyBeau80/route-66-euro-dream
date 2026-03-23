@@ -35,6 +35,17 @@ interface UseEventFiltersReturn {
 }
 
 export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersReturn => {
+  const isUpcomingOrCurrentEvent = useCallback((event: CentennialEvent) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const eventDate = safeParseDate(event.dateEnd || event.dateStart);
+    if (!eventDate) return false;
+
+    eventDate.setHours(0, 0, 0, 0);
+    return eventDate >= today;
+  }, []);
+
   // Default to showing all events
   const [selectedState, setSelectedState] = useState<EventState | 'all'>('all');
   const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
@@ -43,16 +54,8 @@ export const useEventFilters = (events: CentennialEvent[]): UseEventFiltersRetur
 
   // Filter out past events - only show upcoming/current events
   const upcomingEvents = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of today
-    
-    return events.filter(e => {
-      // Use dateEnd if available (for multi-day events), otherwise use dateStart
-      const eventDate = safeParseDate(e.dateEnd || e.dateStart);
-      if (!eventDate) return true; // Keep events with unparseable dates
-      return eventDate >= today;
-    });
-  }, [events]);
+    return events.filter(isUpcomingOrCurrentEvent);
+  }, [events, isUpcomingOrCurrentEvent]);
 
   // Sort events - default is chronological (soonest first)
   const sortEvents = useCallback((eventsToSort: CentennialEvent[]): CentennialEvent[] => {
