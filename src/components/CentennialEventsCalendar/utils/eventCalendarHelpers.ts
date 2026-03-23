@@ -149,9 +149,26 @@ export const getUpcomingEvents = (count: number = 3): CentennialEvent[] => {
   now.setHours(0, 0, 0, 0);
   
   return centennialEvents
-    .filter(e => new Date(e.dateStart) >= now)
-    .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime())
+    .filter((event) => {
+      const eventDate = safeParseDate(event.dateEnd || event.dateStart);
+      if (!eventDate) return false;
+
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= now;
+    })
+    .sort((a, b) => compareEventDates(a.dateStart, b.dateStart))
     .slice(0, count);
+};
+
+const compareEventDates = (aDate: string, bDate: string): number => {
+  const first = safeParseDate(aDate);
+  const second = safeParseDate(bDate);
+
+  if (!first && !second) return 0;
+  if (!first) return 1;
+  if (!second) return -1;
+
+  return first.getTime() - second.getTime();
 };
 
 /**
