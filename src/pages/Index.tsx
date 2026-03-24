@@ -24,7 +24,7 @@ const Index = () => {
     <MainLayout>
       <SocialMetaTags 
         path="/" 
-        title="Ramble 66" 
+        title="Ramble 66 — Route 66 Interactive Map & Trip Planner" 
         description="Plan your ultimate Route 66 road trip with our Interactive Route 66 Google Map and Shareable Travel Planner. Discover hidden gems, classic diners, retro motels, and iconic attractions."
         includeFaqSchema={true}
         includeHowToSchema={true}
