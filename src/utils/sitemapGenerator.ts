@@ -116,8 +116,6 @@ export interface SitemapData {
   attractionSlugs?: string[];
   hiddenGemSlugs?: string[];
   blogSlugs?: string[];
-  eventIds?: string[];
-  nativeSiteSlugs?: string[];
   tripCodes?: string[];
 }
 
