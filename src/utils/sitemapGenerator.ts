@@ -82,22 +82,6 @@ export class SitemapGenerator {
     });
   }
 
-  addEventRoutes(eventIds: string[]): void {
-    const today = new Date().toISOString().split('T')[0];
-    eventIds.forEach(id => {
-      const sanitized = sanitizeEventId(id);
-      if (sanitized) {
-        this.addUrl({ loc: `/events/${sanitized}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
-      }
-    });
-  }
-
-  addNativeSiteRoutes(slugs: string[]): void {
-    const today = new Date().toISOString().split('T')[0];
-    slugs.filter(isValidSlug).forEach(slug => {
-      this.addUrl({ loc: `/native-sites/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
-    });
-  }
 
   addTripRoutes(tripCodes: string[]): void {
     const today = new Date().toISOString().split('T')[0];
