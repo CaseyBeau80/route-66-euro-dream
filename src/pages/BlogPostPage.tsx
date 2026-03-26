@@ -70,7 +70,7 @@ const BlogPostPage: React.FC = () => {
         <title>{post.title} | Ramble66 - Route 66 Adventures</title>
         <meta name="description" content={post.excerpt} />
         <meta name="keywords" content={post.tags?.join(', ')} />
-        <link rel="canonical" href={`https://ramble66.lovable.app/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://ramble66.com/blog/${post.slug}`} />
         
         {/* Open Graph */}
         <meta property="og:title" content={`${post.title} | Ramble66 - Route 66 Adventures`} />
