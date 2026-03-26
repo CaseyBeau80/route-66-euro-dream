@@ -48,7 +48,7 @@ const BlogPostPage: React.FC = () => {
     "author": {
       "@type": "Person",
       "name": "Big Bo Ramble",
-      "image": "https://ramble66.lovable.app/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
+      "image": "https://ramble66.com/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
     },
     "publisher": {
       "@type": "Organization",
