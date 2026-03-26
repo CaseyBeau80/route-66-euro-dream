@@ -48,19 +48,19 @@ const BlogPostPage: React.FC = () => {
     "author": {
       "@type": "Person",
       "name": "Big Bo Ramble",
-      "image": "https://ramble66.lovable.app/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
+      "image": "https://ramble66.com/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
     },
     "publisher": {
       "@type": "Organization",
       "name": "Ramble 66",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://ramble66.lovable.app/icons/ramble66-icon.png"
+        "url": "https://ramble66.com/icons/ramble66-icon.png"
       }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://ramble66.lovable.app/blog/${post.slug}`
+      "@id": `https://ramble66.com/blog/${post.slug}`
     }
   };
 
@@ -70,13 +70,13 @@ const BlogPostPage: React.FC = () => {
         <title>{post.title} | Ramble66 - Route 66 Adventures</title>
         <meta name="description" content={post.excerpt} />
         <meta name="keywords" content={post.tags?.join(', ')} />
-        <link rel="canonical" href={`https://ramble66.lovable.app/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://ramble66.com/blog/${post.slug}`} />
         
         {/* Open Graph */}
         <meta property="og:title" content={`${post.title} | Ramble66 - Route 66 Adventures`} />
         <meta property="og:description" content={post.excerpt} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://ramble66.lovable.app/blog/${post.slug}`} />
+        <meta property="og:url" content={`https://ramble66.com/blog/${post.slug}`} />
         {post.featured_image_url && (
           <meta property="og:image" content={post.featured_image_url} />
         )}

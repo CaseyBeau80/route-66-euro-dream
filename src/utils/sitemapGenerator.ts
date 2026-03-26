@@ -13,13 +13,6 @@ export function isValidSlug(value: string): boolean {
   return true;
 }
 
-/** URL-encode a value for use in a sitemap loc, but skip garbage entries */
-export function sanitizeEventId(value: string): string | null {
-  if (!value || value.length > 200) return null;
-  if (value.startsWith('http')) return null;
-  if (/[?#&]/.test(value)) return null;
-  return encodeURIComponent(value);
-}
 
 /** XML-escape special characters in a URL string */
 function xmlEscape(str: string): string {
@@ -52,7 +45,7 @@ export class SitemapGenerator {
       { loc: '/', lastmod: today, changefreq: 'weekly', priority: 1.0 },
       { loc: '/blog', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/attractions', lastmod: today, changefreq: 'weekly', priority: 0.9 },
-      { loc: '/events', lastmod: today, changefreq: 'daily', priority: 0.8 },
+      
       { loc: '/hidden-gems', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/about', lastmod: today, changefreq: 'yearly', priority: 0.6 },
       { loc: '/contact', lastmod: today, changefreq: 'yearly', priority: 0.5 },
@@ -89,22 +82,6 @@ export class SitemapGenerator {
     });
   }
 
-  addEventRoutes(eventIds: string[]): void {
-    const today = new Date().toISOString().split('T')[0];
-    eventIds.forEach(id => {
-      const sanitized = sanitizeEventId(id);
-      if (sanitized) {
-        this.addUrl({ loc: `/events/${sanitized}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
-      }
-    });
-  }
-
-  addNativeSiteRoutes(slugs: string[]): void {
-    const today = new Date().toISOString().split('T')[0];
-    slugs.filter(isValidSlug).forEach(slug => {
-      this.addUrl({ loc: `/native-sites/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
-    });
-  }
 
   addTripRoutes(tripCodes: string[]): void {
     const today = new Date().toISOString().split('T')[0];
@@ -139,8 +116,6 @@ export interface SitemapData {
   attractionSlugs?: string[];
   hiddenGemSlugs?: string[];
   blogSlugs?: string[];
-  eventIds?: string[];
-  nativeSiteSlugs?: string[];
   tripCodes?: string[];
 }
 
@@ -150,8 +125,6 @@ export const generateSitemapFile = (data: SitemapData = {}): string => {
   if (data.attractionSlugs?.length) generator.addAttractionRoutes(data.attractionSlugs);
   if (data.hiddenGemSlugs?.length) generator.addHiddenGemRoutes(data.hiddenGemSlugs);
   if (data.blogSlugs?.length) generator.addBlogRoutes(data.blogSlugs);
-  if (data.eventIds?.length) generator.addEventRoutes(data.eventIds);
-  if (data.nativeSiteSlugs?.length) generator.addNativeSiteRoutes(data.nativeSiteSlugs);
   if (data.tripCodes?.length) generator.addTripRoutes(data.tripCodes);
   return generator.generateXML();
 };
