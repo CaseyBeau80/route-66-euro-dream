@@ -13,13 +13,6 @@ export function isValidSlug(value: string): boolean {
   return true;
 }
 
-/** URL-encode a value for use in a sitemap loc, but skip garbage entries */
-export function sanitizeEventId(value: string): string | null {
-  if (!value || value.length > 200) return null;
-  if (value.startsWith('http')) return null;
-  if (/[?#&]/.test(value)) return null;
-  return encodeURIComponent(value);
-}
 
 /** XML-escape special characters in a URL string */
 function xmlEscape(str: string): string {
