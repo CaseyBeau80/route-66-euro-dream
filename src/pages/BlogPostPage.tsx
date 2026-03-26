@@ -60,7 +60,7 @@ const BlogPostPage: React.FC = () => {
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://ramble66.lovable.app/blog/${post.slug}`
+      "@id": `https://ramble66.com/blog/${post.slug}`
     }
   };
 
