@@ -45,7 +45,7 @@ export class SitemapGenerator {
       { loc: '/', lastmod: today, changefreq: 'weekly', priority: 1.0 },
       { loc: '/blog', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/attractions', lastmod: today, changefreq: 'weekly', priority: 0.9 },
-      { loc: '/events', lastmod: today, changefreq: 'daily', priority: 0.8 },
+      
       { loc: '/hidden-gems', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/about', lastmod: today, changefreq: 'yearly', priority: 0.6 },
       { loc: '/contact', lastmod: today, changefreq: 'yearly', priority: 0.5 },
