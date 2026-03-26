@@ -55,7 +55,7 @@ const BlogPostPage: React.FC = () => {
       "name": "Ramble 66",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://ramble66.lovable.app/icons/ramble66-icon.png"
+        "url": "https://ramble66.com/icons/ramble66-icon.png"
       }
     },
     "mainEntityOfPage": {
