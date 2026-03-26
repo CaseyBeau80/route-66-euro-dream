@@ -76,7 +76,7 @@ const BlogPostPage: React.FC = () => {
         <meta property="og:title" content={`${post.title} | Ramble66 - Route 66 Adventures`} />
         <meta property="og:description" content={post.excerpt} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://ramble66.lovable.app/blog/${post.slug}`} />
+        <meta property="og:url" content={`https://ramble66.com/blog/${post.slug}`} />
         {post.featured_image_url && (
           <meta property="og:image" content={post.featured_image_url} />
         )}

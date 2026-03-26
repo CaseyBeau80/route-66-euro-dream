@@ -125,8 +125,6 @@ export const generateSitemapFile = (data: SitemapData = {}): string => {
   if (data.attractionSlugs?.length) generator.addAttractionRoutes(data.attractionSlugs);
   if (data.hiddenGemSlugs?.length) generator.addHiddenGemRoutes(data.hiddenGemSlugs);
   if (data.blogSlugs?.length) generator.addBlogRoutes(data.blogSlugs);
-  if (data.eventIds?.length) generator.addEventRoutes(data.eventIds);
-  if (data.nativeSiteSlugs?.length) generator.addNativeSiteRoutes(data.nativeSiteSlugs);
   if (data.tripCodes?.length) generator.addTripRoutes(data.tripCodes);
   return generator.generateXML();
 };
