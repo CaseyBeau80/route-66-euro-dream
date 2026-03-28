@@ -77,6 +77,7 @@ const HeroSection: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
       </section>
 
       {/* Scroll-reveal feature cards */}
