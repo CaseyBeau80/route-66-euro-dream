@@ -191,7 +191,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
           {/* Title row: icon + title side by side */}
           <div className="flex items-center gap-3">
             <div className="shrink-0 flex flex-col items-center gap-1">
-              {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+              {states.map(abbr => <StateTag key={abbr} abbr={abbr} isDark={isDark} />)}
             </div>
             {eventFields.before && renderMarkdown(eventFields.before)}
           </div>
