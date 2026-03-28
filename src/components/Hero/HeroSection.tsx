@@ -77,37 +77,6 @@ const HeroSection: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
-          {/* CTA + countdown */}
-          <div className="flex flex-col items-center gap-3">
-            <Button 
-              onClick={scrollToInteractiveMap} 
-              size="lg" 
-              className="font-bold py-4 px-10 text-lg rounded-sm border-2 border-white/30 shadow-[4px_4px_0_rgba(0,0,0,0.3)] hover:shadow-[2px_2px_0_rgba(0,0,0,0.3)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-300 bg-route66-primary text-white hover:bg-route66-primary/90 group"
-            >
-              Start Exploring
-              <ArrowDown className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:animate-bounce" />
-            </Button>
-
-            <div className="inline-flex items-center gap-2 bg-black/50 backdrop-blur-sm border-2 border-white/20 rounded-sm px-4 py-1.5 shadow-[2px_2px_0_rgba(0,0,0,0.2)] text-sm">
-              <span className="font-bold text-route66-accent-gold text-lg">
-                {mounted ? timeLeft.days : '---'}
-              </span>
-              <span className="text-white/80">
-                days to the Centennial
-              </span>
-              {celebrationsStarted && (
-                <>
-                  <span className="mx-1 text-white/40">•</span>
-                  <span className="inline-block w-2 h-2 bg-route66-accent-gold rounded-full animate-pulse"></span>
-                  <span className="text-route66-accent-gold font-semibold text-xs">
-                    Celebrations underway!
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Scroll-reveal feature cards */}
