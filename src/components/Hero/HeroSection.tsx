@@ -45,7 +45,7 @@ const HeroSection: React.FC = () => {
               Ramble 66
             </h1>
             <p className="text-xl lg:text-2xl xl:text-3xl font-highway font-bold tracking-wide text-[#E8C27A] drop-shadow-[1px_1px_0_rgba(0,0,0,0.5)]">
-              Your Guide to the Mother Road
+              The Mother Road, Mile by Mile
             </p>
           </div>
 
