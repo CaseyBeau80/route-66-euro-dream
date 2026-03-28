@@ -53,7 +53,7 @@ const HeroSection: React.FC = () => {
             <Button 
               onClick={scrollToInteractiveMap} 
               size="lg" 
-              className="font-bold py-3 px-8 text-lg rounded-full bg-[#C0392B] text-white hover:bg-[#922B21] hover:scale-105 transition-transform duration-300 group"
+              className="font-bold py-3 px-8 text-lg rounded-full bg-route66-primary text-white hover:bg-route66-primary/90 hover:scale-105 transition-transform duration-300 group"
             >
               Start Exploring
               <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
