@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 import { smoothScrollToSection } from "@/utils/smoothScroll";
 import HeroFeatures from "./HeroFeatures";
+import heroRoute66Shield from '@/assets/hero-route66-shield.png';
 
 const HeroSection: React.FC = () => {
   const { timeLeft, mounted } = useTimer();
