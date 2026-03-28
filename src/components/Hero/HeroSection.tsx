@@ -81,11 +81,11 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Route 66 shield badge */}
-        <div className="absolute bottom-6 left-6 z-20">
+        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-20">
           <img
             src={heroRoute66Shield}
             alt="Historic Oklahoma Route 66 sign"
-            className="w-16 md:w-[72px] h-auto opacity-95"
+            className="w-24 md:w-32 lg:w-36 h-auto drop-shadow-[2px_2px_6px_rgba(0,0,0,0.5)]"
             loading="lazy"
           />
         </div>
