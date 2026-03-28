@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Share2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import route66Shield from '@/assets/route66-shield.png';
 
 interface BlogCardProps {
   slug: string;
