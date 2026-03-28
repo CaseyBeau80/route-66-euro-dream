@@ -85,7 +85,7 @@ const extractAndRenderYouTube = (text: string): { cleanText: string; videos: str
   return { cleanText, videos };
 };
 
-const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ content, isEventCard }) => {
+const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: number }> = ({ content, isEventCard, index = 0 }) => {
   const { cleanText, videos } = useMemo(() => extractAndRenderYouTube(content), [content]);
   const states = useMemo(() => isEventCard ? parseStates(content) : [], [content, isEventCard]);
 
