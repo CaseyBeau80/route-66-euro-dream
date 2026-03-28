@@ -112,7 +112,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
   // Check for "Worth Watching:" pattern
   const worthWatchingMatch = cleanText.match(/worth watching:\s*/i);
 
-  const proseClasses = `prose max-w-none font-lora text-[18px] leading-[1.75] prose-headings:font-playfair prose-headings:tracking-tight prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:md:text-xl prose-h4:mt-5 prose-h4:mb-2 prose-p:leading-relaxed prose-p:mb-6 prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-strong:font-bold prose-hr:border-route66-sand/50 prose-img:rounded-lg prose-img:shadow-md prose-blockquote:border-none prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:m-0 ${isDark ? 'prose-headings:text-white prose-p:text-[#F5F0E8] prose-a:text-[#E8C27A] prose-strong:text-white prose-em:text-[#F5F0E8] prose-li:text-[#F5F0E8]' : 'prose-headings:text-route66-brown prose-p:text-route66-brown/80 prose-a:text-route66-primary prose-strong:text-route66-brown prose-em:text-route66-brown/70 prose-li:text-route66-brown/80'}`;
+  const proseClasses = `prose max-w-none font-lora text-[18px] leading-[1.75] prose-headings:font-playfair prose-headings:tracking-tight prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:md:text-xl prose-h4:mt-5 prose-h4:mb-2 prose-p:leading-relaxed prose-p:mb-6 prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-strong:font-bold prose-hr:border-route66-sand/50 prose-img:rounded-lg prose-img:shadow-md prose-blockquote:border-none prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:m-0 ${isDark ? 'prose-headings:text-white prose-headings:font-bold prose-headings:text-lg prose-p:text-[#F5F0E8] prose-a:text-[#E8C27A] prose-strong:text-white prose-em:text-[#F5F0E8] prose-li:text-[#F5F0E8]' : 'prose-headings:text-route66-brown prose-p:text-route66-brown/80 prose-a:text-route66-primary prose-strong:text-route66-brown prose-em:text-route66-brown/70 prose-li:text-route66-brown/80'}`;
 
   const markdownComponents = {
     a: ({ href, children }: any) => {
@@ -183,7 +183,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
 
   return (
     <div className={isEventCard 
-      ? `${isDark ? 'bg-[#2C1810]' : 'bg-[#FAFAF7]'} rounded-lg shadow-sm p-5 md:p-6 my-6` 
+      ? `${isDark ? 'bg-[#2C1810]' : 'bg-[#FAFAF7] border border-route66-sand/60'} rounded-lg shadow-sm p-5 md:p-6 my-6` 
       : ''
     }>
       {isEventCard && states.length > 0 && eventFields ? (
