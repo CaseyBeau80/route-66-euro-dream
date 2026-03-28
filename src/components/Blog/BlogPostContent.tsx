@@ -176,7 +176,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
 
   const proseAndVideos = eventFields ? null : (
     <>
-      {renderMarkdown(worthWatchingMatch ? cleanText.replace(/worth watching:\s*/i, '') : cleanText)}
+      {renderMarkdown(worthWatchingMatch ? cleanText.replace(/worth watching:\s*/i, '').replace(/\s*\((IL|MO|KS|OK|TX|NM|AZ|CA)\)\s*/g, '') : cleanText.replace(/\s*\((IL|MO|KS|OK|TX|NM|AZ|CA)\)\s*/g, ''))}
       {videosBlock}
     </>
   );
