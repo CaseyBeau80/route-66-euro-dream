@@ -176,10 +176,10 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
   const proseAndVideos = eventFields ? (
     <>
       {eventFields.before && renderMarkdown(eventFields.before)}
-      <div className="mb-4 divide-y divide-route66-sand/30">
+      <div className="mb-4 flex flex-col gap-2">
         {eventFields.fields.map((field, i) => (
-          <div key={i} className="flex gap-3 py-2">
-            <span className="text-route66-rust text-sm font-bold w-24 shrink-0">{field.label}</span>
+          <div key={i} className="flex items-start gap-2">
+            <span className="text-route66-rust text-sm font-bold shrink-0 w-28">{field.label}</span>
             <span className="text-route66-brown text-sm flex-1">{field.value}</span>
           </div>
         ))}
