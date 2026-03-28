@@ -170,7 +170,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
 
   return (
     <div className={isEventCard 
-      ? 'bg-route66-cream/40 border-l-4 border-route66-rust rounded-r-lg p-5 md:p-6 my-6' 
+      ? `bg-route66-cream/40 border-l-4 ${index % 2 === 0 ? 'border-route66-primary' : 'border-route66-primary-light'} rounded-r-lg p-5 md:p-6 my-6` 
       : ''
     }>
       {isEventCard && states.length > 0 ? (
