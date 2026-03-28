@@ -73,7 +73,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
         prose-em:text-route66-brown/70
         prose-hr:border-route66-sand/50
         prose-img:rounded-lg prose-img:shadow-md
-        prose-blockquote:border-route66-rust prose-blockquote:bg-route66-cream/30 prose-blockquote:rounded-r-lg
+        prose-blockquote:border-none prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:m-0
         prose-li:text-route66-brown/80
       ">
         <ReactMarkdown 
