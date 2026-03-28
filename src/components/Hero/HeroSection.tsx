@@ -81,22 +81,13 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Route 66 shield badge */}
-        <div className="absolute bottom-6 left-6 z-20 drop-shadow-[2px_2px_6px_rgba(0,0,0,0.7)]">
-          <svg width="72" height="72" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            {/* Shield shape */}
-            <path 
-              d="M50 2 C65 2, 78 4, 90 10 C95 13, 98 18, 98 24 L98 55 C98 65, 92 78, 80 87 L50 98 L20 87 C8 78, 2 65, 2 55 L2 24 C2 18, 5 13, 10 10 C22 4, 35 2, 50 2Z" 
-              fill="white" stroke="#3D2B1F" strokeWidth="3"
-            />
-            <path 
-              d="M50 8 C63 8, 74 10, 84 15 C88 17, 90 20, 90 24 L90 53 C90 62, 85 73, 75 81 L50 90 L25 81 C15 73, 10 62, 10 53 L10 24 C10 20, 12 17, 16 15 C26 10, 37 8, 50 8Z" 
-              fill="white" stroke="#3D2B1F" strokeWidth="1.5"
-            />
-            {/* Text */}
-            <text x="50" y="32" textAnchor="middle" fill="#3D2B1F" fontSize="14" fontWeight="bold" fontFamily="sans-serif">US</text>
-            <text x="50" y="62" textAnchor="middle" fill="#3D2B1F" fontSize="34" fontWeight="900" fontFamily="sans-serif">66</text>
-            <text x="50" y="78" textAnchor="middle" fill="#3D2B1F" fontSize="12" fontWeight="bold" fontFamily="sans-serif">ROUTE</text>
-          </svg>
+        <div className="absolute bottom-6 left-6 z-20">
+          <img
+            src={heroRoute66Shield}
+            alt="Historic Oklahoma Route 66 sign"
+            className="w-16 md:w-[72px] h-auto opacity-95"
+            loading="lazy"
+          />
         </div>
       </section>
 
