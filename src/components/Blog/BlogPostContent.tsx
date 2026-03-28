@@ -158,79 +158,18 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
       ? 'bg-route66-cream/40 border-l-4 border-route66-rust rounded-r-lg p-5 md:p-6 my-6' 
       : ''
     }>
-      <div className="prose max-w-none font-lora text-[18px] leading-[1.75]
-        prose-headings:font-playfair prose-headings:text-route66-brown prose-headings:tracking-tight
-        prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4
-        prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3
-        prose-h4:text-lg prose-h4:md:text-xl prose-h4:mt-5 prose-h4:mb-2
-        prose-p:text-route66-brown/80 prose-p:leading-relaxed prose-p:mb-6
-        prose-a:text-route66-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-        prose-strong:text-route66-brown prose-strong:font-bold
-        prose-em:text-route66-brown/70
-        prose-hr:border-route66-sand/50
-        prose-img:rounded-lg prose-img:shadow-md
-        prose-blockquote:border-none prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:m-0
-        prose-li:text-route66-brown/80
-      ">
-        <ReactMarkdown 
-          remarkPlugins={[remarkGfm]}
-          components={{
-            a: ({ href, children }) => {
-              if (!href) return <>{children}</>;
-              const isInternal = href.startsWith('/') || href.startsWith('#');
-              if (isInternal) {
-                return <Link to={href} className="text-route66-primary font-medium hover:underline">{children}</Link>;
-              }
-              return (
-                <a href={href} target="_blank" rel="noopener noreferrer" className="text-route66-primary font-medium hover:underline">
-                  {children}
-                </a>
-              );
-            },
-            img: ({ src, alt }) => {
-              // Check for caption in alt text format: "alt text|caption"
-              const parts = (alt || '').split('|');
-              const imgAlt = parts[0];
-              const caption = parts[1];
-              return (
-                <figure className="my-8 max-w-2xl mx-auto">
-                  <img src={src} alt={imgAlt} className="rounded-lg shadow-md w-full" loading="lazy" />
-                  {caption && (
-                    <figcaption className="text-sm italic text-route66-brown/60 text-center mt-2">
-                      {caption}
-                    </figcaption>
-                  )}
-                </figure>
-              );
-            },
-            blockquote: ({ children }) => (
-              <blockquote className="my-8 pl-6 border-l-2 border-route66-rust/60 not-prose">
-                <div className="flex items-start gap-3">
-                  <span className="text-route66-rust/70 text-3xl leading-none font-serif select-none shrink-0 -mt-1">"</span>
-                  <div className="font-lora text-[1.25rem] italic leading-relaxed text-route66-brown/80">
-                    {children}
-                  </div>
-                </div>
-              </blockquote>
-            ),
-          }}
-        >
-          {worthWatchingMatch ? cleanText.replace(/worth watching:\s*/i, '') : cleanText}
-        </ReactMarkdown>
-      </div>
-
-      {/* Render extracted YouTube videos */}
-      {videos.map((videoId, idx) => (
-        <div key={idx} className="my-8 w-full max-w-[800px] mx-auto">
-          {worthWatchingMatch && idx === 0 && (
-            <div className="text-lg font-semibold text-route66-primary mb-4 flex items-center gap-2 font-playfair">
-              <Play className="h-5 w-5" />
-              Worth Watching
-            </div>
-          )}
-          <YouTubeEmbed videoId={videoId} title="Route 66 Video" />
+      {isEventCard && states.length > 0 ? (
+        <div className="flex flex-row gap-3">
+          <div className="shrink-0 flex flex-col items-center gap-1">
+            {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+          </div>
+          <div className="min-w-0 flex-1">
+            {proseAndVideos}
+          </div>
         </div>
-      ))}
+      ) : (
+        proseAndVideos
+      )}
     </div>
   );
 };
