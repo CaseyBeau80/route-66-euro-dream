@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Share2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import route66Shield from '@/assets/route66-shield.png';
 
 interface BlogCardProps {
   slug: string;
@@ -15,17 +16,9 @@ interface BlogCardProps {
   featured?: boolean;
 }
 
-const Route66Shield = () => (
-  <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z" stroke="#F5EDD8" strokeWidth="3" fill="none"/>
-    <text x="50" y="45" textAnchor="middle" fill="#F5EDD8" fontSize="14" fontFamily="serif">ROUTE</text>
-    <text x="50" y="72" textAnchor="middle" fill="#F5EDD8" fontSize="26" fontWeight="bold" fontFamily="serif">66</text>
-  </svg>
-);
-
 const ImagePlaceholder = ({ className }: { className?: string }) => (
-  <div className={`bg-route66-brown flex items-center justify-center ${className || ''}`}>
-    <Route66Shield />
+  <div className={`bg-route66-cream flex items-center justify-center ${className || ''}`}>
+    <img src={route66Shield} alt="Route 66" className="w-16 h-auto opacity-60" />
   </div>
 );
 
