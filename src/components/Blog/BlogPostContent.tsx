@@ -28,7 +28,7 @@ const StateTag = ({ abbr }: { abbr: string }) => {
         src={state.img}
         alt={state.name}
         className="w-10 h-10 object-contain"
-        style={{ filter: 'invert(19%) sepia(95%) saturate(3000%) hue-rotate(348deg) brightness(85%) contrast(100%)' }}
+        style={{ filter: 'invert(30%) sepia(90%) saturate(800%) hue-rotate(182deg) brightness(70%) contrast(95%)' }}
       />
       <span className="text-[9px] font-bold text-route66-rust text-center leading-tight">{abbr}</span>
     </div>
