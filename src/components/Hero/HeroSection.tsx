@@ -59,8 +59,8 @@ const HeroSection: React.FC = () => {
               <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
 
-            <div className="inline-flex items-center gap-2 bg-[#3D2B1F] border-2 border-white/20 rounded-sm px-5 py-2 shadow-[2px_2px_0_rgba(0,0,0,0.2)] text-base">
-              <span className="font-bold text-route66-accent-gold text-lg">
+            <div className="inline-flex items-center gap-2 bg-route66-primary border-2 border-white/20 rounded-sm px-5 py-2 shadow-[2px_2px_0_rgba(0,0,0,0.2)] text-base">
+              <span className="font-bold text-white text-lg">
                 {mounted ? timeLeft.days : '---'}
               </span>
               <span className="text-white/90">
@@ -76,6 +76,18 @@ const HeroSection: React.FC = () => {
                 </>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Route 66 shield badge */}
+        <div className="absolute bottom-6 left-6 z-20 w-16 h-20 drop-shadow-[2px_2px_4px_rgba(0,0,0,0.6)]">
+          <div 
+            className="w-full h-full bg-black flex flex-col items-center justify-center text-white rounded-sm border-2 border-white/80"
+            style={{ clipPath: 'polygon(20% 0%, 80% 0%, 100% 15%, 100% 75%, 50% 100%, 0% 75%, 0% 15%)' }}
+          >
+            <span className="text-[7px] font-bold tracking-widest leading-none mt-2">ROUTE</span>
+            <span className="text-2xl font-bold leading-none -mt-0.5">66</span>
+            <span className="text-[7px] font-bold tracking-widest leading-none -mt-0.5">US</span>
           </div>
         </div>
       </section>
