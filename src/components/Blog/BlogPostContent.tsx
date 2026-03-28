@@ -8,17 +8,32 @@ import AuthorBadge from './AuthorBadge';
 import YouTubeEmbed from '../YouTubeEmbed';
 import SharePost from './SharePost';
 
-const ROUTE66_STATES: Record<string, string> = {
-  IL: 'Illinois', MO: 'Missouri', KS: 'Kansas', OK: 'Oklahoma',
-  TX: 'Texas', NM: 'New Mexico', AZ: 'Arizona', CA: 'California',
+const ROUTE66_STATE_IMAGES: Record<string, { name: string; img: string }> = {
+  IL: { name: 'Illinois',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Illinois.svg' },
+  MO: { name: 'Missouri',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Missouri.svg' },
+  KS: { name: 'Kansas',     img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Kansas.svg' },
+  OK: { name: 'Oklahoma',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Oklahoma.svg' },
+  TX: { name: 'Texas',      img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Texas.svg' },
+  NM: { name: 'New_Mexico', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/New_Mexico.svg' },
+  AZ: { name: 'Arizona',    img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Arizona.svg' },
+  CA: { name: 'California', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/California.svg' },
 };
 
-const StateTag = ({ abbr }: { abbr: string }) => (
-  <div className="bg-route66-rust/10 border border-route66-rust/30 text-route66-rust rounded-md px-2 py-1 text-center shrink-0">
-    <div className="text-xs font-bold leading-tight">{abbr}</div>
-    <div className="text-[9px] leading-tight">{ROUTE66_STATES[abbr]}</div>
-  </div>
-);
+const StateTag = ({ abbr }: { abbr: string }) => {
+  const state = ROUTE66_STATE_IMAGES[abbr];
+  if (!state) return null;
+  return (
+    <div className="flex flex-col items-center gap-1 w-12">
+      <img
+        src={state.img}
+        alt={state.name}
+        className="w-10 h-10 object-contain"
+        style={{ filter: 'invert(27%) sepia(51%) saturate(700%) hue-rotate(330deg) brightness(90%) contrast(90%)' }}
+      />
+      <span className="text-[9px] font-bold text-route66-rust text-center leading-tight">{abbr}</span>
+    </div>
+  );
+};
 
 const parseStates = (text: string): string[] => {
   const matches = text.match(/\b(IL|MO|KS|OK|TX|NM|AZ|CA)\b/g) || [];
