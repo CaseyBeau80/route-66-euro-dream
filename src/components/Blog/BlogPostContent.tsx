@@ -8,6 +8,25 @@ import AuthorBadge from './AuthorBadge';
 import YouTubeEmbed from '../YouTubeEmbed';
 import SharePost from './SharePost';
 
+const ROUTE66_STATES: Record<string, string> = {
+  IL: 'Illinois', MO: 'Missouri', KS: 'Kansas', OK: 'Oklahoma',
+  TX: 'Texas', NM: 'New Mexico', AZ: 'Arizona', CA: 'California',
+};
+
+const StateTag = ({ abbr }: { abbr: string }) => (
+  <div className="bg-route66-rust/10 border border-route66-rust/30 text-route66-rust rounded-md px-2 py-1 text-center shrink-0">
+    <div className="text-xs font-bold leading-tight">{abbr}</div>
+    <div className="text-[9px] leading-tight">{ROUTE66_STATES[abbr]}</div>
+  </div>
+);
+
+const parseStates = (text: string): string[] => {
+  const matches = text.match(/\b(IL|MO|KS|OK|TX|NM|AZ|CA)\b/g) || [];
+  const unique = [...new Set(matches)];
+  const order = ['IL', 'MO', 'KS', 'OK', 'TX', 'NM', 'AZ', 'CA'];
+  return order.filter(s => unique.includes(s));
+};
+
 const extractYouTubeId = (url: string): string | null => {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
@@ -53,15 +72,13 @@ const extractAndRenderYouTube = (text: string): { cleanText: string; videos: str
 
 const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ content, isEventCard }) => {
   const { cleanText, videos } = useMemo(() => extractAndRenderYouTube(content), [content]);
+  const states = useMemo(() => isEventCard ? parseStates(content) : [], [content, isEventCard]);
 
   // Check for "Worth Watching:" pattern
   const worthWatchingMatch = cleanText.match(/worth watching:\s*/i);
 
-  return (
-    <div className={isEventCard 
-      ? 'bg-route66-cream/40 border-l-4 border-route66-rust rounded-r-lg p-5 md:p-6 my-6' 
-      : ''
-    }>
+  const proseAndVideos = (
+    <>
       <div className="prose max-w-none font-lora text-[18px] leading-[1.75]
         prose-headings:font-playfair prose-headings:text-route66-brown prose-headings:tracking-tight
         prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4
@@ -92,7 +109,6 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
               );
             },
             img: ({ src, alt }) => {
-              // Check for caption in alt text format: "alt text|caption"
               const parts = (alt || '').split('|');
               const imgAlt = parts[0];
               const caption = parts[1];
@@ -123,7 +139,6 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
         </ReactMarkdown>
       </div>
 
-      {/* Render extracted YouTube videos */}
       {videos.map((videoId, idx) => (
         <div key={idx} className="my-8 w-full max-w-[800px] mx-auto">
           {worthWatchingMatch && idx === 0 && (
@@ -135,6 +150,26 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
           <YouTubeEmbed videoId={videoId} title="Route 66 Video" />
         </div>
       ))}
+    </>
+  );
+
+  return (
+    <div className={isEventCard 
+      ? 'bg-route66-cream/40 border-l-4 border-route66-rust rounded-r-lg p-5 md:p-6 my-6' 
+      : ''
+    }>
+      {isEventCard && states.length > 0 ? (
+        <div className="flex flex-row gap-3">
+          <div className="shrink-0 flex flex-col items-center gap-1">
+            {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+          </div>
+          <div className="min-w-0 flex-1">
+            {proseAndVideos}
+          </div>
+        </div>
+      ) : (
+        proseAndVideos
+      )}
     </div>
   );
 };
