@@ -85,9 +85,28 @@ const extractAndRenderYouTube = (text: string): { cleanText: string; videos: str
   return { cleanText, videos };
 };
 
+function parseEventFields(text: string) {
+  const fieldRegex = /^\*\*([📍📅🎯🔥👥][^*]+:)\*\*\s*(.+)$/gm;
+  const fields: { label: string; value: string; index: number; length: number }[] = [];
+  let match;
+  while ((match = fieldRegex.exec(text)) !== null) {
+    fields.push({ label: match[1], value: match[2], index: match.index, length: match[0].length });
+  }
+  if (fields.length === 0) return null;
+  const firstIndex = fields[0].index;
+  const lastField = fields[fields.length - 1];
+  const lastIndex = lastField.index + lastField.length;
+  return {
+    before: text.slice(0, firstIndex).trim(),
+    fields,
+    after: text.slice(lastIndex).trim(),
+  };
+}
+
 const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: number }> = ({ content, isEventCard, index = 0 }) => {
   const { cleanText, videos } = useMemo(() => extractAndRenderYouTube(content), [content]);
   const states = useMemo(() => isEventCard ? parseStates(content) : [], [content, isEventCard]);
+  const eventFields = useMemo(() => isEventCard ? parseEventFields(cleanText) : null, [cleanText, isEventCard]);
 
   // Check for "Worth Watching:" pattern
   const worthWatchingMatch = cleanText.match(/worth watching:\s*/i);
