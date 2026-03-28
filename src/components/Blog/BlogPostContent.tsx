@@ -67,7 +67,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
         prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4
         prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3
         prose-h4:text-lg prose-h4:md:text-xl prose-h4:mt-5 prose-h4:mb-2
-        prose-p:text-route66-brown/80 prose-p:leading-relaxed
+        prose-p:text-route66-brown/80 prose-p:leading-relaxed prose-p:mb-6
         prose-a:text-route66-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
         prose-strong:text-route66-brown prose-strong:font-bold
         prose-em:text-route66-brown/70
