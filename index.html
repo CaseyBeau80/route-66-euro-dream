@@ -190,7 +190,7 @@
         const loadCriticalFonts = () => {
           const link = document.createElement('link');
           link.rel = 'stylesheet';
-          link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&display=swap';
+          link.href = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap';
           link.media = 'print';
           link.onload = function() { this.media = 'all'; };
           link.onerror = function() { console.warn('Font loading failed'); };

@@ -163,6 +163,7 @@ const config: Config = {
         'special-elite': ['Special Elite', 'monospace'],
         'courier-prime': ['Courier Prime', 'monospace'],
         'playfair': ['Playfair Display', 'serif'],
+        'lora': ['Lora', 'serif'],
       },
       boxShadow: {
         // Route 66 themed shadows - updated to bright blue
