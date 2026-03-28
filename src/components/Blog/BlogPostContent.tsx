@@ -107,6 +107,16 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
                 </figure>
               );
             },
+            blockquote: ({ children }) => (
+              <blockquote className="my-8 pl-6 border-l-2 border-route66-rust/60 not-prose">
+                <div className="flex items-start gap-3">
+                  <span className="text-route66-rust/70 text-3xl leading-none font-serif select-none shrink-0 -mt-1">"</span>
+                  <div className="font-lora text-[1.25rem] italic leading-relaxed text-route66-brown/80">
+                    {children}
+                  </div>
+                </div>
+              </blockquote>
+            ),
           }}
         >
           {worthWatchingMatch ? cleanText.replace(/worth watching:\s*/i, '') : cleanText}
