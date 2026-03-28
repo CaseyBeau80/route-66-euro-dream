@@ -34,17 +34,17 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Full-width Big Bo image, cropped short */}
-        <div className="relative w-full overflow-hidden flex justify-center bg-route66-background" style={{ height: 'clamp(360px, 55vh, 520px)' }}>
+        <div className="relative w-full overflow-hidden" style={{ height: 'clamp(280px, 40vh, 420px)' }}>
           <img 
             src="/images/big-bo-hero.png"
             alt="Big Bo Ramble - Route 66 Mascot standing on Route 66"
-            className="h-full w-auto max-w-none object-contain lcp-hero-image"
+            className="absolute inset-0 w-full h-full object-cover object-top lcp-hero-image"
             loading="eager"
             fetchPriority="high"
             decoding="sync"
           />
           {/* Bottom gradient for CTA readability */}
-          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
 
           {/* CTA + countdown overlaid at bottom */}
           <div className="absolute bottom-4 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4">
