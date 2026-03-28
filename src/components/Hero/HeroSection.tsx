@@ -22,33 +22,32 @@ const HeroSection: React.FC = () => {
 
   return (
     <>
-      {/* Full-width hero image with text overlay */}
-      <section className="relative w-full overflow-hidden" style={{ height: 'clamp(320px, 50vh, 500px)' }}>
-        <img 
-          src="/images/big-bo-hero.png"
-          alt="Big Bo Ramble - Route 66 Mascot standing on Route 66"
-          className="absolute inset-0 w-full h-full object-cover object-top lcp-hero-image"
-          loading="eager"
-          fetchPriority="high"
-          decoding="sync"
-        />
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50"></div>
+      <section className="bg-route66-background">
+        {/* Brand + tagline above the image */}
+        <div className="text-center pt-8 pb-4 px-4">
+          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase tracking-wider text-route66-primary mb-1">
+            RAMBLE 66
+          </h1>
+          <p className="text-lg lg:text-xl xl:text-2xl font-highway font-bold text-route66-accent-gold">
+            Your Guide to the Mother Road
+          </p>
+        </div>
 
-        {/* Text overlay */}
-        <div className="relative z-10 h-full flex flex-col items-center justify-between py-6 px-4">
-          {/* Top: Brand + tagline */}
-          <div className="text-center">
-            <h1 className="text-4xl lg:text-5xl xl:text-6xl font-route66 font-bold uppercase tracking-wider text-white drop-shadow-lg mb-1">
-              RAMBLE 66
-            </h1>
-            <p className="text-lg lg:text-xl xl:text-2xl font-highway font-bold text-route66-accent-gold drop-shadow-lg">
-              Your Guide to the Mother Road
-            </p>
-          </div>
+        {/* Full-width Big Bo image, cropped short */}
+        <div className="relative w-full overflow-hidden" style={{ height: 'clamp(280px, 40vh, 420px)' }}>
+          <img 
+            src="/images/big-bo-hero.png"
+            alt="Big Bo Ramble - Route 66 Mascot standing on Route 66"
+            className="absolute inset-0 w-full h-full object-cover object-top lcp-hero-image"
+            loading="eager"
+            fetchPriority="high"
+            decoding="sync"
+          />
+          {/* Bottom gradient for CTA readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
 
-          {/* Bottom: CTA + countdown */}
-          <div className="flex flex-col items-center gap-3">
+          {/* CTA + countdown overlaid at bottom */}
+          <div className="absolute bottom-4 left-0 right-0 z-10 flex flex-col items-center gap-3 px-4">
             <Button 
               onClick={scrollToInteractiveMap} 
               size="lg" 
