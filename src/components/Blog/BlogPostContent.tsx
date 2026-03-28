@@ -205,7 +205,8 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
             Drop them on the{' '}
             <Link to="/#social" className="text-route66-primary font-medium hover:underline">Photo Wall</Link>
             {' '}and let me know!
-          </p>
+            </p>
+          </div>
         </div>
       </div>
     </article>
