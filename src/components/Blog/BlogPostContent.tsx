@@ -215,7 +215,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
       ) : isEventCard && states.length > 0 ? (
         <div className="flex flex-row gap-3">
           <div className="shrink-0 flex flex-col items-center gap-1">
-            {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+            {states.map(abbr => <StateTag key={abbr} abbr={abbr} isDark={isDark} />)}
           </div>
           <div className="min-w-0 flex-1">
             {proseAndVideos}
