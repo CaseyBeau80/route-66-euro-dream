@@ -11,12 +11,12 @@ const BlogHero: React.FC<BlogHeroProps> = ({
   subtitle = "Stories, tips, and adventures from the Mother Road"
 }) => {
   return (
-    <section className="relative flex items-center justify-center overflow-hidden bg-route66-asphalt py-16 md:py-20">
+    <section className="relative flex items-center justify-center overflow-hidden py-16 md:py-20" style={{ backgroundColor: '#1a2744' }}>
       <div className="relative z-10 text-center px-4 flex flex-col items-center">
         <img 
           src={blogShield} 
           alt="Route 66 shield"
-          className="w-40 md:w-52 lg:w-60 mb-6"
+          className="w-32 md:w-40 lg:w-48 mb-6 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
           width={512}
           height={512}
         />
