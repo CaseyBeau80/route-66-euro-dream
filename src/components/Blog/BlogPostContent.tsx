@@ -144,6 +144,11 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
 }) => {
   const { isDigest, blocks } = useMemo(() => splitEventBlocks(content), [content]);
 
+  const readTime = useMemo(() => {
+    const wordCount = content.trim().split(/\s+/).length;
+    return Math.max(1, Math.ceil(wordCount / 200));
+  }, [content]);
+
   return (
     <article className="bg-[#FAFAF7] rounded-xl shadow-md overflow-hidden">
       {/* Featured Image */}
