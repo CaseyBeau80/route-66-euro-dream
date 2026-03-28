@@ -135,7 +135,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
   const { isDigest, blocks } = useMemo(() => splitEventBlocks(content), [content]);
 
   return (
-    <article className="bg-white rounded-xl shadow-md overflow-hidden">
+    <article className="bg-[#FAFAF7] rounded-xl shadow-md overflow-hidden">
       {/* Featured Image */}
       {featuredImageUrl && (
         <div className="aspect-video w-full overflow-hidden">
