@@ -8,6 +8,25 @@ import AuthorBadge from './AuthorBadge';
 import YouTubeEmbed from '../YouTubeEmbed';
 import SharePost from './SharePost';
 
+const ROUTE66_STATES: Record<string, string> = {
+  IL: 'Illinois', MO: 'Missouri', KS: 'Kansas', OK: 'Oklahoma',
+  TX: 'Texas', NM: 'New Mexico', AZ: 'Arizona', CA: 'California',
+};
+
+const StateTag = ({ abbr }: { abbr: string }) => (
+  <div className="bg-route66-rust/10 border border-route66-rust/30 text-route66-rust rounded-md px-2 py-1 text-center shrink-0">
+    <div className="text-xs font-bold leading-tight">{abbr}</div>
+    <div className="text-[9px] leading-tight">{ROUTE66_STATES[abbr]}</div>
+  </div>
+);
+
+const parseStates = (text: string): string[] => {
+  const matches = text.match(/\b(IL|MO|KS|OK|TX|NM|AZ|CA)\b/g) || [];
+  const unique = [...new Set(matches)];
+  const order = ['IL', 'MO', 'KS', 'OK', 'TX', 'NM', 'AZ', 'CA'];
+  return order.filter(s => unique.includes(s));
+};
+
 const extractYouTubeId = (url: string): string | null => {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
