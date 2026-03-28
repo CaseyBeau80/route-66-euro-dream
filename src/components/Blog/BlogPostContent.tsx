@@ -183,7 +183,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
 
   return (
     <div className={isEventCard 
-      ? `${isDark ? 'bg-[#2C1810]' : 'bg-[#FAFAF7]'} rounded-lg shadow-sm p-5 md:p-6 my-6` 
+      ? `${isDark ? 'bg-[#2C1810]' : 'bg-[#FAFAF7] border border-route66-sand/60'} rounded-lg shadow-sm p-5 md:p-6 my-6` 
       : ''
     }>
       {isEventCard && states.length > 0 && eventFields ? (
