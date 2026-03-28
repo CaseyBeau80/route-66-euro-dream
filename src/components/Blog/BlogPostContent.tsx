@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Calendar, ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
