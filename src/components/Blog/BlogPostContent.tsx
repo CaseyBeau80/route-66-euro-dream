@@ -9,14 +9,14 @@ import YouTubeEmbed from '../YouTubeEmbed';
 import SharePost from './SharePost';
 
 const ROUTE66_STATE_IMAGES: Record<string, { name: string; img: string }> = {
-  IL: { name: 'Illinois',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Illinois.svg' },
-  MO: { name: 'Missouri',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Missouri.svg' },
-  KS: { name: 'Kansas',     img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Kansas.svg' },
-  OK: { name: 'Oklahoma',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Oklahoma.svg' },
-  TX: { name: 'Texas',      img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Texas.svg' },
-  NM: { name: 'New_Mexico', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/New_Mexico.svg' },
-  AZ: { name: 'Arizona',    img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/Arizona.svg' },
-  CA: { name: 'California', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs/svg/California.svg' },
+  IL: { name: 'Illinois',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/IL.svg' },
+  MO: { name: 'Missouri',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/MO.svg' },
+  KS: { name: 'Kansas',     img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/KS.svg' },
+  OK: { name: 'Oklahoma',   img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/OK.svg' },
+  TX: { name: 'Texas',      img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/TX.svg' },
+  NM: { name: 'New Mexico', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/NM.svg' },
+  AZ: { name: 'Arizona',    img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/AZ.svg' },
+  CA: { name: 'California', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/CA.svg' },
 };
 
 const StateTag = ({ abbr }: { abbr: string }) => {
