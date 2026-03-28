@@ -24,7 +24,7 @@ interface SocialMetaTagsProps {
 const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
   title = 'Ramble 66',
   description = 'Plan and share your ultimate Route 66 road trip with our Interactive Route 66 Google Map and Shareable Travel Planner. Discover hidden gems, classic diners, retro motels, and iconic attractions along America\'s Mother Road from Chicago to Santa Monica.',
-  imageUrl = 'https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png',
+  imageUrl = 'https://ramble66.com/images/og-big-bo.jpg',
   path,
   url,
   type = 'website',
