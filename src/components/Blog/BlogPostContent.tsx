@@ -250,7 +250,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
     <article className="bg-[#FAFAF7] rounded-xl shadow-md overflow-hidden">
       {/* Featured Image */}
       {featuredImageUrl && (
-        <div className="aspect-video w-full overflow-hidden">
+        <div className="w-full overflow-hidden" style={{ aspectRatio: '21/9' }}>
           <img src={featuredImageUrl} alt={title} className="w-full h-full object-cover" />
         </div>
       )}
