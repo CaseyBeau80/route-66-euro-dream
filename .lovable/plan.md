@@ -1,41 +1,46 @@
 
 
-## Plan: Stack Event Fields Vertically
+## Plan: Event Card Layout Refinements
 
 **File:** `src/components/Blog/BlogPostContent.tsx`
 
-### Change (lines 179–186)
+### 1. Shrink state icon (lines 26–30)
+- Container: `w-12` → `w-10`
+- Image: `w-10 h-10` → `w-8 h-8`
 
-Replace the field block container and row layout:
+### 2. Tighten label column (line 182)
+- `w-28` → `w-20`
 
-**From:**
+### 3. Restructure event card layout when `eventFields` is not null (lines 176–195, 202–213)
+
+Currently, when `eventFields` exists, the icon sits beside ALL content (title + fields + after). Restructure so the icon only sits beside the title.
+
+Replace the `proseAndVideos` variable and the card return to produce this structure when `eventFields` is not null:
+
 ```tsx
-<div className="mb-4 divide-y divide-route66-sand/30">
-  {eventFields.fields.map((field, i) => (
-    <div key={i} className="flex gap-3 py-2">
-      <span className="text-route66-rust text-sm font-bold w-24 shrink-0">{field.label}</span>
-      <span className="text-route66-brown text-sm flex-1">{field.value}</span>
-    </div>
-  ))}
+{/* Title row: icon + title side by side */}
+<div className="flex items-center gap-3">
+  <div className="shrink-0 flex flex-col items-center gap-1">
+    {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+  </div>
+  {eventFields.before && renderMarkdown(eventFields.before)}
 </div>
-```
-
-**To:**
-```tsx
+{/* Fields below, full width */}
 <div className="mb-4 flex flex-col gap-2">
-  {eventFields.fields.map((field, i) => (
-    <div key={i} className="flex items-start gap-2">
-      <span className="text-route66-rust text-sm font-bold shrink-0 w-28">{field.label}</span>
-      <span className="text-route66-brown text-sm flex-1">{field.value}</span>
-    </div>
-  ))}
+  {eventFields.fields.map(...with w-20...)}
 </div>
+{/* More info with separator */}
+{eventFields.after && (
+  <div className="mt-4 pt-3 border-t border-route66-sand/40">
+    {renderMarkdown(eventFields.after)}
+  </div>
+)}
+{videosBlock}
 ```
 
-**Summary of differences:**
-- Container: `divide-y divide-route66-sand/30` → `flex flex-col gap-2` (removes border separators, adds vertical stacking)
-- Row: `flex gap-3 py-2` → `flex items-start gap-2` (aligns top, tighter gap, no padding)
-- Label: `w-24` → `w-28` (slightly wider label column)
+For the non-eventFields case, keep existing layout (icon beside all content) unchanged.
 
-One file, 8 lines changed.
+### Summary
+- 4 targeted changes in one file
+- ~25 lines modified
 
