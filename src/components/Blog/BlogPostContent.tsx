@@ -23,11 +23,11 @@ const StateTag = ({ abbr }: { abbr: string }) => {
   const state = ROUTE66_STATE_IMAGES[abbr];
   if (!state) return null;
   return (
-    <div className="flex flex-col items-center gap-1 w-12">
+    <div className="flex flex-col items-center gap-1 w-10">
       <img
         src={state.img}
         alt={state.name}
-        className="w-10 h-10 object-contain"
+        className="w-8 h-8 object-contain"
         style={{ filter: 'invert(30%) sepia(90%) saturate(800%) hue-rotate(182deg) brightness(70%) contrast(95%)' }}
       />
       <span className="text-[9px] font-bold text-route66-primary text-center leading-tight">{abbr}</span>
