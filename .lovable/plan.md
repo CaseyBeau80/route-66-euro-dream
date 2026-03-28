@@ -1,17 +1,24 @@
 
 
-# Replace Hero Image with Video
+# Hero Section Polish
 
-## What changes
-Replace the static Big Bo hero image with the uploaded video, playing as a looping background video (muted, autoplay). The brand text, CTA button, and countdown badge remain overlaid on top.
+Five targeted improvements to `src/components/Hero/HeroSection.tsx`:
 
-## Steps
+## Changes
 
-1. **Copy video to `public/videos/`** — copy `user-uploads://Generated_Video_March_28_2026_-_3_19PM.mp4` to `public/videos/hero-video.mp4`
+1. **Countdown badge** — Change `bg-black/50` to `bg-[#3D2B1F]` (opaque dark brown), bump text to `text-base`, increase padding to `px-5 py-2`. Change "Celebrations underway!" text and dot to `text-amber-400` / `bg-amber-400` for brighter gold.
 
-2. **Update `src/components/Hero/HeroSection.tsx`** — replace the `<img>` tag with a `<video>` element:
-   - `autoPlay`, `loop`, `muted`, `playsInline` attributes for seamless background playback
-   - Same `absolute inset-0 w-full h-full object-cover` styling
-   - Keep the gradient overlay, CTA button, and countdown badge exactly as-is
-   - Keep the brand/tagline section above unchanged
+2. **"Start Exploring" button** — Replace with `bg-[#C0392B] text-white rounded-full px-8 py-3 hover:scale-105 transition-transform`. Remove `ArrowDown` icon, add `ArrowRight` (→) icon instead. Drop the offset box-shadow and border styling.
+
+3. **Subtitle** — Bump to `text-xl lg:text-2xl xl:text-3xl`, add `tracking-wide`, keep color as `text-[#E8C27A]` (warm gold).
+
+4. **Gradient overlay** — Replace the existing `bg-gradient-to-b` div with `bg-gradient-to-t from-black/60 via-black/20 to-transparent` to darken from the bottom up, keeping the sky visible.
+
+5. **Title text** — Change from `RAMBLE 66` (all-caps) to `Ramble 66` in mixed case. Switch font class to Playfair Display (`font-serif` or a custom class). Remove `uppercase` and `tracking-wider`, use `tracking-wide` instead.
+
+## Technical
+
+- Single file edit: `src/components/Hero/HeroSection.tsx`
+- Swap `ArrowDown` import to `ArrowRight` from lucide-react
+- All other components unchanged
 
