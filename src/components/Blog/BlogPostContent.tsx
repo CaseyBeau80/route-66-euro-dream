@@ -173,21 +173,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
     </div>
   );
 
-  const proseAndVideos = eventFields ? (
-    <>
-      {eventFields.before && renderMarkdown(eventFields.before)}
-      <div className="mb-4 flex flex-col gap-2">
-        {eventFields.fields.map((field, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <span className="text-route66-rust text-sm font-bold shrink-0 w-28">{field.label}</span>
-            <span className="text-route66-brown text-sm flex-1">{field.value}</span>
-          </div>
-        ))}
-      </div>
-      {eventFields.after && renderMarkdown(eventFields.after)}
-      {videosBlock}
-    </>
-  ) : (
+  const proseAndVideos = eventFields ? null : (
     <>
       {renderMarkdown(worthWatchingMatch ? cleanText.replace(/worth watching:\s*/i, '') : cleanText)}
       {videosBlock}
@@ -199,7 +185,33 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
       ? `bg-route66-cream/40 border-l-4 ${index % 2 === 0 ? 'border-route66-primary' : 'border-route66-primary-light'} rounded-r-lg p-5 md:p-6 my-6` 
       : ''
     }>
-      {isEventCard && states.length > 0 ? (
+      {isEventCard && states.length > 0 && eventFields ? (
+        <>
+          {/* Title row: icon + title side by side */}
+          <div className="flex items-center gap-3">
+            <div className="shrink-0 flex flex-col items-center gap-1">
+              {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+            </div>
+            {eventFields.before && renderMarkdown(eventFields.before)}
+          </div>
+          {/* Fields below, full width */}
+          <div className="mb-4 flex flex-col gap-2">
+            {eventFields.fields.map((field, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-route66-rust text-sm font-bold shrink-0 w-20">{field.label}</span>
+                <span className="text-route66-brown text-sm flex-1">{field.value}</span>
+              </div>
+            ))}
+          </div>
+          {/* More info with separator */}
+          {eventFields.after && (
+            <div className="mt-4 pt-3 border-t border-route66-sand/40">
+              {renderMarkdown(eventFields.after)}
+            </div>
+          )}
+          {videosBlock}
+        </>
+      ) : isEventCard && states.length > 0 ? (
         <div className="flex flex-row gap-3">
           <div className="shrink-0 flex flex-col items-center gap-1">
             {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
