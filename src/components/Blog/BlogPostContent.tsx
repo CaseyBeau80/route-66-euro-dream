@@ -19,7 +19,7 @@ const ROUTE66_STATE_IMAGES: Record<string, { name: string; img: string }> = {
   CA: { name: 'California', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/CA.svg' },
 };
 
-const StateTag = ({ abbr }: { abbr: string }) => {
+const StateTag = ({ abbr, isDark }: { abbr: string; isDark?: boolean }) => {
   const state = ROUTE66_STATE_IMAGES[abbr];
   if (!state) return null;
   return (
@@ -28,9 +28,9 @@ const StateTag = ({ abbr }: { abbr: string }) => {
         src={state.img}
         alt={state.name}
         className="w-8 h-8 object-contain"
-        style={{ filter: 'invert(30%) sepia(90%) saturate(800%) hue-rotate(182deg) brightness(70%) contrast(95%)' }}
+        style={{ filter: isDark ? 'brightness(0) invert(1)' : 'invert(30%) sepia(90%) saturate(800%) hue-rotate(182deg) brightness(70%) contrast(95%)' }}
       />
-      <span className="text-[9px] font-bold text-route66-primary text-center leading-tight">{abbr}</span>
+      <span className={`text-[9px] font-bold text-center leading-tight ${isDark ? 'text-[#F5F0E8]' : 'text-route66-primary'}`}>{abbr}</span>
     </div>
   );
 };
