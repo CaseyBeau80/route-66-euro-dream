@@ -35,13 +35,13 @@ const HeroSection: React.FC = () => {
 
         {/* Full-width Big Bo image, cropped short */}
         <div className="relative w-full overflow-hidden" style={{ height: 'clamp(280px, 40vh, 420px)' }}>
-          <img 
-            src="/images/big-bo-hero.png"
-            alt="Big Bo Ramble - Route 66 Mascot standing on Route 66"
-            className="absolute inset-0 w-full h-full object-cover object-top lcp-hero-image"
-            loading="eager"
-            fetchPriority="high"
-            decoding="sync"
+          <video 
+            src="/videos/hero-video.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
           />
           {/* Bottom gradient for CTA readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
