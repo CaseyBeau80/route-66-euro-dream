@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 import { smoothScrollToSection } from "@/utils/smoothScroll";
 import HeroFeatures from "./HeroFeatures";
