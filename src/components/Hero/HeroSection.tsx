@@ -32,11 +32,8 @@ const HeroSection: React.FC = () => {
             </h1>
 
             {/* Value Prop */}
-            <p className="text-xl lg:text-2xl xl:text-3xl font-highway font-bold text-pink-600 mb-1">
-              Plan Your Route 66 Road Trip — Free
-            </p>
-            <p className="text-base lg:text-lg text-route66-text-secondary italic mb-6">
-              Along the Mother Road
+            <p className="text-xl lg:text-2xl xl:text-3xl font-highway font-bold text-pink-600 mb-6">
+              Your Guide to the Mother Road
             </p>
 
             {/* Big Bo - full width, centered */}
