@@ -301,12 +301,17 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         )}
         
         {/* Content */}
-        <div className="max-w-[680px] mx-auto">
+        <div>
           {isDigest ? (
             <div className="space-y-2">
-              {blocks.map((block, idx) => (
-                <MarkdownBlock key={idx} content={block} isEventCard index={idx} />
-              ))}
+              {blocks.map((block, idx) => {
+                const isFirstBlock = idx === 0;
+                return (
+                  <div key={idx} className={isFirstBlock ? '' : 'max-w-[680px] mx-auto'}>
+                    <MarkdownBlock content={block} isEventCard={!isFirstBlock} index={idx} />
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <MarkdownBlock content={content} />
