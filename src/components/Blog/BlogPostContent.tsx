@@ -207,6 +207,21 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
             {' '}and let me know!
             </p>
           </div>
+
+          {/* Author Card */}
+          <div className="mt-8 flex items-start gap-4 border-l-4 border-route66-rust bg-route66-cream/40 p-5 rounded-r-sm">
+            <img
+              src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
+              alt="Big Bo Ramble"
+              className="h-16 w-16 rounded-full border-2 border-route66-rust/40 object-cover shrink-0"
+            />
+            <div>
+              <span className="font-playfair font-bold text-lg text-route66-brown">Big Bo Ramble</span>
+              <p className="mt-1 font-lora text-[15px] leading-relaxed text-route66-brown/70 italic">
+                Born with road dust in his boots and a Route 66 atlas on the dash. Big Bo's been chasing neon signs and small-town diners since before GPS ruined the adventure.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </article>
