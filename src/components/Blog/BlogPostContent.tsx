@@ -199,8 +199,8 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
           <div className="mb-4 flex flex-col gap-2">
             {eventFields.fields.map((field, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-route66-rust text-sm font-bold shrink-0 w-20">{field.label}</span>
-                <span className="text-route66-brown text-sm flex-1">{field.value}</span>
+                <span className={`${isDark ? 'text-[#E8C27A]' : 'text-route66-rust'} text-sm font-bold shrink-0 w-20`}>{field.label}</span>
+                <span className={`${isDark ? 'text-[#F5F0E8]' : 'text-route66-brown'} text-sm flex-1`}>{field.value}</span>
               </div>
             ))}
           </div>
