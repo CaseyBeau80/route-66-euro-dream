@@ -206,7 +206,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
           </div>
           {/* More info with separator */}
           {eventFields.after && (
-            <div className="mt-4 pt-3 border-t border-route66-sand/40">
+            <div className={`mt-4 pt-3 border-t ${isDark ? 'border-[#E8C27A]/30' : 'border-route66-sand/40'}`}>
               {renderMarkdown(eventFields.after)}
             </div>
           )}
