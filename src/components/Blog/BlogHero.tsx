@@ -13,7 +13,7 @@ const BlogHero: React.FC<BlogHeroProps> = () => {
         <img 
           src={blogLogo} 
           alt="The Ramble 66 Blog - Route 66"
-          className="max-w-md md:max-w-lg lg:max-w-xl w-full mx-auto"
+          className="max-w-lg md:max-w-2xl lg:max-w-3xl w-full mx-auto"
           width={1366}
           height={910}
         />
