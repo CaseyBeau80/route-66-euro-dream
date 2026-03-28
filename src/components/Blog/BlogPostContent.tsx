@@ -19,7 +19,7 @@ const ROUTE66_STATE_IMAGES: Record<string, { name: string; img: string }> = {
   CA: { name: 'California', img: 'https://cdn.jsdelivr.net/gh/coryetzkorn/state-svg-defs@master/SVG/CA.svg' },
 };
 
-const StateTag = ({ abbr }: { abbr: string }) => {
+const StateTag = ({ abbr, isDark }: { abbr: string; isDark?: boolean }) => {
   const state = ROUTE66_STATE_IMAGES[abbr];
   if (!state) return null;
   return (
@@ -28,9 +28,9 @@ const StateTag = ({ abbr }: { abbr: string }) => {
         src={state.img}
         alt={state.name}
         className="w-8 h-8 object-contain"
-        style={{ filter: 'invert(30%) sepia(90%) saturate(800%) hue-rotate(182deg) brightness(70%) contrast(95%)' }}
+        style={{ filter: isDark ? 'brightness(0) invert(1)' : 'invert(30%) sepia(90%) saturate(800%) hue-rotate(182deg) brightness(70%) contrast(95%)' }}
       />
-      <span className="text-[9px] font-bold text-route66-primary text-center leading-tight">{abbr}</span>
+      <span className={`text-[9px] font-bold text-center leading-tight ${isDark ? 'text-[#F5F0E8]' : 'text-route66-primary'}`}>{abbr}</span>
     </div>
   );
 };
@@ -107,11 +107,12 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
   const { cleanText, videos } = useMemo(() => extractAndRenderYouTube(content), [content]);
   const states = useMemo(() => isEventCard ? parseStates(content) : [], [content, isEventCard]);
   const eventFields = useMemo(() => isEventCard ? parseEventFields(cleanText) : null, [cleanText, isEventCard]);
+  const isDark = isEventCard && index % 2 !== 0;
 
   // Check for "Worth Watching:" pattern
   const worthWatchingMatch = cleanText.match(/worth watching:\s*/i);
 
-  const proseClasses = "prose max-w-none font-lora text-[18px] leading-[1.75] prose-headings:font-playfair prose-headings:text-route66-brown prose-headings:tracking-tight prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:md:text-xl prose-h4:mt-5 prose-h4:mb-2 prose-p:text-route66-brown/80 prose-p:leading-relaxed prose-p:mb-6 prose-a:text-route66-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-strong:text-route66-brown prose-strong:font-bold prose-em:text-route66-brown/70 prose-hr:border-route66-sand/50 prose-img:rounded-lg prose-img:shadow-md prose-blockquote:border-none prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:m-0 prose-li:text-route66-brown/80";
+  const proseClasses = `prose max-w-none font-lora text-[18px] leading-[1.75] prose-headings:font-playfair prose-headings:tracking-tight prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3 prose-h4:text-lg prose-h4:md:text-xl prose-h4:mt-5 prose-h4:mb-2 prose-p:leading-relaxed prose-p:mb-6 prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-strong:font-bold prose-hr:border-route66-sand/50 prose-img:rounded-lg prose-img:shadow-md prose-blockquote:border-none prose-blockquote:bg-transparent prose-blockquote:p-0 prose-blockquote:m-0 ${isDark ? 'prose-headings:text-white prose-p:text-[#F5F0E8] prose-a:text-[#E8C27A] prose-strong:text-white prose-em:text-[#F5F0E8] prose-li:text-[#F5F0E8]' : 'prose-headings:text-route66-brown prose-p:text-route66-brown/80 prose-a:text-route66-primary prose-strong:text-route66-brown prose-em:text-route66-brown/70 prose-li:text-route66-brown/80'}`;
 
   const markdownComponents = {
     a: ({ href, children }: any) => {
@@ -182,7 +183,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
 
   return (
     <div className={isEventCard 
-      ? `bg-route66-cream/40 border-l-4 ${index % 2 === 0 ? 'border-route66-primary' : 'border-route66-primary-light'} rounded-r-lg p-5 md:p-6 my-6` 
+      ? `${isDark ? 'bg-[#2C1810]' : 'bg-[#FAFAF7]'} rounded-lg shadow-sm p-5 md:p-6 my-6` 
       : ''
     }>
       {isEventCard && states.length > 0 && eventFields ? (
@@ -190,7 +191,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
           {/* Title row: icon + title side by side */}
           <div className="flex items-center gap-3">
             <div className="shrink-0 flex flex-col items-center gap-1">
-              {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+              {states.map(abbr => <StateTag key={abbr} abbr={abbr} isDark={isDark} />)}
             </div>
             {eventFields.before && renderMarkdown(eventFields.before)}
           </div>
@@ -198,14 +199,14 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
           <div className="mb-4 flex flex-col gap-2">
             {eventFields.fields.map((field, i) => (
               <div key={i} className="flex items-start gap-2">
-                <span className="text-route66-rust text-sm font-bold shrink-0 w-20">{field.label}</span>
-                <span className="text-route66-brown text-sm flex-1">{field.value}</span>
+                <span className={`${isDark ? 'text-[#E8C27A]' : 'text-route66-rust'} text-sm font-bold shrink-0 w-20`}>{field.label}</span>
+                <span className={`${isDark ? 'text-[#F5F0E8]' : 'text-route66-brown'} text-sm flex-1`}>{field.value}</span>
               </div>
             ))}
           </div>
           {/* More info with separator */}
           {eventFields.after && (
-            <div className="mt-4 pt-3 border-t border-route66-sand/40">
+            <div className={`mt-4 pt-3 border-t ${isDark ? 'border-[#E8C27A]/30' : 'border-route66-sand/40'}`}>
               {renderMarkdown(eventFields.after)}
             </div>
           )}
@@ -214,7 +215,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
       ) : isEventCard && states.length > 0 ? (
         <div className="flex flex-row gap-3">
           <div className="shrink-0 flex flex-col items-center gap-1">
-            {states.map(abbr => <StateTag key={abbr} abbr={abbr} />)}
+            {states.map(abbr => <StateTag key={abbr} abbr={abbr} isDark={isDark} />)}
           </div>
           <div className="min-w-0 flex-1">
             {proseAndVideos}
