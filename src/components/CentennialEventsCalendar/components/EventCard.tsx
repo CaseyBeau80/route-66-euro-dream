@@ -12,10 +12,11 @@ interface EventCardProps {
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
-  // Use dateStart (ISO format) with dateDisplay as fallback for reliable parsing
-  const dateForCountdown = event.dateStart || event.dateDisplay;
+  // Use dateEnd for multi-day events (to show "Happening now" instead of "Past event"),
+  // fall back to dateStart for single-day events
+  const dateForCountdown = event.dateEnd || event.dateStart || event.dateDisplay;
   const countdown = getCountdownText(dateForCountdown);
-  const isSoon = isEventSoon(dateForCountdown);
+  const isSoon = isEventSoon(event.dateStart || event.dateDisplay);
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-gray-500' };
   const categoryInfo = categoryMetadata[event.category] || { label: 'Event', emoji: '📅' };
   
