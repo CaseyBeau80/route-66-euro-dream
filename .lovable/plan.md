@@ -1,32 +1,30 @@
 
 
-# Fix Build Error + Blog Typography Upgrade
+# Add Author Card to BlogPostContent.tsx
 
-## 1. Fix build error — `vite.config.ts`
+Insert the provided author card JSX after the "Big Bo Author Note" `</div>` (currently around line 209), inside the `max-w-[680px]` wrapper.
 
-The previous sitemap cleanup removed `eventIds` and `nativeSiteSlugs` from the `SitemapData` interface in `sitemapGenerator.ts`, but `vite.config.ts` still passes them. Two edits:
+**File:** `src/components/Blog/BlogPostContent.tsx`
 
-**Lines 47–53**: Remove the `centennial_events` and `native_american_sites` fetch calls from `Promise.all`, and update the destructuring to only `[attractions, hiddenGems, blogPosts]`.
+**Location:** After the closing `</div>` of the "Big Bo Ramble here" author note block, before the wrapper's closing `</div>`.
 
-**Lines 55–61**: Remove `eventIds` and `nativeSiteSlugs` from the object passed to `generateSitemapFile`. Update the console.log on line 65 to remove the events/native-sites counts.
+**Insert:**
+```jsx
+{/* Author Card */}
+<div className="mt-8 flex items-start gap-4 border-l-4 border-route66-rust bg-route66-cream/40 p-5 rounded-r-sm">
+  <img
+    src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
+    alt="Big Bo Ramble"
+    className="h-16 w-16 rounded-full border-2 border-route66-rust/40 object-cover shrink-0"
+  />
+  <div>
+    <span className="font-playfair font-bold text-lg text-route66-brown">Big Bo Ramble</span>
+    <p className="mt-1 font-lora text-[15px] leading-relaxed text-route66-brown/70 italic">
+      Born with road dust in his boots and a Route 66 atlas on the dash. Big Bo's been chasing neon signs and small-town diners since before GPS ruined the adventure.
+    </p>
+  </div>
+</div>
+```
 
-## 2. Blog typography — three files
-
-### `index.html` (line 193)
-Add `&family=Lora:wght@400;500;600;700` to the existing Google Fonts URL that loads Bebas Neue and Playfair Display.
-
-### `tailwind.config.ts` (line 166)
-Add `'lora': ['Lora', 'serif'],` to the `fontFamily` block, after the `playfair` entry.
-
-### `src/components/Blog/BlogPostContent.tsx`
-- Change outer `<article>` from `bg-white` to `bg-[#FAFAF7]`
-- Wrap the content area below tags (the digest/markdown blocks + author note) in `<div className="max-w-[680px] mx-auto">`
-- In the `MarkdownBlock` prose div: replace `prose-lg` with `font-lora text-[18px] leading-[1.75]`, add `prose-p:mb-6`
-- Keep `prose-headings:font-playfair` unchanged (Playfair/Lora contrast)
-
-## Files touched
-1. `vite.config.ts` — remove phantom sitemap fetches (fixes build error)
-2. `index.html` — add Lora font
-3. `tailwind.config.ts` — add `lora` font family
-4. `src/components/Blog/BlogPostContent.tsx` — background, max-width, typography
+No other files touched.
 
