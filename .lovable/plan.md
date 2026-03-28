@@ -1,45 +1,27 @@
 
 
-# Add Read Time + Date Meta Line — BlogPostContent.tsx
+# Add State Icon Badges to Event Cards — BlogPostContent.tsx
 
 ## Changes (single file)
 
-### 1. Remove `Calendar` from imports (line 2)
-Change:
+### 1. Insert constants and helpers after imports (after line 9, before line 11)
+
+Add `ROUTE66_STATES` map, `StateTag` component, and `parseStates` helper — exactly as specified.
+
+### 2. Add state parsing inside MarkdownBlock (after line 58)
+
 ```ts
-import { Calendar, ArrowLeft, Play } from 'lucide-react';
-```
-To:
-```ts
-import { ArrowLeft, Play } from 'lucide-react';
+const states = useMemo(() => isEventCard ? parseStates(content) : [], [content, isEventCard]);
 ```
 
-### 2. Add `readTime` calculation after the existing `splitEventBlocks` useMemo (~line 143)
-```ts
-const readTime = useMemo(() => {
-  const wordCount = content.trim().split(/\s+/).length;
-  return Math.max(1, Math.ceil(wordCount / 200));
-}, [content]);
-```
+### 3. Update MarkdownBlock return (lines 60–138)
 
-### 3. Replace the "Author and Date" block (lines 172–181)
-Remove the existing block with `Calendar` icon, `AuthorBadge`, and date. Replace with:
+Keep the outer card div (lines 61–63) unchanged. Inside it, conditionally wrap the interior:
 
-```jsx
-{/* Date and Read Time */}
-<div className="flex items-center gap-3 text-route66-brown/50 text-sm mb-4">
-  <span>{format(new Date(publishedAt), 'MMMM d, yyyy')}</span>
-  <span>·</span>
-  <span>🕐 {readTime} min read</span>
-</div>
+- **When `isEventCard && states.length > 0`**: wrap in `<div className="flex flex-row gap-3">` with:
+  - Left column: `<div className="shrink-0 flex flex-col items-center gap-1">` with `StateTag` per state
+  - Right column: `<div className="min-w-0 flex-1">` containing the existing prose div (lines 65–124) and videos div (lines 126–137)
+- **Otherwise**: render interior exactly as before (no wrapping div)
 
-{/* Author */}
-<div className="flex items-center gap-3 mb-4 pb-4 border-b border-route66-sand/50">
-  <div className="flex items-center gap-3 bg-route66-primary/10 px-4 py-2 rounded-full border border-route66-primary/30">
-    <AuthorBadge authorName={authorName} size="lg" />
-  </div>
-</div>
-```
-
-No other files touched.
+The outer card div with `border-l-4 border-route66-rust` is unchanged in all cases.
 
