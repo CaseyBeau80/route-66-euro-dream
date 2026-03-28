@@ -176,7 +176,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
 
   const proseAndVideos = eventFields ? null : (
     <>
-      {renderMarkdown(worthWatchingMatch ? cleanText.replace(/worth watching:\s*/i, '') : cleanText)}
+      {renderMarkdown(worthWatchingMatch ? cleanText.replace(/worth watching:\s*/i, '').replace(/\s*\((IL|MO|KS|OK|TX|NM|AZ|CA)\)\s*/g, '') : cleanText.replace(/\s*\((IL|MO|KS|OK|TX|NM|AZ|CA)\)\s*/g, ''))}
       {videosBlock}
     </>
   );
@@ -193,7 +193,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
             <div className="shrink-0 flex flex-col items-center gap-1">
               {states.map(abbr => <StateTag key={abbr} abbr={abbr} isDark={isDark} />)}
             </div>
-            {eventFields.before && renderMarkdown(eventFields.before)}
+            {eventFields.before && renderMarkdown(eventFields.before.replace(/\s*\((IL|MO|KS|OK|TX|NM|AZ|CA)\)\s*$/g, ''))}
           </div>
           {/* Fields below, full width */}
           <div className="mb-4 flex flex-col gap-2">
