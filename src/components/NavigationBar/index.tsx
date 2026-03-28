@@ -23,14 +23,23 @@ const NavigationBar = () => {
             isActiveRoute={isActiveRoute}
           />
 
-          {/* Mobile Navigation */}
+          {/* Mobile Hamburger Button */}
           <MobileNavigation
             isMenuOpen={isMenuOpen}
             setIsMenuOpen={setIsMenuOpen}
             isActiveRoute={isActiveRoute}
+            renderMenuOnly={false}
           />
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown — rendered outside the flex row */}
+      <MobileNavigation
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        isActiveRoute={isActiveRoute}
+        renderMenuOnly={true}
+      />
 
       {/* Decorative bottom border */}
       <div className="h-1 bg-gradient-to-r from-route66-primary via-route66-primary-light to-route66-primary opacity-80"></div>
