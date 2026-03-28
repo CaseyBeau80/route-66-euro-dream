@@ -1,4 +1,5 @@
 import React from 'react';
+import blogShield from '@/assets/blog-route66-shield.png';
 
 interface BlogHeroProps {
   title?: string;
@@ -6,27 +7,23 @@ interface BlogHeroProps {
 }
 
 const BlogHero: React.FC<BlogHeroProps> = ({ 
-  title = "Route 66 Blog",
+  title = "The Ramble 66 Blog",
   subtitle = "Stories, tips, and adventures from the Mother Road"
 }) => {
   return (
-    <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
-      <div className="absolute inset-0">
+    <section className="relative flex items-center justify-center overflow-hidden bg-route66-asphalt py-16 md:py-20">
+      <div className="relative z-10 text-center px-4 flex flex-col items-center">
         <img 
-          src="/images/blog-hero-highway.jpg" 
-          alt="Route 66 highway stretching into the sunset"
-          className="w-full h-full object-cover"
+          src={blogShield} 
+          alt="Route 66 shield"
+          className="w-40 md:w-52 lg:w-60 mb-6"
+          width={512}
+          height={512}
         />
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/55" />
-      </div>
-      
-      <div className="relative z-10 text-center px-4">
-        <h1 className="font-playfair text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 tracking-tight">
+        <h1 className="font-playfair text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 tracking-tight">
           {title}
         </h1>
-        <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto font-light tracking-wide">
+        <p className="text-base md:text-lg text-white/60 max-w-2xl mx-auto font-light tracking-wide">
           {subtitle}
         </p>
       </div>
