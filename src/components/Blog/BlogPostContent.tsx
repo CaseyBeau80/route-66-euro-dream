@@ -62,12 +62,12 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean }> = ({ c
       ? 'bg-route66-cream/40 border-l-4 border-route66-rust rounded-r-lg p-5 md:p-6 my-6' 
       : ''
     }>
-      <div className="prose prose-lg max-w-none
+      <div className="prose max-w-none font-lora text-[18px] leading-[1.75]
         prose-headings:font-playfair prose-headings:text-route66-brown prose-headings:tracking-tight
         prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4
         prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3
         prose-h4:text-lg prose-h4:md:text-xl prose-h4:mt-5 prose-h4:mb-2
-        prose-p:text-route66-brown/80 prose-p:leading-relaxed
+        prose-p:text-route66-brown/80 prose-p:leading-relaxed prose-p:mb-6
         prose-a:text-route66-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
         prose-strong:text-route66-brown prose-strong:font-bold
         prose-em:text-route66-brown/70
@@ -135,7 +135,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
   const { isDigest, blocks } = useMemo(() => splitEventBlocks(content), [content]);
 
   return (
-    <article className="bg-white rounded-xl shadow-md overflow-hidden">
+    <article className="bg-[#FAFAF7] rounded-xl shadow-md overflow-hidden">
       {/* Featured Image */}
       {featuredImageUrl && (
         <div className="aspect-video w-full overflow-hidden">
@@ -186,25 +186,27 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
         )}
         
         {/* Content */}
-        {isDigest ? (
-          <div className="space-y-2">
-            {blocks.map((block, idx) => (
-              <MarkdownBlock key={idx} content={block} isEventCard />
-            ))}
-          </div>
-        ) : (
-          <MarkdownBlock content={content} />
-        )}
+        <div className="max-w-[680px] mx-auto">
+          {isDigest ? (
+            <div className="space-y-2">
+              {blocks.map((block, idx) => (
+                <MarkdownBlock key={idx} content={block} isEventCard />
+              ))}
+            </div>
+          ) : (
+            <MarkdownBlock content={content} />
+          )}
         
-        {/* Big Bo Author Note */}
-        <div className="mt-10 p-5 bg-route66-cream/50 rounded-xl border border-route66-sand/50">
+          {/* Big Bo Author Note */}
+          <div className="mt-10 p-5 bg-route66-cream/50 rounded-xl border border-route66-sand/50">
           <p className="text-route66-brown/80 italic leading-relaxed">
             <span className="font-semibold text-route66-brown not-italic">Big Bo Ramble here</span> — 
             planning weekly posts with the freshest Route 66 news and tips. Got ideas or photos? 
             Drop them on the{' '}
             <Link to="/#social" className="text-route66-primary font-medium hover:underline">Photo Wall</Link>
             {' '}and let me know!
-          </p>
+            </p>
+          </div>
         </div>
       </div>
     </article>
