@@ -258,7 +258,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
           {isDigest ? (
             <div className="space-y-2">
               {blocks.map((block, idx) => (
-                <MarkdownBlock key={idx} content={block} isEventCard />
+                <MarkdownBlock key={idx} content={block} isEventCard index={idx} />
               ))}
             </div>
           ) : (
