@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Calendar, ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
@@ -144,6 +144,11 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
 }) => {
   const { isDigest, blocks } = useMemo(() => splitEventBlocks(content), [content]);
 
+  const readTime = useMemo(() => {
+    const wordCount = content.trim().split(/\s+/).length;
+    return Math.max(1, Math.ceil(wordCount / 200));
+  }, [content]);
+
   return (
     <article className="bg-[#FAFAF7] rounded-xl shadow-md overflow-hidden">
       {/* Featured Image */}
@@ -169,14 +174,17 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
           {title}
         </h1>
         
-        {/* Author and Date */}
-        <div className="flex flex-wrap items-center gap-4 mb-4 pb-4 border-b border-route66-sand/50">
+        {/* Date and Read Time */}
+        <div className="flex items-center gap-3 text-route66-brown/50 text-sm mb-4">
+          <span>{format(new Date(publishedAt), 'MMMM d, yyyy')}</span>
+          <span>·</span>
+          <span>🕐 {readTime} min read</span>
+        </div>
+
+        {/* Author */}
+        <div className="flex items-center gap-3 mb-4 pb-4 border-b border-route66-sand/50">
           <div className="flex items-center gap-3 bg-route66-primary/10 px-4 py-2 rounded-full border border-route66-primary/30">
             <AuthorBadge authorName={authorName} size="lg" />
-          </div>
-          <div className="flex items-center gap-2 text-route66-brown/60">
-            <Calendar className="h-5 w-5" />
-            <span className="font-medium">{format(new Date(publishedAt), 'MMMM d, yyyy')}</span>
           </div>
         </div>
         
