@@ -30,7 +30,7 @@ const StateTag = ({ abbr }: { abbr: string }) => {
         className="w-10 h-10 object-contain"
         style={{ filter: 'invert(30%) sepia(90%) saturate(800%) hue-rotate(182deg) brightness(70%) contrast(95%)' }}
       />
-      <span className="text-[9px] font-bold text-route66-rust text-center leading-tight">{abbr}</span>
+      <span className="text-[9px] font-bold text-route66-primary text-center leading-tight">{abbr}</span>
     </div>
   );
 };
