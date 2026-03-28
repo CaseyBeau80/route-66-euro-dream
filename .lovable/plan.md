@@ -1,27 +1,42 @@
 
 
-# Add Author Card to BlogPostContent.tsx
+# Add Read Time + Date Meta Line — BlogPostContent.tsx
 
-Insert the provided author card JSX after the "Big Bo Author Note" `</div>` (currently around line 209), inside the `max-w-[680px]` wrapper.
+## Changes (single file)
 
-**File:** `src/components/Blog/BlogPostContent.tsx`
+### 1. Remove `Calendar` from imports (line 2)
+Change:
+```ts
+import { Calendar, ArrowLeft, Play } from 'lucide-react';
+```
+To:
+```ts
+import { ArrowLeft, Play } from 'lucide-react';
+```
 
-**Location:** After the closing `</div>` of the "Big Bo Ramble here" author note block, before the wrapper's closing `</div>`.
+### 2. Add `readTime` calculation after the existing `splitEventBlocks` useMemo (~line 143)
+```ts
+const readTime = useMemo(() => {
+  const wordCount = content.trim().split(/\s+/).length;
+  return Math.max(1, Math.ceil(wordCount / 200));
+}, [content]);
+```
 
-**Insert:**
+### 3. Replace the "Author and Date" block (lines 172–181)
+Remove the existing block with `Calendar` icon, `AuthorBadge`, and date. Replace with:
+
 ```jsx
-{/* Author Card */}
-<div className="mt-8 flex items-start gap-4 border-l-4 border-route66-rust bg-route66-cream/40 p-5 rounded-r-sm">
-  <img
-    src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
-    alt="Big Bo Ramble"
-    className="h-16 w-16 rounded-full border-2 border-route66-rust/40 object-cover shrink-0"
-  />
-  <div>
-    <span className="font-playfair font-bold text-lg text-route66-brown">Big Bo Ramble</span>
-    <p className="mt-1 font-lora text-[15px] leading-relaxed text-route66-brown/70 italic">
-      Born with road dust in his boots and a Route 66 atlas on the dash. Big Bo's been chasing neon signs and small-town diners since before GPS ruined the adventure.
-    </p>
+{/* Date and Read Time */}
+<div className="flex items-center gap-3 text-route66-brown/50 text-sm mb-4">
+  <span>{format(new Date(publishedAt), 'MMMM d, yyyy')}</span>
+  <span>·</span>
+  <span>🕐 {readTime} min read</span>
+</div>
+
+{/* Author */}
+<div className="flex items-center gap-3 mb-4 pb-4 border-b border-route66-sand/50">
+  <div className="flex items-center gap-3 bg-route66-primary/10 px-4 py-2 rounded-full border border-route66-primary/30">
+    <AuthorBadge authorName={authorName} size="lg" />
   </div>
 </div>
 ```
