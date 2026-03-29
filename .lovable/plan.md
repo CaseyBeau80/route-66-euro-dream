@@ -1,14 +1,10 @@
 
 
-## Plan: Create `public/llms.txt`
+## Plan: Add JSON-LD Structured Data to `index.html`
 
-Create a single static file at `public/llms.txt` containing the site description content the user provided at the top of this conversation (the Ramble 66 markdown overview). This file will be served at `ramble66.com/llms.txt` for AI crawlers.
-
-### Content
-The exact markdown content provided by the user, starting with `# Ramble 66` and ending with the About section.
+Add the provided `<script type="application/ld+json">` block inside the `<head>` tag of `public/index.html`, right before the closing `</head>` tag. No other files or logic will be changed.
 
 ### Technical Details
-- **File**: `public/llms.txt` (new file)
-- Single file creation, no other changes needed
-- Vite serves files in `public/` as static assets at the root path
+- **File**: `public/index.html`
+- Insert the JSON-LD script block before `</head>`
 
