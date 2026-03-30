@@ -24,7 +24,7 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
   // Desktop: use existing isMapExpanded logic
   const heightClass = isMobile
     ? mobileExpanded
-      ? 'fixed inset-0 z-[9999] h-screen w-screen'
+      ? 'fixed inset-0 z-[9999] h-screen w-screen overflow-hidden'
       : 'h-[400px]'
     : isMapExpanded
       ? 'h-[900px]'
