@@ -10,6 +10,7 @@ interface SingleRouteRendererProps {
 
 const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapReady }) => {
   const { waypoints, isLoading, error } = useSupabaseRoute66();
+  const isMobile = useIsMobile();
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
   const lastMapIdRef = useRef<string | null>(null);
 
