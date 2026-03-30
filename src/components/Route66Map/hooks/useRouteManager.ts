@@ -1,5 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useSupabaseRoute66 } from './useSupabaseRoute66';
 import { RouteGlobalState } from '../services/RouteGlobalState';
 import { SmoothPathCreationService } from '../services/SmoothPathCreationService';
@@ -15,6 +16,7 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
   const [hasCreatedRoute, setHasCreatedRoute] = useState(false);
   const initializationRef = useRef(false);
+  const isMobile = useIsMobile();
 
   // NUCLEAR CLEANUP on mount
   useEffect(() => {
@@ -72,15 +74,21 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
     RouteGlobalState.addPolylines(roadPolylines);
     RouteGlobalState.setRouteCreated(true);
 
-    // Fit map to route bounds
+    // Fit map to route bounds with mobile bias toward the southwest corridor
     const bounds = new google.maps.LatLngBounds();
     smoothPath.forEach(point => bounds.extend(point));
-    map.fitBounds(bounds);
+    map.fitBounds(bounds, isMobile
+      ? { top: 110, right: 110, bottom: 40, left: 30 }
+      : { top: 60, right: 60, bottom: 60, left: 60 }
+    );
 
-    // Zoom out slightly for better view
+    // Zoom out more on mobile so southwest attractions and hidden gems stay visible
     setTimeout(() => {
       const currentZoom = map.getZoom() || 5;
-      map.setZoom(Math.max(4, currentZoom - 1));
+      const targetZoom = isMobile
+        ? Math.max(3, currentZoom - 1.5)
+        : Math.max(4, currentZoom - 1);
+      map.setZoom(targetZoom);
     }, 1000);
 
     console.log('☢️ RouteManager: Enhanced curved Route 66 road with yellow striping created successfully');
@@ -92,7 +100,7 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
       setHasCreatedRoute(false);
     });
 
-  }, [initializationRef.current, map, isMapReady, waypoints, isLoading, error, hasCreatedRoute]);
+  }, [map, isMapReady, waypoints, isLoading, error, hasCreatedRoute, isMobile]);
 
   // Cleanup on unmount
   useEffect(() => {
