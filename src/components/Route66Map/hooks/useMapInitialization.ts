@@ -37,9 +37,9 @@ export const useMapInitialization = ({
     const gestureHandling = 'cooperative';
 
     try {
-      const defaultZoom = isMobile ? 5 : 4;
+      const defaultZoom = isMobile ? 4 : 4;
       const defaultCenter = isMobile 
-        ? { lat: 35.2, lng: -100.0 } // Centered on Route 66 corridor showing all 8 states
+        ? { lat: 34.8, lng: -103.5 } // Lower and farther west so the southwest corridor is visible on phones
         : { lat: 39.0, lng: -98.0 };  // Center of US for desktop
       const map = new google.maps.Map(containerRef, {
         zoom: defaultZoom,
@@ -54,7 +54,7 @@ export const useMapInitialization = ({
         fullscreenControl: true,
         clickableIcons: false,
         scrollwheel: true, // Enable scroll wheel zoom
-        restriction: mapRestrictions,
+        restriction: isMobile ? undefined : mapRestrictions,
         minZoom: 3,
         maxZoom: 18,
         styles: [
