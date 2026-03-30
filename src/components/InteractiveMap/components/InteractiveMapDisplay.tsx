@@ -24,7 +24,7 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
   // Desktop: use existing isMapExpanded logic
   const heightClass = isMobile
     ? mobileExpanded
-      ? 'fixed inset-0 z-[9999] h-screen w-screen'
+      ? 'fixed inset-0 z-[9999] h-screen w-screen overflow-hidden'
       : 'h-[400px]'
     : isMapExpanded
       ? 'h-[900px]'
@@ -38,7 +38,7 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
           ${isMobile && mobileExpanded ? heightClass : `${heightClass} rounded-2xl`}
         `}
       >
-        <div className={`relative h-full bg-white border-2 border-route66-border shadow-2xl overflow-hidden ${isMobile && mobileExpanded ? '' : 'rounded-2xl'}`}>
+        <div className={`relative h-full bg-white border-2 border-route66-border shadow-2xl overflow-hidden ${isMobile && mobileExpanded ? 'rounded-none' : 'rounded-2xl'}`}>
           <Route66Map />
           {isMobile && (
             <button

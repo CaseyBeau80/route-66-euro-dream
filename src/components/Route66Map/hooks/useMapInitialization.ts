@@ -39,7 +39,7 @@ export const useMapInitialization = ({
     try {
       const defaultZoom = isMobile ? 5 : 4;
       const defaultCenter = isMobile 
-        ? { lat: 36.15, lng: -95.99 } // Tulsa, OK - heart of Route 66
+        ? { lat: 35.2, lng: -100.0 } // Centered on Route 66 corridor showing all 8 states
         : { lat: 39.0, lng: -98.0 };  // Center of US for desktop
       const map = new google.maps.Map(containerRef, {
         zoom: defaultZoom,
