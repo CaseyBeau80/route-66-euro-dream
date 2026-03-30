@@ -17,10 +17,8 @@ const HeroSection: React.FC = () => {
   const celebrationsStarted = now >= celebrationsStartDate;
 
   const scrollToInteractiveMap = () => {
-    const mapSection = document.getElementById('interactive-map');
-    if (mapSection) {
-      mapSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    forceDeferredRender();
+    smoothScrollToSectionWithRetry('interactive-map');
   };
 
   return (
