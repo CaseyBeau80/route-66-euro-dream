@@ -138,16 +138,22 @@ const SingleRouteRenderer: React.FC<SingleRouteRendererProps> = ({ map, isMapRea
     polylinesRef.current = [baseRoad, roadSurface, centerLine];
     lastMapIdRef.current = currentMapId;
 
-    // Fit map to route bounds
-    const bounds = new google.maps.LatLngBounds();
-    routePoints.forEach(point => bounds.extend(point));
-    map.fitBounds(bounds);
+    if (isMobile) {
+      console.log('🛣️ SingleRouteRenderer: MOBILE — enforcing center {36.5, -105} zoom 4');
+      map.setCenter({ lat: 36.5, lng: -105 });
+      map.setZoom(4);
+    } else {
+      console.log('🛣️ SingleRouteRenderer: DESKTOP — fitting bounds');
+      const bounds = new google.maps.LatLngBounds();
+      routePoints.forEach(point => bounds.extend(point));
+      map.fitBounds(bounds);
 
-    // Zoom out slightly for better view
-    setTimeout(() => {
-      const currentZoom = map.getZoom() || 5;
-      map.setZoom(Math.max(4, currentZoom - 1));
-    }, 1000);
+      setTimeout(() => {
+        const currentZoom = map.getZoom() || 5;
+        console.log('🛣️ SingleRouteRenderer: DESKTOP — delayed setZoom to', Math.max(4, currentZoom - 1));
+        map.setZoom(Math.max(4, currentZoom - 1));
+      }, 1000);
+    }
 
     console.log('✅ Route 66 road with yellow striping created successfully');
 
