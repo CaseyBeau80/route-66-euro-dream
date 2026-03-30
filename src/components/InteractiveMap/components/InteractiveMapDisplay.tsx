@@ -63,8 +63,8 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
       )}
 
       {isMobile && mobileExpanded && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[2147483647] isolate bg-route66-background pointer-events-none">
-          <div className="h-full w-full pointer-events-none">
+        <div className="fixed inset-0 z-[2147483647] isolate bg-route66-background">
+          <div className="h-full w-full">
             {mapFrame(true)}
           </div>
         </div>,
