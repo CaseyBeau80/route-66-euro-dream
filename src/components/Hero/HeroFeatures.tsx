@@ -45,7 +45,7 @@ const HeroFeatures: React.FC = () => {
       icon: <Map className="w-7 h-7" />,
       title: "Interactive Google Map",
       subtitle: "Explore attractions, diners & hidden gems across all 8 states",
-      onClick: () => smoothScrollToSection('interactive-map'),
+      onClick: () => { forceRenderAllSections(); navigateToSection('interactive-map'); },
     },
     {
       icon: <Calendar className="w-7 h-7" />,
