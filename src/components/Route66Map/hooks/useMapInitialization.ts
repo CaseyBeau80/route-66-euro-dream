@@ -34,7 +34,7 @@ export const useMapInitialization = ({
     // Use device-aware gesture handling
     // Desktop: 'cooperative' requires Ctrl+scroll to zoom
     // Mobile: 'greedy' allows normal touch gestures
-    const gestureHandling = isMobile ? 'greedy' : 'cooperative';
+    const gestureHandling = 'cooperative';
 
     try {
       const defaultZoom = isMobile ? 5 : 4;
