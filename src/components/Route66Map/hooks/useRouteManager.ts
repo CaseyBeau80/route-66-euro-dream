@@ -1,6 +1,5 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useSupabaseRoute66 } from './useSupabaseRoute66';
 import { RouteGlobalState } from '../services/RouteGlobalState';
 import { SmoothPathCreationService } from '../services/SmoothPathCreationService';
@@ -16,7 +15,6 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
   const polylinesRef = useRef<google.maps.Polyline[]>([]);
   const [hasCreatedRoute, setHasCreatedRoute] = useState(false);
   const initializationRef = useRef(false);
-  const isMobile = useIsMobile();
 
   // NUCLEAR CLEANUP on mount
   useEffect(() => {
@@ -74,20 +72,16 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
     RouteGlobalState.addPolylines(roadPolylines);
     RouteGlobalState.setRouteCreated(true);
 
-    if (isMobile) {
-      // Hard-code mobile view to show full Route 66 corridor in 400px compact view
-      map.setCenter({ lat: 36.5, lng: -105 });
-      map.setZoom(4);
-    } else {
-      const bounds = new google.maps.LatLngBounds();
-      smoothPath.forEach(point => bounds.extend(point));
-      map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+    // Fit map to route bounds
+    const bounds = new google.maps.LatLngBounds();
+    smoothPath.forEach(point => bounds.extend(point));
+    map.fitBounds(bounds);
 
-      setTimeout(() => {
-        const currentZoom = map.getZoom() || 5;
-        map.setZoom(Math.max(4, currentZoom - 1));
-      }, 1000);
-    }
+    // Zoom out slightly for better view
+    setTimeout(() => {
+      const currentZoom = map.getZoom() || 5;
+      map.setZoom(Math.max(4, currentZoom - 1));
+    }, 1000);
 
     console.log('☢️ RouteManager: Enhanced curved Route 66 road with yellow striping created successfully');
 
@@ -98,7 +92,7 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
       setHasCreatedRoute(false);
     });
 
-  }, [map, isMapReady, waypoints, isLoading, error, hasCreatedRoute, isMobile]);
+  }, [initializationRef.current, map, isMapReady, waypoints, isLoading, error, hasCreatedRoute]);
 
   // Cleanup on unmount
   useEffect(() => {

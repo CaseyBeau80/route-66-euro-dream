@@ -34,12 +34,12 @@ export const useMapInitialization = ({
     // Use device-aware gesture handling
     // Desktop: 'cooperative' requires Ctrl+scroll to zoom
     // Mobile: 'greedy' allows normal touch gestures
-    const gestureHandling = 'cooperative';
+    const gestureHandling = isMobile ? 'greedy' : 'cooperative';
 
     try {
-      const defaultZoom = isMobile ? 3.5 : 4;
+      const defaultZoom = isMobile ? 5 : 4;
       const defaultCenter = isMobile 
-        ? { lat: 35.5, lng: -98.0 } // Center of Route 66 corridor for mobile
+        ? { lat: 36.15, lng: -95.99 } // Tulsa, OK - heart of Route 66
         : { lat: 39.0, lng: -98.0 };  // Center of US for desktop
       const map = new google.maps.Map(containerRef, {
         zoom: defaultZoom,
@@ -54,7 +54,7 @@ export const useMapInitialization = ({
         fullscreenControl: true,
         clickableIcons: false,
         scrollwheel: true, // Enable scroll wheel zoom
-        restriction: isMobile ? undefined : mapRestrictions,
+        restriction: mapRestrictions,
         minZoom: 3,
         maxZoom: 18,
         styles: [
