@@ -57,7 +57,7 @@ const HeroFeatures: React.FC = () => {
       icon: <Route className="w-7 h-7" />,
       title: "Travel Planner",
       subtitle: "Build custom trips & share with friends",
-      onClick: () => smoothScrollToSection('trip-planner'),
+      onClick: () => { forceRenderAllSections(); navigateToSection('trip-planner'); },
     },
     {
       icon: <Users className="w-7 h-7" />,
