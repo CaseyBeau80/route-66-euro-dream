@@ -244,3 +244,9 @@
   min-height: 44px;
   touch-action: manipulation;
 }
+
+@media (min-width: 768px) {
+  :root {
+    --hero-ratio: 16 / 9;
+  }
+}
