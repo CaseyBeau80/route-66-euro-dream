@@ -77,8 +77,25 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
     // Fit map to route bounds with mobile bias toward the southwest corridor
     const bounds = new google.maps.LatLngBounds();
     smoothPath.forEach(point => bounds.extend(point));
+
+    if (isMobile) {
+      const northEast = bounds.getNorthEast();
+      const southWest = bounds.getSouthWest();
+      const latSpan = northEast.lat() - southWest.lat();
+      const lngSpan = northEast.lng() - southWest.lng();
+
+      bounds.extend(new google.maps.LatLng(
+        southWest.lat() - latSpan * 0.18,
+        southWest.lng() - lngSpan * 0.08
+      ));
+      bounds.extend(new google.maps.LatLng(
+        northEast.lat() + latSpan * 0.03,
+        northEast.lng() + lngSpan * 0.02
+      ));
+    }
+
     map.fitBounds(bounds, isMobile
-      ? { top: 30, right: 80, bottom: 180, left: 90 }
+      ? { top: 24, right: 72, bottom: 120, left: 72 }
       : { top: 60, right: 60, bottom: 60, left: 60 }
     );
 
@@ -86,7 +103,7 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
     setTimeout(() => {
       const currentZoom = map.getZoom() || 5;
       const targetZoom = isMobile
-        ? Math.max(3, currentZoom - 1.25)
+        ? Math.max(3, currentZoom - 0.75)
         : Math.max(4, currentZoom - 1);
       map.setZoom(targetZoom);
     }, 1000);
