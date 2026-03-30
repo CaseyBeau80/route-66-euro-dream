@@ -23,7 +23,7 @@ const HeroSection: React.FC = () => {
 
   return (
     <>
-      <section className="relative w-full overflow-hidden" style={{ height: 'clamp(420px, 60vh, 600px)' }}>
+      <section className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 9', maxHeight: '85vh' }}>
         {/* Background video */}
         <video 
           src="/videos/hero-video.mp4"
