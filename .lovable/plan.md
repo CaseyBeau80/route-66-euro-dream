@@ -1,33 +1,51 @@
 
+Goal: stop mobile map recentering after load while preserving current desktop framing behavior.
 
-## Plan: Hard-code mobile map center instead of fitBounds
+What I found
+- The main override is in `src/components/Route66Map/components/SingleRouteRenderer.tsx`.
+- That component runs after map load and always does:
+  - `map.fitBounds(bounds);`
+  - then a delayed `map.setZoom(...)` inside `setTimeout`
+- Since `GoogleMapsRoute66.tsx` renders `SingleRouteRenderer` on the live Route 66 map, it can override the mobile center/zoom set elsewhere.
+- `src/components/InteractiveGoogleMap/InteractiveGoogleMap.tsx` sets map options on load, but it does not call `fitBounds`, `setCenter`, `setZoom`, or `panTo` for position changes.
+- I also found other viewport-changing code in unused/alternate Route 66 files (`CleanSingleRoute`, `MapBounds`, helper/services), but based on current usage they are not the active culprit for this screen.
 
-**Problem**: The `fitBounds` call in `useRouteManager.ts` keeps centering the map too far north for the 400px compact mobile view, clipping Southwest attractions regardless of padding tweaks.
+Implementation plan
+1. Update `src/components/Route66Map/components/SingleRouteRenderer.tsx`
+   - Add `useIsMobile()`.
+   - Add explicit diagnostic logs before every viewport mutation:
+     - one log for the mobile path that confirms it is preserving `{ lat: 36.5, lng: -105 }` and `zoom 4`
+     - one log for desktop-only `fitBounds`
+     - one log for desktop-only delayed `setZoom`
+   - Wrap `map.fitBounds(...)` and delayed `map.setZoom(...)` in `if (!isMobile)` so they never run on mobile.
+   - On mobile, set the desired view once:
+     - `map.setCenter({ lat: 36.5, lng: -105 })`
+     - `map.setZoom(4)`
 
-**Solution**: On mobile, skip `fitBounds` entirely and set a hard-coded center and zoom.
+2. Keep desktop behavior unchanged
+   - Preserve the existing bounds-fit and delayed zoom-out logic exactly for desktop.
+   - Do not alter desktop initialization or route rendering behavior.
 
-### Changes
+3. Add “last writer” logging for debugging
+   - In `SingleRouteRenderer.tsx`, make the logs unique and searchable so the console clearly shows whether this component is the final viewport mutator.
+   - Optionally mirror a corresponding log in `useRouteManager.ts` if that path is still mounted elsewhere, so it’s obvious whether a second route system is also writing to the map.
 
-**File: `src/components/Route66Map/hooks/useRouteManager.ts`** (lines 77-109)
+4. Do a quick code-level cleanup pass
+   - Verify no active route on `/` still mounts `NuclearRouteManager` or another bounds-setting renderer alongside `SingleRouteRenderer`.
+   - If any active mobile viewport mutation remains in the current homepage map path, wrap it with `!isMobile` too.
 
-Replace the entire fitBounds + bounds extension + setTimeout zoom block with:
+Expected result
+- Mobile map keeps:
+  - center `{ lat: 36.5, lng: -105 }`
+  - zoom `4`
+- That mobile position is set once and not overridden by route rendering.
+- Desktop continues using the existing auto-fit route framing.
 
-```ts
-if (isMobile) {
-  // Hard-code mobile view to show full Route 66 corridor in 400px compact view
-  map.setCenter({ lat: 36.5, lng: -105 });
-  map.setZoom(4);
-} else {
-  const bounds = new google.maps.LatLngBounds();
-  smoothPath.forEach(point => bounds.extend(point));
-  map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
-
-  setTimeout(() => {
-    const currentZoom = map.getZoom() || 5;
-    map.setZoom(Math.max(4, currentZoom - 1));
-  }, 1000);
-}
-```
-
-This removes all the bounds-extension hacks and asymmetrical padding for mobile, replacing them with a single deterministic center/zoom that reliably shows the full corridor.
-
+Technical details
+- Active override found:
+  - `src/components/Route66Map/components/SingleRouteRenderer.tsx:139-148`
+- Already-correct mobile target exists in:
+  - `src/components/Route66Map/hooks/useRouteManager.ts:77-80`
+- Current homepage map path:
+  - `src/components/Route66Map/GoogleMapsRoute66.tsx`
+  - renders `SingleRouteRenderer`, so that file is the priority fix.
