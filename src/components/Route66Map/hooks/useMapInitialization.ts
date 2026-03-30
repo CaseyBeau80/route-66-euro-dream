@@ -54,7 +54,7 @@ export const useMapInitialization = ({
         fullscreenControl: true,
         clickableIcons: false,
         scrollwheel: true, // Enable scroll wheel zoom
-        restriction: mapRestrictions,
+        restriction: isMobile ? undefined : mapRestrictions,
         minZoom: 3,
         maxZoom: 18,
         styles: [
