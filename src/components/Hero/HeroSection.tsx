@@ -3,7 +3,9 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
-import { smoothScrollToSection } from "@/utils/smoothScroll";
+import { smoothScrollToSectionWithRetry } from "@/utils/smoothScroll";
+import { forceDeferredRender } from "@/components/performance/DeferredComponent";
+import HeroFeatures from "./HeroFeatures";
 import HeroFeatures from "./HeroFeatures";
 import heroRoute66Shield from '@/assets/hero-route66-shield.png';
 
