@@ -38,7 +38,7 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
           ${isMobile && mobileExpanded ? heightClass : `${heightClass} rounded-2xl`}
         `}
       >
-        <div className={`relative h-full bg-white border-2 border-route66-border shadow-2xl overflow-hidden ${isMobile && mobileExpanded ? '' : 'rounded-2xl'}`}>
+        <div className={`relative h-full bg-white border-2 border-route66-border shadow-2xl overflow-hidden ${isMobile && mobileExpanded ? 'rounded-none' : 'rounded-2xl'}`}>
           <Route66Map />
           {isMobile && (
             <button
