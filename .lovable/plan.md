@@ -1,10 +1,22 @@
 
 
-## Plan: Add JSON-LD Structured Data to `index.html`
+## Plan: Fix map gesture handling on mobile
 
-Add the provided `<script type="application/ld+json">` block inside the `<head>` tag of `public/index.html`, right before the closing `</head>` tag. No other files or logic will be changed.
+### Change
+In `src/components/Route66Map/hooks/useMapInitialization.ts`, change the mobile gesture handling from `'greedy'` to `'cooperative'`.
 
-### Technical Details
-- **File**: `public/index.html`
-- Insert the JSON-LD script block before `</head>`
+Currently (line 37):
+```ts
+const gestureHandling = isMobile ? 'greedy' : 'cooperative';
+```
+
+Updated:
+```ts
+const gestureHandling = 'cooperative';
+```
+
+This makes Google Maps require two-finger gestures to pan/zoom on mobile, allowing single-finger swipes to scroll the page normally. Google Maps automatically shows a "Use two fingers to move the map" prompt.
+
+### Files
+- `src/components/Route66Map/hooks/useMapInitialization.ts` — one line change
 
