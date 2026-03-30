@@ -45,7 +45,7 @@ const HeroFeatures: React.FC = () => {
       icon: <Map className="w-7 h-7" />,
       title: "Interactive Google Map",
       subtitle: "Explore attractions, diners & hidden gems across all 8 states",
-      onClick: () => smoothScrollToSection('interactive-map'),
+      onClick: () => { forceRenderAllSections(); navigateToSection('interactive-map'); },
     },
     {
       icon: <Calendar className="w-7 h-7" />,
@@ -57,7 +57,7 @@ const HeroFeatures: React.FC = () => {
       icon: <Route className="w-7 h-7" />,
       title: "Travel Planner",
       subtitle: "Build custom trips & share with friends",
-      onClick: () => smoothScrollToSection('trip-planner'),
+      onClick: () => { forceRenderAllSections(); navigateToSection('trip-planner'); },
     },
     {
       icon: <Users className="w-7 h-7" />,

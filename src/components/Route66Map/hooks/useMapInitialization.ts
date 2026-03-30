@@ -37,9 +37,13 @@ export const useMapInitialization = ({
     const gestureHandling = isMobile ? 'greedy' : 'cooperative';
 
     try {
+      const defaultZoom = isMobile ? 5 : 4;
+      const defaultCenter = isMobile 
+        ? { lat: 36.15, lng: -95.99 } // Tulsa, OK - heart of Route 66
+        : { lat: 39.0, lng: -98.0 };  // Center of US for desktop
       const map = new google.maps.Map(containerRef, {
-        zoom: 4,
-        center: { lat: 39.0, lng: -98.0 },
+        zoom: defaultZoom,
+        center: defaultCenter,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         gestureHandling,
         zoomControl: false, // Disable default zoom controls since we have custom ones
