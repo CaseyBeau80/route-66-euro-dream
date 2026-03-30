@@ -38,7 +38,7 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
   const desktopHeightClass = isMapExpanded ? 'h-[900px]' : 'h-[750px]';
 
   const mapFrame = (fullscreen: boolean) => (
-    <div className={`relative h-full bg-route66-background border-2 border-route66-border overflow-hidden ${fullscreen ? 'rounded-none' : 'rounded-2xl shadow-2xl'}`}>
+    <div className={`relative h-full bg-route66-background border-2 border-route66-border overflow-hidden pointer-events-auto ${fullscreen ? 'rounded-none' : 'rounded-2xl shadow-2xl'}`}>
       <Route66Map />
       {isMobile && (
         <button
@@ -63,8 +63,8 @@ const InteractiveMapDisplay: React.FC<InteractiveMapDisplayProps> = ({
       )}
 
       {isMobile && mobileExpanded && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[2147483647] isolate bg-route66-background">
-          <div className="h-full w-full">
+        <div className="fixed inset-0 z-[2147483647] isolate bg-route66-background pointer-events-none">
+          <div className="h-full w-full pointer-events-none">
             {mapFrame(true)}
           </div>
         </div>,
