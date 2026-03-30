@@ -74,39 +74,20 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
     RouteGlobalState.addPolylines(roadPolylines);
     RouteGlobalState.setRouteCreated(true);
 
-    // Fit map to route bounds with mobile bias toward the southwest corridor
-    const bounds = new google.maps.LatLngBounds();
-    smoothPath.forEach(point => bounds.extend(point));
-
     if (isMobile) {
-      const northEast = bounds.getNorthEast();
-      const southWest = bounds.getSouthWest();
-      const latSpan = northEast.lat() - southWest.lat();
-      const lngSpan = northEast.lng() - southWest.lng();
+      // Hard-code mobile view to show full Route 66 corridor in 400px compact view
+      map.setCenter({ lat: 36.5, lng: -105 });
+      map.setZoom(4);
+    } else {
+      const bounds = new google.maps.LatLngBounds();
+      smoothPath.forEach(point => bounds.extend(point));
+      map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
 
-      bounds.extend(new google.maps.LatLng(
-        southWest.lat() - latSpan * 0.18,
-        southWest.lng() - lngSpan * 0.08
-      ));
-      bounds.extend(new google.maps.LatLng(
-        northEast.lat() + latSpan * 0.03,
-        northEast.lng() + lngSpan * 0.02
-      ));
+      setTimeout(() => {
+        const currentZoom = map.getZoom() || 5;
+        map.setZoom(Math.max(4, currentZoom - 1));
+      }, 1000);
     }
-
-    map.fitBounds(bounds, isMobile
-      ? { top: 24, right: 72, bottom: 120, left: 72 }
-      : { top: 60, right: 60, bottom: 60, left: 60 }
-    );
-
-    // Zoom out more on mobile so southwest attractions and hidden gems stay visible
-    setTimeout(() => {
-      const currentZoom = map.getZoom() || 5;
-      const targetZoom = isMobile
-        ? Math.max(3, currentZoom - 0.75)
-        : Math.max(4, currentZoom - 1);
-      map.setZoom(targetZoom);
-    }, 1000);
 
     console.log('☢️ RouteManager: Enhanced curved Route 66 road with yellow striping created successfully');
 
