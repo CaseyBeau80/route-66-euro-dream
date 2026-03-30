@@ -5,6 +5,7 @@
 
 @layer base {
   :root {
+    --hero-ratio: 3 / 4;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -242,4 +243,10 @@
   min-width: 44px;
   min-height: 44px;
   touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --hero-ratio: 16 / 9;
+  }
 }

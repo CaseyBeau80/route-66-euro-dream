@@ -23,7 +23,7 @@ const HeroSection: React.FC = () => {
 
   return (
     <>
-      <section className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 9', maxHeight: '85vh' }}>
+      <section className="relative w-full overflow-hidden" style={{ aspectRatio: 'var(--hero-ratio)', maxHeight: '85vh' }}>
         {/* Background video */}
         <video 
           src="/videos/hero-video.mp4"
@@ -81,7 +81,7 @@ const HeroSection: React.FC = () => {
         </div>
 
         {/* Route 66 shield badge */}
-        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-20">
+        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-20 hidden md:block">
           <img
             src={heroRoute66Shield}
             alt="Historic Oklahoma Route 66 sign"
