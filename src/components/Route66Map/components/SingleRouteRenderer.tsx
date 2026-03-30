@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useSupabaseRoute66 } from '../hooks/useSupabaseRoute66';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SingleRouteRendererProps {
   map: google.maps.Map;
