@@ -6,7 +6,6 @@ import { useTimer } from "@/components/CentennialCardsSection/hooks/useTimer";
 import { smoothScrollToSectionWithRetry } from "@/utils/smoothScroll";
 import { forceDeferredRender } from "@/components/performance/DeferredComponent";
 import HeroFeatures from "./HeroFeatures";
-import HeroFeatures from "./HeroFeatures";
 import heroRoute66Shield from '@/assets/hero-route66-shield.png';
 
 const HeroSection: React.FC = () => {
