@@ -78,7 +78,7 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
     const bounds = new google.maps.LatLngBounds();
     smoothPath.forEach(point => bounds.extend(point));
     map.fitBounds(bounds, isMobile
-      ? { top: 110, right: 110, bottom: 40, left: 30 }
+      ? { top: 30, right: 80, bottom: 180, left: 90 }
       : { top: 60, right: 60, bottom: 60, left: 60 }
     );
 
@@ -86,7 +86,7 @@ export const useRouteManager = ({ map, isMapReady }: UseRouteManagerProps) => {
     setTimeout(() => {
       const currentZoom = map.getZoom() || 5;
       const targetZoom = isMobile
-        ? Math.max(3, currentZoom - 1.5)
+        ? Math.max(3, currentZoom - 1.25)
         : Math.max(4, currentZoom - 1);
       map.setZoom(targetZoom);
     }, 1000);
