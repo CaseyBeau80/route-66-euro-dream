@@ -21,6 +21,7 @@ interface DatabaseEvent {
   image_url: string | null;
   created_at: string;
   updated_at: string;
+  event_status: 'upcoming' | 'happening_now';
 }
 
 // Transform database row (snake_case) to frontend format (camelCase)
