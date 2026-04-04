@@ -104,8 +104,7 @@ function parseEventFields(text: string) {
 }
 
 const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: number }> = ({ content, isEventCard, index = 0 }) => {
-  const cleanText = content;
-  const videos: string[] = [];
+  const { cleanText, videos } = useMemo(() => extractAndRenderYouTube(content), [content]);
   const states = useMemo(() => isEventCard ? parseStates(content) : [], [content, isEventCard]);
   const eventFields = useMemo(() => isEventCard ? parseEventFields(cleanText) : null, [cleanText, isEventCard]);
   const isDark = isEventCard && index % 2 !== 0;
