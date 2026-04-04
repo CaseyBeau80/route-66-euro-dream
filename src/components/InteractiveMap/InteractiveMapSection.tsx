@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import InteractiveMapDisplay from './components/InteractiveMapDisplay';
 
