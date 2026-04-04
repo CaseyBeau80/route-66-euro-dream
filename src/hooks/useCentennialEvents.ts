@@ -41,6 +41,7 @@ const transformEvent = (dbEvent: DatabaseEvent): CentennialEvent => ({
   officialUrl: dbEvent.official_url || undefined,
   guinnessAttempt: dbEvent.guinness_attempt,
   guinnessNote: dbEvent.guinness_note || undefined,
+  eventStatus: dbEvent.event_status,
 });
 
 const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
