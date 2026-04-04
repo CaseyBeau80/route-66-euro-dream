@@ -1,27 +1,22 @@
 
 
-## Plan: Switch to `upcoming_events` view and fix event status badges
+## Plan: Fix blog content link colors on dark backgrounds
 
-### What changes
+### Problem
+Links inside dark event cards (the alternating dark blue `bg-[#1B2A4A]` cards in digest-style posts) may not be readable. The current `#6BABDB` color is set but could be overridden by global CSS `!important` rules. The user wants white or near-white link text on dark backgrounds with clear hover states.
 
-1. **`src/hooks/useCentennialEvents.ts`** — Change the query from `centennial_events` table to `upcoming_events` view. Add `event_status` to the `DatabaseEvent` interface and pass it through to the `CentennialEvent` type as `eventStatus`.
+### Changes
 
-2. **`src/data/centennialEventsData.ts`** — Add `eventStatus?: 'upcoming' | 'happening_now'` to the `CentennialEvent` interface.
+**File: `src/components/Blog/BlogPostContent.tsx`**
 
-3. **`src/components/CentennialEventsCalendar/components/EventCard.tsx`** — Replace the countdown badge logic:
-   - If `event.eventStatus === 'happening_now'` → green badge saying "Happening now"
-   - If `event.eventStatus === 'upcoming'` → existing relative countdown (e.g. "In 2 weeks")
-   - Remove the old fallback that could show future countdowns for past-start events
+1. Change the dark-mode link color from `#6BABDB` to `#FFFFFF` (white) in two places:
+   - Line 115: Update `prose-a:text-[#6BABDB]` → `prose-a:text-white` in the `proseClasses` string
+   - Line 117: Update `linkColor` from `text-[#6BABDB]` → `text-white`
 
-4. **`src/components/CentennialEventsCalendar/components/FeaturedEvents.tsx`** — Update the `FeaturedEventCard` countdown badge with the same `eventStatus`-based logic so featured cards also show correct status.
+2. Add hover styling for dark-mode links: `hover:prose-a:text-[#C9D6E8]` (a soft light blue/gray) to the prose classes, and update the inline link components (lines 124, 127) to use a hover color that shifts slightly lighter/underlined.
 
-### Why this works
-
-The `upcoming_events` view already filters out past events server-side, so no client-side date filtering is needed. The `event_status` field provides a reliable server-computed status, eliminating timezone/parsing edge cases where a "happening now" multi-day event incorrectly shows a future countdown.
+3. The light-mode link styles (`text-route66-primary`) remain unchanged.
 
 ### Files touched
-- `src/data/centennialEventsData.ts` (add `eventStatus` to interface)
-- `src/hooks/useCentennialEvents.ts` (query `upcoming_events`, map `event_status`)
-- `src/components/CentennialEventsCalendar/components/EventCard.tsx` (badge logic)
-- `src/components/CentennialEventsCalendar/components/FeaturedEvents.tsx` (badge logic)
+- `src/components/Blog/BlogPostContent.tsx` (link color values on ~3 lines)
 
