@@ -17,13 +17,13 @@ body {
   font-family: 'Inter', 'Helvetica', sans-serif;
 }
 
-/* Global link styling */
-a {
+/* Global link styling — skip links inside .prose to let Tailwind prose-a classes take effect */
+a:not(.prose a) {
   color: var(--route66-primary);
   transition: color 0.3s ease;
 }
 
-a:hover {
+a:not(.prose a):hover {
   color: var(--route66-accent-red);
 }
 
