@@ -58,8 +58,9 @@ const BlogCard: React.FC<BlogCardProps> = ({
     return (
       <article className="group rounded-sm overflow-hidden bg-white shadow-sm 
         hover:shadow-xl transition-all duration-500 border-2 border-route66-sand/20
-        hover:border-l-4 hover:border-l-route66-rust lg:flex">
-        <Link to={`/blog/${slug}`} className="block relative overflow-hidden lg:w-3/5">
+        hover:border-l-4 hover:border-l-route66-rust">
+        {/* Image above content */}
+        <Link to={`/blog/${slug}`} className="block overflow-hidden">
           <div className="aspect-[16/9] overflow-hidden">
             {showImage ? (
               <img
@@ -73,35 +74,39 @@ const BlogCard: React.FC<BlogCardProps> = ({
               <ImagePlaceholder className="w-full h-full" />
             )}
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-            <h3 className="font-playfair font-bold text-white leading-tight text-2xl md:text-3xl lg:text-4xl">
+        </Link>
+
+        {/* Content below image */}
+        <div className="p-5 md:p-6">
+          <div className="flex items-center gap-1.5 text-sm text-route66-brown/50 mb-3">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>{format(new Date(publishedAt), 'MMMM d, yyyy')}</span>
+            <span>·</span>
+            <span className="font-medium">{authorName}</span>
+          </div>
+
+          <Link to={`/blog/${slug}`}>
+            <h3 className="font-playfair font-bold text-route66-brown leading-tight text-2xl md:text-3xl 
+              group-hover:text-route66-primary transition-colors mb-3">
               {title}
             </h3>
-          </div>
-        </Link>
-        <div className="p-5 lg:w-2/5 lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <div className="flex items-center gap-1.5 text-sm text-route66-brown/50 mb-3">
-              <Calendar className="h-3.5 w-3.5 shrink-0" />
-              <span>{format(new Date(publishedAt), 'MMMM d, yyyy')}</span>
-              <span>·</span>
-              <span className="font-medium">{authorName}</span>
+          </Link>
+
+          <p className="text-route66-brown/60 leading-relaxed mb-4 line-clamp-3">
+            {excerpt}
+          </p>
+
+          {tags && tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {tags.slice(0, 3).map((tag) => (
+                <span key={tag} className="px-2 py-0.5 bg-route66-sand/40 text-route66-brown/60 
+                  text-xs rounded-full font-medium uppercase tracking-wider">
+                  {tag}
+                </span>
+              ))}
             </div>
-            <p className="text-route66-brown/60 leading-relaxed mb-4 line-clamp-3">
-              {excerpt}
-            </p>
-            {tags && tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {tags.slice(0, 3).map((tag) => (
-                  <span key={tag} className="px-2 py-0.5 bg-route66-sand/40 text-route66-brown/60 
-                    text-xs rounded-full font-medium uppercase tracking-wider">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
+
           <div className="flex items-center justify-between pt-2 border-t border-route66-sand/20">
             <Link
               to={`/blog/${slug}`}
