@@ -61,10 +61,10 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
             {event.state === 'national' ? '🌎 NATIONAL' : stateInfo.name}
           </Badge>
           
-          {/* Countdown badge */}
+          {/* Status badge */}
           <Badge 
             variant={isSoon ? "default" : "outline"}
-            className={isSoon ? "bg-green-500 text-white animate-pulse" : ""}
+            className={isHappeningNow ? "bg-green-600 text-white animate-pulse" : isSoon ? "bg-green-500 text-white animate-pulse" : ""}
           >
             <Clock className="h-3 w-3 mr-1" />
             {countdown}

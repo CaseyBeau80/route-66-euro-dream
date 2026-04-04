@@ -163,7 +163,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
             <Badge className="bg-white/20 text-white border-0 text-xs">
               {categoryInfo.emoji} {categoryInfo.label}
             </Badge>
-            <Badge className="bg-slate-800/80 text-white border-0 text-xs flex items-center gap-1">
+            <Badge className={`${isHappeningNow ? 'bg-green-600' : 'bg-slate-800/80'} text-white border-0 text-xs flex items-center gap-1`}>
               <Clock className="h-3 w-3" />
               {countdown}
             </Badge>
