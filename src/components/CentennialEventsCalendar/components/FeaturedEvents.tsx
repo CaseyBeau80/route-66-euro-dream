@@ -126,8 +126,8 @@ interface FeaturedEventCardProps {
 const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick }) => {
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-slate-500' };
   const categoryInfo = categoryMetadata[event.category] || { emoji: '📅', label: 'Event' };
-  // Use dateStart (ISO format) with dateDisplay as fallback
-  const countdown = getCountdownText(event.dateStart || event.dateDisplay);
+  const isHappeningNow = event.eventStatus === 'happening_now';
+  const countdown = isHappeningNow ? 'Happening now' : getCountdownText(event.dateStart || event.dateDisplay);
   
   // State gradient backgrounds (cool blue/gray palette - equal treatment for all states)
   const stateGradients: Record<string, string> = {
