@@ -12,11 +12,9 @@ interface EventCardProps {
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
-  // Use dateEnd for multi-day events (to show "Happening now" instead of "Past event"),
-  // fall back to dateStart for single-day events
-  const dateForCountdown = event.dateEnd || event.dateStart || event.dateDisplay;
-  const countdown = getCountdownText(dateForCountdown);
-  const isSoon = isEventSoon(event.dateStart || event.dateDisplay);
+  const isHappeningNow = event.eventStatus === 'happening_now';
+  const countdown = isHappeningNow ? 'Happening now' : getCountdownText(event.dateStart || event.dateDisplay);
+  const isSoon = isHappeningNow || isEventSoon(event.dateStart || event.dateDisplay);
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-gray-500' };
   const categoryInfo = categoryMetadata[event.category] || { label: 'Event', emoji: '📅' };
   
@@ -63,10 +61,10 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
             {event.state === 'national' ? '🌎 NATIONAL' : stateInfo.name}
           </Badge>
           
-          {/* Countdown badge */}
+          {/* Status badge */}
           <Badge 
             variant={isSoon ? "default" : "outline"}
-            className={isSoon ? "bg-green-500 text-white animate-pulse" : ""}
+            className={isHappeningNow ? "bg-green-600 text-white animate-pulse" : isSoon ? "bg-green-500 text-white animate-pulse" : ""}
           >
             <Clock className="h-3 w-3 mr-1" />
             {countdown}

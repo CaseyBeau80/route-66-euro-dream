@@ -20,6 +20,7 @@ export interface CentennialEvent {
   officialUrl?: string;
   guinnessAttempt?: boolean;
   guinnessNote?: string;
+  eventStatus?: 'upcoming' | 'happening_now';
 }
 
 export const centennialEvents: CentennialEvent[] = [
