@@ -1,7 +1,6 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { Map, Calendar, Route, Users, Newspaper } from 'lucide-react';
-import { smoothScrollToSection } from '@/utils/smoothScroll';
+import { useNavigate } from 'react-router-dom';
 import { forceIdleLoaderRender } from '@/components/performance/IdleLoader';
 import { forceDeferredRender } from '@/components/performance/DeferredComponent';
 import { forceTimeSlicedRender } from '@/components/performance/TimeSlicedComponent';
@@ -23,6 +22,7 @@ const forceRenderAllSections = () => {
 const HeroFeatures: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -51,25 +51,25 @@ const HeroFeatures: React.FC = () => {
       icon: <Calendar className="w-7 h-7" />,
       title: "Events Calendar",
       subtitle: "Centennial celebrations, festivals & car shows",
-      onClick: () => { forceRenderAllSections(); navigateToSection('events-calendar'); },
+      onClick: () => { navigate('/events'); },
     },
     {
       icon: <Route className="w-7 h-7" />,
       title: "Travel Planner",
       subtitle: "Build custom trips & share with friends",
-      onClick: () => { forceRenderAllSections(); navigateToSection('trip-planner'); },
+      onClick: () => { navigate('/planner'); },
     },
     {
       icon: <Users className="w-7 h-7" />,
       title: "Community",
       subtitle: "Instagram integration & social features for travelers",
-      onClick: () => { forceRenderAllSections(); navigateToSection('social'); },
+      onClick: () => { navigate('/photo-wall'); },
     },
     {
       icon: <Newspaper className="w-7 h-7" />,
       title: "Blog & News",
       subtitle: "Stories, updates & what's happening on the Mother Road",
-      onClick: () => { window.location.href = '/blog'; },
+      onClick: () => { navigate('/blog'); },
     },
   ];
 
