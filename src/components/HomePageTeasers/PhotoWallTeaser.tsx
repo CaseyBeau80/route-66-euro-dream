@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Camera, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { PictureOptimized } from '@/components/ui/PictureOptimized';
 
 interface PhotoEntry {
   id: string;
@@ -10,6 +9,14 @@ interface PhotoEntry {
   caption: string | null;
   traveler_name: string | null;
 }
+
+// Placeholder Route 66 images when no community photos exist yet
+const PLACEHOLDER_PHOTOS = [
+  "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1545243424-0ce743321e11?w=300&h=300&fit=crop",
+];
 
 const PhotoWallTeaser: React.FC = () => {
   const [photos, setPhotos] = React.useState<PhotoEntry[]>([]);
@@ -31,11 +38,16 @@ const PhotoWallTeaser: React.FC = () => {
     fetchPhotos();
   }, []);
 
+  const hasPhotos = photos.length > 0;
+  const displayImages = hasPhotos
+    ? photos.map(p => ({ src: p.photo_url, alt: p.caption || 'Route 66 community photo' }))
+    : PLACEHOLDER_PHOTOS.map((src, i) => ({ src, alt: `Route 66 road trip scene ${i + 1}` }));
+
   return (
     <section className="py-12 sm:py-16 bg-route66-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-route66-gold/20 text-route66-brown px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-route66-gold/20 text-route66-brown px-4 py-1.5 rounded-sm text-sm font-special-elite mb-4 border border-route66-gold/30">
             <Camera className="h-4 w-4" />
             <span>Community</span>
           </div>
@@ -47,28 +59,24 @@ const PhotoWallTeaser: React.FC = () => {
           </p>
         </div>
 
-        {photos.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-8">
-            {photos.map((photo) => (
-              <div key={photo.id} className="aspect-square overflow-hidden rounded-sm border-2 border-route66-border shadow-[4px_4px_0_0_rgba(107,76,56,0.15)]">
-                <PictureOptimized
-                  src={photo.photo_url}
-                  alt={photo.caption || 'Route 66 community photo'}
-                  className="w-full h-full object-cover"
-                  width={300}
-                  height={300}
-                  sizes="(max-width: 768px) 50vw, 25vw"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-8">
+          {displayImages.map((img, i) => (
+            <div key={i} className="aspect-square overflow-hidden rounded-sm border-2 border-route66-border shadow-[4px_4px_0_0_rgba(107,76,56,0.15)]">
+              <img
+                src={img.src}
+                alt={img.alt}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          ))}
+        </div>
 
         <div className="text-center">
           <Link
             to="/photo-wall"
-            className="inline-flex items-center gap-2 bg-route66-brown hover:bg-route66-brown/90 text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-brown shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] transition-all duration-200 hover:shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]"
+            className="inline-flex items-center gap-2 bg-route66-red hover:bg-route66-red-hover text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-red shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] transition-all duration-200 hover:shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]"
           >
             View the Photo Wall
             <ArrowRight className="h-4 w-4" />
