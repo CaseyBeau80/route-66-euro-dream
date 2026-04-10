@@ -98,7 +98,7 @@ const BrowseByStateGrid: React.FC = () => {
                   </div>
                 </div>
                 <CardContent className="p-3">
-                  <h3 className="font-route66 text-lg text-route66-brown group-hover:text-route66-red transition-colors">
+                  <h3 className="font-route66 text-lg text-route66-blue group-hover:text-route66-red transition-colors">
                     {state.name}
                   </h3>
                   <p className="text-xs text-route66-brown/60 mt-1 line-clamp-2 font-body">
