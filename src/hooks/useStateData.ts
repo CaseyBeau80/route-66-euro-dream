@@ -15,6 +15,8 @@ interface CityData {
 export function useStateData(stateAbbr: string | undefined) {
   const [cities, setCities] = useState<CityData[]>([]);
   const [attractions, setAttractions] = useState<AttractionData[]>([]);
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [heroAlt, setHeroAlt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,14 +25,17 @@ export function useStateData(stateAbbr: string | undefined) {
     const fetchData = async () => {
       setIsLoading(true);
 
-      const [waypointsRes, attractionsRes, nativeRes, gemsRes] = await Promise.all([
+      const [waypointsRes, attractionsRes, nativeRes, gemsRes, stateMetaRes] = await Promise.all([
         supabase.from('destination_cities').select('*').eq('state', stateAbbr),
         supabase.from('attractions').select('*').eq('state', stateAbbr).order('name'),
         supabase.from('native_american_sites').select('*').eq('state', stateAbbr).order('name'),
         supabase.from('hidden_gems').select('*').eq('state', stateAbbr).order('name'),
+        supabase.from('states').select('hero_image_url, hero_alt').eq('code', stateAbbr).maybeSingle(),
       ]);
 
       setCities(waypointsRes.data || []);
+      setHeroImageUrl(stateMetaRes.data?.hero_image_url ?? null);
+      setHeroAlt(stateMetaRes.data?.hero_alt ?? null);
 
       // Merge order: attractions → native_american_sites → hidden_gems (attractions wins collisions)
       const merged: AttractionData[] = [
@@ -75,5 +80,5 @@ export function useStateData(stateAbbr: string | undefined) {
     fetchData();
   }, [stateAbbr]);
 
-  return { cities, attractions, isLoading };
+  return { cities, attractions, heroImageUrl, heroAlt, isLoading };
 }
