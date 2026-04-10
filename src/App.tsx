@@ -124,6 +124,27 @@ function App() {
                     <LazyAttractionPage />
                   </Suspense>
                 } />
+                {/* Hidden-gems → attractions redirects (explicit before catch-all) */}
+                <Route path="/hidden-gems/arcadia-round-barn" element={<Navigate to="/attractions/arcadia-round-barn" replace />} />
+                <Route path="/hidden-gems/cars-on-the-route" element={<Navigate to="/attractions/cars-on-the-route" replace />} />
+                <Route path="/hidden-gems/chain-of-rocks-bridge" element={<Navigate to="/attractions/chain-of-rocks-bridge" replace />} />
+                <Route path="/hidden-gems/elmers-bottle-tree-ranch" element={<Navigate to="/attractions/elmers-bottle-tree-ranch" replace />} />
+                <Route path="/hidden-gems/galena-mining-historical-museum" element={<Navigate to="/attractions/galena-mining-historical-museum" replace />} />
+                <Route path="/hidden-gems/route-66-state-park" element={<Navigate to="/attractions/route-66-state-park" replace />} />
+                <Route path="/hidden-gems/standin-on-the-corner-park" element={<Navigate to="/attractions/standin-on-the-corner-park" replace />} />
+                <Route path="/hidden-gems/route-66-association-hall-of-fame-museum" element={<Navigate to="/attractions/route-66-hall-of-fame-museum-pontiac" replace />} />
+                <Route path="/hidden-gems/route-66-mother-road-museum" element={<Navigate to="/attractions/route-66-mother-road-museum-barstow" replace />} />
+                <Route path="/hidden-gems/wigwam-motel-san-bernardino" element={<Navigate to="/attractions/wigwam-motel-rialto" replace />} />
+                <Route path="/hidden-gems/big-texan-steak-ranch" element={<Navigate to="/attractions/the-big-texan-steak-ranch" replace />} />
+                <Route path="/hidden-gems/leaning-water-tower" element={<Navigate to="/attractions/britten-leaning-water-tower" replace />} />
+                <Route path="/hidden-gems/roys-motel-and-caf" element={<Navigate to="/attractions/roys-motel-cafe-amboy" replace />} />
+                <Route path="/hidden-gems/route-66-museum" element={<Navigate to="/attractions/oklahoma-route-66-museum" replace />} />
+                <Route path="/hidden-gems/odell-station" element={<Navigate to="/attractions/odell-standard-oil-gas-station" replace />} />
+                <Route path="/hidden-gems/lucilles-historic-highway-gas-station" element={<Navigate to="/attractions/lucilles-service-station" replace />} />
+                <Route path="/hidden-gems/garys-gay-parita" element={<Navigate to="/attractions/gay-parita-sinclair-gas-station" replace />} />
+                <Route path="/hidden-gems/pops-soda-ranch" element={<Navigate to="/attractions/pops-arcadia" replace />} />
+                <Route path="/hidden-gems/amarillo-route-66-historic-district" element={<Navigate to="/attractions/amarillo-sixth-street-route-66" replace />} />
+                {/* Catch-all for remaining hidden-gem slugs */}
                 <Route path="/hidden-gems/:slug" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyAttractionPage />
