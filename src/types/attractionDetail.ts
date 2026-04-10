@@ -12,6 +12,7 @@ export interface AttractionData {
   image_url: string | null;
   website: string | null;
   category: string | null;
+  category_canonical?: string | null;
   tags: string[];
   featured: boolean;
   admission_fee?: string | null;
