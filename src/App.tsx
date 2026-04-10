@@ -27,6 +27,7 @@ const LazyRobotsTxtPage = lazy(() => import("./pages/RobotsTxtPage"));
 const LazySitemapXmlPage = lazy(() => import("./pages/SitemapXmlPage"));
 const LazyPrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const LazyAttractionPage = lazy(() => import("./pages/AttractionPage"));
+const LazyNativeHeritagePage = lazy(() => import("./pages/NativeHeritagePage"));
 const LazyStatePage = lazy(() => import("./pages/StatePage"));
 const LazyStoryMapPage = lazy(() => import("./pages/StoryMapPage"));
 
@@ -164,6 +165,11 @@ function App() {
                 <Route path="/attractions/:slug" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyAttractionPage />
+                  </Suspense>
+                } />
+                <Route path="/native-heritage/:slug" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyNativeHeritagePage />
                   </Suspense>
                 } />
                 {/* Hidden-gems → attractions redirects (explicit before catch-all) */}
