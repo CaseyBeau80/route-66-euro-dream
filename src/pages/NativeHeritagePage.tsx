@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';
 import { stateAbbrMap } from '@/data/route66States';
-import { MapPin, Globe, Tag, ArrowLeft, ChevronRight, Feather, Landmark } from 'lucide-react';
+import { getAttractionDetailPath, AttractionSourceTable } from '@/types/attractionDetail';
+import { MapPin, Globe, ArrowLeft, ChevronRight, Feather, Landmark } from 'lucide-react';
 
 interface NativeHeritageSite {
   id: string;
@@ -21,11 +22,20 @@ interface NativeHeritageSite {
   tags: string[] | null;
 }
 
+interface NearbyStop {
+  name: string;
+  slug: string;
+  image_url: string | null;
+  city_name: string | null;
+  source_table: AttractionSourceTable;
+}
+
 const NativeHeritagePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [site, setSite] = useState<NativeHeritageSite | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [nearbyStops, setNearbyStops] = useState<NearbyStop[]>([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -41,6 +51,38 @@ const NativeHeritagePage: React.FC = () => {
         setIsLoading(false);
       });
   }, [slug]);
+
+  // Fetch nearby stops once site is loaded
+  useEffect(() => {
+    if (!site?.state || !site?.id) return;
+    const state = site.state;
+    const siteId = site.id;
+
+    Promise.all([
+      supabase
+        .from('native_american_sites')
+        .select('name, slug, image_url, city_name')
+        .eq('state', state)
+        .neq('id', siteId)
+        .limit(3),
+      supabase
+        .from('attractions')
+        .select('name, slug, image_url, city_name')
+        .eq('state', state)
+        .limit(4),
+      supabase
+        .from('hidden_gems')
+        .select('name, slug, image_url, city_name')
+        .eq('state', state)
+        .limit(4),
+    ]).then(([nativeRes, attrRes, gemsRes]) => {
+      const native: NearbyStop[] = (nativeRes.data || []).map(d => ({ ...d, source_table: 'native_american_sites' as const }));
+      const attractions: NearbyStop[] = (attrRes.data || []).map(d => ({ ...d, source_table: 'attractions' as const }));
+      const gems: NearbyStop[] = (gemsRes.data || []).map(d => ({ ...d, source_table: 'hidden_gems' as const }));
+      const merged = [...native, ...attractions, ...gems].slice(0, 3);
+      setNearbyStops(merged.length >= 2 ? merged : []);
+    });
+  }, [site]);
 
   if (isLoading) {
     return (
@@ -214,6 +256,39 @@ const NativeHeritagePage: React.FC = () => {
                   {tag.replace(/[_-]/g, ' ')}
                 </span>
               ))}
+            </div>
+          )}
+
+          {/* Nearby Stops */}
+          {nearbyStops.length >= 2 && (
+            <div className="mt-10">
+              <h2 className="font-heading text-2xl text-foreground mb-6">Nearby Stops</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {nearbyStops.map((stop) => (
+                  <Link
+                    key={`${stop.source_table}-${stop.slug}`}
+                    to={getAttractionDetailPath(stop.source_table, stop.slug)}
+                    className="group bg-surface border-2 border-border rounded-sm overflow-hidden shadow-[4px_4px_0_hsl(var(--border)/0.3)] hover:border-primary transition-colors"
+                  >
+                    <div className="aspect-[4/3] overflow-hidden">
+                      <img
+                        src={stop.image_url || fallbackImage}
+                        alt={stop.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-heading text-sm text-foreground leading-snug">{stop.name}</h3>
+                      {stop.city_name && (
+                        <span className="font-special text-xs uppercase text-muted-foreground mt-1 block">
+                          {stop.city_name}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           )}
         </div>
