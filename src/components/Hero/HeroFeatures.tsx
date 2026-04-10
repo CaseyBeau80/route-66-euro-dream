@@ -51,7 +51,7 @@ const HeroFeatures: React.FC = () => {
       icon: <Search className="w-7 h-7" />,
       title: "Browse by State",
       subtitle: "All 8 states — attractions, diners, motels & hidden gems",
-      onClick: () => { navigate('/explore'); },
+      onClick: () => { forceRenderAllSections(); navigateToSection('browse-states'); },
     },
     {
       icon: <Calendar className="w-7 h-7" />,

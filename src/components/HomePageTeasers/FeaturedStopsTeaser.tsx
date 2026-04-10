@@ -120,7 +120,7 @@ const FeaturedStopsTeaser: React.FC = () => {
         <div className="text-center">
           <Link
             to="/explore"
-            className="inline-flex items-center gap-2 bg-route66-red hover:bg-route66-red-hover text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-red shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] transition-all duration-200 hover:shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]"
+            className="inline-flex items-center gap-2 bg-route66-primary hover:bg-route66-primary-dark text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-primary shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] transition-all duration-200 hover:shadow-[2px_2px_0_0_rgba(0,0,0,0.2)]"
           >
             Browse all 240 stops
             <ArrowRight className="h-4 w-4" />
