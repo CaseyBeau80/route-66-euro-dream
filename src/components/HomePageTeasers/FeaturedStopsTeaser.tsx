@@ -23,12 +23,12 @@ const FeaturedStopsTeaser: React.FC = () => {
     const fetchFeatured = async () => {
       try {
         const [attractionsRes, gemsRes] = await Promise.all([
-          supabase.from('attractions').select('name, slug, city_name, state, image_url, category').eq('featured', true).limit(8),
-          supabase.from('hidden_gems').select('name, slug, city_name, state, image_url, category').eq('featured', true).limit(4),
+          supabase.from('attractions' as any).select('name, slug, city_name, state, image_url, category').eq('featured', true).limit(8),
+          supabase.from('hidden_gems' as any).select('name, slug, city_name, state, image_url, category').eq('featured', true).limit(4),
         ]);
 
-        const attractions: FeaturedStop[] = (attractionsRes.data || []).map(a => ({ ...a, source: 'attractions' as const }));
-        const gems: FeaturedStop[] = (gemsRes.data || []).map(g => ({ ...g, source: 'hidden_gems' as const }));
+        const attractions: FeaturedStop[] = ((attractionsRes.data || []) as any[]).map(a => ({ ...a, source: 'attractions' as const }));
+        const gems: FeaturedStop[] = ((gemsRes.data || []) as any[]).map(g => ({ ...g, source: 'hidden_gems' as const }));
         
         // Combine and take up to 8
         setStops([...attractions, ...gems].slice(0, 8));

@@ -7,26 +7,20 @@ import SocialMetaTags from "../components/shared/SocialMetaTags";
 import { DeferredComponent } from "../components/performance/DeferredComponent";
 import {
   LazyInteractiveMapSection,
-  LazyUnifiedRoute66Carousel,
-  LazyTripPlannerSection,
-  LazySocialSection,
-  LazyFunSection,
-  LazyTollRoads,
-  LazyFAQAccordion,
-  LazyCentennialEventsCalendar,
   ComponentLoadingFallback
 } from "../components/LazyComponents";
+import EventsTeaser from "../components/HomePageTeasers/EventsTeaser";
+import BrowseByStateGrid from "../components/HomePageTeasers/BrowseByStateGrid";
+import FeaturedStopsTeaser from "../components/HomePageTeasers/FeaturedStopsTeaser";
+import PhotoWallTeaser from "../components/HomePageTeasers/PhotoWallTeaser";
 
 const Index = () => {
-  console.log("🏠 Index page: Rendering");
-
   return (
     <MainLayout>
       <SocialMetaTags 
         path="/" 
         title="Ramble 66 — Route 66 Interactive Map & Trip Planner" 
         description="Plan your ultimate Route 66 road trip with our Interactive Route 66 Google Map and Shareable Travel Planner. Discover hidden gems, classic diners, retro motels, and iconic attractions."
-        includeFaqSchema={true}
         includeHowToSchema={true}
         includeAttractionsSchema={true}
         includeSoftwareAppSchema={true}
@@ -50,94 +44,31 @@ const Index = () => {
         </FadeInSection>
       </DeferredComponent>
 
-      {/* Centennial Events Calendar */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="events-calendar" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazyCentennialEventsCalendar />
-          </Suspense>
+      {/* Events Teaser */}
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+        <FadeInSection id="events-teaser" delay={200}>
+          <EventsTeaser />
         </FadeInSection>
       </DeferredComponent>
 
-      {/* Trip Planner Section */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="trip-planner" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazyTripPlannerSection />
-          </Suspense>
+      {/* Browse by State Grid */}
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+        <FadeInSection id="browse-states" delay={200}>
+          <BrowseByStateGrid />
         </FadeInSection>
       </DeferredComponent>
 
-      {/* Unified Route 66 Directory */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="route66-directory" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazyUnifiedRoute66Carousel className="bg-route66-background-section" />
-          </Suspense>
+      {/* Featured Stops Teaser */}
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+        <FadeInSection id="featured-stops" delay={200}>
+          <FeaturedStopsTeaser />
         </FadeInSection>
       </DeferredComponent>
 
-      {/* Social Section */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="social" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazySocialSection />
-          </Suspense>
-        </FadeInSection>
-      </DeferredComponent>
-
-      {/* FAQ Section */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="faq" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazyFAQAccordion />
-          </Suspense>
-        </FadeInSection>
-      </DeferredComponent>
-
-      {/* Fun Section - Trivia Game */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="fun" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazyFunSection />
-          </Suspense>
-        </FadeInSection>
-      </DeferredComponent>
-
-      {/* Toll Roads Advisory Section */}
-      <DeferredComponent 
-        fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
-        delay={0}
-      >
-        <FadeInSection id="toll-roads" delay={200}>
-          <Suspense fallback={<ComponentLoadingFallback />}>
-            <LazyTollRoads />
-          </Suspense>
+      {/* Photo Wall Teaser */}
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+        <FadeInSection id="photo-wall" delay={200}>
+          <PhotoWallTeaser />
         </FadeInSection>
       </DeferredComponent>
 
