@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { PictureOptimized } from '@/components/ui/PictureOptimized';
 
 const stateData = [
   {
@@ -10,56 +9,56 @@ const stateData = [
     slug: "illinois",
     abbr: "IL",
     teaser: "Where it all begins — Chicago to the Chain of Rocks Bridge.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/illinois.jpg",
+    image: "https://images.unsplash.com/photo-1640283690184-6c39613c428f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
   {
     name: "Missouri",
     slug: "missouri",
     abbr: "MO",
     teaser: "Meramec Caverns, Gateway Arch, and Ozark back roads.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/missouri.jpg",
+    image: "https://images.unsplash.com/photo-1666213847499-5f2ed4e972b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
   {
     name: "Kansas",
     slug: "kansas",
     abbr: "KS",
     teaser: "The shortest stretch — 13 miles of pure Mother Road charm.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/kansas.jpg",
+    image: "https://images.unsplash.com/photo-1591155411580-3d993b5d7106?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
   {
     name: "Oklahoma",
     slug: "oklahoma",
     abbr: "OK",
     teaser: "More drivable miles of original Route 66 than any other state.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/oklahoma.jpg",
+    image: "https://images.unsplash.com/photo-1653377182370-f0d7fa0137d1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
   {
     name: "Texas",
     slug: "texas",
     abbr: "TX",
     teaser: "Cadillac Ranch, the Big Texan, and wide-open Panhandle skies.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/texas.jpg",
+    image: "https://images.unsplash.com/photo-1649561205931-c58c4ecd26ca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
   {
     name: "New Mexico",
     slug: "new-mexico",
     abbr: "NM",
     teaser: "Turquoise skies, adobe towns, and the Blue Hole of Santa Rosa.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/new-mexico.jpg",
+    image: "https://images.unsplash.com/photo-1660759161396-e12862b979c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
   {
     name: "Arizona",
     slug: "arizona",
     abbr: "AZ",
     teaser: "Painted Desert, Meteor Crater, and the spirit of Radiator Springs.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/arizona.jpg",
+    image: "https://images.unsplash.com/photo-1708636574009-1f69f3046f34?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
   {
     name: "California",
     slug: "california",
     abbr: "CA",
     teaser: "Desert ghost towns to the Santa Monica Pier — the grand finale.",
-    image: "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/states/california.jpg",
+    image: "https://images.unsplash.com/photo-1655789488528-080e569bd5f0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
   },
 ];
 
@@ -85,14 +84,14 @@ const BrowseByStateGrid: React.FC = () => {
             <Link key={state.slug} to={`/${state.slug}`} className="group">
               <Card className="overflow-hidden border-2 border-route66-border hover:border-route66-red bg-white shadow-[4px_4px_0_0_rgba(107,76,56,0.15)] hover:shadow-[2px_2px_0_0_rgba(192,57,43,0.2)] transition-all duration-200 rounded-sm h-full">
                 <div className="aspect-[16/10] overflow-hidden relative">
-                  <PictureOptimized
+                  <img
                     src={state.image}
                     alt={`Route 66 through ${state.name}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     width={400}
                     height={250}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className="absolute top-2 right-2 bg-route66-dark/80 text-white text-xs font-bold px-2 py-1 rounded-sm">
                     {state.abbr}
