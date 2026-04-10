@@ -3,7 +3,21 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { stateSlugMap } from '@/data/route66States';
 import { useStateData } from '@/hooks/useStateData';
+import { getAttractionDetailPath } from '@/types/attractionDetail';
 import { MapPin, ChevronRight } from 'lucide-react';
+
+const CANONICAL_CATEGORIES = [
+  { slug: 'roadside_oddities', label: 'Roadside Oddities' },
+  { slug: 'history_landmarks', label: 'History & Landmarks' },
+  { slug: 'museums', label: 'Museums' },
+  { slug: 'food_drink', label: 'Food & Drink' },
+  { slug: 'motels_lodging', label: 'Motels & Lodging' },
+  { slug: 'gas_stations', label: 'Historic Gas Stations' },
+  { slug: 'drive_ins_entertainment', label: 'Drive-Ins & Entertainment' },
+  { slug: 'neon_signs_murals', label: 'Neon, Signs & Murals' },
+  { slug: 'parks_nature', label: 'Parks & Nature' },
+  { slug: 'native_heritage', label: 'Native American Heritage' },
+] as const;
 
 const StatePage: React.FC = () => {
   const { stateSlug } = useParams<{ stateSlug: string }>();
@@ -19,14 +33,6 @@ const StatePage: React.FC = () => {
   const metaTitle = `Route 66 in ${stateInfo.name} — Attractions & Stops | Ramble 66`;
   const metaDescription = stateInfo.description.substring(0, 155);
 
-  // Group attractions by category
-  const categories = attractions.reduce<Record<string, typeof attractions>>((acc, a) => {
-    const cat = a.category || 'Other';
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(a);
-    return acc;
-  }, {});
-
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -40,7 +46,7 @@ const StatePage: React.FC = () => {
       "item": {
         "@type": "TouristAttraction",
         "name": a.name,
-        "url": `https://ramble66.com/attractions/${a.slug}`,
+        "url": `https://ramble66.com${getAttractionDetailPath(a.source_table, a.slug)}`,
         ...(a.description && { "description": a.description.substring(0, 100) }),
       },
     })),
@@ -113,31 +119,35 @@ const StatePage: React.FC = () => {
                 </section>
               )}
 
-              {/* Attractions by category */}
-              {Object.entries(categories).map(([category, items]) => (
-                <section key={category} className="mb-10">
-                  <h2 className="font-heading text-2xl text-foreground mb-4">{category}</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {items.map((item) => (
-                      <Link key={item.id} to={`/attractions/${item.slug}`}
-                        className="bg-surface border-2 border-border rounded-sm overflow-hidden hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
-                        {item.image_url && (
-                          <img src={item.image_url} alt={item.name} className="w-full h-36 object-cover" loading="lazy" />
-                        )}
-                        <div className="p-4">
-                          <h3 className="font-heading text-base text-foreground leading-snug">{item.name}</h3>
-                          <p className="font-special text-xs uppercase text-muted-foreground mt-1">
-                            {item.city_name}
-                          </p>
-                          {item.description && (
-                            <p className="font-body text-sm text-muted-foreground mt-2 line-clamp-2">{item.description}</p>
+              {/* Attractions by canonical category */}
+              {CANONICAL_CATEGORIES.map(({ slug, label }) => {
+                const items = attractions.filter(a => a.category_canonical === slug);
+                if (items.length === 0) return null;
+                return (
+                  <section key={slug} className="mb-10">
+                    <h2 className="font-heading text-2xl text-foreground mb-4">{label}</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {items.map((item) => (
+                        <Link key={item.id} to={getAttractionDetailPath(item.source_table, item.slug)}
+                          className="bg-surface border-2 border-border rounded-sm overflow-hidden hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
+                          {item.image_url && (
+                            <img src={item.image_url} alt={item.name} className="w-full h-36 object-cover" loading="lazy" />
                           )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              ))}
+                          <div className="p-4">
+                            <h3 className="font-heading text-base text-foreground leading-snug">{item.name}</h3>
+                            <p className="font-special text-xs uppercase text-muted-foreground mt-1">
+                              {item.city_name}
+                            </p>
+                            {item.description && (
+                              <p className="font-body text-sm text-muted-foreground mt-2 line-clamp-2">{item.description}</p>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
 
               {attractions.length === 0 && (
                 <p className="font-body text-muted-foreground text-center py-8">Attractions coming soon for {stateInfo.name}.</p>
