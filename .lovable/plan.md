@@ -1,22 +1,45 @@
 
 
-## Plan: Fix blog content link colors on dark backgrounds
+## Plan: Add 19 hidden-gems → attractions redirect routes
 
-### Problem
-Links inside dark event cards (the alternating dark blue `bg-[#1B2A4A]` cards in digest-style posts) may not be readable. The current `#6BABDB` color is set but could be overridden by global CSS `!important` rules. The user wants white or near-white link text on dark backgrounds with clear hover states.
+### Confirmed: Fallback is safe
+`useAttraction` (in `src/hooks/useAttraction.ts`) queries `attractions`, `hidden_gems`, `native_american_sites`, and `drive_ins` via `Promise.all`. The surviving 92 hidden-gem slugs will continue to resolve correctly through the catch-all route.
 
 ### Changes
 
-**File: `src/components/Blog/BlogPostContent.tsx`**
+**`src/App.tsx`**
 
-1. Change the dark-mode link color from `#6BABDB` to `#FFFFFF` (white) in two places:
-   - Line 115: Update `prose-a:text-[#6BABDB]` → `prose-a:text-white` in the `proseClasses` string
-   - Line 117: Update `linkColor` from `text-[#6BABDB]` → `text-white`
+1. Import `Navigate` from `react-router-dom` (already imported: `Routes, Route` — just add `Navigate`)
 
-2. Add hover styling for dark-mode links: `hover:prose-a:text-[#C9D6E8]` (a soft light blue/gray) to the prose classes, and update the inline link components (lines 124, 127) to use a hover color that shifts slightly lighter/underlined.
+2. Insert 19 explicit redirect routes **before** the existing `/hidden-gems/:slug` catch-all (line 127). Each uses `<Navigate to="/attractions/..." replace />`:
 
-3. The light-mode link styles (`text-route66-primary`) remain unchanged.
+| From (`/hidden-gems/...`) | To (`/attractions/...`) |
+|---|---|
+| `arcadia-round-barn` | `arcadia-round-barn` |
+| `cars-on-the-route` | `cars-on-the-route` |
+| `chain-of-rocks-bridge` | `chain-of-rocks-bridge` |
+| `elmers-bottle-tree-ranch` | `elmers-bottle-tree-ranch` |
+| `galena-mining-historical-museum` | `galena-mining-historical-museum` |
+| `route-66-state-park` | `route-66-state-park` |
+| `standin-on-the-corner-park` | `standin-on-the-corner-park` |
+| `route-66-association-hall-of-fame-museum` | `route-66-hall-of-fame-museum-pontiac` |
+| `route-66-mother-road-museum` | `route-66-mother-road-museum-barstow` |
+| `wigwam-motel-san-bernardino` | `wigwam-motel-rialto` |
+| `big-texan-steak-ranch` | `the-big-texan-steak-ranch` |
+| `leaning-water-tower` | `britten-leaning-water-tower` |
+| `roys-motel-and-caf` | `roys-motel-cafe-amboy` |
+| `route-66-museum` | `oklahoma-route-66-museum` |
+| `odell-station` | `odell-standard-oil-gas-station` |
+| `lucilles-historic-highway-gas-station` | `lucilles-service-station` |
+| `garys-gay-parita` | `gay-parita-sinclair-gas-station` |
+| `pops-soda-ranch` | `pops-arcadia` |
+| `amarillo-route-66-historic-district` | `amarillo-sixth-street-route-66` |
+
+3. Keep the existing `/hidden-gems/:slug` catch-all route **after** the 19 explicit routes — it continues to render `LazyAttractionPage` for the remaining hidden-gem slugs.
+
+### Route order (critical)
+React Router v6 matches in declaration order. The 19 explicit routes come first so they match before the `:slug` wildcard.
 
 ### Files touched
-- `src/components/Blog/BlogPostContent.tsx` (link color values on ~3 lines)
+- `src/App.tsx` only
 
