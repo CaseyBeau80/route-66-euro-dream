@@ -1,37 +1,27 @@
 
 
-## Updated Plan: Switch state pages to canonical categories
+## Plan: Fetch State Hero Images from `states` Table
 
-No changes to the overall approach — just two refinements folded in.
+### Problem
+State pages show a blank/black hero because `fallbackHero` points to a single hardcoded Unsplash URL that may be dead.
 
-### Refinement 1: Null-safe dedup filter
-In `src/hooks/useStateData.ts`, the dedup filter will use:
-```ts
-const key = (item.name?.trim().toLowerCase()) ?? '';
-```
-This prevents a crash if a future record has a null name.
+### What Changes
 
-### Refinement 2: Import path confirmed
-`getAttractionDetailPath` is exported from `src/types/attractionDetail.ts` (line 26). The import in `StatePage.tsx` will be:
-```ts
-import { getAttractionDetailPath } from '@/types/attractionDetail';
-```
+**1. Add a state hero query to `useStateData` hook** (`src/hooks/useStateData.ts`)
+- Add a query to `supabase.from('states').select('hero_image_url, hero_alt').eq('code', stateAbbr).maybeSingle()` inside the existing `Promise.all`
+- Return `heroImageUrl` and `heroAlt` from the hook alongside existing `cities`, `attractions`, `isLoading`
 
-### Full change list (unchanged from prior plan)
+**2. Update `StatePage.tsx` hero section** (`src/pages/StatePage.tsx`)
+- Destructure `heroImageUrl` and `heroAlt` from `useStateData`
+- Replace the hardcoded `fallbackHero` Unsplash URL with `heroImageUrl`
+- Use `heroAlt` for the img alt attribute, falling back to `Route 66 in ${stateInfo.name}`
+- Keep the existing dark overlay/gradient for text contrast
+- If `heroImageUrl` is null, render a neutral gradient background (e.g., `bg-gradient-to-br from-[#2C2C2C] to-[#3D2B1F]`) instead of a broken image
+- Update the `og:image` meta tag to use `heroImageUrl` when available
 
-**1. `src/types/attractionDetail.ts`** — Add `category_canonical?: string | null` to `AttractionData`.
-
-**2. `src/hooks/useStateData.ts`**
-- Add `category_canonical: d.category_canonical` to all three `.map()` blocks.
-- Change merge order to attractions → native_american_sites → hidden_gems.
-- Add null-safe dedup: `(item.name?.trim().toLowerCase()) ?? ''`.
-
-**3. `src/pages/StatePage.tsx`**
-- Define `CANONICAL_CATEGORIES` constant (10 entries, fixed order).
-- Replace `reduce` grouping + `Object.entries().map()` render with: iterate canonical list, filter by `category_canonical`, skip empty.
-- Fix card links: `getAttractionDetailPath(item.source_table, item.slug)` (import confirmed at `@/types/attractionDetail`).
-- Items with `category_canonical === null` silently excluded.
-
-### Files touched: 3
-### What's untouched: Homepage, BrowseByStateGrid, /explore, map, all other routes.
+### Technical Details
+- No new files created — only two existing files modified
+- Uses the same external Supabase client (`@/lib/supabase`) already in use
+- The `states` table query is added to the existing `Promise.all` so it loads in parallel with attractions data — no extra loading time
+- Existing attractions/hidden_gems/native_american_sites merge logic is untouched
 
