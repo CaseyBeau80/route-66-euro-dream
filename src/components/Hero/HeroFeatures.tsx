@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Map, Calendar, Route, Users, Newspaper } from 'lucide-react';
+import { Map, Calendar, Route, Newspaper, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { forceIdleLoaderRender } from '@/components/performance/IdleLoader';
 import { forceDeferredRender } from '@/components/performance/DeferredComponent';
