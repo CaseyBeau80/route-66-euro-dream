@@ -195,16 +195,14 @@ function App() {
                     <LazyStoryMapPage />
                   </Suspense>
                 } />
-                {/* State pages - explicit routes for each Route 66 state */}
-                {['illinois', 'missouri', 'kansas', 'oklahoma', 'texas', 'new-mexico', 'arizona', 'california'].map(
-                  (stateSlug) => (
-                    <Route key={stateSlug} path={`/${stateSlug}`} element={
-                      <Suspense fallback={<RouteLoadingFallback />}>
-                        <LazyStatePage />
-                      </Suspense>
-                    } />
-                  )
-                )}
+                {/* STATE PAGES: catch-all for state slugs. */}
+                {/* WARNING: Any new top-level route (e.g., /pricing, /shop) MUST be declared */}
+                {/* ABOVE this line or it will be swallowed and 404'd by StatePage's slug validation. */}
+                <Route path="/:stateSlug" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyStatePage />
+                  </Suspense>
+                } />
                 <Route path="*" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyNotFound />
