@@ -10,16 +10,9 @@ interface PhotoEntry {
   traveler_name: string | null;
 }
 
-// Placeholder Route 66 images when no community photos exist yet
-const PLACEHOLDER_PHOTOS = [
-  "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1545243424-0ce743321e11?w=300&h=300&fit=crop",
-];
-
 const PhotoWallTeaser: React.FC = () => {
   const [photos, setPhotos] = React.useState<PhotoEntry[]>([]);
+  const [fallbackImages, setFallbackImages] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     const fetchPhotos = async () => {
@@ -30,18 +23,36 @@ const PhotoWallTeaser: React.FC = () => {
           .eq('status', 'approved')
           .order('created_at', { ascending: false })
           .limit(4);
-        if (data) setPhotos(data as unknown as PhotoEntry[]);
+        if (data && (data as any[]).length > 0) {
+          setPhotos(data as unknown as PhotoEntry[]);
+          return;
+        }
       } catch {
-        // Table may not exist yet — fail silently
+        // Table may not exist yet
+      }
+
+      // Fallback: grab 4 attraction images from the DB
+      try {
+        const { data } = await supabase
+          .from('attractions' as any)
+          .select('image_url')
+          .not('image_url', 'is', null)
+          .limit(4);
+        if (data) {
+          setFallbackImages((data as any[]).map(d => d.image_url).filter(Boolean));
+        }
+      } catch {
+        // fail silently
       }
     };
     fetchPhotos();
   }, []);
 
   const hasPhotos = photos.length > 0;
+  const hasFallback = fallbackImages.length > 0;
   const displayImages = hasPhotos
     ? photos.map(p => ({ src: p.photo_url, alt: p.caption || 'Route 66 community photo' }))
-    : PLACEHOLDER_PHOTOS.map((src, i) => ({ src, alt: `Route 66 road trip scene ${i + 1}` }));
+    : fallbackImages.map((src, i) => ({ src, alt: `Route 66 attraction ${i + 1}` }));
 
   return (
     <section className="py-12 sm:py-16 bg-route66-background">
@@ -59,19 +70,21 @@ const PhotoWallTeaser: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-8">
-          {displayImages.map((img, i) => (
-            <div key={i} className="aspect-square overflow-hidden rounded-sm border-2 border-route66-border shadow-[4px_4px_0_0_rgba(107,76,56,0.15)]">
-              <img
-                src={img.src}
-                alt={img.alt}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-          ))}
-        </div>
+        {displayImages.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-8">
+            {displayImages.map((img, i) => (
+              <div key={i} className="aspect-square overflow-hidden rounded-sm border-2 border-route66-border shadow-[4px_4px_0_0_rgba(107,76,56,0.15)]">
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="text-center">
           <Link

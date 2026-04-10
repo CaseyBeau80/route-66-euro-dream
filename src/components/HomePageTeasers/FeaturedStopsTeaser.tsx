@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { MapPin, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
-import { PictureOptimized } from '@/components/ui/PictureOptimized';
 
 interface FeaturedStop {
   name: string;
@@ -15,82 +14,6 @@ interface FeaturedStop {
   source: 'attractions' | 'hidden_gems';
 }
 
-// Curated fallback stops when no featured data is available
-const FALLBACK_STOPS: FeaturedStop[] = [
-  {
-    name: "Cadillac Ranch",
-    slug: "cadillac-ranch",
-    city_name: "Amarillo",
-    state: "TX",
-    image_url: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=300&fit=crop",
-    category: "Roadside Oddities",
-    source: "attractions"
-  },
-  {
-    name: "Blue Whale of Catoosa",
-    slug: "blue-whale-of-catoosa",
-    city_name: "Catoosa",
-    state: "OK",
-    image_url: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400&h=300&fit=crop",
-    category: "Roadside Oddities",
-    source: "attractions"
-  },
-  {
-    name: "Wigwam Motel",
-    slug: "wigwam-motel",
-    city_name: "Holbrook",
-    state: "AZ",
-    image_url: "https://images.unsplash.com/photo-1545243424-0ce743321e11?w=400&h=300&fit=crop",
-    category: "Motels & Lodging",
-    source: "attractions"
-  },
-  {
-    name: "Santa Monica Pier",
-    slug: "santa-monica-pier",
-    city_name: "Santa Monica",
-    state: "CA",
-    image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
-    category: "History & Landmarks",
-    source: "attractions"
-  },
-  {
-    name: "Gateway Arch",
-    slug: "gateway-arch",
-    city_name: "St. Louis",
-    state: "MO",
-    image_url: "https://images.unsplash.com/photo-1569025743873-ea3a9ber979f?w=400&h=300&fit=crop",
-    category: "History & Landmarks",
-    source: "attractions"
-  },
-  {
-    name: "Meramec Caverns",
-    slug: "meramec-caverns",
-    city_name: "Stanton",
-    state: "MO",
-    image_url: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=400&h=300&fit=crop",
-    category: "Parks & Nature",
-    source: "attractions"
-  },
-  {
-    name: "Petrified Forest",
-    slug: "petrified-forest-national-park",
-    city_name: "Holbrook",
-    state: "AZ",
-    image_url: "https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?w=400&h=300&fit=crop",
-    category: "Parks & Nature",
-    source: "attractions"
-  },
-  {
-    name: "Route 66 Museum",
-    slug: "route-66-museum-clinton",
-    city_name: "Clinton",
-    state: "OK",
-    image_url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=400&h=300&fit=crop",
-    category: "Museums",
-    source: "attractions"
-  }
-];
-
 const FeaturedStopsTeaser: React.FC = () => {
   const [stops, setStops] = React.useState<FeaturedStop[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -98,6 +21,7 @@ const FeaturedStopsTeaser: React.FC = () => {
   React.useEffect(() => {
     const fetchFeatured = async () => {
       try {
+        // Try featured first
         const [attractionsRes, gemsRes] = await Promise.all([
           supabase.from('attractions' as any).select('name, slug, city_name, state, image_url, category').eq('featured', true).limit(8),
           supabase.from('hidden_gems' as any).select('name, slug, city_name, state, image_url, category').eq('featured', true).limit(4),
@@ -105,14 +29,21 @@ const FeaturedStopsTeaser: React.FC = () => {
 
         const attractions: FeaturedStop[] = ((attractionsRes.data || []) as any[]).map(a => ({ ...a, source: 'attractions' as const }));
         const gems: FeaturedStop[] = ((gemsRes.data || []) as any[]).map(g => ({ ...g, source: 'hidden_gems' as const }));
-        
-        const combined = [...attractions, ...gems].slice(0, 8);
-        
-        // Use fallback if no featured data available
-        setStops(combined.length > 0 ? combined : FALLBACK_STOPS);
+        let combined = [...attractions, ...gems].slice(0, 8);
+
+        // If no featured items, fall back to any attractions with images
+        if (combined.length === 0) {
+          const { data } = await supabase
+            .from('attractions' as any)
+            .select('name, slug, city_name, state, image_url, category')
+            .not('image_url', 'is', null)
+            .limit(8);
+          combined = ((data || []) as any[]).map(a => ({ ...a, source: 'attractions' as const }));
+        }
+
+        setStops(combined);
       } catch (err) {
         console.error('Failed to fetch featured stops:', err);
-        setStops(FALLBACK_STOPS);
       } finally {
         setIsLoading(false);
       }
@@ -121,10 +52,12 @@ const FeaturedStopsTeaser: React.FC = () => {
   }, []);
 
   const getStopLink = (stop: FeaturedStop) => {
-    return stop.source === 'hidden_gems' 
-      ? `/hidden-gems/${stop.slug}` 
+    return stop.source === 'hidden_gems'
+      ? `/hidden-gems/${stop.slug}`
       : `/attractions/${stop.slug}`;
   };
+
+  if (!isLoading && stops.length === 0) return null;
 
   return (
     <section className="py-12 sm:py-16 bg-route66-background-alt">
