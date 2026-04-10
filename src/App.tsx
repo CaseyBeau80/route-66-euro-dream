@@ -82,6 +82,7 @@ function App() {
               <Toaster />
               <Sonner />
               <BrowserRouter>
+              <ScrollToTop />
               <Routes>
                 {/* Critical route - loaded immediately */}
                 <Route path="/" element={<Index />} />
