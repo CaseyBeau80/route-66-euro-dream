@@ -29,6 +29,14 @@ const LazyAttractionPage = lazy(() => import("./pages/AttractionPage"));
 const LazyStatePage = lazy(() => import("./pages/StatePage"));
 const LazyStoryMapPage = lazy(() => import("./pages/StoryMapPage"));
 
+// New dedicated pages
+const LazyExplorePage = lazy(() => import("./pages/ExplorePage"));
+const LazyEventsPage = lazy(() => import("./pages/EventsPage"));
+const LazyPlannerPage = lazy(() => import("./pages/PlannerPage"));
+const LazyPhotoWallPage = lazy(() => import("./pages/PhotoWallPage"));
+const LazyFAQPage = lazy(() => import("./pages/FAQPage"));
+const LazyTriviaPage = lazy(() => import("./pages/TriviaPage"));
+
 // Route loading fallback
 const RouteLoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -78,6 +86,38 @@ function App() {
                 {/* Critical route - loaded immediately */}
                 <Route path="/" element={<Index />} />
                 
+                {/* New dedicated content pages */}
+                <Route path="/explore" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyExplorePage />
+                  </Suspense>
+                } />
+                <Route path="/events" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyEventsPage />
+                  </Suspense>
+                } />
+                <Route path="/planner" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyPlannerPage />
+                  </Suspense>
+                } />
+                <Route path="/photo-wall" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyPhotoWallPage />
+                  </Suspense>
+                } />
+                <Route path="/faq" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyFAQPage />
+                  </Suspense>
+                } />
+                <Route path="/trivia" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyTriviaPage />
+                  </Suspense>
+                } />
+
                 {/* Non-critical routes - lazy loaded for code splitting */}
                 <Route path="/contact" element={
                   <Suspense fallback={<RouteLoadingFallback />}>

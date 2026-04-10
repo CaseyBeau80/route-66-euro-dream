@@ -1,18 +1,15 @@
 
 import React from 'react';
 import { Link } from "react-router-dom";
-import LogoImage from "./shared/LogoImage";
 import { PictureOptimized } from "@/components/ui/PictureOptimized";
 
 const Footer = () => {
-  console.log('🏁 Footer: Rendering with React Router Link components');
-  
   return (
     <footer className="bg-route66-dark text-white">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo & Description */}
-          <div className="col-span-1 md:col-span-1">
+          <div className="col-span-1">
             <div className="flex items-center mb-4">
               <div className="mr-3 p-1 bg-white rounded-md">
                 <PictureOptimized 
@@ -42,8 +39,50 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/explore" className="text-white/70 hover:text-white transition-colors text-sm">
+                  All 240 Stops
+                </Link>
+              </li>
+              <li>
+                <Link to="/events" className="text-white/70 hover:text-white transition-colors text-sm">
+                  Events Calendar
+                </Link>
+              </li>
+              <li>
+                <Link to="/planner" className="text-white/70 hover:text-white transition-colors text-sm">
+                  Trip Planner
+                </Link>
+              </li>
+              <li>
                 <Link to="/about" className="text-white/70 hover:text-white transition-colors text-sm">
                   About Route 66
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Community */}
+          <div className="col-span-1">
+            <h3 className="font-bold mb-4 text-lg text-white">Community</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/photo-wall" className="text-white/70 hover:text-white transition-colors text-sm">
+                  Photo Wall
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-white/70 hover:text-white transition-colors text-sm">
+                  Blog & News
+                </Link>
+              </li>
+              <li>
+                <Link to="/faq" className="text-white/70 hover:text-white transition-colors text-sm">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/trivia" className="text-white/70 hover:text-white transition-colors text-sm">
+                  Trivia Game
                 </Link>
               </li>
             </ul>
@@ -64,7 +103,6 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
         </div>
         
         {/* Bottom */}
