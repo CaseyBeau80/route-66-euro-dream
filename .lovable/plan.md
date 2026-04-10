@@ -1,31 +1,34 @@
 
 
-## Plan: Add Native Heritage Detail Route
+## Plan: Add Nearby Stops Section to NativeHeritagePage
 
-### Problem
-Clicking a Native American Heritage card on state pages goes to `/attractions/undefined` because `getAttractionDetailPath` doesn't handle `native_american_sites` — it falls through to `/attractions/${slug}`.
+### What Changes
 
-### Changes
+**Single file edit: `src/pages/NativeHeritagePage.tsx`**
 
-**1. Update `getAttractionDetailPath` in `src/types/attractionDetail.ts`**
-Add a case for `native_american_sites` returning `/native-heritage/${slug}`.
+**1. Add state for nearby stops**
+- Add a `nearbyStops` state array holding cards with `name`, `slug`, `image_url`, `city_name`, and `source_table`
 
-**2. Register new route in `src/App.tsx`**
-Add `<Route path="/native-heritage/:slug">` above the state catch-all route, lazy-loading a new `NativeHeritagePage` component.
+**2. Fetch nearby stops after main site loads**
+- In a second `useEffect` (triggered when `site` is set), run three parallel queries against the same state:
+  1. `native_american_sites` — up to 3, excluding current site
+  2. `attractions` — up to 4
+  3. `hidden_gems` — up to 4
+- Merge results: native sites first, then attractions, then hidden gems — preserving thematic continuity
+- Slice to 3 total cards
+- If fewer than 2 total, set `nearbyStops` to empty array (section will be hidden)
 
-**3. Create `src/pages/NativeHeritagePage.tsx`**
-New detail page modeled on `AttractionPage.tsx` with the same visual structure (hero, breadcrumb, description, info grid, tags, back link, not-found state). Key differences:
-- Fetches from `native_american_sites` table by slug
-- Shows **Tribal Nation** and **Site Type** in the info grid instead of admission/hours
-- SEO title: `${name} — Route 66 Native American Heritage | Ramble 66`
-- Not-found message: "Heritage Site Not Found — This stop along the Mother Road doesn't exist — yet."
-- Fetches nearby native sites for the "Nearby Stops" section
+**3. Render the section**
+- After the tags block, render a "Nearby Stops" section (only if `nearbyStops.length >= 2`)
+- Each card links via `getAttractionDetailPath(item.source_table, item.slug)`
+- Card style matches the state page cards: image, name, city — using the project's border/shadow conventions
 
-**4. No changes needed to `useStateData` or `StatePage`**
-The merged list already sets `source_table: 'native_american_sites'` and passes it to `getAttractionDetailPath` — fixing that function (step 1) is all that's needed for the state page links.
+### Ordering guarantee
+```
+[ ...nativeSites, ...attractions, ...hiddenGems ].slice(0, 3)
+```
+Native heritage cards always appear first. Fallback cards from attractions/hidden_gems only fill remaining slots.
 
-### Files touched
-- `src/types/attractionDetail.ts` — one-line edit
-- `src/App.tsx` — add route + lazy import
-- `src/pages/NativeHeritagePage.tsx` — new file (~180 lines)
+### No other files touched
+- Routing, `useStateData`, `StatePage`, and `getAttractionDetailPath` are all unchanged
 
