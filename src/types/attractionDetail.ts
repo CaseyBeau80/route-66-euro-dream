@@ -24,5 +24,8 @@ export interface AttractionData {
   detailPath?: string;
 }
 
-export const getAttractionDetailPath = (sourceTable: AttractionSourceTable, slug: string) =>
-  sourceTable === 'hidden_gems' ? `/hidden-gems/${slug}` : `/attractions/${slug}`;
+export const getAttractionDetailPath = (sourceTable: AttractionSourceTable, slug: string) => {
+  if (sourceTable === 'hidden_gems') return `/hidden-gems/${slug}`;
+  if (sourceTable === 'native_american_sites') return `/native-heritage/${slug}`;
+  return `/attractions/${slug}`;
+};
