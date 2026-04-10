@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Map, Calendar, Route, Users, Newspaper } from 'lucide-react';
+import { Map, Calendar, Route, Newspaper, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { forceIdleLoaderRender } from '@/components/performance/IdleLoader';
 import { forceDeferredRender } from '@/components/performance/DeferredComponent';
@@ -48,6 +48,12 @@ const HeroFeatures: React.FC = () => {
       onClick: () => { forceRenderAllSections(); navigateToSection('interactive-map'); },
     },
     {
+      icon: <Search className="w-7 h-7" />,
+      title: "Browse by State",
+      subtitle: "All 8 states — attractions, diners, motels & hidden gems",
+      onClick: () => { navigate('/explore'); },
+    },
+    {
       icon: <Calendar className="w-7 h-7" />,
       title: "Events Calendar",
       subtitle: "Centennial celebrations, festivals & car shows",
@@ -58,12 +64,6 @@ const HeroFeatures: React.FC = () => {
       title: "Travel Planner",
       subtitle: "Build custom trips & share with friends",
       onClick: () => { navigate('/planner'); },
-    },
-    {
-      icon: <Users className="w-7 h-7" />,
-      title: "Community",
-      subtitle: "Instagram integration & social features for travelers",
-      onClick: () => { navigate('/photo-wall'); },
     },
     {
       icon: <Newspaper className="w-7 h-7" />,
