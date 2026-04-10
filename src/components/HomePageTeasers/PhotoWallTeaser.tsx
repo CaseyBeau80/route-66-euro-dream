@@ -60,13 +60,13 @@ const PhotoWallTeaser: React.FC = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-route66-gold/20 text-route66-brown px-4 py-1.5 rounded-sm text-sm font-special-elite mb-4 border border-route66-gold/30">
             <Camera className="h-4 w-4" />
-            <span>Community</span>
+            <span>Photo Wall</span>
           </div>
           <h2 className="font-route66 text-3xl sm:text-4xl text-route66-brown mb-3">
-            Join the Photo Wall
+            Snapshots from the Mother Road
           </h2>
           <p className="text-route66-brown/70 font-body max-w-2xl mx-auto">
-            Share your Route 66 memories and see what other travelers have captured along the Mother Road.
+            Real photos from Route 66 travelers — tag #Ramble66 on Instagram to get featured.
           </p>
         </div>
 
