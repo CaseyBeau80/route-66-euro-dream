@@ -93,9 +93,6 @@ const BrowseByStateGrid: React.FC = () => {
                     loading="lazy"
                     decoding="async"
                   />
-                  <div className="absolute top-2 right-2 bg-route66-dark/80 text-white text-xs font-bold px-2 py-1 rounded-sm">
-                    {state.abbr}
-                  </div>
                 </div>
                 <CardContent className="p-3">
                   <h3 className="font-route66 text-lg text-route66-blue group-hover:text-route66-red transition-colors">
