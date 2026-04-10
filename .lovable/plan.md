@@ -1,31 +1,37 @@
 
 
-## Fix BrowseByStateGrid: Routing + Images
+## Updated Plan: Switch state pages to canonical categories
 
-### Two changes, two files
+No changes to the overall approach — just two refinements folded in.
 
-**1. `src/App.tsx` (lines 198-207)**
-Replace the 8 static state routes with one dynamic route:
-```tsx
-{/* STATE PAGES: catch-all for state slugs. */}
-{/* WARNING: Any new top-level route must be declared ABOVE this line. */}
-<Route path="/:stateSlug" element={
-  <Suspense fallback={<RouteLoadingFallback />}>
-    <LazyStatePage />
-  </Suspense>
-} />
+### Refinement 1: Null-safe dedup filter
+In `src/hooks/useStateData.ts`, the dedup filter will use:
+```ts
+const key = (item.name?.trim().toLowerCase()) ?? '';
 ```
-Placed immediately before the `*` catch-all. `StatePage` already validates against `stateSlugMap` and redirects invalid slugs to `/404`.
+This prevents a crash if a future record has a null name.
 
-**2. `src/components/HomePageTeasers/BrowseByStateGrid.tsx`**
-- Replace `stateData` array with the 8 user-provided Unsplash URLs (already optimized, no transforms needed).
-- Replace `<PictureOptimized>` with a plain `<img>` tag using `loading="lazy"`, `decoding="async"`, and `alt={`Route 66 through ${name}`}` — avoids any risk of `PictureOptimized` wrapping in unnecessary `<picture>`/`<source>` tags for external URLs.
-- Keep the existing card visual structure unchanged (state name, abbreviation badge, blurb text, layout). Only the image `src` and the `<Link to>` destination change.
+### Refinement 2: Import path confirmed
+`getAttractionDetailPath` is exported from `src/types/attractionDetail.ts` (line 26). The import in `StatePage.tsx` will be:
+```ts
+import { getAttractionDetailPath } from '@/types/attractionDetail';
+```
 
-### Verification checklist
-1. Click all 8 state cards → no 404s
-2. All 8 images render (no alt-text fallback)
-3. Type `/illinois` directly → works
-4. `/blog`, `/explore`, `/events`, `/planner`, `/faq`, `/trivia`, `/about`, `/contact` all still work
-5. `/some-random-slug` → 404 (slug validation works)
+### Full change list (unchanged from prior plan)
+
+**1. `src/types/attractionDetail.ts`** — Add `category_canonical?: string | null` to `AttractionData`.
+
+**2. `src/hooks/useStateData.ts`**
+- Add `category_canonical: d.category_canonical` to all three `.map()` blocks.
+- Change merge order to attractions → native_american_sites → hidden_gems.
+- Add null-safe dedup: `(item.name?.trim().toLowerCase()) ?? ''`.
+
+**3. `src/pages/StatePage.tsx`**
+- Define `CANONICAL_CATEGORIES` constant (10 entries, fixed order).
+- Replace `reduce` grouping + `Object.entries().map()` render with: iterate canonical list, filter by `category_canonical`, skip empty.
+- Fix card links: `getAttractionDetailPath(item.source_table, item.slug)` (import confirmed at `@/types/attractionDetail`).
+- Items with `category_canonical === null` silently excluded.
+
+### Files touched: 3
+### What's untouched: Homepage, BrowseByStateGrid, /explore, map, all other routes.
 
