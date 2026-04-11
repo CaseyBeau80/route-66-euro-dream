@@ -26,6 +26,7 @@ const LazyNotFound = lazy(() => import("./pages/NotFound"));
 const LazyRobotsTxtPage = lazy(() => import("./pages/RobotsTxtPage"));
 const LazySitemapXmlPage = lazy(() => import("./pages/SitemapXmlPage"));
 const LazyPrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const LazyTermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 const LazyAttractionPage = lazy(() => import("./pages/AttractionPage"));
 const LazyNativeHeritagePage = lazy(() => import("./pages/NativeHeritagePage"));
 const LazyStatePage = lazy(() => import("./pages/StatePage"));
@@ -160,6 +161,11 @@ function App() {
                 <Route path="/privacy" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyPrivacyPolicyPage />
+                  </Suspense>
+                } />
+                <Route path="/terms" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyTermsOfServicePage />
                   </Suspense>
                 } />
                 <Route path="/attractions/:slug" element={

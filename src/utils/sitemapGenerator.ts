@@ -49,6 +49,7 @@ export class SitemapGenerator {
       { loc: '/hidden-gems', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/about', lastmod: today, changefreq: 'yearly', priority: 0.6 },
       { loc: '/contact', lastmod: today, changefreq: 'yearly', priority: 0.5 },
+      { loc: '/terms', lastmod: today, changefreq: 'yearly', priority: 0.4 },
       { loc: '/illinois', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/missouri', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/kansas', lastmod: today, changefreq: 'weekly', priority: 0.9 },
