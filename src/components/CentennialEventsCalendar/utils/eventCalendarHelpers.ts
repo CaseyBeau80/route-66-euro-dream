@@ -272,10 +272,10 @@ export const getCountdownText = (dateStart: string): string => {
   } else if (diffDays <= 7) {
     result = `In ${diffDays} days`;
   } else if (diffDays <= 30) {
-    const weeks = Math.floor(diffDays / 7);
+    const weeks = Math.round(diffDays / 7);
     result = `In ${weeks} week${weeks > 1 ? 's' : ''}`;
   } else if (diffDays <= 365) {
-    const months = Math.floor(diffDays / 30);
+    const months = Math.round(diffDays / 30);
     result = `In ${months} month${months > 1 ? 's' : ''}`;
   } else {
     result = `In ${diffDays} days`;
