@@ -183,11 +183,6 @@ const NativeHeritagePage: React.FC = () => {
                   <MapPin className="w-3 h-3" /> {site.city_name}, {site.state}
                 </span>
               )}
-              {site.site_type && (
-                <span className="inline-flex items-center gap-1 bg-accent text-accent-foreground px-3 py-1 rounded-sm font-special text-xs uppercase border-2 border-border">
-                  {site.site_type}
-                </span>
-              )}
             </div>
           </div>
         </div>
