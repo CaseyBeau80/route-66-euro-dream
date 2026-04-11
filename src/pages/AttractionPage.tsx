@@ -40,28 +40,6 @@ const AttractionPage: React.FC = () => {
     ? attraction.description.substring(0, 155) + (attraction.description.length > 155 ? '…' : '')
     : `Discover ${attraction.name} in ${attraction.city_name}, ${attraction.state} along Route 66.`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "TouristAttraction",
-    "name": attraction.name,
-    "description": attraction.description || metaDescription,
-    "url": canonicalUrl,
-    ...(attraction.image_url && { "image": attraction.image_url }),
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": attraction.latitude,
-      "longitude": attraction.longitude,
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": attraction.city_name,
-      "addressRegion": attraction.state,
-      "addressCountry": "US",
-    },
-    ...(attraction.website && { "sameAs": attraction.website }),
-    "isAccessibleForFree": attraction.admission_fee === 'Free' || !attraction.admission_fee,
-  };
-
   const fallbackImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1200&q=80';
 
   return (
