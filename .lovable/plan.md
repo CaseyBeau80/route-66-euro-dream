@@ -1,40 +1,64 @@
 
 
-## Plan: Fix stale skeleton flash on page refresh
+## Plan: Deploy Trust Fixes (Terms page, security.txt, headers)
 
-### Problem
-The `index.html` contains a large static "loading skeleton" (lines 41–184 critical CSS + lines 468–536 HTML) that renders an **old** hero layout: split-screen grid with "RAMBLE 66" heading, three blue text paragraphs, and the Big Bo mascot image. The current React hero is a full-width video section. On refresh, users see this old layout for ~200ms before React hydrates and replaces it.
+Three changes I can implement in Lovable, plus notes on the two external items.
 
-### Fix
+---
 
-**Single file edit: `index.html`**
+### 1. Create Terms of Service page (`/terms`)
 
-1. **Replace the skeleton HTML** (lines 468–526) with a simple full-width dark placeholder that matches the current video hero's visual weight — a dark background block at the same aspect ratio with a centered spinner. No text, no mascot image, no grid layout.
+**New file: `src/pages/TermsOfServicePage.tsx`**
+- Clone the exact layout/structure from `PrivacyPolicyPage.tsx` (MainLayout, SocialMetaTags, red hero banner, prose content section)
+- Render the Terms of Service content as proper HTML sections matching the Privacy page styling
 
-2. **Strip the stale critical CSS** (lines 41–184 and 267–464) that styles the old hero layout (`lcp-hero-container`, `lcp-hero-image`, `lcp-text-immediate`, `hero-section`, `hero-container`, `hero-title`, `hero-subtitle`, `hero-image-container`, `fcp-title`, `fcp-subtitle`, `critical-button`). Replace with minimal CSS for the new skeleton: dark background, centered spinner, matching aspect ratio.
+**Edit: `src/App.tsx`**
+- Add lazy-loaded route for `/terms` → `TermsOfServicePage`
 
-3. **Remove the LCP image preload** (line 35) for the mascot PNG — the current hero loads a video, not that image.
+**Edit: `src/components/Footer.tsx`**
+- Add "Terms of Service" link next to the existing "Privacy Policy" link in the bottom bar
 
-4. **Remove the desktop grid media query** (lines 530–536) since the new skeleton won't use a two-column grid.
+**Edit: `src/utils/sitemapGenerator.ts`** (if it exists)
+- Add `/terms` to the static routes list
 
-5. **Keep** the skeleton hide logic (lines 541–570), font loading scripts, and all other `<head>` content (analytics, preconnects, meta tags, redirects) unchanged.
+---
 
-### New skeleton shape (approximate)
-```html
-<div id="loading-skeleton" style="
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16/9;
-  max-height: 85vh;
-  background: #1a1a1a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-">
-  <div class="fcp-loading"></div>
-</div>
-```
+### 2. Create `security.txt`
+
+**New file: `public/.well-known/security.txt`**
+- Plain text file with Contact, Expires (2027-04-11), Preferred-Languages, Canonical, and Policy fields per RFC 9116
+
+---
+
+### 3. Add `_headers` file
+
+**New file: `public/_headers`**
+- `X-Frame-Options: SAMEORIGIN`
+- `Permissions-Policy` restricting camera, microphone, etc.
+- `Content-Security-Policy-Report-Only` (report-only mode — won't break anything)
+- Content-Type override for `/.well-known/security.txt`
+- Does NOT touch existing HSTS, X-Content-Type-Options, or Referrer-Policy
+
+**Note:** Lovable deploys to its own infrastructure. The `_headers` file works on Netlify/Cloudflare Pages but may not be respected by Lovable's hosting. If headers don't take effect after deploy, this would need to be handled via Cloudflare dashboard or a different mechanism. I'll create the file regardless — it's zero-risk and will work if/when the hosting supports it.
+
+---
+
+### 4 & 5. External items (not Lovable changes)
+
+- **SSL/TLS upgrade (B → A):** Set Minimum TLS Version to 1.2 in Cloudflare dashboard → SSL/TLS → Edge Certificates. No code change needed.
+- **Google Search Console / Bing:** Verify domain ownership via DNS TXT record, then submit sitemap. No code change needed.
+
+I'll note these in the response after implementation so you have the checklist handy.
+
+---
 
 ### Files touched
-- `index.html` — replace skeleton HTML + prune stale CSS
+- `src/pages/TermsOfServicePage.tsx` — new
+- `src/App.tsx` — add route
+- `src/components/Footer.tsx` — add link
+- `public/.well-known/security.txt` — new
+- `public/_headers` — new
+
+### Content needed
+The user's message references `terms-of-service.md` but didn't paste the contents. I'll need to ask for it, or draft standard Terms of Service content matching the site's context.
 
