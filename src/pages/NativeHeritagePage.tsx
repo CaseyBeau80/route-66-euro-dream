@@ -79,7 +79,7 @@ const NativeHeritagePage: React.FC = () => {
       const native: NearbyStop[] = (nativeRes.data || []).map(d => ({ ...d, source_table: 'native_american_sites' as const }));
       const attractions: NearbyStop[] = (attrRes.data || []).map(d => ({ ...d, source_table: 'attractions' as const }));
       const gems: NearbyStop[] = (gemsRes.data || []).map(d => ({ ...d, source_table: 'hidden_gems' as const }));
-      const merged = [...native, ...attractions, ...gems].slice(0, 3);
+      const merged = [...native, ...gems, ...attractions].slice(0, 3);
       setNearbyStops(merged.length >= 2 ? merged : []);
     });
   }, [site]);
