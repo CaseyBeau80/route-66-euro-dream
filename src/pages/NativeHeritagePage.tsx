@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';
 import { stateAbbrMap } from '@/data/route66States';
 import { getAttractionDetailPath, AttractionSourceTable } from '@/types/attractionDetail';
+import AttractionJsonLd from '@/components/seo/AttractionJsonLd';
 import { MapPin, Globe, ArrowLeft, ChevronRight, Feather, Landmark } from 'lucide-react';
 
 interface NativeHeritageSite {
@@ -113,27 +114,6 @@ const NativeHeritagePage: React.FC = () => {
     : `Discover ${site.name} — Native American heritage along Route 66.`;
   const fallbackImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1200&q=80';
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "TouristAttraction",
-    "name": site.name,
-    "description": site.description || metaDescription,
-    "url": canonicalUrl,
-    ...(site.image_url && { "image": site.image_url }),
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": site.latitude,
-      "longitude": site.longitude,
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": site.city_name || '',
-      "addressRegion": site.state || '',
-      "addressCountry": "US",
-    },
-    ...(site.website && { "sameAs": site.website }),
-  };
-
   const tags = site.tags ?? [];
 
   return (
@@ -151,8 +131,20 @@ const NativeHeritagePage: React.FC = () => {
         <meta name="twitter:title" content={`${site.name} — Route 66 Native American Heritage | Ramble 66`} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={site.image_url || fallbackImage} />
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
+      <AttractionJsonLd
+        name={site.name}
+        description={site.description}
+        imageUrl={site.image_url}
+        url={canonicalUrl}
+        city={site.city_name}
+        state={site.state}
+        latitude={site.latitude}
+        longitude={site.longitude}
+        website={site.website}
+        tags={tags}
+        touristType="Cultural heritage site"
+      />
 
       <div className="min-h-screen bg-background">
         {/* Hero */}

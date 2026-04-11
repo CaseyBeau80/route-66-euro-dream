@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useAttraction } from '@/hooks/useAttraction';
 import { stateAbbrMap } from '@/data/route66States';
 import AttractionDetailSections from '@/components/attractions/AttractionDetailSections';
+import AttractionJsonLd from '@/components/seo/AttractionJsonLd';
 import { MapPin, Globe, Clock, DollarSign, Tag, ArrowLeft, ChevronRight } from 'lucide-react';
 
 const AttractionPage: React.FC = () => {
@@ -39,28 +40,6 @@ const AttractionPage: React.FC = () => {
     ? attraction.description.substring(0, 155) + (attraction.description.length > 155 ? '…' : '')
     : `Discover ${attraction.name} in ${attraction.city_name}, ${attraction.state} along Route 66.`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "TouristAttraction",
-    "name": attraction.name,
-    "description": attraction.description || metaDescription,
-    "url": canonicalUrl,
-    ...(attraction.image_url && { "image": attraction.image_url }),
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": attraction.latitude,
-      "longitude": attraction.longitude,
-    },
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": attraction.city_name,
-      "addressRegion": attraction.state,
-      "addressCountry": "US",
-    },
-    ...(attraction.website && { "sameAs": attraction.website }),
-    "isAccessibleForFree": attraction.admission_fee === 'Free' || !attraction.admission_fee,
-  };
-
   const fallbackImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1200&q=80';
 
   return (
@@ -78,8 +57,19 @@ const AttractionPage: React.FC = () => {
         <meta name="twitter:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={attraction.image_url || fallbackImage} />
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
+      <AttractionJsonLd
+        name={attraction.name}
+        description={attraction.description}
+        imageUrl={attraction.image_url}
+        url={canonicalUrl}
+        city={attraction.city_name}
+        state={attraction.state}
+        latitude={attraction.latitude}
+        longitude={attraction.longitude}
+        website={attraction.website}
+        tags={attraction.tags}
+      />
 
       <div className="min-h-screen bg-background">
         {/* Hero */}
