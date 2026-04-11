@@ -286,6 +286,39 @@ export const getCountdownText = (dateStart: string): string => {
 };
 
 /**
+ * Get smart countdown text that accounts for multi-day "happening now" events.
+ * - Single-day event today → "Today!"
+ * - Multi-day event that started before today → "Happening now"
+ * - Future event → delegates to getCountdownText
+ */
+export const getSmartCountdownText = (event: { dateStart: string; dateEnd?: string; dateDisplay: string; eventStatus?: 'upcoming' | 'happening_now' }): string => {
+  const isHappeningNow = event.eventStatus === 'happening_now';
+  
+  if (!isHappeningNow) {
+    return getCountdownText(event.dateStart || event.dateDisplay);
+  }
+  
+  // It's happening now — determine if it's a same-day event or ongoing multi-day
+  const startDate = safeParseDate(event.dateStart);
+  if (!startDate) return 'Happening now';
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startNorm = new Date(startDate);
+  startNorm.setHours(0, 0, 0, 0);
+  
+  const isSameDay = startNorm.getTime() === today.getTime();
+  const endDate = event.dateEnd ? safeParseDate(event.dateEnd) : null;
+  const isMultiDay = endDate ? endDate.getTime() !== startNorm.getTime() : false;
+  
+  if (isSameDay && !isMultiDay) {
+    return 'Today!';
+  }
+  
+  return 'Happening now';
+};
+
+/**
  * Check if event is happening now or soon (within 7 days)
  */
 export const isEventSoon = (dateStart: string): boolean => {
