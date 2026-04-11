@@ -110,9 +110,12 @@ const Footer = () => {
           <div className="text-white/60 text-sm mb-4 md:mb-0">
             © 2025 Ramble66 | Contact: <a href="mailto:hello@ramble66.com" className="text-white/70 hover:text-white transition-colors">hello@ramble66.com</a>
           </div>
-          <div>
+          <div className="flex gap-4">
             <Link to="/privacy" className="text-white/60 text-sm hover:text-white transition-colors">
               Privacy Policy
+            </Link>
+            <Link to="/terms" className="text-white/60 text-sm hover:text-white transition-colors">
+              Terms of Service
             </Link>
           </div>
         </div>
