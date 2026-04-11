@@ -1,21 +1,34 @@
 
 
-## Plan: Fix archive blog card layout
+## Plan: Fix event card date display and countdown logic
 
 ### Problem
-The non-featured archive cards use a horizontal layout (`flex-row`) with a fixed `w-48` (192px) image. When the blog grid renders these in a 2- or 3-column grid, each card is only ~350px wide, leaving barely ~160px for the text content. This causes the title, date, tags, and excerpt to wrap awkwardly and look cramped — exactly what the screenshot shows.
-
-### Fix
-Switch the non-featured cards to a **vertical/stacked layout** (image on top, content below) — the same pattern as the featured card but smaller. This works cleanly at every grid width.
+1. Event cards show only `date_display` (e.g., "10-Mar-26") even for multi-day events — misleading when paired with "Happening now"
+2. Countdown badges use `Math.round` which can produce unintuitive results
+3. Past events should be hidden by default but accessible via month filter
 
 ### Changes
 
-**`src/components/Blog/BlogCard.tsx`** — rewrite the non-featured card block (lines 132–209):
-- Remove `flex flex-row` and `w-48 shrink-0`
-- Use a stacked layout: image in an `aspect-[3/2]` container on top, content below in a padded `div`
-- Keep all existing content (metadata, title, excerpt, tags, footer) unchanged
-- This matches how the featured card is structured, just with a smaller image ratio and tighter spacing
+**1. `src/components/CentennialEventsCalendar/utils/eventCalendarHelpers.ts`**
 
-### No other files change
-`BlogGrid.tsx` already renders these in a responsive grid — that's fine as-is.
+- Add a new `formatSmartDateDisplay` helper that:
+  - If `dateEnd` exists and differs from `dateStart`, formats as `"10-Mar-26 → 11-Dec-26"` (d-MMM-yy format)
+  - If `dateEnd` equals `dateStart` or is null, returns the existing `dateDisplay` as-is
+- Update `getCountdownText` week bucketing to use floor-based ranges: 1–7 days = "In 1 week", 8–14 = "In 2 weeks", 15–21 = "In 3 weeks", 22–28 = "In 4 weeks", 29+ = month-based
+- Update `getSmartCountdownText` to also return "Past" when `dateEnd` (or `dateStart` if no end) is before today
+
+**2. `src/components/CentennialEventsCalendar/components/EventCard.tsx`**
+
+- Import `formatSmartDateDisplay`
+- Replace `{event.dateDisplay}` on line 95 with `{formatSmartDateDisplay(event)}`
+- Skip rendering past events (when countdown === "Past") — though this is already handled by the filter hook
+
+**3. `src/components/CentennialEventsCalendar/components/FeaturedEvents.tsx`**
+
+- Import `formatSmartDateDisplay`
+- Replace line 195 (`event.dateDisplay || formatDateRange(...)`) with `formatSmartDateDisplay(event)`
+
+**4. `src/components/CentennialEventsCalendar/hooks/useEventFilters.ts`** — no changes needed; `isUpcomingOrCurrentEvent` already filters out past events using `dateEnd || dateStart`.
+
+### No database changes required
 
