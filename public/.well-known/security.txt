@@ -1,0 +1,5 @@
+Contact: mailto:hello@ramble66.com
+Expires: 2027-04-11T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://ramble66.com/.well-known/security.txt
+Policy: https://ramble66.com/privacy
