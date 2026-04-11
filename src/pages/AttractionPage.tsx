@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { useAttraction } from '@/hooks/useAttraction';
 import { stateAbbrMap } from '@/data/route66States';
 import AttractionDetailSections from '@/components/attractions/AttractionDetailSections';
+import AttractionJsonLd from '@/components/seo/AttractionJsonLd';
 import { MapPin, Globe, Clock, DollarSign, Tag, ArrowLeft, ChevronRight } from 'lucide-react';
 
 const AttractionPage: React.FC = () => {
@@ -78,8 +79,19 @@ const AttractionPage: React.FC = () => {
         <meta name="twitter:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={attraction.image_url || fallbackImage} />
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
+      <AttractionJsonLd
+        name={attraction.name}
+        description={attraction.description}
+        imageUrl={attraction.image_url}
+        url={canonicalUrl}
+        city={attraction.city_name}
+        state={attraction.state}
+        latitude={attraction.latitude}
+        longitude={attraction.longitude}
+        website={attraction.website}
+        tags={attraction.tags}
+      />
 
       <div className="min-h-screen bg-background">
         {/* Hero */}
