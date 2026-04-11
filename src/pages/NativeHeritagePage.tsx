@@ -212,7 +212,7 @@ const NativeHeritagePage: React.FC = () => {
             {site.tribe_nation && (
               <div className="flex items-center gap-3 bg-surface border-2 border-border rounded-sm p-4 shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
                 <Feather className="w-5 h-5 text-primary flex-shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <span className="font-special text-xs uppercase text-muted-foreground block">Tribal Nation</span>
                   <span className="font-body text-sm text-foreground">{site.tribe_nation}</span>
                 </div>
@@ -221,17 +221,17 @@ const NativeHeritagePage: React.FC = () => {
             {site.site_type && (
               <div className="flex items-center gap-3 bg-surface border-2 border-border rounded-sm p-4 shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
                 <Landmark className="w-5 h-5 text-accent-foreground flex-shrink-0" />
-                <div>
-                  <span className="font-special text-xs uppercase text-muted-foreground block">Site Type</span>
-                  <span className="font-body text-sm text-foreground">{site.site_type}</span>
+                <div className="min-w-0">
+                  <span className="font-special text-xs uppercase text-muted-foreground block">Type</span>
+                  <span className="font-body text-sm text-foreground capitalize">{site.site_type.replace(/[_-]/g, ' ')}</span>
                 </div>
               </div>
             )}
             {site.website && (
               <a href={site.website} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-surface border-2 border-border rounded-sm p-4 hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
+                className="flex items-center gap-3 bg-surface border-2 border-border rounded-sm p-4 hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)] overflow-hidden">
                 <Globe className="w-5 h-5 text-primary flex-shrink-0" />
-                <div>
+                <div className="min-w-0 flex-1">
                   <span className="font-special text-xs uppercase text-muted-foreground block">Website</span>
                   <span className="font-body text-sm text-primary truncate block">{site.website.replace(/^https?:\/\/(www\.)?/, '')}</span>
                 </div>
@@ -240,7 +240,7 @@ const NativeHeritagePage: React.FC = () => {
             {site.city_name && site.state && (
               <div className="flex items-center gap-3 bg-surface border-2 border-border rounded-sm p-4 shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
                 <MapPin className="w-5 h-5 text-accent-foreground flex-shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <span className="font-special text-xs uppercase text-muted-foreground block">Location</span>
                   <span className="font-body text-sm text-foreground">{site.city_name}, {site.state}</span>
                 </div>
