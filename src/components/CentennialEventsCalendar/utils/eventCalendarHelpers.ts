@@ -271,11 +271,11 @@ export const getCountdownText = (dateStart: string): string => {
     result = 'Tomorrow!';
   } else if (diffDays <= 7) {
     result = `In ${diffDays} days`;
-  } else if (diffDays <= 30) {
-    const weeks = Math.round(diffDays / 7);
+  } else if (diffDays <= 28) {
+    const weeks = Math.ceil(diffDays / 7);
     result = `In ${weeks} week${weeks > 1 ? 's' : ''}`;
   } else if (diffDays <= 365) {
-    const months = Math.round(diffDays / 30);
+    const months = Math.ceil(diffDays / 30);
     result = `In ${months} month${months > 1 ? 's' : ''}`;
   } else {
     result = `In ${diffDays} days`;
@@ -357,4 +357,29 @@ export const formatDateRange = (dateStart: string, dateEnd?: string): string => 
   
   // Different months
   return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', { ...options, year: 'numeric' })}`;
+};
+
+/**
+ * Format a smart date display: shows range when dateEnd differs from dateStart.
+ * Uses d-MMM-yy format (e.g., "10-Mar-26 → 11-Dec-26")
+ */
+export const formatSmartDateDisplay = (event: { dateStart: string; dateEnd?: string | null; dateDisplay: string }): string => {
+  if (!event.dateEnd || event.dateEnd === event.dateStart) {
+    return event.dateDisplay;
+  }
+  
+  const start = safeParseDate(event.dateStart);
+  const end = safeParseDate(event.dateEnd);
+  
+  if (!start || !end) return event.dateDisplay;
+  
+  const fmt = (d: Date): string => {
+    const day = d.getDate();
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const mon = months[d.getMonth()];
+    const yr = String(d.getFullYear()).slice(-2);
+    return `${day}-${mon}-${yr}`;
+  };
+  
+  return `${fmt(start)} → ${fmt(end)}`;
 };

@@ -3,7 +3,7 @@ import { Calendar, MapPin, ExternalLink, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CentennialEvent, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
-import { getCountdownText, getSmartCountdownText, isEventSoon } from '../utils/eventCalendarHelpers';
+import { getCountdownText, getSmartCountdownText, isEventSoon, formatSmartDateDisplay } from '../utils/eventCalendarHelpers';
 import GuinnessBadge from './GuinnessBadge';
 
 interface EventCardProps {
@@ -92,7 +92,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
         {/* Date */}
         <div className="flex items-center gap-2 text-sm text-slate-700">
           <Calendar className="h-4 w-4 text-[#1B60A3] flex-shrink-0" />
-          <span className="font-medium">{event.dateDisplay}</span>
+          <span className="font-medium">{formatSmartDateDisplay(event)}</span>
         </div>
         
         {/* Location */}

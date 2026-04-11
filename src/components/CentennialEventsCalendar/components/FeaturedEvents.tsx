@@ -3,7 +3,7 @@ import { Star, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CentennialEvent, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
-import { getCountdownText, getSmartCountdownText, formatDateRange } from '../utils/eventCalendarHelpers';
+import { getCountdownText, getSmartCountdownText, formatDateRange, formatSmartDateDisplay } from '../utils/eventCalendarHelpers';
 import GuinnessBadge from './GuinnessBadge';
 
 interface FeaturedEventsProps {
@@ -192,7 +192,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
           {/* Date at bottom */}
           <div className="mt-3 pt-2 border-t border-white/20">
             <p className="text-sm font-medium">
-              {event.dateDisplay || formatDateRange(event.dateStart, event.dateEnd)}
+              {formatSmartDateDisplay(event)}
             </p>
           </div>
 
