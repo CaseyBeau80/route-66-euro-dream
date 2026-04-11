@@ -3,7 +3,7 @@ import { Star, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CentennialEvent, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
-import { getCountdownText, formatDateRange } from '../utils/eventCalendarHelpers';
+import { getCountdownText, getSmartCountdownText, formatDateRange } from '../utils/eventCalendarHelpers';
 import GuinnessBadge from './GuinnessBadge';
 
 interface FeaturedEventsProps {
@@ -127,7 +127,7 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-slate-500' };
   const categoryInfo = categoryMetadata[event.category] || { emoji: '📅', label: 'Event' };
   const isHappeningNow = event.eventStatus === 'happening_now';
-  const countdown = isHappeningNow ? 'Happening now' : getCountdownText(event.dateStart || event.dateDisplay);
+  const countdown = getSmartCountdownText(event);
   
   // State gradient backgrounds (cool blue/gray palette - equal treatment for all states)
   const stateGradients: Record<string, string> = {
