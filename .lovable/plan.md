@@ -1,35 +1,40 @@
 
 
-## Plan: Shared `AttractionJsonLd` Component
+## Plan: Fix stale skeleton flash on page refresh
 
 ### Problem
-Both `AttractionPage.tsx` and `NativeHeritagePage.tsx` have inline JSON-LD blocks that are inconsistent — they emit null address fields, `sameAs` as a string instead of array, and omit `keywords`/`touristType`. No hidden gems page exists separately (they use `AttractionPage`).
+The `index.html` contains a large static "loading skeleton" (lines 41–184 critical CSS + lines 468–536 HTML) that renders an **old** hero layout: split-screen grid with "RAMBLE 66" heading, three blue text paragraphs, and the Big Bo mascot image. The current React hero is a full-width video section. On refresh, users see this old layout for ~200ms before React hydrates and replaces it.
 
-### Changes
+### Fix
 
-**1. New file: `src/components/seo/AttractionJsonLd.tsx`**
-- Accepts the props from the prompt (`name`, `description`, `imageUrl`, `url`, `city`, `state`, `latitude`, `longitude`, `website`, `tags`, `touristType`)
-- Builds a clean JSON-LD object with strict null filtering:
-  - `address` omitted entirely if no city AND no state
-  - `geo` omitted unless both lat/lng are numbers
-  - `sameAs` as single-element array, omitted if no website
-  - `keywords` as comma-separated string from tags, omitted if empty
-  - `touristType` omitted if not provided
-- Renders via `<Helmet><script type="application/ld+json">`
+**Single file edit: `index.html`**
 
-**2. Edit: `src/pages/AttractionPage.tsx`**
-- Remove the inline `jsonLd` object and its `<script>` tag from the Helmet block
-- Add `<AttractionJsonLd>` alongside existing Helmet, passing attraction fields
-- `url` uses the existing `canonicalUrl` which already handles `hidden_gems` vs `attractions` base path
-- No `touristType` prop (omitted = default behavior)
+1. **Replace the skeleton HTML** (lines 468–526) with a simple full-width dark placeholder that matches the current video hero's visual weight — a dark background block at the same aspect ratio with a centered spinner. No text, no mascot image, no grid layout.
 
-**3. Edit: `src/pages/NativeHeritagePage.tsx`**
-- Remove the inline `jsonLd` object and its `<script>` tag
-- Add `<AttractionJsonLd>` with `touristType="Cultural heritage site"`
-- Everything else on the page stays identical
+2. **Strip the stale critical CSS** (lines 41–184 and 267–464) that styles the old hero layout (`lcp-hero-container`, `lcp-hero-image`, `lcp-text-immediate`, `hero-section`, `hero-container`, `hero-title`, `hero-subtitle`, `hero-image-container`, `fcp-title`, `fcp-subtitle`, `critical-button`). Replace with minimal CSS for the new skeleton: dark background, centered spinner, matching aspect ratio.
+
+3. **Remove the LCP image preload** (line 35) for the mascot PNG — the current hero loads a video, not that image.
+
+4. **Remove the desktop grid media query** (lines 530–536) since the new skeleton won't use a two-column grid.
+
+5. **Keep** the skeleton hide logic (lines 541–570), font loading scripts, and all other `<head>` content (analytics, preconnects, meta tags, redirects) unchanged.
+
+### New skeleton shape (approximate)
+```html
+<div id="loading-skeleton" style="
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  max-height: 85vh;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+">
+  <div class="fcp-loading"></div>
+</div>
+```
 
 ### Files touched
-- `src/components/seo/AttractionJsonLd.tsx` — new (~45 lines)
-- `src/pages/AttractionPage.tsx` — remove inline JSON-LD, add component
-- `src/pages/NativeHeritagePage.tsx` — remove inline JSON-LD, add component
+- `index.html` — replace skeleton HTML + prune stale CSS
 
