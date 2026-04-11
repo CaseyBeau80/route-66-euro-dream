@@ -3,7 +3,7 @@ import { Calendar, MapPin, ExternalLink, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CentennialEvent, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
-import { getCountdownText, isEventSoon } from '../utils/eventCalendarHelpers';
+import { getCountdownText, getSmartCountdownText, isEventSoon } from '../utils/eventCalendarHelpers';
 import GuinnessBadge from './GuinnessBadge';
 
 interface EventCardProps {
@@ -13,7 +13,7 @@ interface EventCardProps {
 
 const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
   const isHappeningNow = event.eventStatus === 'happening_now';
-  const countdown = isHappeningNow ? 'Happening now' : getCountdownText(event.dateStart || event.dateDisplay);
+  const countdown = getSmartCountdownText(event);
   const isSoon = isHappeningNow || isEventSoon(event.dateStart || event.dateDisplay);
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-gray-500' };
   const categoryInfo = categoryMetadata[event.category] || { label: 'Event', emoji: '📅' };
