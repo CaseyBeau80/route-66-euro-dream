@@ -21,8 +21,15 @@ interface DatabaseEvent {
   image_url: string | null;
   created_at: string;
   updated_at: string;
-  event_status: 'upcoming' | 'happening_now';
 }
+
+const computeEventStatus = (dbEvent: DatabaseEvent): 'upcoming' | 'happening_now' => {
+  const now = new Date();
+  const start = new Date(dbEvent.date_start);
+  const end = dbEvent.date_end ? new Date(dbEvent.date_end) : start;
+  if (now >= start && now <= end) return 'happening_now';
+  return 'upcoming';
+};
 
 // Transform database row (snake_case) to frontend format (camelCase)
 // Normalize category to lowercase to match frontend EventCategory type
@@ -41,14 +48,14 @@ const transformEvent = (dbEvent: DatabaseEvent): CentennialEvent => ({
   officialUrl: dbEvent.official_url || undefined,
   guinnessAttempt: dbEvent.guinness_attempt,
   guinnessNote: dbEvent.guinness_note || undefined,
-  eventStatus: dbEvent.event_status,
+  eventStatus: computeEventStatus(dbEvent),
 });
 
 const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
   console.log('[CentennialEvents] Fetching from external Supabase...');
   
   const { data, error } = await supabase
-    .from('upcoming_events')
+    .from('centennial_events')
     .select('*')
     .order('date_start', { ascending: true });
 

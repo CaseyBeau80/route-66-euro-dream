@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
-import { CentennialEvent } from '@/data/centennialEventsData';
 import { useCentennialEventsWithFallback } from '@/hooks/useCentennialEvents';
 import { useEventFilters } from './hooks/useEventFilters';
 import EventCard from './components/EventCard';
-import EventModal from './components/EventModal';
 import FilterBar from './components/FilterBar';
 import FeaturedEvents from './components/FeaturedEvents';
 import { Button } from '@/components/ui/button';
@@ -12,8 +10,6 @@ import { Button } from '@/components/ui/button';
 const ITEMS_PER_PAGE = 12;
 
 const CentennialEventsCalendar: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<CentennialEvent | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -38,14 +34,8 @@ const CentennialEventsCalendar: React.FC = () => {
     highlightedEvents,
     totalEventCount
   } = useEventFilters(events);
-  const handleEventClick = (event: CentennialEvent) => {
-    setSelectedEvent(event);
-    setIsModalOpen(true);
-  };
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedEvent(null);
-  };
+
+
 
   // Computed values for pagination
   const displayedEvents = filteredEvents.slice(0, visibleCount);
@@ -114,7 +104,7 @@ const CentennialEventsCalendar: React.FC = () => {
 
         {/* Featured Events Carousel */}
         <div className="mb-8">
-          <FeaturedEvents events={highlightedEvents} onEventClick={handleEventClick} />
+          <FeaturedEvents events={highlightedEvents} />
         </div>
 
         {/* Filter Bar - Combined State + Month */}
@@ -128,7 +118,7 @@ const CentennialEventsCalendar: React.FC = () => {
           aria-live="polite"
           aria-atomic="false"
         >
-          {displayedEvents.map(event => <EventCard key={event.id} event={event} onClick={handleEventClick} />)}
+          {displayedEvents.map(event => <EventCard key={event.id} event={event} />)}
         </div>
 
         {/* See More / Show Less Buttons */}
@@ -189,8 +179,8 @@ const CentennialEventsCalendar: React.FC = () => {
         </div>
       </div>
 
-      {/* Event Modal */}
-      <EventModal event={selectedEvent} isOpen={isModalOpen} onClose={handleCloseModal} />
+
+
     </section>;
 };
 export default CentennialEventsCalendar;
