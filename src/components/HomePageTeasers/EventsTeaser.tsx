@@ -3,24 +3,15 @@ import { Link } from 'react-router-dom';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { useCentennialEventsWithFallback } from '@/hooks/useCentennialEvents';
 import EventCard from '@/components/CentennialEventsCalendar/components/EventCard';
-import EventModal from '@/components/CentennialEventsCalendar/components/EventModal';
-import { CentennialEvent } from '@/data/centennialEventsData';
 
 const EventsTeaser: React.FC = () => {
   const { events, isLoading } = useCentennialEventsWithFallback();
-  const [selectedEvent, setSelectedEvent] = React.useState<CentennialEvent | null>(null);
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   // Show up to 3 highlighted events, or first 3 if no highlights
   const featuredEvents = React.useMemo(() => {
     const highlighted = events.filter(e => e.isHighlight);
     return (highlighted.length >= 3 ? highlighted : events).slice(0, 3);
   }, [events]);
-
-  const handleEventClick = (event: CentennialEvent) => {
-    setSelectedEvent(event);
-    setIsModalOpen(true);
-  };
 
   return (
     <section className="py-12 sm:py-16 bg-gradient-to-br from-slate-50 via-blue-50/30 to-white">
@@ -45,7 +36,7 @@ const EventsTeaser: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto mb-8">
             {featuredEvents.map(event => (
-              <EventCard key={event.id} event={event} onClick={handleEventClick} />
+              <EventCard key={event.id} event={event} />
             ))}
           </div>
         )}
@@ -60,8 +51,6 @@ const EventsTeaser: React.FC = () => {
           </Link>
         </div>
       </div>
-
-      <EventModal event={selectedEvent} isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedEvent(null); }} />
     </section>
   );
 };
