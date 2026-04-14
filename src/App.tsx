@@ -35,6 +35,7 @@ const LazyStoryMapPage = lazy(() => import("./pages/StoryMapPage"));
 // New dedicated pages
 const LazyExplorePage = lazy(() => import("./pages/ExplorePage"));
 const LazyEventsPage = lazy(() => import("./pages/EventsPage"));
+const LazyEventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const LazyPlannerPage = lazy(() => import("./pages/PlannerPage"));
 const LazyPhotoWallPage = lazy(() => import("./pages/PhotoWallPage"));
 const LazyFAQPage = lazy(() => import("./pages/FAQPage"));
@@ -99,6 +100,11 @@ function App() {
                 <Route path="/events" element={
                   <Suspense fallback={<RouteLoadingFallback />}>
                     <LazyEventsPage />
+                  </Suspense>
+                } />
+                <Route path="/events/:eventId" element={
+                  <Suspense fallback={<RouteLoadingFallback />}>
+                    <LazyEventDetailPage />
                   </Suspense>
                 } />
                 <Route path="/planner" element={

@@ -1,45 +1,37 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Star, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CentennialEvent, stateMetadata, categoryMetadata } from '@/data/centennialEventsData';
-import { getCountdownText, getSmartCountdownText, formatDateRange, formatSmartDateDisplay } from '../utils/eventCalendarHelpers';
+import { getSmartCountdownText, formatSmartDateDisplay } from '../utils/eventCalendarHelpers';
 import GuinnessBadge from './GuinnessBadge';
 
 interface FeaturedEventsProps {
   events: CentennialEvent[];
-  onEventClick: (event: CentennialEvent) => void;
+  onEventClick?: (event: CentennialEvent) => void;
 }
 
-const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick }) => {
+const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events }) => {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   
-  // Pure chronological sort - filter out events without valid dateStart
   const sortedEvents = React.useMemo(() => {
     return [...events]
-      .filter(e => e.dateStart) // Ensure dateStart exists
-      .sort((a, b) => 
-        new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
-      );
+      .filter(e => e.dateStart)
+      .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
   }, [events]);
 
-  const visibleCount = 3; // Show 3 at a time on desktop
+  const visibleCount = 3;
   const totalPages = Math.ceil(sortedEvents.length / visibleCount);
   const maxIndex = Math.max(0, (totalPages - 1) * visibleCount);
 
-  const handlePrev = () => {
-    setCurrentIndex(prev => Math.max(0, prev - visibleCount));
-  };
-
-  const handleNext = () => {
-    setCurrentIndex(prev => Math.min(maxIndex, prev + visibleCount));
-  };
+  const handlePrev = () => setCurrentIndex(prev => Math.max(0, prev - visibleCount));
+  const handleNext = () => setCurrentIndex(prev => Math.min(maxIndex, prev + visibleCount));
 
   if (sortedEvents.length === 0) return null;
 
   return (
     <div className="relative">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Star className="h-5 w-5 text-[#1B60A3] fill-[#1B60A3]" />
@@ -48,33 +40,16 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
             {sortedEvents.length} highlights
           </Badge>
         </div>
-        
-        {/* Navigation arrows */}
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePrev}
-            disabled={currentIndex === 0}
-            className="h-8 w-8"
-            aria-label="Previous featured events"
-          >
+          <Button variant="ghost" size="icon" onClick={handlePrev} disabled={currentIndex === 0} className="h-8 w-8" aria-label="Previous featured events">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNext}
-            disabled={currentIndex >= maxIndex}
-            className="h-8 w-8"
-            aria-label="Next featured events"
-          >
+          <Button variant="ghost" size="icon" onClick={handleNext} disabled={currentIndex >= maxIndex} className="h-8 w-8" aria-label="Next featured events">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Featured cards carousel */}
       <div className="overflow-hidden">
         <div 
           className="flex transition-transform duration-300"
@@ -84,21 +59,13 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
           }}
         >
           {sortedEvents.map((event) => (
-            <div 
-              key={event.id}
-              className="px-2"
-              style={{ width: `${100 / sortedEvents.length}%` }}
-            >
-              <FeaturedEventCard 
-                event={event} 
-                onClick={() => onEventClick(event)}
-              />
+            <div key={event.id} className="px-2" style={{ width: `${100 / sortedEvents.length}%` }}>
+              <FeaturedEventCard event={event} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Dots indicator */}
       <div className="flex justify-center gap-1.5 mt-4">
         {Array.from({ length: Math.ceil(sortedEvents.length / visibleCount) }).map((_, i) => (
           <button
@@ -117,19 +84,12 @@ const FeaturedEvents: React.FC<FeaturedEventsProps> = ({ events, onEventClick })
   );
 };
 
-// Individual featured event card
-interface FeaturedEventCardProps {
-  event: CentennialEvent;
-  onClick: () => void;
-}
-
-const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick }) => {
+const FeaturedEventCard: React.FC<{ event: CentennialEvent }> = ({ event }) => {
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-slate-500' };
   const categoryInfo = categoryMetadata[event.category] || { emoji: '📅', label: 'Event' };
   const isHappeningNow = event.eventStatus === 'happening_now';
   const countdown = getSmartCountdownText(event);
   
-  // State gradient backgrounds (cool blue/gray palette - equal treatment for all states)
   const stateGradients: Record<string, string> = {
     'IL': 'from-blue-500 to-blue-600',
     'MO': 'from-slate-500 to-slate-600',
@@ -143,22 +103,17 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
   };
 
   return (
-    <button
-      onClick={onClick}
-      className="w-full group"
-    >
+    <Link to={`/events/${event.id}`} className="block w-full group">
       <div className={`
         relative overflow-hidden rounded-xl p-4 h-full min-h-[180px]
         bg-gradient-to-br ${stateGradients[event.state]}
         text-white shadow-lg hover:shadow-xl hover:shadow-[#1B60A3]/20
         transition-all duration-300 hover:scale-[1.02]
       `}>
-        {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
         <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8" />
         
         <div className="relative z-10 h-full flex flex-col">
-          {/* Top badges */}
           <div className="flex items-center justify-between gap-2 mb-2">
             <Badge className="bg-white/20 text-white border-0 text-xs">
               {categoryInfo.emoji} {categoryInfo.label}
@@ -169,19 +124,16 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
             </Badge>
           </div>
 
-          {/* Guinness badge if applicable */}
           {event.guinnessAttempt && (
             <div className="mb-2">
               <GuinnessBadge size="sm" />
             </div>
           )}
 
-          {/* Title */}
           <h4 className="font-bold text-base mb-1 line-clamp-2 group-hover:underline">
             {event.title}
           </h4>
 
-          {/* Location with state */}
           <p className="text-sm text-white/80 mb-auto">
             {event.location}
             {event.state !== 'national' && (
@@ -189,20 +141,18 @@ const FeaturedEventCard: React.FC<FeaturedEventCardProps> = ({ event, onClick })
             )}
           </p>
 
-          {/* Date at bottom */}
           <div className="mt-3 pt-2 border-t border-white/20">
             <p className="text-sm font-medium">
               {formatSmartDateDisplay(event)}
             </p>
           </div>
 
-          {/* State indicator */}
           <div className="absolute bottom-3 right-3 text-2xl opacity-30">
             {event.state === 'national' ? '🌎' : '🛣️'}
           </div>
         </div>
       </div>
-    </button>
+    </Link>
   );
 };
 

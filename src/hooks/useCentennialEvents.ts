@@ -48,7 +48,7 @@ const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
   console.log('[CentennialEvents] Fetching from external Supabase...');
   
   const { data, error } = await supabase
-    .from('upcoming_events')
+    .from('centennial_events')
     .select('*')
     .order('date_start', { ascending: true });
 

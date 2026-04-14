@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
-import { CentennialEvent } from '@/data/centennialEventsData';
 import { useCentennialEventsWithFallback } from '@/hooks/useCentennialEvents';
 import { useEventFilters } from './hooks/useEventFilters';
 import EventCard from './components/EventCard';
-import EventModal from './components/EventModal';
 import FilterBar from './components/FilterBar';
 import FeaturedEvents from './components/FeaturedEvents';
 import { Button } from '@/components/ui/button';
@@ -12,8 +10,6 @@ import { Button } from '@/components/ui/button';
 const ITEMS_PER_PAGE = 12;
 
 const CentennialEventsCalendar: React.FC = () => {
-  const [selectedEvent, setSelectedEvent] = useState<CentennialEvent | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
