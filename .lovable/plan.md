@@ -1,16 +1,12 @@
 
+Update `supabase/config.toml` to add a `[functions.post-to-x]` block with `verify_jwt = false`, allowing the function to be invoked from database triggers without JWT authentication.
 
-## Plan: Improve `escapeXml` and add markdown stripping in RSS feed
+### Change to `supabase/config.toml`
 
-### Changes to `supabase/functions/rss-feed/index.ts`
+Append:
+```toml
+[functions.post-to-x]
+verify_jwt = false
+```
 
-1. **Replace `escapeXml`** with the improved version that handles control characters, newlines, and includes a null guard.
-
-2. **Add `stripMarkdown` helper** to remove `#`, `**`, `__`, `*`, `_`, `[text](url)` link syntax, and other markdown formatting before escaping.
-
-3. **Apply `stripMarkdown` to `excerpt`** (and `title` for safety) before passing to `escapeXml`.
-
-4. **Wrap the entire RSS generation** (from Supabase query through response) in a `try/catch` that returns a 500 with CORS headers on unexpected errors.
-
-No other files affected.
-
+No other files affected. The existing `post-to-x` function code is not modified.
