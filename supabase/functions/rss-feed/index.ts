@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(
     'https://xbwaphzntaxmdfzfsmvt.supabase.co',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ?? ''
   )
 
   const { data: posts, error } = await supabase
