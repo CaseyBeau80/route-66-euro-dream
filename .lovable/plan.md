@@ -1,22 +1,14 @@
 
 
-## Plan: Fix static SEO tags in `index.html`
+## Plan: Create `rss-feed` Edge Function
 
-### Changes to `index.html` (lines 107–112)
+### Changes
 
-1. **Remove** the static `<link rel="canonical" href="https://ramble66.com" />` on line 110 — it overrides React Helmet's per-route canonicals, pointing every page to the homepage.
+**1. New file: `supabase/functions/rss-feed/index.ts`**
+- Create with the exact function code provided — queries `blog_posts`, generates RSS 2.0 XML feed.
 
-2. **Add** `<meta name="robots" content="index, follow" />` as the default fallback, so crawlers that render before JS executes see an indexable directive.
+**2. Update `supabase/config.toml`**
+- Add `[functions.rss-feed]` block with `verify_jwt = false` so the feed is publicly accessible without authentication.
 
-The updated block (lines 107–112) becomes:
-```html
-<!-- Static fallback SEO for crawlers before JS executes; React Helmet overrides per-route -->
-<title>Ramble 66 — Route 66 Interactive Map & Trip Planner</title>
-<meta name="description" content="Plan your ultimate Route 66 road trip with Ramble 66: Interactive Route 66 Google Map, Shareable Travel Planner, Route 66 Events Calendar, and Route 66 Blog & News." />
-<meta name="robots" content="index, follow" />
-<!-- Theme color only - all other meta tags handled by React Helmet -->
-<meta name="theme-color" content="#1B60A3">
-```
-
-No other files affected.
+No database changes required.
 
