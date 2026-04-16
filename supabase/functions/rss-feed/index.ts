@@ -23,7 +23,8 @@ Deno.serve(async (req) => {
     .limit(20)
 
   if (error) {
-    return new Response('Error fetching posts', { status: 500 })
+    console.error('RSS feed error:', JSON.stringify(error))
+    return new Response(`Error fetching posts: ${JSON.stringify(error)}`, { status: 500 })
   }
 
   const escapeXml = (str: string) => str
