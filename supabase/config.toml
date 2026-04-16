@@ -2,3 +2,6 @@ project_id = "vjmujwwpzgrbhtsgdgtg"
 
 [functions.trip-planner-chat]
 verify_jwt = false
+
+[functions.rss-feed]
+verify_jwt = false
