@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(
     'https://xbwaphzntaxmdfzfsmvt.supabase.co',
-    Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ?? ''
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhid2FwaHpudGF4bWRmemZzbXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NjUzMzYsImV4cCI6MjA2NDE0MTMzNn0.51l87ERSx19vVQytYAEgt5HKMjLhC86_tdF_2HxrPjo'
   )
 
   const { data: posts, error } = await supabase
