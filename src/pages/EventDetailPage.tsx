@@ -7,6 +7,7 @@ import { stateMetadata, categoryMetadata, CentennialEvent } from '@/data/centenn
 import { formatSmartDateDisplay, getSmartCountdownText } from '@/components/CentennialEventsCalendar/utils/eventCalendarHelpers';
 import { Calendar, MapPin, ExternalLink, ArrowLeft, ChevronRight, Clock, Star, Award } from 'lucide-react';
 import NotFound from './NotFound';
+import MainLayout from '@/components/MainLayout';
 
 interface DbEvent {
   id: string;
