@@ -86,7 +86,33 @@ const EventDetailPage: React.FC = () => {
     );
   }
 
-  if (error || !event) {
+  if (error) {
+    return (
+      <MainLayout>
+        <Helmet>
+          <title>Event Temporarily Unavailable – Ramble 66</title>
+          <meta name="robots" content="index, follow" />
+        </Helmet>
+        <div className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="max-w-lg text-center bg-route66-surface border-2 border-route66-border rounded-sm p-8" style={{ boxShadow: '4px 4px 0 hsl(var(--route66-border))' }}>
+            <h1 className="font-playfair text-3xl text-route66-text mb-4">Event Temporarily Unavailable</h1>
+            <p className="font-libre text-route66-text mb-6">
+              We're having trouble loading this event right now. Please try again in a moment.
+            </p>
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-2 bg-route66-primary hover:bg-route66-primary-hover text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-border transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Events
+            </Link>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!event) {
     return <NotFound />;
   }
 
