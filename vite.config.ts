@@ -78,6 +78,50 @@ const sitemapPlugin = () => {
     }
   };
 };
+
+// Vite plugin: after the SPA bundle is written, generate per-post HTML at
+// dist/blog/<slug>/index.html with the post's own og:image / twitter:image /
+// title / description so non-JS social crawlers (Facebook, LinkedIn, iMessage,
+// Slack) see the real featured image instead of the static fallback.
+const blogPrerenderPlugin = () => {
+  let outDir = 'dist';
+  return {
+    name: 'blog-prerender',
+    apply: 'build' as const,
+    configResolved(config: any) {
+      outDir = (config?.build?.outDir as string) || 'dist';
+    },
+    async closeBundle() {
+      try {
+        const shellPath = path.resolve(outDir, 'index.html');
+        if (!existsSync(shellPath)) {
+          console.warn('[blog-prerender] dist/index.html not found; skipping.');
+          return;
+        }
+        const shell = readFileSync(shellPath, 'utf8');
+
+        const posts = (await fetchTable(
+          'blog_posts',
+          'slug,title,excerpt,featured_image_url',
+          'is_published=eq.true',
+        )) as unknown as BlogPostMeta[];
+
+        let written = 0;
+        for (const post of posts) {
+          if (!post?.slug || !post?.title) continue;
+          const html = injectBlogMeta(shell, post);
+          const dir = path.resolve(outDir, 'blog', post.slug);
+          mkdirSync(dir, { recursive: true });
+          writeFileSync(path.resolve(dir, 'index.html'), html, 'utf8');
+          written += 1;
+        }
+        console.log(`[blog-prerender] Wrote ${written} per-post HTML files under ${path.resolve(outDir, 'blog')}`);
+      } catch (err) {
+        console.warn('[blog-prerender] Failed:', err);
+      }
+    },
+  };
+};
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -98,6 +142,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     sitemapPlugin(),
+    blogPrerenderPlugin(),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
