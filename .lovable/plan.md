@@ -1,42 +1,65 @@
-## Option A: Static brand og:image fallback (stopgap)
+# Per-post social previews via build-time prerender + auto-redeploy on publish
 
-### Code change — `index.html`
+## Goal
 
-Add four meta tags inside the existing `<head>`, right after the existing static SEO block (after the `<meta name="robots">` line, before the `<meta name="theme-color">` line):
+Each `/blog/:slug` URL must ship initial HTML with that post's own `og:image`, `twitter:image`, `og:title`, `og:description`, and `og:url` — so Facebook, LinkedIn, iMessage, and Slack (which don't run JS) get the real featured image, not `og-big-bo.jpg`.
 
-```html
-<!-- Static social preview fallback. Helmet on per-route pages (e.g. BlogPostPage) overrides for JS-executing crawlers like Googlebot. Social scrapers (Facebook, LinkedIn, Slack) only see this static tag until prerender (Option B) lands. -->
-<meta property="og:image" content="https://ramble66.com/images/og-big-bo.jpg" />
-<meta property="og:image:alt" content="Ramble 66 — Route 66 Trip Planner" />
-<meta name="twitter:image" content="https://ramble66.com/images/og-big-bo.jpg" />
-<meta name="twitter:card" content="summary_large_image" />
-```
+A new post must be prerendered and live **before** the first social share — no manual rebuild step. Achieved with a Supabase trigger that fires a Lovable deploy hook whenever `blog_posts.is_published` flips to true.
 
-That's the entire code change. One file, four lines.
+Homepage and all other routes keep the existing static fallback in `index.html`.
 
-### No changes to `BlogPostPage.tsx`
-Confirmed — its existing Helmet `og:image` / `twitter:image` tags stay as-is. They help Googlebot show the correct featured image in search results and do nothing harmful to Facebook (which ignores Helmet output anyway).
+## Part 1 — Build-time prerender
 
-### Where to disable the Lovable auto social card (you'll do this manually)
+Extend the existing `sitemapPlugin` pattern in `vite.config.ts` with a second Vite plugin (`blogPrerenderPlugin`) that runs in `closeBundle` after the SPA bundle is written.
 
-Honest disclosure: I do not have an API to flip this for you, and I have not personally seen this exact toggle in the current Publish UI. Based on the live HTML, the auto-injected r2.dev og:image is added by Lovable's hosting pipeline. The most likely locations to check, in order:
+For each published post in `blog_posts`:
 
-1. **Publish dialog → "Settings" / gear icon** inside the Publish modal itself (Desktop: top-right Publish button; Mobile: `...` menu → Publish). Look for "Social preview image" or "Auto-generate social card" or similar.
-2. **Project Settings → Project section** (Desktop: click project name top-left → Settings; Mobile: `...` → Settings). Look in General or a "Social" / "SEO" sub-section.
-3. If neither exposes it, ask Lovable support (or post in the Discord) — phrase it as: "How do I disable the auto-generated og:image / Twitter card on my published site? It's overriding my static meta tags."
+1. Read `dist/index.html` (the built SPA shell — same JS, same CSS, fully hydrates client-side).
+2. Replace the static social-tag block (lines 111-115 of `index.html`) with a per-post block: `og:title`, `og:description`, `og:url`, `og:type=article`, `og:image`, `og:image:alt`, `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`.
+3. Also override `<title>` and `<meta name="description">` for parity with Helmet.
+4. Write the result to `dist/blog/<slug>/index.html`.
 
-If you can't find a toggle, the static tags I'm adding will still ship in `index.html` but the auto-injected tag will continue to appear alongside them. Facebook deduplicates `og:image` by taking the **first one it sees**. Since the auto-injected tag appears just before `</head>` (after our static tags), our static tag should win — but please verify after publish.
+Lovable's static hosting serves `dist/blog/<slug>/index.html` directly when present; the SPA catch-all only fires when no matching file exists. Real users still get the full React app because the prerendered HTML loads the same `/src/main.tsx` bundle and React Router takes over after hydration.
 
-### Verification steps (after you republish)
+### Files
 
-1. `curl https://ramble66.com/blog/route-66-diners-where-to-eat | grep -iE "og:image|twitter:image"` — confirm `og-big-bo.jpg` appears, and note whether the r2.dev tag is gone (toggle worked) or still present (toggle not found, but ours appears first).
-2. Paste the URL into the [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) → "Scrape Again" → confirm the preview shows the Big Bo brand image, **not** the Seligman shield.
-3. Repeat for `https://ramble66.com/` and `https://ramble66.com/blog` to confirm the fallback works everywhere.
+- `vite.config.ts` — add `blogPrerenderPlugin` alongside `sitemapPlugin`. Fetches posts via `fetchTable('blog_posts', 'slug,title,excerpt,featured_image_url', 'is_published=eq.true')`.
+- New `src/utils/blogPrerender.ts` — pure helper `injectBlogMeta(html, post)` that does the string replacement. Unit-testable.
+- One small edit to `index.html` — wrap the existing 4-tag social block in `<!-- SOCIAL-META-START -->` / `<!-- SOCIAL-META-END -->` sentinels so the plugin can replace the block safely without regex fragility. The tags themselves don't change.
+- No changes to `BlogPostPage.tsx` — Helmet tags stay (harmless, helps Googlebot).
 
-### What Option A does NOT fix
-Facebook will show the same Big Bo brand image for every blog post — the diner photo will still not appear on FB. That's the whole point of Option B (build-time prerender), which I'll plan separately when you're ready. Googlebot already shows the correct per-post image thanks to Helmet.
+### HTML escaping
 
-### Out of scope for this turn
-- Option B prerender (separate plan when you're ready)
-- Any change to `BlogPostPage.tsx`, `SocialMetaTags.tsx`, or other route components
-- Any change to `vite.config.ts` or build pipeline
+Post title/excerpt/image URL are escaped (`&`, `<`, `>`, `"`, `'`) before injection.
+
+## Part 2 — Auto-redeploy on publish
+
+Wire publish events in Supabase to a Lovable deploy hook so prerender runs without human action.
+
+### Steps (in this order)
+
+1. **Get the Lovable deploy hook URL.** In Lovable: Publish dialog → Settings → look for "Deploy hook" or "Build webhook." It's a unique URL like `https://lovable.dev/api/deploy-hooks/<token>`. The user grabs this and gives it to us. We store it as a Supabase secret named `LOVABLE_DEPLOY_HOOK_URL` (via `add_secret`, not committed to code — the token is sensitive).
+2. **Create a Supabase database trigger** that fires when `blog_posts.is_published` transitions to true (insert with `is_published=true`, or update flipping false→true). The trigger calls a Postgres function that POSTs to the deploy hook using `pg_net.http_post`.
+3. **Enable `pg_net` extension** if not already enabled (one-time migration).
+4. Trigger function reads the URL from a settings table or a hardcoded GUC; since secrets aren't natively readable from triggers, the cleanest pattern is: store the URL in a small `app_settings` table with RLS denying all client access, and have the trigger function `SELECT` it. Alternative: use Supabase Vault. I'll go with `app_settings` for simplicity unless you prefer Vault.
+
+### Debouncing
+
+If a post gets multiple updates in quick succession (typo fixes right after publish), each one triggers a build. Lovable's deploy queue should coalesce, but if it doesn't, we add a 60-second debounce in the trigger function (skip if last fire < 60s ago, tracked in `app_settings`).
+
+### Verification
+
+After publishing a new post:
+- Check Supabase logs for the `pg_net` request and a 200/202 response from the deploy hook.
+- Watch Lovable's deploy dashboard for the triggered build.
+- Once deployed: `curl -sA "facebookexternalhit/1.1" https://ramble66.com/blog/<new-slug> | grep og:image` shows the post's featured image.
+
+## Out of scope
+
+- Prerendering attraction/hidden-gem detail pages (same plugin can be extended later).
+- `og:image:width/height` (requires fetching/measuring each image).
+- Cache-busting Facebook's scrape cache for already-shared old URLs — those need a manual "Scrape Again" in the Facebook Debugger. New shares get fresh data automatically.
+
+## What I need from you to start Part 2
+
+The Lovable deploy hook URL. Open Publish → Settings, copy the deploy/build webhook URL, and paste it back. I'll then request it as a secret (`LOVABLE_DEPLOY_HOOK_URL`) and wire up the trigger. Part 1 (prerender plugin) doesn't need anything from you and I can ship it first.
