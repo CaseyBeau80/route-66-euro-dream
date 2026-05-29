@@ -3,8 +3,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { writeFileSync, readFileSync, existsSync } from "fs";
+import { componentTagger } from "lovable-tagger";
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from "fs";
 import { generateSitemapFile } from "./src/utils/sitemapGenerator";
+import { injectBlogMeta, type BlogPostMeta } from "./src/utils/blogPrerender";
 
 // External Supabase credentials (same as src/lib/supabase.ts)
 const SUPABASE_URL = "https://xbwaphzntaxmdfzfsmvt.supabase.co";
