@@ -108,11 +108,13 @@
     <title>Ramble 66 — Route 66 Interactive Map & Trip Planner</title>
     <meta name="description" content="Plan your ultimate Route 66 road trip with Ramble 66: Interactive Route 66 Google Map, Shareable Travel Planner, Route 66 Events Calendar, and Route 66 Blog & News." />
     <meta name="robots" content="index, follow" />
-    <!-- Static social preview fallback. Helmet on per-route pages (e.g. BlogPostPage) overrides for JS-executing crawlers like Googlebot. Social scrapers (Facebook, LinkedIn, Slack) only see this static tag until per-post prerender lands. -->
+    <!-- SOCIAL-META-START -->
+    <!-- Static social preview fallback. Per-post blog pages get this block replaced at build time with their own featured image (see blogPrerenderPlugin in vite.config.ts). -->
     <meta property="og:image" content="https://ramble66.com/images/og-big-bo.jpg" />
     <meta property="og:image:alt" content="Ramble 66 — Route 66 Trip Planner" />
     <meta name="twitter:image" content="https://ramble66.com/images/og-big-bo.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!-- SOCIAL-META-END -->
     <!-- Theme color only - all other meta tags handled by React Helmet -->
     <meta name="theme-color" content="#1B60A3">
 
