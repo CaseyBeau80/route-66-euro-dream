@@ -7,10 +7,17 @@ import EventCard from '@/components/CentennialEventsCalendar/components/EventCar
 const EventsTeaser: React.FC = () => {
   const { events, isLoading } = useCentennialEventsWithFallback();
 
-  // Show up to 3 highlighted events, or first 3 if no highlights
+  // Exclude past events; show up to 3 highlighted upcoming/ongoing, or first 3 upcoming/ongoing
   const featuredEvents = React.useMemo(() => {
-    const highlighted = events.filter(e => e.isHighlight);
-    return (highlighted.length >= 3 ? highlighted : events).slice(0, 3);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const upcoming = events.filter(e => {
+      const end = new Date(e.dateEnd || e.dateStart);
+      end.setHours(23, 59, 59, 999);
+      return end >= today;
+    });
+    const highlighted = upcoming.filter(e => e.isHighlight);
+    return (highlighted.length >= 3 ? highlighted : upcoming).slice(0, 3);
   }, [events]);
 
   return (
