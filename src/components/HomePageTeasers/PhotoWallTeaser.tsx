@@ -78,9 +78,12 @@ const PhotoWallTeaser: React.FC = () => {
                   src={img.src}
                   alt={img.alt}
                   className="w-full h-full object-cover"
+                  width={400}
+                  height={400}
                   loading="lazy"
                   decoding="async"
                 />
+
               </div>
             ))}
           </div>
