@@ -155,8 +155,17 @@ const StatePage: React.FC = () => {
                         <Link key={item.id} to={getAttractionDetailPath(item.source_table, item.slug)}
                           className="bg-surface border-2 border-border rounded-sm overflow-hidden hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
                           {item.image_url && (
-                            <img src={item.image_url} alt={item.name} className="w-full h-36 object-cover" loading="lazy" />
+                            <img
+                              src={item.image_url}
+                              alt={`${item.name} — Route 66 in ${item.city_name}, ${stateInfo.abbreviation}`}
+                              className="w-full h-36 object-cover"
+                              width={400}
+                              height={144}
+                              loading="lazy"
+                              decoding="async"
+                            />
                           )}
+
                           <div className="p-4">
                             <h3 className="font-heading text-base text-foreground leading-snug">{item.name}</h3>
                             <p className="font-special text-xs uppercase text-muted-foreground mt-1">
