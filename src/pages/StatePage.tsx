@@ -87,8 +87,18 @@ const StatePage: React.FC = () => {
         {/* Hero */}
         <div className={`relative h-[35vh] min-h-[280px] overflow-hidden ${!heroSrc ? 'bg-gradient-to-br from-[#2C2C2C] to-[#3D2B1F]' : 'bg-[hsl(var(--foreground))]'}`}>
           {heroSrc && (
-            <img src={heroSrc} alt={heroAltText} className="w-full h-full object-cover opacity-60" loading="eager" />
+            <img
+              src={heroSrc}
+              alt={heroAltText}
+              className="w-full h-full object-cover opacity-60"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              width={1600}
+              height={560}
+            />
           )}
+
           <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--foreground)/0.8)] to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
             <nav className="flex items-center gap-1 text-xs font-special uppercase text-white/80 mb-3">
