@@ -12,7 +12,7 @@ const ContactPage = () => {
         description="Get in touch with Ramble 66—your Route 66 trip planner for routes, attractions, lodging, and trip tools along America's Mother Road."
       />
       
-      <main className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <section className="bg-route66-primary text-white py-16">
           <div className="container mx-auto px-4">
@@ -163,7 +163,7 @@ const ContactPage = () => {
             </div>
           </div>
         </section>
-      </main>
+      </div>
     </MainLayout>
   );
 };
