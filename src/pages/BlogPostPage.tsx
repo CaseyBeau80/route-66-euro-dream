@@ -105,6 +105,9 @@ const BlogPostPage: React.FC = () => {
         <script type="application/ld+json">
           {JSON.stringify(jsonLd)}
         </script>
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbJsonLd)}
+        </script>
       </Helmet>
 
       <section className="py-8 md:py-12 bg-route66-cream/30">
