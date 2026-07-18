@@ -42,6 +42,18 @@ const AttractionPage: React.FC = () => {
 
   const fallbackImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1200&q=80';
 
+  const imageAlt = `${attraction.name} — Route 66 in ${attraction.city_name}, ${stateName}`;
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://ramble66.com/' },
+      { '@type': 'ListItem', position: 2, name: stateName, item: `https://ramble66.com/${stateSlug}` },
+      { '@type': 'ListItem', position: 3, name: attraction.name, item: canonicalUrl },
+    ],
+  };
+
   return (
     <>
       <Helmet>
@@ -53,10 +65,13 @@ const AttractionPage: React.FC = () => {
         <meta property="og:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta property="og:description" content={metaDescription} />
         <meta property="og:image" content={attraction.image_url || fallbackImage} />
+        <meta property="og:image:alt" content={imageAlt} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={attraction.image_url || fallbackImage} />
+        <meta name="twitter:image:alt" content={imageAlt} />
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
       <AttractionJsonLd
         name={attraction.name}
@@ -116,6 +131,36 @@ const AttractionPage: React.FC = () => {
               <p className="font-body text-foreground leading-relaxed text-lg">{attraction.description}</p>
             </div>
           )}
+
+          {/* Visit */}
+          {(attraction.city_name || attraction.website || attraction.hours_of_operation) && (
+            <div className="bg-surface border-2 border-border rounded-sm p-5 mb-8 shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
+              <p className="font-special text-xs uppercase text-primary mb-3">Visit</p>
+              <div className="space-y-2 font-body text-sm text-foreground">
+                {attraction.city_name && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>{attraction.city_name}{attraction.state ? `, ${attraction.state}` : ''}</span>
+                  </div>
+                )}
+                {attraction.website && (
+                  <div className="flex items-start gap-2">
+                    <Globe className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <a href={attraction.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
+                      {attraction.website.replace(/^https?:\/\/(www\.)?/, '')}
+                    </a>
+                  </div>
+                )}
+                {attraction.hours_of_operation && (
+                  <div className="flex items-start gap-2">
+                    <Clock className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>{attraction.hours_of_operation}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
 
           {/* Info Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">

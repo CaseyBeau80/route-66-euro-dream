@@ -40,7 +40,7 @@ const StatePage: React.FC = () => {
     "description": stateInfo.description,
     "url": canonicalUrl,
     "numberOfItems": attractions.length,
-    "itemListElement": attractions.slice(0, 20).map((a, i) => ({
+    "itemListElement": attractions.slice(0, 25).map((a, i) => ({
       "@type": "ListItem",
       "position": i + 1,
       "item": {
@@ -50,6 +50,15 @@ const StatePage: React.FC = () => {
         ...(a.description && { "description": a.description.substring(0, 100) }),
       },
     })),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ramble66.com/" },
+      { "@type": "ListItem", "position": 2, "name": stateInfo.name, "item": canonicalUrl },
+    ],
   };
 
   const heroSrc = heroImageUrl || null;
@@ -70,6 +79,8 @@ const StatePage: React.FC = () => {
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
+
       </Helmet>
 
       <div className="min-h-screen bg-background">
