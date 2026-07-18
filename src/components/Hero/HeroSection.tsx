@@ -24,14 +24,18 @@ const HeroSection: React.FC = () => {
     <>
       <section className="relative w-full overflow-hidden" style={{ aspectRatio: 'var(--hero-ratio)', maxHeight: '85vh' }}>
         {/* Background video */}
-        <video 
+        <video
           src="/videos/hero-video.mp4"
+          poster="/images/hero-poster.jpg"
+          preload="metadata"
           autoPlay
           loop
           muted
           playsInline
+          aria-hidden="true"
           className="absolute inset-0 w-full h-full object-cover"
         />
+
         {/* Overlay for text readability */}
         <div className="absolute inset-0 bg-black/30"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
