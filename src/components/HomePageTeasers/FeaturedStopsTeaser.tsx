@@ -92,11 +92,14 @@ const FeaturedStopsTeaser: React.FC = () => {
                     {stop.image_url ? (
                       <img
                         src={stop.image_url}
-                        alt={stop.name}
+                        alt={`${stop.name} — Route 66 in ${stop.city_name}, ${stop.state}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        width={400}
+                        height={300}
                         loading="lazy"
                         decoding="async"
                       />
+
                     ) : (
                       <div className="w-full h-full bg-route66-cream flex items-center justify-center">
                         <MapPin className="h-8 w-8 text-route66-brown/30" />
