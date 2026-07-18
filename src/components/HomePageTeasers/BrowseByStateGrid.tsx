@@ -84,16 +84,26 @@ const BrowseByStateGrid: React.FC = () => {
             <Link key={state.slug} to={`/${state.slug}`} className="group">
               <Card className="overflow-hidden border-2 border-route66-border hover:border-route66-red bg-white shadow-[4px_4px_0_0_rgba(107,76,56,0.15)] hover:shadow-[2px_2px_0_0_rgba(192,57,43,0.2)] transition-all duration-200 rounded-sm h-full">
                 <div className="aspect-[16/10] overflow-hidden relative">
-                  <img
-                    src={state.image}
-                    alt={`Route 66 through ${state.name}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    width={400}
-                    height={250}
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  {(() => {
+                    const base = state.image.replace(/&w=\d+/, '');
+                    const src400 = `${base}&w=400`;
+                    const srcSet = [400, 800, 1200].map(w => `${base}&w=${w} ${w}w`).join(', ');
+                    return (
+                      <img
+                        src={src400}
+                        srcSet={srcSet}
+                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                        alt={`Route 66 through ${state.name} — ${state.teaser}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        width={400}
+                        height={250}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    );
+                  })()}
                 </div>
+
                 <CardContent className="p-3">
                   <h3 className="font-route66 text-lg text-route66-blue group-hover:text-route66-red transition-colors">
                     {state.name}

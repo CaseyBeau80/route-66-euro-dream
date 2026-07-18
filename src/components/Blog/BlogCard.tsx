@@ -67,9 +67,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
                 src={featuredImageUrl}
                 alt={title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                width={1200}
+                height={675}
                 loading="lazy"
+                decoding="async"
                 onError={() => setImgError(true)}
               />
+
             ) : (
               <ImagePlaceholder className="w-full h-full" />
             )}
@@ -142,9 +146,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
               src={featuredImageUrl}
               alt={title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              width={800}
+              height={534}
               loading="lazy"
+              decoding="async"
               onError={() => setImgError(true)}
             />
+
           ) : (
             <ImagePlaceholder className="w-full h-full" />
           )}

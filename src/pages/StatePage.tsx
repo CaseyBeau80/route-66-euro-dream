@@ -87,8 +87,18 @@ const StatePage: React.FC = () => {
         {/* Hero */}
         <div className={`relative h-[35vh] min-h-[280px] overflow-hidden ${!heroSrc ? 'bg-gradient-to-br from-[#2C2C2C] to-[#3D2B1F]' : 'bg-[hsl(var(--foreground))]'}`}>
           {heroSrc && (
-            <img src={heroSrc} alt={heroAltText} className="w-full h-full object-cover opacity-60" loading="eager" />
+            <img
+              src={heroSrc}
+              alt={heroAltText}
+              className="w-full h-full object-cover opacity-60"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              width={1600}
+              height={560}
+            />
           )}
+
           <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--foreground)/0.8)] to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
             <nav className="flex items-center gap-1 text-xs font-special uppercase text-white/80 mb-3">
@@ -145,8 +155,17 @@ const StatePage: React.FC = () => {
                         <Link key={item.id} to={getAttractionDetailPath(item.source_table, item.slug)}
                           className="bg-surface border-2 border-border rounded-sm overflow-hidden hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
                           {item.image_url && (
-                            <img src={item.image_url} alt={item.name} className="w-full h-36 object-cover" loading="lazy" />
+                            <img
+                              src={item.image_url}
+                              alt={`${item.name} — Route 66 in ${item.city_name}, ${stateInfo.abbreviation}`}
+                              className="w-full h-36 object-cover"
+                              width={400}
+                              height={144}
+                              loading="lazy"
+                              decoding="async"
+                            />
                           )}
+
                           <div className="p-4">
                             <h3 className="font-heading text-base text-foreground leading-snug">{item.name}</h3>
                             <p className="font-special text-xs uppercase text-muted-foreground mt-1">

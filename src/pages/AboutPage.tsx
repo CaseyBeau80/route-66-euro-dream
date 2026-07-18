@@ -13,7 +13,7 @@ const AboutPage = () => {
         description="Learn about the team behind Ramble 66 and our mission to help you plan the perfect Route 66 road trip from Chicago to Santa Monica."
       />
       
-      <main className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <section className="bg-route66-primary text-white py-8">
           <div className="container mx-auto px-4">
@@ -144,7 +144,7 @@ const AboutPage = () => {
             </div>
           </div>
         </section>
-      </main>
+      </div>
     </MainLayout>
   );
 };
