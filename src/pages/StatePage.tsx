@@ -79,6 +79,8 @@ const StatePage: React.FC = () => {
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
+
       </Helmet>
 
       <div className="min-h-screen bg-background">
