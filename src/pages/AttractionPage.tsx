@@ -91,10 +91,15 @@ const AttractionPage: React.FC = () => {
         <div className="relative h-[40vh] min-h-[300px] overflow-hidden">
           <img
             src={attraction.image_url || fallbackImage}
-            alt={attraction.name}
+            alt={imageAlt}
             className="w-full h-full object-cover"
             loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            width={1600}
+            height={640}
           />
+
           <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--foreground)/0.7)] to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
             {/* Breadcrumb */}
