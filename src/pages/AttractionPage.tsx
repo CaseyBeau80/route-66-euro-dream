@@ -132,6 +132,36 @@ const AttractionPage: React.FC = () => {
             </div>
           )}
 
+          {/* Visit */}
+          {(attraction.city_name || attraction.website || attraction.hours_of_operation) && (
+            <div className="bg-surface border-2 border-border rounded-sm p-5 mb-8 shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
+              <p className="font-special text-xs uppercase text-primary mb-3">Visit</p>
+              <div className="space-y-2 font-body text-sm text-foreground">
+                {attraction.city_name && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>{attraction.city_name}{attraction.state ? `, ${attraction.state}` : ''}</span>
+                  </div>
+                )}
+                {attraction.website && (
+                  <div className="flex items-start gap-2">
+                    <Globe className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <a href={attraction.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline break-all">
+                      {attraction.website.replace(/^https?:\/\/(www\.)?/, '')}
+                    </a>
+                  </div>
+                )}
+                {attraction.hours_of_operation && (
+                  <div className="flex items-start gap-2">
+                    <Clock className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <span>{attraction.hours_of_operation}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+
           {/* Info Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {attraction.website && (
