@@ -64,6 +64,16 @@ const BlogPostPage: React.FC = () => {
     }
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ramble66.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://ramble66.com/blog" },
+      { "@type": "ListItem", "position": 3, "name": post.title, "item": `https://ramble66.com/blog/${post.slug}` }
+    ]
+  };
+
   return (
     <MainLayout>
       <Helmet>
