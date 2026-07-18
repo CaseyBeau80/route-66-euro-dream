@@ -42,6 +42,18 @@ const AttractionPage: React.FC = () => {
 
   const fallbackImage = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1200&q=80';
 
+  const imageAlt = `${attraction.name} — Route 66 in ${attraction.city_name}, ${stateName}`;
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://ramble66.com/' },
+      { '@type': 'ListItem', position: 2, name: stateName, item: `https://ramble66.com/${stateSlug}` },
+      { '@type': 'ListItem', position: 3, name: attraction.name, item: canonicalUrl },
+    ],
+  };
+
   return (
     <>
       <Helmet>
@@ -53,10 +65,13 @@ const AttractionPage: React.FC = () => {
         <meta property="og:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta property="og:description" content={metaDescription} />
         <meta property="og:image" content={attraction.image_url || fallbackImage} />
+        <meta property="og:image:alt" content={imageAlt} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={attraction.image_url || fallbackImage} />
+        <meta name="twitter:image:alt" content={imageAlt} />
+        <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
       <AttractionJsonLd
         name={attraction.name}
