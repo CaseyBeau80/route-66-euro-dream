@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import MainLayout from '@/components/MainLayout';
 import BlogPostContent from '@/components/Blog/BlogPostContent';
@@ -9,11 +9,15 @@ import { useBlogPost } from '@/components/Blog/hooks/useBlogPost';
 
 const BlogPostPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { post, isLoading, error, relatedPosts } = useBlogPost(slug || '');
+  const { post, isLoading, error, notFound, relatedPosts, refetch } = useBlogPost(slug || '');
+  const canonicalUrl = `https://ramble66.com/blog/${slug}`;
 
   if (isLoading) {
     return (
       <MainLayout>
+        <Helmet>
+          <link rel="canonical" href={canonicalUrl} />
+        </Helmet>
         <div className="container mx-auto px-4 py-16">
           <div className="max-w-4xl mx-auto">
             <div className="animate-pulse space-y-6">
@@ -32,9 +36,67 @@ const BlogPostPage: React.FC = () => {
     );
   }
 
-  if (error || !post) {
-    return <Navigate to="/blog" replace />;
+  // Definitive: no such published post. Dead end — noindex, self-referencing canonical.
+  if (notFound) {
+    return (
+      <MainLayout>
+        <Helmet>
+          <title>Post Not Found | Ramble66 - Route 66 Adventures</title>
+          <meta name="robots" content="noindex" />
+          <link rel="canonical" href={canonicalUrl} />
+        </Helmet>
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-xl mx-auto text-center">
+            <h1 className="font-playfair text-3xl text-route66-text mb-4">Post Not Found</h1>
+            <p className="font-libre text-route66-text mb-6">
+              We couldn't find that story. It may have moved or never existed.
+            </p>
+            <Link
+              to="/blog"
+              className="inline-flex items-center gap-2 bg-route66-primary hover:bg-route66-primary-hover text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-border transition-colors"
+            >
+              Back to the Blog
+            </Link>
+          </div>
+        </div>
+      </MainLayout>
+    );
   }
+
+  // Transient failure: the post is real, we just couldn't load it. Never noindex, never redirect.
+  if (error || !post) {
+    return (
+      <MainLayout>
+        <Helmet>
+          <title>Couldn't Load This Post | Ramble66 - Route 66 Adventures</title>
+          <link rel="canonical" href={canonicalUrl} />
+        </Helmet>
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-xl mx-auto text-center">
+            <h1 className="font-playfair text-3xl text-route66-text mb-4">Couldn't Load This Post</h1>
+            <p className="font-libre text-route66-text mb-6">
+              Something went sideways on the road. Give it another try in a moment.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={refetch}
+                className="inline-flex items-center gap-2 bg-route66-primary hover:bg-route66-primary-hover text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-border transition-colors"
+              >
+                Try Again
+              </button>
+              <Link
+                to="/blog"
+                className="inline-flex items-center gap-2 font-special-elite px-6 py-3 rounded-sm border-2 border-route66-border text-route66-text transition-colors"
+              >
+                Back to the Blog
+              </Link>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
 
   // JSON-LD structured data with Big Bo Ramble as author
   const jsonLd = {
