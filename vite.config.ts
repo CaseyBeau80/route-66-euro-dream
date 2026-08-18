@@ -45,21 +45,25 @@ const sitemapPlugin = () => {
     async closeBundle() {
       try {
         // Fetch all dynamic slugs/ids from external Supabase in parallel
-        const [attractions, hiddenGems, blogPosts] = await Promise.all([
+        const [attractions, hiddenGems, blogPosts, upcomingEvents, nativeHeritage] = await Promise.all([
           fetchTable('attractions', 'slug'),
           fetchTable('hidden_gems', 'slug'),
           fetchTable('blog_posts', 'slug', 'is_published=eq.true'),
+          fetchTable('upcoming_events', 'event_id'),
+          fetchTable('native_american_sites', 'slug'),
         ]);
 
         const xml = generateSitemapFile({
-          attractionSlugs: attractions.map((r: any) => r.slug),
-          hiddenGemSlugs: hiddenGems.map((r: any) => r.slug),
-          blogSlugs: blogPosts.map((r: any) => r.slug),
+          attractionSlugs: attractions.map((r: any) => r.slug).filter(Boolean),
+          hiddenGemSlugs: hiddenGems.map((r: any) => r.slug).filter(Boolean),
+          blogSlugs: blogPosts.map((r: any) => r.slug).filter(Boolean),
+          eventIds: upcomingEvents.map((r: any) => r.event_id).filter(Boolean),
+          nativeHeritageSlugs: nativeHeritage.map((r: any) => r.slug).filter(Boolean),
         });
 
         const target = path.resolve(outDir, 'sitemap.xml');
         writeFileSync(target, xml, 'utf8');
-        console.log(`[sitemap-plugin] Wrote ${target} with ${attractions.length} attractions, ${hiddenGems.length} hidden gems, ${blogPosts.length} blog posts`);
+        console.log(`[sitemap-plugin] Wrote ${target} with ${attractions.length} attractions, ${hiddenGems.length} hidden gems, ${blogPosts.length} blog posts, ${upcomingEvents.length} events, ${nativeHeritage.length} native heritage sites`);
 
         // Ensure robots.txt is present in final build output
         const robotsIn = path.resolve('public', 'robots.txt');
