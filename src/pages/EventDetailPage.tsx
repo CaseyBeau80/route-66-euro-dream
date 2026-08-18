@@ -47,20 +47,30 @@ const toFrontend = (e: DbEvent): CentennialEvent => ({
 
 const EventDetailPage: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
+  const location = useLocation();
+  const pathCanonicalUrl = `https://ramble66.com${location.pathname}`;
 
-  const { data: event, isLoading, error } = useQuery({
+  const { data: event, isLoading, isFetching, error, isSuccess, refetch } = useQuery({
     queryKey: ['event-detail', eventId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('centennial_events')
         .select('*')
         .eq('event_id', eventId!)
-        .single();
+        // maybeSingle so "no row" is a definitive null, not a thrown PGRST116 error
+        .maybeSingle();
       if (error) throw error;
+      if (!data) return null;
       return toFrontend(data as DbEvent);
     },
     enabled: !!eventId,
+    // Retry transient failures: 3 attempts total with ~500ms then ~1500ms backoff
+    retry: 2,
+    retryDelay: (attemptIndex) => (attemptIndex === 0 ? 500 : 1500),
   });
+
+  // Definitive: the query succeeded and returned no row.
+  const notFound = isSuccess && event === null;
 
   const { data: nearbyEvents } = useQuery({
     queryKey: ['nearby-events', event?.state, eventId],
@@ -78,26 +88,32 @@ const EventDetailPage: React.FC = () => {
     enabled: !!event,
   });
 
-  if (isLoading) {
+  // isFetching keeps the spinner up through retry backoff instead of flashing an error.
+  if (isLoading || (isFetching && !event && !notFound)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+        <Helmet>
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (error) {
+  // Definitive: no such event. Dead end — noindex, self-referencing canonical.
+  if (notFound) {
     return (
       <MainLayout>
         <Helmet>
-          <title>Event Temporarily Unavailable – Ramble 66</title>
-          <meta name="robots" content="index, follow" />
+          <title>Event Not Found – Ramble 66</title>
+          <meta name="robots" content="noindex" />
+          <link rel="canonical" href={pathCanonicalUrl} />
         </Helmet>
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="max-w-lg text-center bg-route66-surface border-2 border-route66-border rounded-sm p-8" style={{ boxShadow: '4px 4px 0 hsl(var(--route66-border))' }}>
-            <h1 className="font-playfair text-3xl text-route66-text mb-4">Event Temporarily Unavailable</h1>
+            <h1 className="font-playfair text-3xl text-route66-text mb-4">Event Not Found</h1>
             <p className="font-libre text-route66-text mb-6">
-              We're having trouble loading this event right now. Please try again in a moment.
+              We couldn't find that event. It may have moved or never existed.
             </p>
             <Link
               to="/events"
@@ -112,9 +128,42 @@ const EventDetailPage: React.FC = () => {
     );
   }
 
-  if (!event) {
-    return <NotFound />;
+  // Transient failure: the event is real, we just couldn't load it. Never noindex.
+  if (error || !event) {
+    return (
+      <MainLayout>
+        <Helmet>
+          <title>Event Temporarily Unavailable – Ramble 66</title>
+          <meta name="robots" content="index, follow" />
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
+        <div className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="max-w-lg text-center bg-route66-surface border-2 border-route66-border rounded-sm p-8" style={{ boxShadow: '4px 4px 0 hsl(var(--route66-border))' }}>
+            <h1 className="font-playfair text-3xl text-route66-text mb-4">Event Temporarily Unavailable</h1>
+            <p className="font-libre text-route66-text mb-6">
+              We're having trouble loading this event right now. Please try again in a moment.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                onClick={() => refetch()}
+                className="inline-flex items-center gap-2 bg-route66-primary hover:bg-route66-primary-hover text-white font-special-elite px-6 py-3 rounded-sm border-2 border-route66-border transition-colors"
+              >
+                Try Again
+              </button>
+              <Link
+                to="/events"
+                className="inline-flex items-center gap-2 font-special-elite px-6 py-3 rounded-sm border-2 border-route66-border text-route66-text transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Events
+              </Link>
+            </div>
+          </div>
+        </div>
+      </MainLayout>
+    );
   }
+
 
   const stateInfo = stateMetadata[event.state] || { name: event.state, order: 99, color: 'bg-gray-500' };
   const categoryInfo = categoryMetadata[event.category] || { label: 'Event', emoji: '📅' };
