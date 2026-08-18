@@ -1,12 +1,11 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { stateMetadata, categoryMetadata, CentennialEvent } from '@/data/centennialEventsData';
 import { formatSmartDateDisplay, getSmartCountdownText } from '@/components/CentennialEventsCalendar/utils/eventCalendarHelpers';
 import { Calendar, MapPin, ExternalLink, ArrowLeft, ChevronRight, Clock, Star, Award } from 'lucide-react';
-import NotFound from './NotFound';
 import MainLayout from '@/components/MainLayout';
 
 interface DbEvent {
