@@ -45,11 +45,18 @@ export class SitemapGenerator {
       { loc: '/', lastmod: today, changefreq: 'weekly', priority: 1.0 },
       { loc: '/blog', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/attractions', lastmod: today, changefreq: 'weekly', priority: 0.9 },
-      
+      { loc: '/events', lastmod: today, changefreq: 'daily', priority: 0.9 },
+      { loc: '/planner', lastmod: today, changefreq: 'weekly', priority: 0.9 },
+      { loc: '/explore', lastmod: today, changefreq: 'weekly', priority: 0.8 },
       { loc: '/hidden-gems', lastmod: today, changefreq: 'weekly', priority: 0.8 },
+      { loc: '/storymap', lastmod: today, changefreq: 'monthly', priority: 0.6 },
+      { loc: '/faq', lastmod: today, changefreq: 'monthly', priority: 0.6 },
+      { loc: '/trivia', lastmod: today, changefreq: 'monthly', priority: 0.5 },
+      { loc: '/photo-wall', lastmod: today, changefreq: 'weekly', priority: 0.5 },
       { loc: '/about', lastmod: today, changefreq: 'yearly', priority: 0.6 },
       { loc: '/contact', lastmod: today, changefreq: 'yearly', priority: 0.5 },
       { loc: '/terms', lastmod: today, changefreq: 'yearly', priority: 0.4 },
+      { loc: '/privacy', lastmod: today, changefreq: 'yearly', priority: 0.3 },
       { loc: '/illinois', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/missouri', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/kansas', lastmod: today, changefreq: 'weekly', priority: 0.9 },
@@ -80,6 +87,20 @@ export class SitemapGenerator {
     const today = new Date().toISOString().split('T')[0];
     slugs.filter(isValidSlug).forEach(slug => {
       this.addUrl({ loc: `/blog/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
+    });
+  }
+
+  addEventRoutes(eventIds: string[]): void {
+    const today = new Date().toISOString().split('T')[0];
+    eventIds.filter(isValidSlug).forEach(eventId => {
+      this.addUrl({ loc: `/events/${eventId}`, lastmod: today, changefreq: 'daily', priority: 0.6 });
+    });
+  }
+
+  addNativeHeritageRoutes(slugs: string[]): void {
+    const today = new Date().toISOString().split('T')[0];
+    slugs.filter(isValidSlug).forEach(slug => {
+      this.addUrl({ loc: `/native-heritage/${slug}`, lastmod: today, changefreq: 'weekly', priority: 0.7 });
     });
   }
 
@@ -118,6 +139,8 @@ export interface SitemapData {
   hiddenGemSlugs?: string[];
   blogSlugs?: string[];
   tripCodes?: string[];
+  eventIds?: string[];
+  nativeHeritageSlugs?: string[];
 }
 
 export const generateSitemapFile = (data: SitemapData = {}): string => {
@@ -127,5 +150,7 @@ export const generateSitemapFile = (data: SitemapData = {}): string => {
   if (data.hiddenGemSlugs?.length) generator.addHiddenGemRoutes(data.hiddenGemSlugs);
   if (data.blogSlugs?.length) generator.addBlogRoutes(data.blogSlugs);
   if (data.tripCodes?.length) generator.addTripRoutes(data.tripCodes);
+  if (data.eventIds?.length) generator.addEventRoutes(data.eventIds);
+  if (data.nativeHeritageSlugs?.length) generator.addNativeHeritageRoutes(data.nativeHeritageSlugs);
   return generator.generateXML();
 };
