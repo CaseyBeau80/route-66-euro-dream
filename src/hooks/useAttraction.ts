@@ -1,20 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { AttractionData, getAttractionDetailPath } from '@/types/attractionDetail';
+
+const RETRY_DELAYS = [500, 1500]; // 3 attempts total
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function useAttraction(slug: string | undefined) {
   const [attraction, setAttraction] = useState<AttractionData | null>(null);
   const [nearbyAttractions, setNearbyAttractions] = useState<AttractionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  /** Transient failure (network/exception/Supabase error) after retries exhausted */
   const [error, setError] = useState<string | null>(null);
+  /** Definitive: query succeeded but no row matches this slug */
+  const [notFound, setNotFound] = useState(false);
+  const [attemptKey, setAttemptKey] = useState(0);
+
+  const refetch = useCallback(() => setAttemptKey((k) => k + 1), []);
 
   useEffect(() => {
     if (!slug) return;
+    let cancelled = false;
 
-    const fetchAttraction = async () => {
-      setIsLoading(true);
-      setError(null);
-
+    const runAttempt = async (): Promise<'ok' | 'not-found' | 'retry'> => {
       try {
         // Query all 4 tables in parallel
         const [attractions, hiddenGems, nativeSites, driveIns] = await Promise.all([
@@ -66,10 +73,22 @@ export function useAttraction(slug: string | undefined) {
           };
         }
 
+        const queryError =
+          attractions.error || hiddenGems.error || nativeSites.error || driveIns.error;
+
         if (!found) {
-          setError('Attraction not found');
+          if (queryError) {
+            console.error('Error fetching attraction:', queryError);
+            return 'retry';
+          }
+          if (cancelled) return 'ok';
+          // Definitive answer: nothing matches this slug. Never retry.
           setAttraction(null);
+          setNearbyAttractions([]);
+          setNotFound(true);
+          return 'not-found';
         } else {
+          if (cancelled) return 'ok';
           setAttraction(found);
           const [nearbyAttractionsResult, nearbyHiddenGemsResult] = await Promise.all([
             supabase
@@ -124,21 +143,53 @@ export function useAttraction(slug: string | undefined) {
             detailPath: getAttractionDetailPath('hidden_gems', n.slug),
           }));
           
+          if (cancelled) return 'ok';
           setNearbyAttractions(
             [...mappedNearbyAttractions, ...mappedNearbyHiddenGems]
               .filter((item) => item.slug && item.slug !== slug)
               .slice(0, 3)
           );
         }
+        return 'ok';
       } catch (err) {
-        setError('Failed to load attraction');
-      } finally {
-        setIsLoading(false);
+        console.error('Unexpected error fetching attraction:', err);
+        return 'retry';
       }
     };
 
-    fetchAttraction();
-  }, [slug]);
+    const fetchAttraction = async () => {
+      setIsLoading(true);
+      setError(null);
+      setNotFound(false);
 
-  return { attraction, nearbyAttractions, isLoading, error };
+      for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+        if (cancelled) return;
+
+        const result = await runAttempt();
+        if (cancelled) return;
+
+        if (result !== 'retry') {
+          setIsLoading(false);
+          return;
+        }
+
+        // Keep isLoading true while backing off so the spinner stays visible.
+        if (attempt < RETRY_DELAYS.length) {
+          await sleep(RETRY_DELAYS[attempt]);
+        }
+      }
+
+      if (cancelled) return;
+      setError('Failed to load attraction');
+      setIsLoading(false);
+    };
+
+    fetchAttraction();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, attemptKey]);
+
+  return { attraction, nearbyAttractions, isLoading, error, notFound, refetch };
 }

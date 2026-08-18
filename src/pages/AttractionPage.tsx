@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAttraction } from '@/hooks/useAttraction';
 import { stateAbbrMap } from '@/data/route66States';
@@ -9,19 +9,31 @@ import { MapPin, Globe, Clock, DollarSign, Tag, ArrowLeft, ChevronRight } from '
 
 const AttractionPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { attraction, nearbyAttractions, isLoading, error } = useAttraction(slug);
+  const location = useLocation();
+  const { attraction, nearbyAttractions, isLoading, error, notFound, refetch } = useAttraction(slug);
+  // Derived from the actual path so /attractions/:slug and /hidden-gems/:slug each self-reference.
+  const pathCanonicalUrl = `https://ramble66.com${location.pathname}`;
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+        <Helmet>
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (error || !attraction) {
+  // Definitive: no such record. Dead end — noindex, self-referencing canonical.
+  if (notFound) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
+        <Helmet>
+          <title>Attraction Not Found | Ramble 66</title>
+          <meta name="robots" content="noindex" />
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
         <h1 className="font-heading text-3xl text-foreground">Attraction Not Found</h1>
         <p className="text-muted-foreground font-body">This stop along the Mother Road doesn't exist — yet.</p>
         <Link to="/" className="font-special text-sm uppercase text-primary hover:text-primary/80 border-2 border-primary px-4 py-2 rounded-sm shadow-[4px_4px_0_hsl(var(--primary)/0.3)]">
@@ -30,6 +42,32 @@ const AttractionPage: React.FC = () => {
       </div>
     );
   }
+
+  // Transient failure: the record may be real, we just couldn't load it. Never noindex.
+  if (error || !attraction) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
+        <Helmet>
+          <title>Couldn't Load This Stop | Ramble 66</title>
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
+        <h1 className="font-heading text-3xl text-foreground">Couldn't Load This Stop</h1>
+        <p className="text-muted-foreground font-body">Something went sideways on the road. Give it another try in a moment.</p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={refetch}
+            className="font-special text-sm uppercase text-primary hover:text-primary/80 border-2 border-primary px-4 py-2 rounded-sm shadow-[4px_4px_0_hsl(var(--primary)/0.3)]"
+          >
+            Try Again
+          </button>
+          <Link to="/" className="font-special text-sm uppercase text-muted-foreground hover:text-foreground border-2 border-border px-4 py-2 rounded-sm">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
 
   const stateInfo = stateAbbrMap.get(attraction.state);
   const stateSlug = stateInfo?.slug || attraction.state.toLowerCase();

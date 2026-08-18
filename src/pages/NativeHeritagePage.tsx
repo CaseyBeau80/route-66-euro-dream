@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';
 import { stateAbbrMap } from '@/data/route66States';
 import { getAttractionDetailPath, AttractionSourceTable } from '@/types/attractionDetail';
 import AttractionJsonLd from '@/components/seo/AttractionJsonLd';
 import { MapPin, Globe, ArrowLeft, ChevronRight, Feather, Landmark } from 'lucide-react';
+
 
 interface NativeHeritageSite {
   id: string;
@@ -31,27 +32,81 @@ interface NearbyStop {
   source_table: AttractionSourceTable;
 }
 
+const RETRY_DELAYS = [500, 1500]; // 3 attempts total
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const NativeHeritagePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const [site, setSite] = useState<NativeHeritageSite | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  /** Transient failure (network/exception/Supabase error) after retries exhausted */
   const [error, setError] = useState(false);
+  /** Definitive: query succeeded but no row matches this slug */
+  const [notFound, setNotFound] = useState(false);
+  const [attemptKey, setAttemptKey] = useState(0);
   const [nearbyStops, setNearbyStops] = useState<NearbyStop[]>([]);
+
+  const refetch = useCallback(() => setAttemptKey((k) => k + 1), []);
 
   useEffect(() => {
     if (!slug) return;
-    setIsLoading(true);
-    supabase
-      .from('native_american_sites')
-      .select('id, name, slug, description, city_name, state, latitude, longitude, image_url, website, tribe_nation, site_type, tags')
-      .eq('slug', slug)
-      .maybeSingle()
-      .then(({ data, error: err }) => {
-        if (err || !data) setError(true);
-        setSite(data);
-        setIsLoading(false);
-      });
-  }, [slug]);
+    let cancelled = false;
+
+    const fetchSite = async () => {
+      setIsLoading(true);
+      setError(false);
+      setNotFound(false);
+
+      for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+        if (cancelled) return;
+
+        try {
+          const { data, error: err } = await supabase
+            .from('native_american_sites')
+            .select('id, name, slug, description, city_name, state, latitude, longitude, image_url, website, tribe_nation, site_type, tags')
+            .eq('slug', slug)
+            .maybeSingle();
+
+          if (cancelled) return;
+
+          if (err) {
+            // Transient / server-side failure — retry
+            console.error(`Error fetching heritage site (attempt ${attempt + 1}):`, err);
+          } else if (!data) {
+            // Definitive answer: the site does not exist. Never retry.
+            setSite(null);
+            setNotFound(true);
+            setIsLoading(false);
+            return;
+          } else {
+            setSite(data);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          if (cancelled) return;
+          console.error(`Unexpected error fetching heritage site (attempt ${attempt + 1}):`, e);
+        }
+
+        // Keep isLoading true while backing off so the spinner stays visible.
+        if (attempt < RETRY_DELAYS.length) {
+          await sleep(RETRY_DELAYS[attempt]);
+        }
+      }
+
+      if (cancelled) return;
+      setError(true);
+      setIsLoading(false);
+    };
+
+    fetchSite();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, attemptKey]);
+
 
   // Fetch nearby stops once site is loaded
   useEffect(() => {
@@ -85,17 +140,28 @@ const NativeHeritagePage: React.FC = () => {
     });
   }, [site]);
 
+  const pathCanonicalUrl = `https://ramble66.com${location.pathname}`;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+        <Helmet>
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (error || !site) {
+  // Definitive: no such record. Dead end — noindex, self-referencing canonical.
+  if (notFound) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
+        <Helmet>
+          <title>Heritage Site Not Found | Ramble 66</title>
+          <meta name="robots" content="noindex" />
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
         <h1 className="font-heading text-3xl text-foreground">Heritage Site Not Found</h1>
         <p className="text-muted-foreground font-body">This stop along the Mother Road doesn't exist — yet.</p>
         <Link to="/" className="font-special text-sm uppercase text-primary hover:text-primary/80 border-2 border-primary px-4 py-2 rounded-sm shadow-[4px_4px_0_hsl(var(--primary)/0.3)]">
@@ -104,6 +170,32 @@ const NativeHeritagePage: React.FC = () => {
       </div>
     );
   }
+
+  // Transient failure: the record may be real, we just couldn't load it. Never noindex.
+  if (error || !site) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-4">
+        <Helmet>
+          <title>Couldn't Load This Heritage Site | Ramble 66</title>
+          <link rel="canonical" href={pathCanonicalUrl} />
+        </Helmet>
+        <h1 className="font-heading text-3xl text-foreground">Couldn't Load This Heritage Site</h1>
+        <p className="text-muted-foreground font-body">Something went sideways on the road. Give it another try in a moment.</p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={refetch}
+            className="font-special text-sm uppercase text-primary hover:text-primary/80 border-2 border-primary px-4 py-2 rounded-sm shadow-[4px_4px_0_hsl(var(--primary)/0.3)]"
+          >
+            Try Again
+          </button>
+          <Link to="/" className="font-special text-sm uppercase text-muted-foreground hover:text-foreground border-2 border-border px-4 py-2 rounded-sm">
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
 
   const stateInfo = site.state ? stateAbbrMap.get(site.state) : undefined;
   const stateSlug = stateInfo?.slug || (site.state?.toLowerCase() ?? '');
