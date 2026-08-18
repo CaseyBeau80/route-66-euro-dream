@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/lib/supabase';
 import { stateAbbrMap } from '@/data/route66States';
 import { getAttractionDetailPath, AttractionSourceTable } from '@/types/attractionDetail';
 import AttractionJsonLd from '@/components/seo/AttractionJsonLd';
 import { MapPin, Globe, ArrowLeft, ChevronRight, Feather, Landmark } from 'lucide-react';
+
 
 interface NativeHeritageSite {
   id: string;
