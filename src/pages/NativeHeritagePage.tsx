@@ -32,27 +32,81 @@ interface NearbyStop {
   source_table: AttractionSourceTable;
 }
 
+const RETRY_DELAYS = [500, 1500]; // 3 attempts total
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const NativeHeritagePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const [site, setSite] = useState<NativeHeritageSite | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  /** Transient failure (network/exception/Supabase error) after retries exhausted */
   const [error, setError] = useState(false);
+  /** Definitive: query succeeded but no row matches this slug */
+  const [notFound, setNotFound] = useState(false);
+  const [attemptKey, setAttemptKey] = useState(0);
   const [nearbyStops, setNearbyStops] = useState<NearbyStop[]>([]);
+
+  const refetch = useCallback(() => setAttemptKey((k) => k + 1), []);
 
   useEffect(() => {
     if (!slug) return;
-    setIsLoading(true);
-    supabase
-      .from('native_american_sites')
-      .select('id, name, slug, description, city_name, state, latitude, longitude, image_url, website, tribe_nation, site_type, tags')
-      .eq('slug', slug)
-      .maybeSingle()
-      .then(({ data, error: err }) => {
-        if (err || !data) setError(true);
-        setSite(data);
-        setIsLoading(false);
-      });
-  }, [slug]);
+    let cancelled = false;
+
+    const fetchSite = async () => {
+      setIsLoading(true);
+      setError(false);
+      setNotFound(false);
+
+      for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+        if (cancelled) return;
+
+        try {
+          const { data, error: err } = await supabase
+            .from('native_american_sites')
+            .select('id, name, slug, description, city_name, state, latitude, longitude, image_url, website, tribe_nation, site_type, tags')
+            .eq('slug', slug)
+            .maybeSingle();
+
+          if (cancelled) return;
+
+          if (err) {
+            // Transient / server-side failure — retry
+            console.error(`Error fetching heritage site (attempt ${attempt + 1}):`, err);
+          } else if (!data) {
+            // Definitive answer: the site does not exist. Never retry.
+            setSite(null);
+            setNotFound(true);
+            setIsLoading(false);
+            return;
+          } else {
+            setSite(data);
+            setIsLoading(false);
+            return;
+          }
+        } catch (e) {
+          if (cancelled) return;
+          console.error(`Unexpected error fetching heritage site (attempt ${attempt + 1}):`, e);
+        }
+
+        // Keep isLoading true while backing off so the spinner stays visible.
+        if (attempt < RETRY_DELAYS.length) {
+          await sleep(RETRY_DELAYS[attempt]);
+        }
+      }
+
+      if (cancelled) return;
+      setError(true);
+      setIsLoading(false);
+    };
+
+    fetchSite();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, attemptKey]);
+
 
   // Fetch nearby stops once site is loaded
   useEffect(() => {
