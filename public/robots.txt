@@ -1,3 +1,25 @@
 User-agent: *
 Allow: /
+Crawl-delay: 10
+Disallow: /privacy
+Disallow: /planner
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
 Sitemap: https://ramble66.com/sitemap.xml

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { track } from "@/lib/track";
 
 type EmailCaptureProps = {
   language: string;
@@ -94,6 +95,7 @@ const EmailCapture = ({ language }: EmailCaptureProps) => {
     setTimeout(() => {
       setIsSubmitting(false);
       setEmail("");
+      track("email_capture", { source: "starter_guide", language });
       toast({
         title: content.success,
       });

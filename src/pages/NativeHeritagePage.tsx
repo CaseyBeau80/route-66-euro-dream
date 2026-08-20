@@ -6,6 +6,7 @@ import { stateAbbrMap } from '@/data/route66States';
 import { getAttractionDetailPath, AttractionSourceTable } from '@/types/attractionDetail';
 import AttractionJsonLd from '@/components/seo/AttractionJsonLd';
 import { MapPin, Globe, ArrowLeft, ChevronRight, Feather, Landmark } from 'lucide-react';
+import { useDwellEvent } from '@/hooks/useEngagementTracking';
 
 
 interface NativeHeritageSite {
@@ -141,6 +142,9 @@ const NativeHeritagePage: React.FC = () => {
   }, [site]);
 
   const pathCanonicalUrl = `https://ramble66.com${location.pathname}`;
+
+  // Engagement signal: only after the real stop has been on screen for 5s.
+  useDwellEvent('stop_viewed', !!site, 5000, { slug, path: location.pathname });
 
   if (isLoading) {
     return (
