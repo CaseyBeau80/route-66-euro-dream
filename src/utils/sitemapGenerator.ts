@@ -56,7 +56,7 @@ export class SitemapGenerator {
       { loc: '/about', lastmod: today, changefreq: 'yearly', priority: 0.6 },
       { loc: '/contact', lastmod: today, changefreq: 'yearly', priority: 0.5 },
       { loc: '/terms', lastmod: today, changefreq: 'yearly', priority: 0.4 },
-      { loc: '/privacy', lastmod: today, changefreq: 'yearly', priority: 0.3 },
+
       { loc: '/illinois', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/missouri', lastmod: today, changefreq: 'weekly', priority: 0.9 },
       { loc: '/kansas', lastmod: today, changefreq: 'weekly', priority: 0.9 },
