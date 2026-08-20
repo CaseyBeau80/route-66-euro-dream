@@ -6,11 +6,15 @@ import BlogPostContent from '@/components/Blog/BlogPostContent';
 import BlogSidebar from '@/components/Blog/BlogSidebar';
 import BlogFooterBanner from '@/components/Blog/BlogFooterBanner';
 import { useBlogPost } from '@/components/Blog/hooks/useBlogPost';
+import { useScrollDepthEvent } from '@/hooks/useEngagementTracking';
 
 const BlogPostPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { post, isLoading, error, notFound, relatedPosts, refetch } = useBlogPost(slug || '');
   const canonicalUrl = `https://ramble66.com/blog/${slug}`;
+
+  // Engagement signal: only once the reader scrolls past half the post.
+  useScrollDepthEvent('blog_read', !!post, 0.5, { slug });
 
   if (isLoading) {
     return (
