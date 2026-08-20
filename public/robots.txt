@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 Crawl-delay: 10
 Disallow: /privacy
-Disallow: /planner
 
 User-agent: GPTBot
 Disallow: /
