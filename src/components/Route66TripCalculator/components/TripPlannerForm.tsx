@@ -7,6 +7,7 @@ import { useBlockingDayValidation } from '../../TripCalculator/hooks/useBlocking
 import LocationSelectionSection from './LocationSelectionSection';
 import TripDetailsSection from './TripDetailsSection';
 import ActionButtonsSection from './ActionButtonsSection';
+import { track } from '@/lib/track';
 
 interface TripPlannerFormProps {
   formData: TripFormData;
@@ -49,8 +50,32 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
     isFormValid
   });
 
+  // Fires "planner_started" once, on the first real interaction with the planner.
+  const plannerStarted = React.useRef(false);
+  const markPlannerStarted = (trigger: string) => {
+    if (plannerStarted.current) return;
+    plannerStarted.current = true;
+    track('planner_started', { trigger });
+  };
+
+  const handleLocationChange = (type: 'start' | 'end', location: string) => {
+    if (location) markPlannerStarted(`${type}_location`);
+    onLocationChange(type, location);
+  };
+
+  const handleTravelDaysChange = (days: number) => {
+    markPlannerStarted('travel_days');
+    onTravelDaysChange(days);
+  };
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (date) markPlannerStarted('start_date');
+    onStartDateChange(date);
+  };
+
   const handlePlanTrip = async () => {
     console.log('🚀 TripPlannerForm: Plan trip button clicked (NO BLOCKING)');
+    markPlannerStarted('plan_trip_cta');
     
     try {
       // Use adjusted data if there was an adjustment, otherwise use original data
