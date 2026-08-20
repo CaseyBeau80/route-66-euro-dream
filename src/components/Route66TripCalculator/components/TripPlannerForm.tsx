@@ -127,7 +127,7 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
           <LocationSelectionSection 
             startLocation={formData.startLocation} 
             endLocation={formData.endLocation} 
-            onLocationChange={onLocationChange} 
+            onLocationChange={handleLocationChange} 
           />
         </div>
 
@@ -141,8 +141,8 @@ const TripPlannerForm: React.FC<TripPlannerFormProps> = ({
           <TripDetailsSection 
             tripStartDate={formData.tripStartDate} 
             travelDays={formData.travelDays} 
-            onStartDateChange={onStartDateChange} 
-            onTravelDaysChange={onTravelDaysChange}
+            onStartDateChange={handleStartDateChange} 
+            onTravelDaysChange={handleTravelDaysChange}
             formData={formData}
           />
         </div>
