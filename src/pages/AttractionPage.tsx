@@ -6,6 +6,7 @@ import { stateAbbrMap } from '@/data/route66States';
 import AttractionDetailSections from '@/components/attractions/AttractionDetailSections';
 import AttractionJsonLd from '@/components/seo/AttractionJsonLd';
 import { MapPin, Globe, Clock, DollarSign, Tag, ArrowLeft, ChevronRight } from 'lucide-react';
+import { useDwellEvent } from '@/hooks/useEngagementTracking';
 
 const AttractionPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -13,6 +14,9 @@ const AttractionPage: React.FC = () => {
   const { attraction, nearbyAttractions, isLoading, error, notFound, refetch } = useAttraction(slug);
   // Derived from the actual path so /attractions/:slug and /hidden-gems/:slug each self-reference.
   const pathCanonicalUrl = `https://ramble66.com${location.pathname}`;
+
+  // Engagement signal: only after the real stop has been on screen for 5s.
+  useDwellEvent('stop_viewed', !!attraction, 5000, { slug, path: location.pathname });
 
   if (isLoading) {
     return (
