@@ -3,14 +3,14 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from '@/lib/queryClient';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { UnitProvider } from "@/contexts/UnitContext";
 import { MapFiltersProvider } from "@/contexts/MapFiltersContext";
 import SvgDefinitions from "@/components/shared/SvgDefinitions";
 import { LayoutOptimizer } from "@/components/Route66Map/utils/LayoutOptimizer";
-import { preloadCriticalData } from "@/services/sharedDataService";
 import { SWRConfig } from 'swr';
 
 // Critical page loaded immediately (homepage)
@@ -48,22 +48,10 @@ const RouteLoadingFallback = () => (
   </div>
 );
 
-// Create QueryClient instance outside of component to avoid recreation
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 function App() {
   // Initialize layout optimizer and preload critical data to reduce network dependency chains
   useEffect(() => {
     LayoutOptimizer.initialize();
-    // Preload critical data immediately to break dependency chains
-    preloadCriticalData();
     return () => LayoutOptimizer.cleanup();
   }, []);
   
