@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin, Calendar, Clock, ArrowRight, Image, ExternalLink } from 'lucide-react';
@@ -141,7 +142,7 @@ export const StorySection: React.FC<StorySectionProps> = ({
                 {/* Historical Photo */}
                 <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border border-route66-border/20 overflow-hidden">
                   <div className="relative">
-                    <img
+                    <OptimizedImg imageWidth={1200}
                       src={milestone.imageUrl}
                       alt={milestone.title}
                       className={`w-full h-80 object-cover transition-opacity duration-500 ${

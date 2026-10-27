@@ -12,7 +12,7 @@ export const usePlannerService = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const calculateRouteStops = (startCity: string, endCity: string): DestinationCity[] => {
-    console.log(`🗺️ Calculating route stops from ${startCity} to ${endCity}`);
+    ;
     
     const startIndex = destinationCities.findIndex(city => city.name === startCity);
     const endIndex = destinationCities.findIndex(city => city.name === endCity);
@@ -32,7 +32,7 @@ export const usePlannerService = () => {
       routeStops.reverse();
     }
     
-    console.log(`✅ Route calculated: ${routeStops.length} stops in correct sequence`);
+    ;
     return routeStops;
   };
 
@@ -40,7 +40,7 @@ export const usePlannerService = () => {
     try {
       const { data, error } = await (supabase as any)
         .from('attractions')
-        .select('*')
+        .select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation')
         .or(`city_name.ilike.%${cityName}%,state.eq.${state}`)
         .limit(3);
 
@@ -66,7 +66,7 @@ export const usePlannerService = () => {
         throw new Error('Invalid route selection');
       }
 
-      console.log(`🗺️ Planning trip from ${formData.startCity} to ${formData.endCity} with ${routeStops.length} stops`);
+      ;
 
       let totalDistance = 0;
       let totalDuration = 0;
@@ -74,13 +74,13 @@ export const usePlannerService = () => {
 
       // Calculate accurate distances using Google Distance Matrix API
       if (GoogleDistanceMatrixService.isAvailable()) {
-        console.log('📊 Using Google Distance Matrix API for accurate calculations');
+        ;
         const routeMetrics = await GoogleDistanceMatrixService.calculateRouteDistances(routeStops);
         totalDistance = routeMetrics.totalDistance;
         totalDuration = routeMetrics.totalDuration;
         isUsingGoogleData = true;
       } else {
-        console.log('📏 Using fallback distance calculations (less accurate)');
+        ;
         // Fallback to simple distance calculation
         for (let i = 0; i < routeStops.length - 1; i++) {
           const current = routeStops[i];
@@ -101,7 +101,7 @@ export const usePlannerService = () => {
         }
       }
 
-      console.log(`📊 Route metrics: ${Math.round(totalDistance)} miles, ${GoogleDistanceMatrixService.formatDuration(totalDuration)} (Google: ${isUsingGoogleData})`);
+      ;
 
       // FIXED: Use EXACTLY the user's requested number of days
       let tripDays: number;
@@ -122,11 +122,11 @@ export const usePlannerService = () => {
       // IMPORTANT: Check if we have enough destination cities for the requested days
       const maxPossibleDays = routeStops.length - 1; // -1 because we need intermediate stops
       if (tripDays > maxPossibleDays) {
-        console.log(`⚠️ Requested ${tripDays} days but only ${maxPossibleDays} possible with available destination cities. Adjusting to ${maxPossibleDays} days.`);
+        ;
         tripDays = maxPossibleDays;
       }
 
-      console.log(`📅 Planning for EXACTLY ${tripDays} days using destination cities as overnight stops`);
+      ;
 
       // SIMPLIFIED: Create daily segments using destination cities as overnight stops with GEOGRAPHIC PROGRESSION
       const dailySegments: DaySegment[] = [];
@@ -134,7 +134,7 @@ export const usePlannerService = () => {
       // Select specific destination cities for each day using geographic progression
       const selectedStops = selectDestinationCitiesWithProgression(routeStops, tripDays);
       
-      console.log(`🏙️ Selected ${selectedStops.length} destination cities with geographic progression:`, selectedStops.map(s => s.name));
+      ;
 
       for (let day = 1; day <= tripDays; day++) {
         const startCity = selectedStops[day - 1];
@@ -179,7 +179,7 @@ export const usePlannerService = () => {
           funFact: `Day ${day} of your Route 66 adventure through ${endCity.state}!`
         });
 
-        console.log(`✅ Day ${day}: ${startCity.name} → ${endCity.name} (${Math.round(dayDistance)} miles)`);
+        ;
       }
 
       // Create route coordinates
@@ -200,7 +200,7 @@ export const usePlannerService = () => {
         route
       };
 
-      console.log(`✅ Trip planned successfully: ${tripDays} days, ${Math.round(totalDistance)} miles (Google: ${isUsingGoogleData})`);
+      ;
 
       return itinerary;
     } finally {
@@ -213,7 +213,7 @@ export const usePlannerService = () => {
     if (tripDays <= 1) return routeStops;
     if (tripDays >= routeStops.length) return routeStops;
     
-    console.log(`🧭 Using geographic progression for ${tripDays} days from ${routeStops.length} cities`);
+    ;
     
     // Convert to TripStop format for geographic services
     const tripStops = routeStops.map(city => ({
@@ -240,11 +240,11 @@ export const usePlannerService = () => {
     const neededIntermediateStops = tripDays - 2;
     const availableIntermediateStops = tripStops.slice(1, -1); // Exclude start and end
     
-    console.log(`🎯 Need ${neededIntermediateStops} intermediate stops from ${availableIntermediateStops.length} available`);
+    ;
     
     if (availableIntermediateStops.length <= neededIntermediateStops) {
       // Use all available intermediate stops
-      console.log(`✅ Using all ${availableIntermediateStops.length} available intermediate stops`);
+      ;
       return routeStops;
     }
     
@@ -264,7 +264,7 @@ export const usePlannerService = () => {
         currentStop, availableIntermediateStops, endStop, 'moderate'
       );
       
-      console.log(`📍 Day ${day + 1}: ${progressionFiltered.length} cities maintain forward progression`);
+      ;
       
       // Use progression-filtered stops, fallback to all if none available
       const candidateStops = progressionFiltered.length > 0 ? progressionFiltered : availableIntermediateStops;
@@ -299,7 +299,7 @@ export const usePlannerService = () => {
         availableIntermediateStops.splice(index, 1);
       }
       
-      console.log(`✅ Selected ${bestStop.name} for day ${day + 1} (score: ${bestScore.toFixed(1)})`);
+      ;
     }
     
     // Convert back to DestinationCity format and create final sequence
@@ -311,7 +311,7 @@ export const usePlannerService = () => {
       routeStops[routeStops.length - 1] // End city
     ];
     
-    console.log(`🔄 Final sequence selected with geographic progression`);
+    ;
     return finalSequence;
   };
 

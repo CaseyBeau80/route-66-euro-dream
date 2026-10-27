@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Camera, ArrowRight } from 'lucide-react';
@@ -51,7 +52,7 @@ const BlogSidebar: React.FC<BlogSidebarProps> = ({ relatedPosts = [] }) => {
                 to={`/blog/${post.slug}`}
                 className="flex gap-3 group"
               >
-                <img 
+                <OptimizedImg imageWidth={250} 
                   src={post.featured_image_url || '/placeholder.svg'}
                   alt={post.title}
                   className="w-16 h-16 rounded-lg object-cover flex-shrink-0"

@@ -16,13 +16,9 @@ const LogoImage: React.FC<LogoImageProps> = ({
   const [hasError, setHasError] = useState(false);
   
   // Direct URL to your Supabase logo
-  const logoUrl = "https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png";
+  const logoUrl = "/images/ramble66-logo-512.webp";
   
-  console.log('🚀 LogoImage: Loading logo from Supabase', {
-    logoUrl,
-    className,
-    alt
-  });
+  ;
 
   const handleError = () => {
     console.error('❌ LogoImage: Failed to load logo from Supabase', {
@@ -34,10 +30,7 @@ const LogoImage: React.FC<LogoImageProps> = ({
   };
 
   const handleLoad = () => {
-    console.log('✅ LogoImage: Successfully loaded logo from Supabase', {
-      logoUrl,
-      timestamp: new Date().toISOString()
-    });
+    ;
     setHasError(false);
   };
 

@@ -13,11 +13,11 @@ export const useInstagramPosts = () => {
         setIsLoading(true);
         setError(null);
 
-        console.log('🎯 Fetching Route 66 relevant Instagram posts from Supabase...');
+        ;
 
         const { data, error } = await (supabase as any)
           .from('instagram_posts')
-          .select('*')
+          .select('id,instagram_post_id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count,is_featured,hashtags,mentions,location_name,location_id,carousel_media,route66_relevant,likes')
           .eq('route66_relevant', true)
           .order('timestamp', { ascending: false })
           .limit(12);
@@ -36,7 +36,7 @@ export const useInstagramPosts = () => {
           return true;
         });
 
-        console.log(`✅ Fetched ${data?.length || 0} posts, ${uniquePosts.length} unique after dedup`);
+        ;
         
         setPosts(uniquePosts as InstagramPost[]);
       } catch (err) {

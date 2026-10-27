@@ -52,7 +52,7 @@ const transformEvent = (dbEvent: DatabaseEvent): CentennialEvent => ({
 });
 
 const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
-  console.log('[CentennialEvents] Fetching from external Supabase...');
+  ;
   
   const { data, error } = await supabase
     .from('centennial_events')
@@ -64,24 +64,20 @@ const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
     throw error;
   }
 
-  console.log('[CentennialEvents] Fetched', data?.length, 'events');
+  ;
   
   // Debug: Log ALL unique categories from database
   const uniqueCategories = [...new Set(data?.map(e => e.category) || [])];
-  console.log('[CentennialEvents] All categories in DB:', uniqueCategories);
+  ;
   
   // Debug: Log motorcycle, bicycle, and runs events
   const motorcycleEvents = data?.filter(e => e.category === 'motorcycles');
   const bicycleEvents = data?.filter(e => e.category === 'bicycles');
   const runsEvents = data?.filter(e => e.category === 'runs');
-  console.log('[CentennialEvents] New category counts:', {
-    motorcycles: motorcycleEvents?.length || 0,
-    bicycles: bicycleEvents?.length || 0,
-    runs: runsEvents?.length || 0
-  });
+  ;
   
   if (motorcycleEvents && motorcycleEvents.length > 0) {
-    console.log('[CentennialEvents] Motorcycle events found:', motorcycleEvents);
+    ;
   }
   
   return (data as DatabaseEvent[]).map(transformEvent);
@@ -105,7 +101,7 @@ export const useCentennialEventsWithFallback = () => {
   const events = error ? staticEvents : (data || []);
   const isUsingFallback = !!error;
   
-  console.log('[CentennialEvents] Hook state - isLoading:', isLoading, 'hasData:', !!data, 'isUsingFallback:', isUsingFallback);
+  ;
   
   return {
     events,

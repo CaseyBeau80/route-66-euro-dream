@@ -26,18 +26,18 @@ export const useDriveIns = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        console.log('🎬 Fetching drive-ins from drive_ins table...');
+        ;
         
         // Use type assertion since table may not exist yet in generated types
         const { data: driveIns, error } = await (supabase as any)
           .from('drive_ins')
-          .select('*')
+          .select('id,name,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,featured,status,status_notes,year_opened,screens_count,capacity_cars')
           .order('name')
           .limit(6);
 
         if (!error && driveIns) {
           const typedDriveIns = driveIns as DriveInRow[];
-          console.log(`🎬 Fetched ${typedDriveIns.length} drive-ins from drive_ins table`);
+          ;
           setItems(typedDriveIns.map(driveIn => ({
             id: driveIn.id,
             name: driveIn.name,
@@ -57,7 +57,7 @@ export const useDriveIns = () => {
           })));
         } else if (error) {
           // Table may not exist yet - this is expected
-          console.log('🎬 Drive-ins table not available yet:', error.message);
+          ;
         }
       } catch (error) {
         console.error('❌ Error fetching drive-ins:', error);

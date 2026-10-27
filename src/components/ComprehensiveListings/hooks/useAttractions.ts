@@ -25,18 +25,18 @@ export const useAttractions = () => {
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
-        console.log('🏛️ Fetching attractions from attractions table...');
+        ;
         
         // Use type assertion since table may not exist yet in generated types
         const { data: attractions, error } = await (supabase as any)
           .from('attractions')
-          .select('*')
+          .select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation')
           .order('name')
           .limit(6);
 
         if (!error && attractions) {
           const typedAttractions = attractions as AttractionRow[];
-          console.log(`🏛️ Fetched ${typedAttractions.length} attractions from attractions table`);
+          ;
           setItems(typedAttractions.map(attraction => ({
             id: attraction.id,
             name: attraction.name,
@@ -55,7 +55,7 @@ export const useAttractions = () => {
           })));
         } else if (error) {
           // Table may not exist yet - this is expected
-          console.log('🏛️ Attractions table not available yet:', error.message);
+          ;
         }
       } catch (error) {
         console.error('❌ Error fetching attractions:', error);

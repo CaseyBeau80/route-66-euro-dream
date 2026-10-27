@@ -27,7 +27,7 @@ export class GeographicAttractionService {
       // Fetch from attractions table
       const { data: attractions, error: attractionsError } = await (supabase as any)
         .from('attractions')
-        .select('*')
+        .select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation')
         .ilike('city_name', `%${city}%`)
         .eq('state', state.toUpperCase());
 
@@ -56,7 +56,7 @@ export class GeographicAttractionService {
       // Fetch from hidden_gems table
       const { data: hiddenGems, error: hiddenGemsError } = await (supabase as any)
         .from('hidden_gems')
-        .select('*')
+        .select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened')
         .ilike('city_name', `%${city}%`);
 
       if (hiddenGemsError) {
@@ -84,7 +84,7 @@ export class GeographicAttractionService {
       // Fetch from drive_ins table
       const { data: driveIns, error: driveInsError } = await (supabase as any)
         .from('drive_ins')
-        .select('*')
+        .select('id,name,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,featured,status,status_notes,year_opened,screens_count,capacity_cars')
         .ilike('city_name', `%${city}%`)
         .eq('state', state.toUpperCase());
 
@@ -137,9 +137,9 @@ export class GeographicAttractionService {
     try {
       // Check what's actually in our Supabase tables
       const [attractionsResult, hiddenGemsResult, driveInsResult] = await Promise.all([
-        (supabase as any).from('attractions').select('*').ilike('city_name', `%${city}%`),
-        (supabase as any).from('hidden_gems').select('*').ilike('city_name', `%${city}%`),
-        (supabase as any).from('drive_ins').select('*').ilike('city_name', `%${city}%`)
+        (supabase as any).from('attractions').select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation').ilike('city_name', `%${city}%`),
+        (supabase as any).from('hidden_gems').select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened').ilike('city_name', `%${city}%`),
+        (supabase as any).from('drive_ins').select('id,name,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,featured,status,status_notes,year_opened,screens_count,capacity_cars').ilike('city_name', `%${city}%`)
       ]);
 
       return {

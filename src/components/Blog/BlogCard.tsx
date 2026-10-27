@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Share2, Check } from 'lucide-react';
@@ -18,7 +19,7 @@ interface BlogCardProps {
 
 const ImagePlaceholder = ({ className }: { className?: string }) => (
   <div className={`bg-route66-cream flex items-center justify-center ${className || ''}`}>
-    <img src={route66Shield} alt="Route 66" className="w-16 h-auto opacity-60" />
+    <OptimizedImg imageWidth={600} src={route66Shield} alt="Route 66" className="w-16 h-auto opacity-60" />
   </div>
 );
 
@@ -63,7 +64,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
         <Link to={`/blog/${slug}`} className="block overflow-hidden">
           <div className="aspect-[16/9] overflow-hidden">
             {showImage ? (
-              <img
+              <OptimizedImg imageWidth={600}
                 src={featuredImageUrl}
                 alt={title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -142,7 +143,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
       <Link to={`/blog/${slug}`} className="block overflow-hidden">
         <div className="aspect-[3/2] overflow-hidden">
           {showImage ? (
-            <img
+            <OptimizedImg imageWidth={600}
               src={featuredImageUrl}
               alt={title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"

@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -285,7 +286,7 @@ const FeaturedListings = ({ language }: FeaturedListingsProps) => {
                 >
                   <Card className="border border-route66-gray/10 overflow-hidden h-full hover:shadow-md transition-shadow duration-300">
                     <div className="relative h-48 overflow-hidden">
-                      <img 
+                      <OptimizedImg imageWidth={600} 
                         src={`https://images.unsplash.com/${listing.image}?auto=format&fit=crop&w=600&q=80`} 
                         alt={listing.name} 
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"

@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React, { useState } from 'react';
 import { ExternalLink, MapPin, Calendar, ImageIcon, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,11 +15,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
   const [imageError, setImageError] = useState(false);
 
   // Debug website data
-  console.log(`🔍 ${item.name}:`, {
-    hasWebsite: !!item.website,
-    website: item.website,
-    websiteLength: item.website?.length
-  });
+  ;
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case 'attractions':
@@ -73,7 +70,7 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
   return <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-3 border-route66-primary bg-white shadow-lg hover:border-route66-primary-dark h-full flex flex-col">
       {/* Image Section - Fixed height */}
       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-route66-background-section to-route66-background-alt flex-shrink-0">
-        {!imageError && <img src={imageUrl} alt={displayName} loading="lazy" className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setImageLoaded(true)} onError={() => {
+        {!imageError && <OptimizedImg imageWidth={600} src={imageUrl} alt={displayName} loading="lazy" className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`} onLoad={() => setImageLoaded(true)} onError={() => {
         setImageError(true);
         setImageLoaded(true);
       }} />}

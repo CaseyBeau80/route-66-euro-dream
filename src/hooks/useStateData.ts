@@ -26,10 +26,10 @@ export function useStateData(stateAbbr: string | undefined) {
       setIsLoading(true);
 
       const [waypointsRes, attractionsRes, nativeRes, gemsRes, stateMetaRes] = await Promise.all([
-        supabase.from('destination_cities').select('*').eq('state', stateAbbr),
-        supabase.from('attractions').select('*').eq('state', stateAbbr).order('name'),
-        supabase.from('native_american_sites').select('*').eq('state', stateAbbr).order('name'),
-        supabase.from('hidden_gems').select('*').eq('state', stateAbbr).order('name'),
+        supabase.from('destination_cities').select('id,name,state').eq('state', stateAbbr),
+        supabase.from('attractions').select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation').eq('state', stateAbbr).order('name'),
+        supabase.from('native_american_sites').select('id,name,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,tribe_nation,site_type').eq('state', stateAbbr).order('name'),
+        supabase.from('hidden_gems').select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened').eq('state', stateAbbr).order('name'),
         supabase.from('states').select('hero_image_url, hero_alt').eq('code', stateAbbr).maybeSingle(),
       ]);
 

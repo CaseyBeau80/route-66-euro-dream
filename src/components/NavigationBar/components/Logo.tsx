@@ -23,7 +23,7 @@ const Logo = () => {
     >
       <div className="relative">
         <OptimizedImage 
-          src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png" 
+          src="/images/ramble66-logo-512.webp" 
           alt="Ramble Route 66 Logo" 
           className="w-10 h-10 object-contain transition-all duration-300 group-hover:brightness-110"
           width={40}

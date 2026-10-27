@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -187,7 +188,7 @@ const CarouselPhotoGallery: React.FC = () => {
             <CarouselItem key={`${photo.id}-${currentRotationIndex}`} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
               <div className="group relative">
                 <div className="aspect-square rounded-lg overflow-hidden bg-route66-background">
-                  <img
+                  <OptimizedImg imageWidth={600}
                     src={photo.photo_url}
                     alt={`Route 66 photo from ${photo.stop_id}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

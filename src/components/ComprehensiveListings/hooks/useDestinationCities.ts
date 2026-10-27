@@ -25,24 +25,24 @@ export const useDestinationCities = () => {
   useEffect(() => {
     const fetchDestinationCities = async () => {
       try {
-        console.log('🏙️ [DEBUG] Starting to fetch destination cities with images...');
-        console.log('🔗 [DEBUG] Supabase client status:', !!supabase);
+        ;
+        ;
         
         // Use type assertion since table may not exist yet in generated types
         const { data: cities, error } = await (supabase as any)
           .from('destination_cities')
-          .select('*')
+          .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status')
           .limit(6);
         
-        console.log('📊 [DEBUG] Supabase response:', { cities, error, count: cities?.length });
+        ;
 
         if (!error && cities) {
           const typedCities = cities as DestinationCityRow[];
-          console.log(`🏙️ [DEBUG] Successfully fetched ${typedCities.length} destination cities`);
-          console.log('🏙️ [DEBUG] City names:', typedCities.map(c => `${c.name}, ${c.state}`));
+          ;
+          ;
           
           const springfieldMO = typedCities.find(c => c.name === 'Springfield' && c.state === 'MO');
-          console.log('🔍 [DEBUG] Springfield, MO found:', !!springfieldMO, springfieldMO);
+          ;
           
           setItems(typedCities.map(city => ({
             id: city.id,
@@ -62,7 +62,7 @@ export const useDestinationCities = () => {
           })));
         } else if (error) {
           // Table may not exist yet - this is expected
-          console.log('🏙️ Destination cities table not available yet:', error.message);
+          ;
         }
       } catch (error) {
         console.error('❌ [DEBUG] Exception fetching destination cities:', error);

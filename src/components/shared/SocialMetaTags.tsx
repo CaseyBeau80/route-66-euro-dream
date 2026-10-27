@@ -1,3 +1,4 @@
+import { getSocialImageUrl } from '@/lib/optimizedImage';
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { generateFAQSchema } from '../../data/seo/faqSchemaData';
@@ -66,7 +67,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={absoluteImageUrl} />
+      <meta property="og:image" content={getSocialImageUrl(absoluteImageUrl)} />
       <meta property="og:image:alt" content="Ramble 66 - Route 66 Trip Planner Logo" />
       <meta property="og:site_name" content={siteName} />
       <meta property="og:locale" content="en_US" />
@@ -76,7 +77,7 @@ const SocialMetaTags: React.FC<SocialMetaTagsProps> = ({
       <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={absoluteImageUrl} />
+      <meta name="twitter:image" content={getSocialImageUrl(absoluteImageUrl)} />
       <meta name="twitter:image:alt" content="Ramble 66 - Route 66 Trip Planner Logo" />
       
       {/* Additional SEO Meta Tags */}

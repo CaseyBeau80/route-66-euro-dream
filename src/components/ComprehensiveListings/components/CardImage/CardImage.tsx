@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import { Badge } from '@/components/ui/badge';
 import { Star, ExternalLink } from 'lucide-react';
@@ -22,13 +23,13 @@ export const CardImage = ({ item, onImageClick, onContainerClick }: CardImagePro
     
     // Check if this is the first error (database image failed)
     if (!imageError && target.src !== fallbackUrl) {
-      console.log(`🖼️ Database image failed for ${item.name}, switching to fallback: ${fallbackUrl}`);
+      ;
       setImageError(true);
       target.src = fallbackUrl;
     } 
     // This is the fallback image failing
     else if (imageError && !fallbackError) {
-      console.log(`❌ Fallback image also failed for ${item.name}, using final backup`);
+      ;
       setFallbackError(true);
       // Use a very reliable backup image - vintage car/cinema theme
       target.src = "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80";
@@ -40,13 +41,13 @@ export const CardImage = ({ item, onImageClick, onContainerClick }: CardImagePro
   
   // Log image loading strategy
   if (!item.thumbnail_url && !item.image_url) {
-    console.log(`🖼️ No database image for ${item.name}, using category fallback`);
+    ;
   } else if (imageError) {
-    console.log(`🖼️ Using fallback image for ${item.name} due to load error`);
+    ;
   } else if (item.thumbnail_url) {
-    console.log(`🖼️ Using thumbnail_url for ${item.name}: ${item.thumbnail_url}`);
+    ;
   } else {
-    console.log(`🖼️ Using image_url for ${item.name}: ${item.image_url}`);
+    ;
   }
 
   return (
@@ -55,7 +56,7 @@ export const CardImage = ({ item, onImageClick, onContainerClick }: CardImagePro
       onClick={onContainerClick}
       style={{ userSelect: 'none' }}
     >
-      <img 
+      <OptimizedImg imageWidth={600} 
         src={imageUrl}
         alt={item.name} 
         className="w-full h-full object-cover cursor-pointer select-none transition-all duration-300 ease-in-out hover:scale-110 hover:animate-jiggle"

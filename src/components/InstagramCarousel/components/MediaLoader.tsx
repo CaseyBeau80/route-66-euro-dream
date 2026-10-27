@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import React, { useState, useEffect } from 'react';
 import { InstagramPost } from '../types';
@@ -124,7 +125,7 @@ const MediaLoader: React.FC<MediaLoaderProps> = ({
                 preload="metadata"
               />
             ) : (
-              <img 
+              <OptimizedImg imageWidth={600} 
                 key={`${post.id}-${currentImageIndex}-${retryCount}`}
                 src={getCurrentMediaUrl()} 
                 alt={post.caption || 'Route 66 Instagram post'}

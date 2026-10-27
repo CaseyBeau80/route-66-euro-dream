@@ -1,7 +1,8 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Camera, ArrowRight } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 interface PhotoEntry {
   id: string;
@@ -74,7 +75,7 @@ const PhotoWallTeaser: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-4xl mx-auto mb-8">
             {displayImages.map((img, i) => (
               <div key={i} className="aspect-square overflow-hidden rounded-sm border-2 border-route66-border shadow-[4px_4px_0_0_rgba(107,76,56,0.15)]">
-                <img
+                <OptimizedImg imageWidth={600}
                   src={img.src}
                   alt={img.alt}
                   className="w-full h-full object-cover"
