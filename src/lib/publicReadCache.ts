@@ -53,10 +53,21 @@ export async function cachedPublicFetch(input: RequestInfo | URL, init?: Request
     if (table === 'route66_waypoints') url.searchParams.set('order', 'sequence_order.asc');
   }
   url.searchParams.sort();
-  const key = url.pathname + '?' + url.searchParams.toString();
+  // Date cutoffs change every render; use a minute boundary for cache identity only.
+  const keyUrl = new URL(url);
+  const publishedBefore = keyUrl.searchParams.get('published_at');
+  if (publishedBefore?.startsWith('lte.')) {
+    const date = new Date(publishedBefore.slice(4));
+    if (!Number.isNaN(date.getTime())) {
+      date.setUTCSeconds(0, 0);
+      keyUrl.searchParams.set('published_at', `lte.${date.toISOString()}`);
+    }
+  }
+  const key = keyUrl.pathname + '?' + keyUrl.searchParams.toString();
   try {
     const snapshot = await queryClient.fetchQuery({
       queryKey: ['public-read', key, accept],
+      retry: isDetail ? false : 1,
       queryFn: async () => {
         const cached = !isDetail ? readPublicCache<Snapshot>(key) : undefined;
         if (cached) return cached;
