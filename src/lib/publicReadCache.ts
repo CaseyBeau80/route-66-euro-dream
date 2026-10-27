@@ -44,7 +44,15 @@ export async function cachedPublicFetch(input: RequestInfo | URL, init?: Request
   const url = new URL(original);
   const table = url.pathname.split('/rest/v1/')[1];
   const method = init?.method || (input instanceof Request ? input.method : 'GET');
-  const accept = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined)).get('accept') || '';
+  const requestHeaders = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
+  const accept = requestHeaders.get('accept') || '';
+  const token = requestHeaders.get('authorization')?.replace(/^Bearer\s+/i, '');
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (payload.role !== 'anon') return fetch(input, init);
+    } catch { return fetch(input, init); }
+  }
   const isDetail = accept.includes('object') || url.searchParams.has('slug') || url.searchParams.has('id') || url.searchParams.has('event_id');
   const allowed = [...Object.keys(PUBLIC_COLUMNS), 'blog_posts', 'instagram_posts', 'states', 'community_photos'];
   if (method !== 'GET' || !table || !allowed.includes(table)) return fetch(input, init);
