@@ -52,10 +52,11 @@ const EventDetailPage: React.FC = () => {
   const { data: event, isLoading, isFetching, error, isSuccess, refetch } = useQuery({
     queryKey: ['event-detail', eventId],
     queryFn: async () => {
+      if (!eventId) return null;
       const { data, error } = await supabase
         .from('centennial_events')
         .select('*')
-        .eq('event_id', eventId!)
+        .eq('event_id', eventId)
         // maybeSingle so "no row" is a definitive null, not a thrown PGRST116 error
         .maybeSingle();
       if (error) throw error;
@@ -74,11 +75,12 @@ const EventDetailPage: React.FC = () => {
   const { data: nearbyEvents } = useQuery({
     queryKey: ['nearby-events', event?.state, eventId],
     queryFn: async () => {
+      if (!event || !eventId) return [];
       const { data, error } = await supabase
         .from('centennial_events')
-        .select('*')
-        .eq('state', event!.state)
-        .neq('event_id', eventId!)
+        .select('event_id,title,date_start,date_end,date_display,category')
+        .eq('state', event.state)
+        .neq('event_id', eventId)
         .order('date_start', { ascending: true })
         .limit(3);
       if (error) throw error;

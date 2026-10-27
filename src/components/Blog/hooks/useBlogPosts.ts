@@ -35,7 +35,7 @@ export const useBlogPosts = (limit?: number): UseBlogPostsResult => {
 
       let query = supabase
         .from('blog_posts')
-        .select('*')
+        .select('id,title,slug,excerpt,featured_image_url,published_at,author_name,tags,is_published,created_at,updated_at')
         .eq('is_published', true)
         .lte('published_at', new Date().toISOString())
         .order('published_at', { ascending: false });
@@ -52,7 +52,8 @@ export const useBlogPosts = (limit?: number): UseBlogPostsResult => {
         return;
       }
 
-      setPosts(data || []);
+      // The listing never renders article bodies; those load only on the post route.
+      setPosts((data || []).map(post => ({ ...post, content: '' })));
     } catch (err) {
       console.error('Unexpected error fetching blog posts:', err);
       setError('Failed to load blog posts');

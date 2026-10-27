@@ -34,7 +34,7 @@ const Index = () => {
       {/* Interactive Map Section */}
       <DeferredComponent 
         fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
+        rootMargin="400px"
         delay={0}
       >
         <FadeInSection id="interactive-map" delay={200}>
@@ -45,28 +45,28 @@ const Index = () => {
       </DeferredComponent>
 
       {/* Events Teaser */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0}>
         <FadeInSection id="events-teaser" delay={200}>
           <EventsTeaser />
         </FadeInSection>
       </DeferredComponent>
 
       {/* Browse by State Grid */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0}>
         <FadeInSection id="browse-states" delay={200}>
           <BrowseByStateGrid />
         </FadeInSection>
       </DeferredComponent>
 
       {/* Featured Stops Teaser */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0}>
         <FadeInSection id="featured-stops" delay={200}>
           <FeaturedStopsTeaser />
         </FadeInSection>
       </DeferredComponent>
 
       {/* Photo Wall Teaser */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0}>
         <FadeInSection id="photo-wall" delay={200}>
           <PhotoWallTeaser />
         </FadeInSection>
