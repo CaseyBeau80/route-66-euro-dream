@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +51,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
           <div className="flex items-center justify-between gap-6 mb-6">
             <div className="flex-1 text-center">
               <div className="mb-3">
-                <img 
+                <OptimizedImg imageWidth={600} 
                   src={tripPlan.startCityImage || fallbackImage} 
                   alt="Start City"
                   className="w-full h-32 object-cover rounded-lg border-2 border-route66-border"
@@ -74,7 +75,7 @@ const TripHeader: React.FC<TripHeaderProps> = ({ tripPlan, shareUrl, tripStartDa
             
             <div className="flex-1 text-center">
               <div className="mb-3">
-                <img 
+                <OptimizedImg imageWidth={600} 
                   src={tripPlan.endCityImage || fallbackImage} 
                   alt="End City"
                   className="w-full h-32 object-cover rounded-lg border-2 border-route66-border"

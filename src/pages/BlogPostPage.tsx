@@ -1,3 +1,4 @@
+import { getSocialImageUrl } from '@/lib/optimizedImage';
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -154,7 +155,7 @@ const BlogPostPage: React.FC = () => {
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://ramble66.com/blog/${post.slug}`} />
         {post.featured_image_url && (
-          <meta property="og:image" content={post.featured_image_url} />
+          <meta property="og:image" content={getSocialImageUrl(post.featured_image_url)} />
         )}
         <meta property="article:published_time" content={post.published_at} />
         <meta property="article:author" content="Big Bo Ramble" />
@@ -164,7 +165,7 @@ const BlogPostPage: React.FC = () => {
         <meta name="twitter:title" content={`${post.title} | Ramble66 - Route 66 Adventures`} />
         <meta name="twitter:description" content={post.excerpt} />
         {post.featured_image_url && (
-          <meta name="twitter:image" content={post.featured_image_url} />
+          <meta name="twitter:image" content={getSocialImageUrl(post.featured_image_url)} />
         )}
         
         {/* JSON-LD */}

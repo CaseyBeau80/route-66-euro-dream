@@ -22,7 +22,7 @@ export class WaypointValidationService {
       // Fetch all waypoints
       const { data: waypoints, error } = await (supabase as any)
         .from('route66_waypoints')
-        .select('*')
+        .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,sequence_order,is_major_stop,highway_designation')
         .order('sequence_order');
 
       if (error) {

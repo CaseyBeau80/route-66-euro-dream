@@ -1,3 +1,5 @@
+import { getSocialImageUrl } from '@/lib/optimizedImage';
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -74,7 +76,7 @@ const StatePage: React.FC = () => {
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:title" content={metaTitle} />
         <meta property="og:description" content={metaDescription} />
-        <meta property="og:image" content={heroSrc || ''} />
+        <meta property="og:image" content={getSocialImageUrl(heroSrc || '')} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={metaTitle} />
         <meta name="twitter:description" content={metaDescription} />
@@ -87,7 +89,7 @@ const StatePage: React.FC = () => {
         {/* Hero */}
         <div className={`relative h-[35vh] min-h-[280px] overflow-hidden ${!heroSrc ? 'bg-gradient-to-br from-[#2C2C2C] to-[#3D2B1F]' : 'bg-[hsl(var(--foreground))]'}`}>
           {heroSrc && (
-            <img
+            <OptimizedImg imageWidth={1200} priority
               src={heroSrc}
               alt={heroAltText}
               className="w-full h-full object-cover opacity-60"
@@ -155,7 +157,7 @@ const StatePage: React.FC = () => {
                         <Link key={item.id} to={getAttractionDetailPath(item.source_table, item.slug)}
                           className="bg-surface border-2 border-border rounded-sm overflow-hidden hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]">
                           {item.image_url && (
-                            <img
+                            <OptimizedImg imageWidth={600}
                               src={item.image_url}
                               alt={`${item.name} — Route 66 in ${item.city_name}, ${stateInfo.abbreviation}`}
                               className="w-full h-36 object-cover"

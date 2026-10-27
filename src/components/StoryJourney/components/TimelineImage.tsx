@@ -1,3 +1,4 @@
+import { getOptimizedImageUrl } from '@/lib/optimizedImage';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -34,7 +35,7 @@ export const TimelineImage: React.FC<TimelineImageProps> = ({
 
     console.log(`🖼️ Attempting to load image for ${title}:`, imageUrl);
     setLoadState('loading');
-    setActualImageUrl(imageUrl);
+    setActualImageUrl(getOptimizedImageUrl(imageUrl, 1200));
 
     // Create a new image element to test loading
     const img = new Image();
@@ -46,13 +47,14 @@ export const TimelineImage: React.FC<TimelineImageProps> = ({
     };
     
     img.onerror = (error) => {
+      if (img.src !== imageUrl) { img.src = imageUrl; setActualImageUrl(imageUrl); return; }
       console.error(`❌ Image failed to load for ${title}:`, { url: imageUrl, error });
       setLoadState('error');
       setErrorMessage(`Failed to load: ${imageUrl}`);
     };
     
     // Set the source to trigger loading
-    img.src = imageUrl;
+    img.src = getOptimizedImageUrl(imageUrl, 1200);
 
     // Cleanup function
     return () => {

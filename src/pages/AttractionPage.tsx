@@ -1,3 +1,5 @@
+import { getSocialImageUrl } from '@/lib/optimizedImage';
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -106,12 +108,12 @@ const AttractionPage: React.FC = () => {
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta property="og:description" content={metaDescription} />
-        <meta property="og:image" content={attraction.image_url || fallbackImage} />
+        <meta property="og:image" content={getSocialImageUrl(attraction.image_url || fallbackImage)} />
         <meta property="og:image:alt" content={imageAlt} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${attraction.name} — Route 66 | Ramble 66`} />
         <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={attraction.image_url || fallbackImage} />
+        <meta name="twitter:image" content={getSocialImageUrl(attraction.image_url || fallbackImage)} />
         <meta name="twitter:image:alt" content={imageAlt} />
         <script type="application/ld+json">{JSON.stringify(breadcrumbJsonLd)}</script>
       </Helmet>
@@ -131,7 +133,7 @@ const AttractionPage: React.FC = () => {
       <div className="min-h-screen bg-background">
         {/* Hero */}
         <div className="relative h-[40vh] min-h-[300px] overflow-hidden">
-          <img
+          <OptimizedImg imageWidth={1200} priority
             src={attraction.image_url || fallbackImage}
             alt={imageAlt}
             className="w-full h-full object-cover"

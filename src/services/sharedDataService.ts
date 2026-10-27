@@ -1,142 +1,37 @@
-/**
- * Shared data service to reduce duplicate API calls and network dependency chains
- */
+/** Consumer-driven public reads; never preload unrelated tables. */
 import { supabase } from '@/lib/supabase';
+import { PUBLIC_COLUMNS } from '@/lib/publicReadCache';
+import { queryClient } from '@/lib/queryClient';
 
-// Cache for API responses to prevent duplicate requests
-const cache = new Map<string, Promise<any>>();
-
-/**
- * Get cached data or fetch if not cached
- */
-const getCachedData = <T>(key: string, fetcher: () => Promise<T>): Promise<T> => {
-  if (!cache.has(key)) {
-    const promise = fetcher().catch(error => {
-      // Remove from cache on error to allow retry
-      cache.delete(key);
-      throw error;
-    });
-    cache.set(key, promise);
-  }
-  return cache.get(key)!;
+interface PublicRow {
+  id: string; name: string; title?: string; slug?: string; description?: string;
+  city_name?: string; state: string; latitude: number; longitude: number;
+  image_url?: string; thumbnail_url?: string; website?: string; tags?: string[];
+  founded_year?: number; year_opened?: number; featured?: boolean;
+  sequence_order?: number; is_major_stop?: boolean; highway_designation?: string;
+}
+const read = async (table: string, order?: string): Promise<PublicRow[]> => {
+  let query = supabase.from(table).select(PUBLIC_COLUMNS[table]);
+  if (order) query = query.order(order);
+  const { data, error } = await query.returns<PublicRow[]>();
+  if (error) throw error;
+  return data || [];
 };
-
-/**
- * Fetch all critical Route 66 data in a single optimized call
- */
-export const fetchAllRoute66Data = () => {
-  return getCachedData('all-route66-data', async () => {
-    console.log('🔍 Fetching all Route 66 data in optimized batch...');
-    
-    const [
-      attractionsResult,
-      hiddenGemsResult,
-      driveInsResult,
-      waypointsResult,
-      destinationCitiesResult,
-      nativeAmericanSitesResult
-    ] = await Promise.all([
-      (supabase as any).from('attractions').select('*').order('name'),
-      (supabase as any).from('hidden_gems').select('*').order('title'),
-      (supabase as any).from('drive_ins').select('*').order('name'),
-      (supabase as any).from('route66_waypoints').select('*').order('sequence_order'),
-      (supabase as any).from('destination_cities').select('*'),
-      (supabase as any).from('native_american_sites').select('*').order('name')
-    ]);
-
-    console.log('✅ All Route 66 data fetched in single batch');
-    
-    return {
-      attractions: attractionsResult.data || [],
-      hiddenGems: hiddenGemsResult.data || [],
-      driveIns: driveInsResult.data || [],
-      waypoints: waypointsResult.data || [],
-      destinationCities: destinationCitiesResult.data || [],
-      nativeAmericanSites: nativeAmericanSitesResult.data || []
-    };
-  });
+export const getAttractions = () => read('attractions', 'name');
+export const getHiddenGems = () => read('hidden_gems', 'title');
+export const getDriveIns = () => read('drive_ins', 'name');
+export const getWaypoints = () => read('route66_waypoints', 'sequence_order');
+export const getDestinationCities = () => read('destination_cities');
+export const getNativeAmericanSites = () => read('native_american_sites', 'name');
+export const fetchAllRoute66Data = async () => {
+  const [attractions, hiddenGems, driveIns, waypoints, destinationCities, nativeAmericanSites] = await Promise.all([
+    getAttractions(), getHiddenGems(), getDriveIns(), getWaypoints(), getDestinationCities(), getNativeAmericanSites(),
+  ]);
+  return { attractions, hiddenGems, driveIns, waypoints, destinationCities, nativeAmericanSites };
 };
-
-/**
- * Get attractions data (cached)
- */
-export const getAttractions = () => {
-  return getCachedData('attractions', async () => {
-    const data = await fetchAllRoute66Data();
-    return data.attractions;
-  });
-};
-
-/**
- * Get hidden gems data (cached)
- */
-export const getHiddenGems = () => {
-  return getCachedData('hidden-gems', async () => {
-    const data = await fetchAllRoute66Data();
-    return data.hiddenGems;
-  });
-};
-
-/**
- * Get drive-ins data (cached)
- */
-export const getDriveIns = () => {
-  return getCachedData('drive-ins', async () => {
-    const data = await fetchAllRoute66Data();
-    return data.driveIns;
-  });
-};
-
-/**
- * Get waypoints data (cached)
- */
-export const getWaypoints = () => {
-  return getCachedData('waypoints', async () => {
-    const data = await fetchAllRoute66Data();
-    return data.waypoints;
-  });
-};
-
-/**
- * Get destination cities data (cached)
- */
-export const getDestinationCities = () => {
-  return getCachedData('destination-cities', async () => {
-    const data = await fetchAllRoute66Data();
-    return data.destinationCities;
-  });
-};
-
-/**
- * Get native american sites data (cached)
- */
-export const getNativeAmericanSites = () => {
-  return getCachedData('native-american-sites', async () => {
-    const data = await fetchAllRoute66Data();
-    return data.nativeAmericanSites;
-  });
-};
-
-/**
- * Clear all cached data (useful for force refresh)
- */
 export const clearDataCache = () => {
-  cache.clear();
-  console.log('🧹 Data cache cleared');
-};
-
-/**
- * Preload critical data with aggressive main-thread yielding
- */
-export const preloadCriticalData = () => {
-  // Use multiple yielding strategies to minimize main-thread blocking
-  const scheduleCallback = (window as any).requestIdleCallback || 
-    ((cb: () => void) => setTimeout(cb, 500));
-
-  scheduleCallback(() => {
-    // Further defer data loading to avoid any main-thread blocking
-    setTimeout(() => {
-      fetchAllRoute66Data().catch(console.error);
-    }, 100);
-  }, { timeout: 2000 }); // Extended timeout for better main-thread management
+  queryClient.removeQueries({ queryKey: ['public-read'] });
+  try {
+    for (const key of Object.keys(localStorage)) if (key.startsWith('ramble66:public:v1:')) localStorage.removeItem(key);
+  } catch { /* Storage may be unavailable. */ }
 };

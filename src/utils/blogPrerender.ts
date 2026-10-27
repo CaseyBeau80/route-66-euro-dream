@@ -1,3 +1,4 @@
+import { getSocialImageUrl } from '../lib/optimizedImage';
 /**
  * Build-time prerender helpers for blog post social previews.
  *
@@ -33,7 +34,7 @@ export function buildBlogMetaBlock(post: BlogPostMeta): string {
   const url = `${SITE}/blog/${post.slug}`;
   const fullTitle = `${post.title}${TITLE_SUFFIX}`;
   const description = (post.excerpt ?? '').trim();
-  const image = post.featured_image_url?.trim() || FALLBACK_IMAGE;
+  const image = getSocialImageUrl(post.featured_image_url?.trim() || FALLBACK_IMAGE);
   const imageAlt = post.title;
 
   const t = escapeHtml(fullTitle);

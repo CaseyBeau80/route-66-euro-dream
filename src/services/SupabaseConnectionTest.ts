@@ -19,7 +19,7 @@ export class SupabaseConnectionTest {
       // Test data retrieval
       const { data: cities, error: dataError } = await (supabase as any)
         .from('destination_cities')
-        .select('*');
+        .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status');
         
       if (dataError) {
         console.error('❌ [DEBUG] Supabase data retrieval failed:', dataError);
@@ -57,7 +57,7 @@ export class SupabaseConnectionTest {
       // Check if Springfield, MO exists
       const { data: existing, error: checkError } = await (supabase as any)
         .from('destination_cities')
-        .select('*')
+        .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status')
         .eq('name', 'Springfield')
         .eq('state', 'MO');
         

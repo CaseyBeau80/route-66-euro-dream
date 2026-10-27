@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import React, { useState, useEffect } from 'react';
 import { ExternalLink } from 'lucide-react';
@@ -82,7 +83,7 @@ const SimpleMediaDisplay: React.FC<SimpleMediaDisplayProps> = ({ post, onCardCli
               </div>
             </div>
           )}
-          <img
+          <OptimizedImg imageWidth={600}
             key={`${post.id}-${currentUrlIndex}`}
             src={currentImageUrl}
             alt={post.caption || 'Route 66 Instagram post'}

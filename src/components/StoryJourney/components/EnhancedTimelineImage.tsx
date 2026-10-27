@@ -1,3 +1,4 @@
+import { getOptimizedImageUrl } from '@/lib/optimizedImage';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -35,14 +36,15 @@ export const EnhancedTimelineImage: React.FC<EnhancedTimelineImageProps> = ({
       // Test if the image can actually load using HTMLImageElement
       const img = document.createElement('img') as HTMLImageElement;
       img.onload = () => {
-        setFinalImageUrl(imageUrl);
+        setFinalImageUrl(img.src);
         setLoadState('loaded');
       };
       img.onerror = () => {
+        if (img.src !== imageUrl) { img.src = imageUrl; return; }
         console.error(`❌ Image failed to load for ${title}:`, imageUrl);
         setLoadState('error');
       };
-      img.src = imageUrl;
+      img.src = getOptimizedImageUrl(imageUrl, 1200);
     };
 
     loadImage();

@@ -17,7 +17,7 @@ export const useNativeAmericanSites = () => {
       
       const { data, error } = await (supabase as any)
         .from('native_american_sites')
-        .select('*')
+        .select('id,name,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,tribe_nation,site_type')
         .order('name');
 
       if (error) {

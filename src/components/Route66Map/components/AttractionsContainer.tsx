@@ -35,11 +35,10 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
-        console.log('🎯 Fetching attractions from attractions table...');
         
         const { data, error } = await (supabase as any)
           .from('attractions')
-          .select('*')
+          .select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation')
           .order('name');
 
         if (error) {
@@ -47,29 +46,25 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
           return;
         }
 
-        console.log(`✅ Fetched ${data?.length || 0} attractions from database`);
         
         // Debug: Log all attraction names to see what we have
         if (data) {
-          console.log('🔍 ALL ATTRACTIONS IN DATABASE:');
           data.forEach((attraction, index) => {
-            console.log(`  ${index + 1}. "${attraction.name}" in ${attraction.city_name}, ${attraction.state}`);
-            console.log(`     Coordinates: ${attraction.latitude}, ${attraction.longitude}`);
+            ;
+            ;
           });
           
           // Specifically look for the missing attractions
           const waterfalls = data.find(a => a.name.toLowerCase().includes('waterfall'));
           const shoalCreek = data.find(a => a.name.toLowerCase().includes('shoal creek'));
           
-          console.log('🔍 LOOKING FOR SPECIFIC ATTRACTIONS:');
-          console.log('  The Waterfalls:', waterfalls ? `FOUND - ${waterfalls.name}` : 'NOT FOUND');
-          console.log('  Shoal Creek Overlook:', shoalCreek ? `FOUND - ${shoalCreek.name}` : 'NOT FOUND');
+          ;
           
           if (waterfalls) {
-            console.log(`    Waterfalls details: lat=${waterfalls.latitude}, lng=${waterfalls.longitude}, city=${waterfalls.city_name}`);
+            ;
           }
           if (shoalCreek) {
-            console.log(`    Shoal Creek details: lat=${shoalCreek.latitude}, lng=${shoalCreek.longitude}, city=${shoalCreek.city_name}`);
+            ;
           }
         }
         
@@ -91,13 +86,11 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
     const newZoom = map.getZoom() || 6;
     setCurrentZoom(newZoom);
     
-    console.log(`🔍 AttractionsContainer: Zoom changed to ${newZoom}`);
   }, [map]);
 
   // More relaxed filtering - show more attractions at all zoom levels
   const filteredAttractions = useMemo(() => {
     if (loading) {
-      console.log('⏳ AttractionsContainer: Still loading attractions');
       return [];
     }
 
@@ -107,28 +100,23 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
     if (currentZoom >= 7) {
       // High zoom: show all attractions
       visibleAttractions = attractions;
-      console.log(`🎯 HIGH ZOOM (${currentZoom}): Showing ALL ${attractions.length} attractions`);
     } else if (currentZoom >= 5) {
       // Medium zoom: show featured + every other attraction
       visibleAttractions = attractions.filter((attraction, index) => 
         attraction.featured || index % 2 === 0
       );
-      console.log(`🎯 MEDIUM ZOOM (${currentZoom}): Showing ${visibleAttractions.length} of ${attractions.length} attractions`);
     } else {
       // Low zoom: show featured + every 3rd attraction
       visibleAttractions = attractions.filter((attraction, index) => 
         attraction.featured || index % 3 === 0
       );
-      console.log(`🎯 LOW ZOOM (${currentZoom}): Showing ${visibleAttractions.length} of ${attractions.length} attractions`);
     }
 
     // Debug: Check if our specific attractions are in the filtered list
     const waterfalls = visibleAttractions.find(a => a.name.toLowerCase().includes('waterfall'));
     const shoalCreek = visibleAttractions.find(a => a.name.toLowerCase().includes('shoal creek'));
     
-    console.log('🔍 FILTERED ATTRACTIONS CHECK:');
-    console.log('  The Waterfalls in filtered list:', waterfalls ? 'YES' : 'NO');
-    console.log('  Shoal Creek in filtered list:', shoalCreek ? 'YES' : 'NO');
+    ;
 
     return visibleAttractions;
   }, [attractions, currentZoom, loading]);
@@ -137,40 +125,33 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
   useEffect(() => {
     if (!map) return;
 
-    console.log('🎯 AttractionsContainer: Setting up zoom listener');
     
     const zoomListener = map.addListener('zoom_changed', handleZoomChange);
     
     // Set initial zoom
     const initialZoom = map.getZoom() || 6;
     setCurrentZoom(initialZoom);
-    console.log(`🎯 AttractionsContainer: Initial zoom set to ${initialZoom}`);
 
     return () => {
-      console.log('🧹 AttractionsContainer: Cleaning up zoom listener');
       google.maps.event.removeListener(zoomListener);
     };
   }, [map, handleZoomChange]);
 
   // Website click handler
   const handleWebsiteClick = useCallback((website: string) => {
-    console.log(`🌐 Opening website: ${website}`);
     window.open(website, '_blank', 'noopener,noreferrer');
   }, []);
 
   // Show loading state briefly but don't hide markers during zoom
   if (loading && attractions.length === 0) {
-    console.log('⏳ AttractionsContainer: Initial loading state');
     return null;
   }
 
-  console.log(`🎯 AttractionsContainer: RENDERING ${filteredAttractions.length} attractions (zoom: ${currentZoom}, total: ${attractions.length})`);
 
   return (
     <>
       {filteredAttractions.map((attraction) => {
         // Debug log for each attraction being rendered
-        console.log(`🎯 Rendering attraction marker: "${attraction.name}" at ${attraction.latitude}, ${attraction.longitude}`);
         
         return (
           <AttractionCustomMarker

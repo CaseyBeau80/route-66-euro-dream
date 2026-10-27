@@ -37,7 +37,7 @@ export class EnhancedSupabaseDataService {
         // ONLY fetch from destination_cities table - NO other tables
         const { data: destinationCities, error } = await (supabase as any)
           .from('destination_cities')
-          .select('*')
+          .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status')
           .order('name');
 
         if (error) {

@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import React, { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +34,7 @@ const StopItem: React.FC<StopItemProps> = memo(({ stop, index }) => {
   return (
     <div className="flex items-start gap-3 p-3 bg-route66-cream rounded-lg border border-route66-tan">
       {stop.image_url && (
-        <img 
+        <OptimizedImg imageWidth={250} 
           src={stop.image_url} 
           alt={stop.name}
           className="w-16 h-12 object-cover rounded border border-route66-vintage-brown"

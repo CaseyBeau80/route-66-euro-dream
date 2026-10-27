@@ -23,13 +23,22 @@ export function useAttraction(slug: string | undefined) {
 
     const runAttempt = async (): Promise<'ok' | 'not-found' | 'retry'> => {
       try {
-        // Query all 4 tables in parallel
-        const [attractions, hiddenGems, nativeSites, driveIns] = await Promise.all([
-          supabase.from('attractions').select('*').eq('slug', slug).maybeSingle(),
-          supabase.from('hidden_gems').select('*').eq('slug', slug).maybeSingle(),
-          supabase.from('native_american_sites').select('*').eq('slug', slug).maybeSingle(),
-          supabase.from('drive_ins').select('*').eq('slug', slug).maybeSingle(),
-        ]);
+        // Preserve precedence, but stop downloading once a matching stop is found.
+        const empty = { data: null, error: null };
+        const attractions = await supabase.from('attractions').select('*').eq('slug', slug).maybeSingle();
+        if (attractions.error) throw attractions.error;
+        const hiddenGems = attractions.data ? empty : await supabase.from('hidden_gems').select('*').eq('slug', slug).maybeSingle();
+        if (hiddenGems.error) throw hiddenGems.error;
+        const nativeSites = attractions.data || hiddenGems.data ? empty : await supabase.from('native_american_sites').select('*').eq('slug', slug).maybeSingle();
+        if (nativeSites.error) throw nativeSites.error;
+        let driveIns = empty as { data: any; error: any };
+        if (!attractions.data && !hiddenGems.data && !nativeSites.data) {
+          const index = await supabase.from('drive_ins').select('id,name').order('name').limit(9);
+          if (index.error) throw index.error;
+          const match = index.data?.find(d => d.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') === slug);
+          if (match) driveIns = await supabase.from('drive_ins').select('*').eq('id', match.id).maybeSingle();
+          if (driveIns.error) throw driveIns.error;
+        }
 
         let found: AttractionData | null = null;
 

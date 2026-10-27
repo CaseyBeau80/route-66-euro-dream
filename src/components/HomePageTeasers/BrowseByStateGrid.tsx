@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
@@ -89,7 +90,7 @@ const BrowseByStateGrid: React.FC = () => {
                     const src400 = `${base}&w=400`;
                     const srcSet = [400, 800, 1200].map(w => `${base}&w=${w} ${w}w`).join(', ');
                     return (
-                      <img
+                      <OptimizedImg imageWidth={600}
                         src={src400}
                         srcSet={srcSet}
                         sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"

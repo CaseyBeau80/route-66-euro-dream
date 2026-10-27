@@ -15,6 +15,7 @@ interface DeferredComponentProps {
   rootMargin?: string;
   threshold?: number;
   delay?: number;
+  minHeight?: number;
 }
 
 /**
@@ -26,7 +27,8 @@ export const DeferredComponent: React.FC<DeferredComponentProps> = ({
   fallback = null,
   rootMargin = '100px',
   threshold = 0.1,
-  delay = 0
+  delay = 0,
+  minHeight = 100
 }) => {
   const [isVisible, setIsVisible] = useState(forceRenderAll);
   const [shouldRender, setShouldRender] = useState(forceRenderAll);
@@ -48,6 +50,10 @@ export const DeferredComponent: React.FC<DeferredComponentProps> = ({
     const element = elementRef.current;
     if (!element) return;
 
+    if (typeof IntersectionObserver === 'undefined') {
+      listener();
+      return () => { forceRenderListeners.delete(listener); };
+    }
     // Use intersection observer for efficient visibility detection
     const observer = new IntersectionObserver(
       (entries) => {
@@ -83,7 +89,7 @@ export const DeferredComponent: React.FC<DeferredComponentProps> = ({
   }, [isVisible, delay, shouldRender]);
 
   return (
-    <div ref={elementRef} style={!shouldRender ? { minHeight: '100px' } : undefined}>
+    <div ref={elementRef} style={!shouldRender ? { minHeight } : undefined}>
       {shouldRender ? children : fallback}
     </div>
   );

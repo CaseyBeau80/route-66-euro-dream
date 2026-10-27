@@ -13,7 +13,7 @@ export class Route66StopsService {
       // Fetch destination cities (major overnight stops)
       const { data: cities, error: citiesError } = await (supabase as any)
         .from('destination_cities')
-        .select('*');
+        .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status');
       
       if (citiesError) {
         console.error('❌ Error fetching destination cities:', citiesError);
@@ -22,7 +22,7 @@ export class Route66StopsService {
       // Fetch attractions (points of interest, not overnight destinations)
       const { data: attractions, error: attractionsError } = await (supabase as any)
         .from('attractions')
-        .select('*');
+        .select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation');
       
       if (attractionsError) {
         console.error('❌ Error fetching attractions:', attractionsError);

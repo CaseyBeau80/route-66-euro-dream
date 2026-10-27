@@ -1,3 +1,4 @@
+import { getOptimizedImageUrl } from '@/lib/optimizedImage';
 
 export class ImageValidationService {
   private static readonly SUPPORTED_FORMATS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
@@ -43,7 +44,7 @@ export class ImageValidationService {
       const img = new Image();
       img.onload = () => resolve(true);
       img.onerror = () => resolve(false);
-      img.src = url;
+      img.src = getOptimizedImageUrl(url, 1200);
       
       // Timeout after 10 seconds
       setTimeout(() => resolve(false), 10000);

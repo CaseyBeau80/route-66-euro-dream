@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock, DollarSign, ExternalLink, Globe, MapPin, Tag } from 'lucide-react';
@@ -148,7 +149,7 @@ const AttractionDetailSections: React.FC<AttractionDetailSectionsProps> = ({
                 to={item.detailPath || `/attractions/${item.slug}`}
                 className="bg-surface border-2 border-border rounded-sm overflow-hidden hover:border-primary transition-colors shadow-[4px_4px_0_hsl(var(--border)/0.3)]"
               >
-                <img
+                <OptimizedImg imageWidth={600}
                   src={item.image_url || fallbackImage}
                   alt={item.name}
                   className="w-full h-36 object-cover"

@@ -17,7 +17,7 @@ export const useHiddenGems = () => {
       
       const { data, error } = await (supabase as any)
         .from('hidden_gems')
-        .select('*')
+        .select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened')
         .order('title');
 
       if (error) {

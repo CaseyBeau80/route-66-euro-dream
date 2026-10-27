@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { coverData } from '@/data/storyMapData';
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 const StoryMapCover = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -22,11 +23,12 @@ const StoryMapCover = () => {
       <motion.div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(${coverData.backgroundImage})`,
           y: bgY,
           filter: 'brightness(0.3) sepia(0.2) saturate(1.2)',
         }}
-      />
+      >
+        <OptimizedImg src={coverData.backgroundImage} imageWidth={1200} priority alt="" className="absolute inset-0 w-full h-full object-cover" />
+      </motion.div>
 
       {/* Film grain overlay */}
       <div

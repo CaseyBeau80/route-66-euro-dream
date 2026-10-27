@@ -21,7 +21,7 @@ const AboutPage = () => {
                <div className="flex justify-center mb-4">
                   <div className="p-4 bg-white rounded-xl shadow-lg">
                     <PictureOptimized 
-                      src="https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/Logo_1_Ramble_66.png"
+                      src="/images/ramble66-logo-512.webp"
                       alt="Ramble Route 66 Logo"
                       className="w-32 h-32 md:w-40 md:h-40 object-contain"
                       width={160}

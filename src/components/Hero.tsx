@@ -48,7 +48,7 @@ const Hero = ({ language, onExploreMap, isMapOpen = false }: HeroProps) => {
       <div 
         className="relative w-full h-[70vh] bg-cover bg-center bg-no-repeat overflow-hidden"
         style={{
-          backgroundImage: "url('https://xbwaphzntaxmdfzfsmvt.supabase.co/storage/v1/object/public/route66-assets/website_header_Route66.png')",
+          backgroundImage: "url('/images/website-header-route66-1920.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center center"
         }}

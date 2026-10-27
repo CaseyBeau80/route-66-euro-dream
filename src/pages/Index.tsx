@@ -34,8 +34,9 @@ const Index = () => {
       {/* Interactive Map Section */}
       <DeferredComponent 
         fallback={<ComponentLoadingFallback />}
-        rootMargin="600px"
+        rootMargin="400px"
         delay={0}
+        minHeight={700}
       >
         <FadeInSection id="interactive-map" delay={200}>
           <Suspense fallback={<ComponentLoadingFallback />}>
@@ -45,28 +46,28 @@ const Index = () => {
       </DeferredComponent>
 
       {/* Events Teaser */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0} minHeight={500}>
         <FadeInSection id="events-teaser" delay={200}>
           <EventsTeaser />
         </FadeInSection>
       </DeferredComponent>
 
       {/* Browse by State Grid */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0} minHeight={600}>
         <FadeInSection id="browse-states" delay={200}>
           <BrowseByStateGrid />
         </FadeInSection>
       </DeferredComponent>
 
       {/* Featured Stops Teaser */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0} minHeight={650}>
         <FadeInSection id="featured-stops" delay={200}>
           <FeaturedStopsTeaser />
         </FadeInSection>
       </DeferredComponent>
 
       {/* Photo Wall Teaser */}
-      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="600px" delay={0}>
+      <DeferredComponent fallback={<ComponentLoadingFallback />} rootMargin="400px" delay={0} minHeight={450}>
         <FadeInSection id="photo-wall" delay={200}>
           <PhotoWallTeaser />
         </FadeInSection>

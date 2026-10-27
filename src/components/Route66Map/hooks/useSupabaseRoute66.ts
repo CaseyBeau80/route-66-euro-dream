@@ -11,11 +11,10 @@ export const useSupabaseRoute66 = () => {
   useEffect(() => {
     const fetchWaypoints = async () => {
       try {
-        console.log("🗺️ Fetching Route 66 waypoints from route66_waypoints table ONLY...");
         
         const { data, error } = await (supabase as any)
           .from('route66_waypoints')
-          .select('*')
+          .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,sequence_order,is_major_stop,highway_designation')
           .order('sequence_order', { ascending: true }); // Explicitly ascending order
 
         if (error) {
@@ -25,23 +24,18 @@ export const useSupabaseRoute66 = () => {
         }
 
         if (!data || data.length === 0) {
-          console.log("❌ No waypoints found in route66_waypoints table");
           setError("No waypoints found in route66_waypoints table");
           return;
         }
 
-        console.log(`✅ Fetched ${data.length} waypoints from route66_waypoints table`);
         
         // Detailed validation logging
-        console.log('🔍 DATABASE QUERY RESULT VALIDATION:');
-        console.log('   Query: SELECT * FROM route66_waypoints ORDER BY sequence_order ASC');
-        console.log(`   Result count: ${data.length}`);
+        ;
         
         // Log sequence order validation
         const sequenceOrders = data.map(wp => wp.sequence_order).sort((a, b) => a - b);
         const minSeq = Math.min(...sequenceOrders);
         const maxSeq = Math.max(...sequenceOrders);
-        console.log(`   Sequence range: ${minSeq} to ${maxSeq}`);
         
         // Check for duplicates
         const duplicates = sequenceOrders.filter((seq, index) => sequenceOrders.indexOf(seq) !== index);
@@ -61,21 +55,16 @@ export const useSupabaseRoute66 = () => {
         }
         
         // Log first 5 and last 5 waypoints for verification
-        console.log('📍 FIRST 5 waypoints from database:');
         data.slice(0, 5).forEach((wp, i) => {
-          console.log(`   ${i + 1}. SEQ ${wp.sequence_order}: ${wp.name}, ${wp.state}`);
         });
         
-        console.log('📍 LAST 5 waypoints from database:');
         data.slice(-5).forEach((wp, i) => {
-          console.log(`   ${data.length - 4 + i}. SEQ ${wp.sequence_order}: ${wp.name}, ${wp.state}`);
         });
         
         // Verify Chicago is first and Santa Monica is last
         const firstWaypoint = data[0];
         const lastWaypoint = data[data.length - 1];
-        console.log(`🎯 Route validation: Start = ${firstWaypoint.name}, ${firstWaypoint.state} (Seq: ${firstWaypoint.sequence_order})`);
-        console.log(`🎯 Route validation: End = ${lastWaypoint.name}, ${lastWaypoint.state} (Seq: ${lastWaypoint.sequence_order})`);
+        ;
         
         if (!firstWaypoint.name.toLowerCase().includes('chicago')) {
           console.warn('⚠️ WARNING: First waypoint is not Chicago!');

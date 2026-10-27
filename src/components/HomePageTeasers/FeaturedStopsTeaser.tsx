@@ -1,7 +1,8 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, ArrowRight } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface FeaturedStop {
@@ -90,7 +91,7 @@ const FeaturedStopsTeaser: React.FC = () => {
                 <Card className="overflow-hidden border-2 border-route66-border hover:border-route66-red bg-white shadow-[4px_4px_0_0_rgba(107,76,56,0.15)] hover:shadow-[2px_2px_0_0_rgba(192,57,43,0.2)] transition-all duration-200 rounded-sm h-full">
                   <div className="aspect-[4/3] overflow-hidden">
                     {stop.image_url ? (
-                      <img
+                      <OptimizedImg imageWidth={600}
                         src={stop.image_url}
                         alt={`${stop.name} — Route 66 in ${stop.city_name}, ${stop.state}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

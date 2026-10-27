@@ -33,7 +33,7 @@ export const useUnifiedData = () => {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching unified Route 66 data using shared service...');
+      ;
 
       // Use shared data service to avoid duplicate API calls
       const { fetchAllRoute66Data } = await import('@/services/sharedDataService');
@@ -43,7 +43,7 @@ export const useUnifiedData = () => {
 
       // Process attractions with standardized schema
       if (data.attractions) {
-        console.log(`🎯 Processing ${data.attractions.length} attractions`);
+        ;
         data.attractions.forEach(attraction => {
           unifiedItems.push({
             id: `attraction-${attraction.id}`,
@@ -69,7 +69,7 @@ export const useUnifiedData = () => {
 
       // Process drive-ins (unchanged)
       if (data.driveIns) {
-        console.log(`🎬 Processing ${data.driveIns.length} drive-ins`);
+        ;
         data.driveIns.forEach(driveIn => {
           unifiedItems.push({
             id: `drive-in-${driveIn.id}`,
@@ -93,7 +93,7 @@ export const useUnifiedData = () => {
 
       // Process hidden gems with standardized schema
       if (data.hiddenGems) {
-        console.log(`💎 Processing ${data.hiddenGems.length} hidden gems`);
+        ;
         data.hiddenGems.forEach(gem => {
           // Extract state from city_name if not provided (e.g., "Springfield, MO" -> "MO")
           let derivedState = gem.state;
@@ -128,7 +128,7 @@ export const useUnifiedData = () => {
 
       // Process Native American heritage sites
       if (data.nativeAmericanSites) {
-        console.log(`🪶 Processing ${data.nativeAmericanSites.length} Native American heritage sites`);
+        ;
         data.nativeAmericanSites.forEach(site => {
           unifiedItems.push({
             id: `native-american-${site.id}`,
@@ -152,7 +152,7 @@ export const useUnifiedData = () => {
         });
       }
 
-      console.log(`✅ Loaded ${unifiedItems.length} unified Route 66 items with standardized schema`);
+      ;
       setItems(unifiedItems);
     } catch (error) {
       console.error('❌ Error fetching unified data:', error);
@@ -181,12 +181,12 @@ export const useUnifiedData = () => {
   const filteredItems = useMemo(() => {
     let filtered = items;
 
-    console.log(`🔍 Starting filter with ${filtered.length} items, filters:`, filters);
+    ;
 
     // Filter by type
     if (filters.type !== 'all') {
       filtered = filtered.filter(item => item.category === filters.type);
-      console.log(`🎯 After type filter (${filters.type}): ${filtered.length} items`);
+      ;
     }
 
     // Enhanced state filter
@@ -199,7 +199,7 @@ export const useUnifiedData = () => {
                (stateFilter === 'OK' && itemState === 'OKLAHOMA') ||
                (stateFilter === 'OKLAHOMA' && itemState === 'OK');
       });
-      console.log(`🏛️ After state filter (${filters.state}): ${filtered.length} items`);
+      ;
     }
 
     // Filter by city
@@ -209,7 +209,7 @@ export const useUnifiedData = () => {
         if (!item.city_name) return false;
         return item.city_name.toLowerCase().includes(cityFilter);
       });
-      console.log(`🏙️ After city filter (${filters.city}): ${filtered.length} items`);
+      ;
     }
 
     // Enhanced search filter
@@ -222,7 +222,7 @@ export const useUnifiedData = () => {
                item.city_name.toLowerCase().includes(searchLower) ||
                item.tags.some(tag => tag.toLowerCase().includes(searchLower));
       });
-      console.log(`🔍 After search filter ("${filters.search}"): ${filtered.length} items`);
+      ;
     }
 
     // Sort: featured first, then alphabetically
@@ -232,17 +232,17 @@ export const useUnifiedData = () => {
       return a.name.localeCompare(b.name);
     });
 
-    console.log(`✅ Final filtered results: ${sorted.length} items`);
+    ;
     return sorted;
   }, [items, filters]);
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
-    console.log('🔄 Updating filters:', newFilters);
+    ;
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
   const resetFilters = () => {
-    console.log('🔄 Resetting all filters');
+    ;
     setFilters({
       type: 'all',
       state: '',

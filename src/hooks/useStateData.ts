@@ -6,10 +6,6 @@ interface CityData {
   id: string;
   name: string;
   state: string;
-  latitude: number;
-  longitude: number;
-  description: string | null;
-  image_url: string | null;
 }
 
 export function useStateData(stateAbbr: string | undefined) {
@@ -26,10 +22,10 @@ export function useStateData(stateAbbr: string | undefined) {
       setIsLoading(true);
 
       const [waypointsRes, attractionsRes, nativeRes, gemsRes, stateMetaRes] = await Promise.all([
-        supabase.from('destination_cities').select('*').eq('state', stateAbbr),
-        supabase.from('attractions').select('*').eq('state', stateAbbr).order('name'),
-        supabase.from('native_american_sites').select('*').eq('state', stateAbbr).order('name'),
-        supabase.from('hidden_gems').select('*').eq('state', stateAbbr).order('name'),
+        supabase.from('destination_cities').select('id,name,state').eq('state', stateAbbr),
+        supabase.from('attractions').select('id,name,slug,description,city_name,state,latitude,longitude,image_url,website,category,category_canonical,tags,featured').eq('state', stateAbbr).order('name'),
+        supabase.from('native_american_sites').select('id,name,slug,description,city_name,state,latitude,longitude,image_url,website,category,category_canonical,tags,featured,tribe_nation').eq('state', stateAbbr).order('name'),
+        supabase.from('hidden_gems').select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,website,category,category_canonical,tags,featured').eq('state', stateAbbr).order('name'),
         supabase.from('states').select('hero_image_url, hero_alt').eq('code', stateAbbr).maybeSingle(),
       ]);
 

@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React, { useMemo } from 'react';
 import { ArrowLeft, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -24,7 +25,7 @@ const StateTag = ({ abbr, isDark }: { abbr: string; isDark?: boolean }) => {
   if (!state) return null;
   return (
     <div className="flex flex-col items-center gap-1 w-10">
-      <img
+      <OptimizedImg imageWidth={600}
         src={state.img}
         alt={state.name}
         className="w-8 h-8 object-contain"
@@ -135,7 +136,7 @@ const MarkdownBlock: React.FC<{ content: string; isEventCard?: boolean; index?: 
       const caption = parts[1];
       return (
         <figure className="my-8 max-w-2xl mx-auto">
-          <img src={src} alt={imgAlt} className="rounded-lg shadow-md w-full" loading="lazy" />
+          <OptimizedImg imageWidth={600} src={src} alt={imgAlt} className="rounded-lg shadow-md w-full" loading="lazy" />
           {caption && (
             <figcaption className="text-sm italic text-route66-brown/60 text-center mt-2">
               {caption}
@@ -251,7 +252,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
       {/* Featured Image */}
       {featuredImageUrl && (
         <div className="w-full overflow-hidden" style={{ aspectRatio: '21/9' }}>
-          <img src={featuredImageUrl} alt={title} className="w-full h-full object-cover" />
+          <OptimizedImg imageWidth={1200} priority src={featuredImageUrl} alt={title} className="w-full h-full object-cover" />
         </div>
       )}
       
@@ -330,7 +331,7 @@ const BlogPostContent: React.FC<BlogPostContentProps> = ({
 
           {/* Author Card */}
           <div className="mt-8 flex items-start gap-4 border-l-4 border-route66-rust bg-route66-cream/40 p-5 rounded-r-sm">
-            <img
+            <OptimizedImg imageWidth={600}
               src="/lovable-uploads/56c17d61-50a4-49c7-a00f-e49e4806a4b3.png"
               alt="Big Bo Ramble"
               className="h-16 w-16 rounded-full border-2 border-route66-rust/40 object-cover shrink-0"

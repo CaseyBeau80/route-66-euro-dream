@@ -12,9 +12,9 @@ export class SupabaseDataService {
     try {
       // Fetch from multiple tables in parallel
       const [attractionsResult, destinationCitiesResult, waypointsResult] = await Promise.all([
-        (supabase as any).from('attractions').select('*'),
-        (supabase as any).from('destination_cities').select('*'),
-        (supabase as any).from('route66_waypoints').select('*')
+        (supabase as any).from('attractions').select('id,name,title,slug,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,category,category_canonical,tags,featured,founded_year,year_opened,admission_fee,hours_of_operation'),
+        (supabase as any).from('destination_cities').select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status'),
+        (supabase as any).from('route66_waypoints').select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,sequence_order,is_major_stop,highway_designation')
       ]);
 
       const allStops: TripStop[] = [];
@@ -199,7 +199,7 @@ export class SupabaseDataService {
     try {
       const { data, error } = await (supabase as any)
         .from('destination_cities')
-        .select('*')
+        .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status')
         .order('name');
 
       if (error) {

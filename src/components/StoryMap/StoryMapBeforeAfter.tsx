@@ -1,3 +1,4 @@
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 
 import { useEffect, useRef } from 'react';
 import 'img-comparison-slider/dist/styles.css';
@@ -31,7 +32,7 @@ const StoryMapBeforeAfter = ({
         {/* @ts-ignore - web component */}
         <img-comparison-slider class="w-full" style={{ '--default-handle-width': '3px', '--default-handle-color': '#C9932A' } as React.CSSProperties}>
           <figure slot="first" className="m-0" style={{ margin: 0 }}>
-            <img
+            <OptimizedImg imageWidth={1200}
               src={beforeImage}
               alt={beforeLabel}
               className="aspect-[3/2] w-full object-cover"
@@ -45,7 +46,7 @@ const StoryMapBeforeAfter = ({
             </figcaption>
           </figure>
           <figure slot="second" className="m-0" style={{ margin: 0 }}>
-            <img
+            <OptimizedImg imageWidth={1200}
               src={afterImage}
               alt={afterLabel}
               className="aspect-[3/2] w-full object-cover"

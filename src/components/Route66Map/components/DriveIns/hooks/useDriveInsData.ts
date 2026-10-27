@@ -28,11 +28,10 @@ export const useDriveInsData = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        console.log('🎬 Fetching drive-ins from drive_ins table...');
         
         const { data, error } = await (supabase as any)
           .from('drive_ins')
-          .select('*')
+          .select('id,name,description,city_name,state,latitude,longitude,image_url,thumbnail_url,website,featured,status,status_notes,year_opened,screens_count,capacity_cars')
           .order('name');
 
         if (error) {
@@ -40,7 +39,6 @@ export const useDriveInsData = () => {
           return;
         }
 
-        console.log(`🎬 Fetched ${data?.length || 0} drive-ins from drive_ins table`);
         setDriveIns(data || []);
       } catch (error) {
         console.error('❌ Error in fetchDriveIns:', error);

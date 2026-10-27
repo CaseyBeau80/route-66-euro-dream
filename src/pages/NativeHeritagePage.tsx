@@ -1,3 +1,5 @@
+import { getSocialImageUrl } from '@/lib/optimizedImage';
+import { OptimizedImg } from '@/components/ui/OptimizedImg';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -222,11 +224,11 @@ const NativeHeritagePage: React.FC = () => {
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:title" content={`${site.name} — Route 66 Native American Heritage | Ramble 66`} />
         <meta property="og:description" content={metaDescription} />
-        <meta property="og:image" content={site.image_url || fallbackImage} />
+        <meta property="og:image" content={getSocialImageUrl(site.image_url || fallbackImage)} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${site.name} — Route 66 Native American Heritage | Ramble 66`} />
         <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={site.image_url || fallbackImage} />
+        <meta name="twitter:image" content={getSocialImageUrl(site.image_url || fallbackImage)} />
       </Helmet>
       <AttractionJsonLd
         name={site.name}
@@ -245,7 +247,7 @@ const NativeHeritagePage: React.FC = () => {
       <div className="min-h-screen bg-background">
         {/* Hero */}
         <div className="relative h-[40vh] min-h-[300px] overflow-hidden">
-          <img
+          <OptimizedImg imageWidth={1200} priority
             src={site.image_url || fallbackImage}
             alt={site.name}
             className="w-full h-full object-cover"
@@ -354,7 +356,7 @@ const NativeHeritagePage: React.FC = () => {
                     className="group bg-surface border-2 border-border rounded-sm overflow-hidden shadow-[4px_4px_0_hsl(var(--border)/0.3)] hover:border-primary transition-colors"
                   >
                     <div className="aspect-[4/3] overflow-hidden">
-                      <img
+                      <OptimizedImg imageWidth={600}
                         src={stop.image_url || fallbackImage}
                         alt={stop.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
