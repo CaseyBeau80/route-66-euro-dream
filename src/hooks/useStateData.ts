@@ -6,10 +6,6 @@ interface CityData {
   id: string;
   name: string;
   state: string;
-  latitude: number;
-  longitude: number;
-  description: string | null;
-  image_url: string | null;
 }
 
 export function useStateData(stateAbbr: string | undefined) {

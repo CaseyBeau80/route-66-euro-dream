@@ -1,4 +1,5 @@
 import React from 'react';
+import { OptimizedImg } from './OptimizedImg';
 
 interface OptimizedImageProps {
   src: string;
@@ -31,6 +32,9 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   style,
   ...props
 }) => {
+  return <OptimizedImg src={src} alt={alt} className={className} sizes={sizes} loading={loading}
+    priority={priority} width={width} height={height} imageWidth={width || 600} style={style} {...props} />;
+  /* Legacy URL logic retained below is unreachable and removed separately. */
   // Generate optimized URL with WebP format and proper sizing
   const getOptimizedUrl = (url: string, targetWidth?: number, targetHeight?: number) => {
     if (url.includes('/lovable-uploads/')) {

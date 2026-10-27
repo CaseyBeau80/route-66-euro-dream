@@ -47,11 +47,12 @@ const StoryMapChapter = ({ chapter, index, totalChapters, children, onInView }: 
         <motion.div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url(${chapter.backgroundImage})`,
             y: bgY,
             filter: 'brightness(0.08) sepia(0.3)',
           }}
-        />
+        >
+          <OptimizedImg src={chapter.backgroundImage} imageWidth={1200} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        </motion.div>
       )}
 
       {/* Film grain for dark sections */}
