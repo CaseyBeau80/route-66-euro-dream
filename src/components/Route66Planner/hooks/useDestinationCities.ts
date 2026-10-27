@@ -12,13 +12,11 @@ export const useDestinationCities = () => {
     const fetchDestinationCities = async () => {
       try {
         ;
-        ;
         
         const { data, error } = await (supabase as any)
           .from('destination_cities')
           .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status');
           
-        ;
 
         if (error) {
           console.error("❌ [DEBUG] Route66Planner error fetching destination cities:", error);
@@ -27,14 +25,11 @@ export const useDestinationCities = () => {
         }
 
         if (!data || data.length === 0) {
-          ;
           setError("No destination cities found");
           return;
         }
         
-        ;
         const springfieldMO = data.find(c => c.name === 'Springfield' && c.state === 'MO');
-        ;
 
         // Define Route 66 order from Chicago to Santa Monica
         const route66Order = [
@@ -66,7 +61,6 @@ export const useDestinationCities = () => {
           return a.name.localeCompare(b.name);
         });
 
-        ;
         ;
         setDestinationCities(sortedCities);
       } catch (err) {

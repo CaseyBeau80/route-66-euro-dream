@@ -26,7 +26,6 @@ export const useDestinationCities = () => {
     const fetchDestinationCities = async () => {
       try {
         ;
-        ;
         
         // Use type assertion since table may not exist yet in generated types
         const { data: cities, error } = await (supabase as any)
@@ -34,15 +33,12 @@ export const useDestinationCities = () => {
           .select('id,name,state,latitude,longitude,description,image_url,thumbnail_url,website,population,elevation_ft,founded_year,featured,status')
           .limit(6);
         
-        ;
 
         if (!error && cities) {
           const typedCities = cities as DestinationCityRow[];
           ;
-          ;
           
           const springfieldMO = typedCities.find(c => c.name === 'Springfield' && c.state === 'MO');
-          ;
           
           setItems(typedCities.map(city => ({
             id: city.id,
@@ -62,7 +58,6 @@ export const useDestinationCities = () => {
           })));
         } else if (error) {
           // Table may not exist yet - this is expected
-          ;
         }
       } catch (error) {
         console.error('❌ [DEBUG] Exception fetching destination cities:', error);

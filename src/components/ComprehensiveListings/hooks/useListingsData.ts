@@ -6,7 +6,6 @@ import { useHiddenGems } from './useHiddenGems';
 import { useCategoryConfig } from './useCategoryConfig';
 
 export const useListingsData = () => {
-  ;
   
   const categoryConfig = useCategoryConfig();
   
@@ -14,7 +13,6 @@ export const useListingsData = () => {
   const driveIns = useDriveIns();
   const hiddenGems = useHiddenGems();
 
-  ;
 
   // Only include the categories we want to display
   const categories: Record<string, CategoryData> = {
@@ -35,7 +33,6 @@ export const useListingsData = () => {
     }
   };
 
-  ;
 
   return { categories };
 };

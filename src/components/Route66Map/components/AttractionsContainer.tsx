@@ -35,7 +35,6 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
-        ;
         
         const { data, error } = await (supabase as any)
           .from('attractions')
@@ -47,11 +46,9 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
           return;
         }
 
-        ;
         
         // Debug: Log all attraction names to see what we have
         if (data) {
-          ;
           data.forEach((attraction, index) => {
             ;
             ;
@@ -61,8 +58,6 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
           const waterfalls = data.find(a => a.name.toLowerCase().includes('waterfall'));
           const shoalCreek = data.find(a => a.name.toLowerCase().includes('shoal creek'));
           
-          ;
-          ;
           ;
           
           if (waterfalls) {
@@ -91,13 +86,11 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
     const newZoom = map.getZoom() || 6;
     setCurrentZoom(newZoom);
     
-    ;
   }, [map]);
 
   // More relaxed filtering - show more attractions at all zoom levels
   const filteredAttractions = useMemo(() => {
     if (loading) {
-      ;
       return [];
     }
 
@@ -107,27 +100,22 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
     if (currentZoom >= 7) {
       // High zoom: show all attractions
       visibleAttractions = attractions;
-      ;
     } else if (currentZoom >= 5) {
       // Medium zoom: show featured + every other attraction
       visibleAttractions = attractions.filter((attraction, index) => 
         attraction.featured || index % 2 === 0
       );
-      ;
     } else {
       // Low zoom: show featured + every 3rd attraction
       visibleAttractions = attractions.filter((attraction, index) => 
         attraction.featured || index % 3 === 0
       );
-      ;
     }
 
     // Debug: Check if our specific attractions are in the filtered list
     const waterfalls = visibleAttractions.find(a => a.name.toLowerCase().includes('waterfall'));
     const shoalCreek = visibleAttractions.find(a => a.name.toLowerCase().includes('shoal creek'));
     
-    ;
-    ;
     ;
 
     return visibleAttractions;
@@ -137,40 +125,33 @@ const AttractionsContainer: React.FC<AttractionsContainerProps> = ({
   useEffect(() => {
     if (!map) return;
 
-    ;
     
     const zoomListener = map.addListener('zoom_changed', handleZoomChange);
     
     // Set initial zoom
     const initialZoom = map.getZoom() || 6;
     setCurrentZoom(initialZoom);
-    ;
 
     return () => {
-      ;
       google.maps.event.removeListener(zoomListener);
     };
   }, [map, handleZoomChange]);
 
   // Website click handler
   const handleWebsiteClick = useCallback((website: string) => {
-    ;
     window.open(website, '_blank', 'noopener,noreferrer');
   }, []);
 
   // Show loading state briefly but don't hide markers during zoom
   if (loading && attractions.length === 0) {
-    ;
     return null;
   }
 
-  ;
 
   return (
     <>
       {filteredAttractions.map((attraction) => {
         // Debug log for each attraction being rendered
-        ;
         
         return (
           <AttractionCustomMarker

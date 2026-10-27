@@ -25,7 +25,6 @@ export const useAttractions = () => {
   useEffect(() => {
     const fetchAttractions = async () => {
       try {
-        ;
         
         // Use type assertion since table may not exist yet in generated types
         const { data: attractions, error } = await (supabase as any)
@@ -36,7 +35,6 @@ export const useAttractions = () => {
 
         if (!error && attractions) {
           const typedAttractions = attractions as AttractionRow[];
-          ;
           setItems(typedAttractions.map(attraction => ({
             id: attraction.id,
             name: attraction.name,
@@ -55,7 +53,6 @@ export const useAttractions = () => {
           })));
         } else if (error) {
           // Table may not exist yet - this is expected
-          ;
         }
       } catch (error) {
         console.error('❌ Error fetching attractions:', error);

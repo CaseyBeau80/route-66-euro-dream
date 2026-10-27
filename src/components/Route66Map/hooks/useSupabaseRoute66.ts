@@ -11,7 +11,6 @@ export const useSupabaseRoute66 = () => {
   useEffect(() => {
     const fetchWaypoints = async () => {
       try {
-        ;
         
         const { data, error } = await (supabase as any)
           .from('route66_waypoints')
@@ -25,23 +24,18 @@ export const useSupabaseRoute66 = () => {
         }
 
         if (!data || data.length === 0) {
-          ;
           setError("No waypoints found in route66_waypoints table");
           return;
         }
 
-        ;
         
         // Detailed validation logging
-        ;
-        ;
         ;
         
         // Log sequence order validation
         const sequenceOrders = data.map(wp => wp.sequence_order).sort((a, b) => a - b);
         const minSeq = Math.min(...sequenceOrders);
         const maxSeq = Math.max(...sequenceOrders);
-        ;
         
         // Check for duplicates
         const duplicates = sequenceOrders.filter((seq, index) => sequenceOrders.indexOf(seq) !== index);
@@ -61,20 +55,15 @@ export const useSupabaseRoute66 = () => {
         }
         
         // Log first 5 and last 5 waypoints for verification
-        ;
         data.slice(0, 5).forEach((wp, i) => {
-          ;
         });
         
-        ;
         data.slice(-5).forEach((wp, i) => {
-          ;
         });
         
         // Verify Chicago is first and Santa Monica is last
         const firstWaypoint = data[0];
         const lastWaypoint = data[data.length - 1];
-        ;
         ;
         
         if (!firstWaypoint.name.toLowerCase().includes('chicago')) {

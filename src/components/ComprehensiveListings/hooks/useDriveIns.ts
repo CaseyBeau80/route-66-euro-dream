@@ -26,7 +26,6 @@ export const useDriveIns = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        ;
         
         // Use type assertion since table may not exist yet in generated types
         const { data: driveIns, error } = await (supabase as any)
@@ -37,7 +36,6 @@ export const useDriveIns = () => {
 
         if (!error && driveIns) {
           const typedDriveIns = driveIns as DriveInRow[];
-          ;
           setItems(typedDriveIns.map(driveIn => ({
             id: driveIn.id,
             name: driveIn.name,
@@ -57,7 +55,6 @@ export const useDriveIns = () => {
           })));
         } else if (error) {
           // Table may not exist yet - this is expected
-          ;
         }
       } catch (error) {
         console.error('❌ Error fetching drive-ins:', error);

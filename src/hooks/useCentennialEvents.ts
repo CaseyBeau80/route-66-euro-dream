@@ -52,7 +52,6 @@ const transformEvent = (dbEvent: DatabaseEvent): CentennialEvent => ({
 });
 
 const fetchCentennialEvents = async (): Promise<CentennialEvent[]> => {
-  ;
   
   const { data, error } = await supabase
     .from('centennial_events')
@@ -82,7 +81,6 @@ export const useCentennialEventsWithFallback = () => {
   const events = error ? staticEvents : (data || []);
   const isUsingFallback = !!error;
   
-  ;
   
   return {
     events,

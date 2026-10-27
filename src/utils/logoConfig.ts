@@ -25,7 +25,6 @@ export const RAMBLE_LOGO_CONFIG = {
  */
 export const getRambleLogoUrl = () => {
   const url = RAMBLE_LOGO_CONFIG.PRIMARY_LOGO_URL;
-  ;
   return url;
 };
 
@@ -34,7 +33,6 @@ export const getRambleLogoUrl = () => {
  */
 export const getRambleLogoAlt = () => {
   const altText = RAMBLE_LOGO_CONFIG.ALT_TEXT;
-  ;
   return altText;
 };
 
@@ -43,7 +41,6 @@ export const getRambleLogoAlt = () => {
  */
 export const getRambleLogoSize = (size: keyof typeof RAMBLE_LOGO_CONFIG.SIZES) => {
   const sizeClasses = RAMBLE_LOGO_CONFIG.SIZES[size];
-  ;
   return sizeClasses;
 };
 
@@ -52,10 +49,8 @@ export const getRambleLogoSize = (size: keyof typeof RAMBLE_LOGO_CONFIG.SIZES) =
  */
 export const testLogoUrl = async (url: string): Promise<boolean> => {
   try {
-    ;
     const response = await fetch(url, { method: 'HEAD' });
     const isAccessible = response.ok;
-    ;
     return isAccessible;
   } catch (error) {
     console.error('❌ testLogoUrl: Logo URL test failed', { url, error });
@@ -68,6 +63,5 @@ export const testLogoUrl = async (url: string): Promise<boolean> => {
  */
 export const getBestLogoUrl = async (): Promise<string> => {
   const primaryUrl = getRambleLogoUrl();
-  ;
   return primaryUrl;
 };

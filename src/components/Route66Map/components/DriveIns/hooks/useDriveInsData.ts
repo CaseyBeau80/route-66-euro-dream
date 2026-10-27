@@ -28,7 +28,6 @@ export const useDriveInsData = () => {
   useEffect(() => {
     const fetchDriveIns = async () => {
       try {
-        ;
         
         const { data, error } = await (supabase as any)
           .from('drive_ins')
@@ -40,7 +39,6 @@ export const useDriveInsData = () => {
           return;
         }
 
-        ;
         setDriveIns(data || []);
       } catch (error) {
         console.error('❌ Error in fetchDriveIns:', error);

@@ -12,7 +12,6 @@ export const usePlannerService = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const calculateRouteStops = (startCity: string, endCity: string): DestinationCity[] => {
-    ;
     
     const startIndex = destinationCities.findIndex(city => city.name === startCity);
     const endIndex = destinationCities.findIndex(city => city.name === endCity);
@@ -32,7 +31,6 @@ export const usePlannerService = () => {
       routeStops.reverse();
     }
     
-    ;
     return routeStops;
   };
 
@@ -66,7 +64,6 @@ export const usePlannerService = () => {
         throw new Error('Invalid route selection');
       }
 
-      ;
 
       let totalDistance = 0;
       let totalDuration = 0;
@@ -74,13 +71,11 @@ export const usePlannerService = () => {
 
       // Calculate accurate distances using Google Distance Matrix API
       if (GoogleDistanceMatrixService.isAvailable()) {
-        ;
         const routeMetrics = await GoogleDistanceMatrixService.calculateRouteDistances(routeStops);
         totalDistance = routeMetrics.totalDistance;
         totalDuration = routeMetrics.totalDuration;
         isUsingGoogleData = true;
       } else {
-        ;
         // Fallback to simple distance calculation
         for (let i = 0; i < routeStops.length - 1; i++) {
           const current = routeStops[i];
@@ -101,7 +96,6 @@ export const usePlannerService = () => {
         }
       }
 
-      ;
 
       // FIXED: Use EXACTLY the user's requested number of days
       let tripDays: number;
@@ -122,11 +116,9 @@ export const usePlannerService = () => {
       // IMPORTANT: Check if we have enough destination cities for the requested days
       const maxPossibleDays = routeStops.length - 1; // -1 because we need intermediate stops
       if (tripDays > maxPossibleDays) {
-        ;
         tripDays = maxPossibleDays;
       }
 
-      ;
 
       // SIMPLIFIED: Create daily segments using destination cities as overnight stops with GEOGRAPHIC PROGRESSION
       const dailySegments: DaySegment[] = [];
@@ -134,7 +126,6 @@ export const usePlannerService = () => {
       // Select specific destination cities for each day using geographic progression
       const selectedStops = selectDestinationCitiesWithProgression(routeStops, tripDays);
       
-      ;
 
       for (let day = 1; day <= tripDays; day++) {
         const startCity = selectedStops[day - 1];
@@ -179,7 +170,6 @@ export const usePlannerService = () => {
           funFact: `Day ${day} of your Route 66 adventure through ${endCity.state}!`
         });
 
-        ;
       }
 
       // Create route coordinates
@@ -200,7 +190,6 @@ export const usePlannerService = () => {
         route
       };
 
-      ;
 
       return itinerary;
     } finally {
@@ -213,7 +202,6 @@ export const usePlannerService = () => {
     if (tripDays <= 1) return routeStops;
     if (tripDays >= routeStops.length) return routeStops;
     
-    ;
     
     // Convert to TripStop format for geographic services
     const tripStops = routeStops.map(city => ({
@@ -240,11 +228,9 @@ export const usePlannerService = () => {
     const neededIntermediateStops = tripDays - 2;
     const availableIntermediateStops = tripStops.slice(1, -1); // Exclude start and end
     
-    ;
     
     if (availableIntermediateStops.length <= neededIntermediateStops) {
       // Use all available intermediate stops
-      ;
       return routeStops;
     }
     
@@ -264,7 +250,6 @@ export const usePlannerService = () => {
         currentStop, availableIntermediateStops, endStop, 'moderate'
       );
       
-      ;
       
       // Use progression-filtered stops, fallback to all if none available
       const candidateStops = progressionFiltered.length > 0 ? progressionFiltered : availableIntermediateStops;
@@ -299,7 +284,6 @@ export const usePlannerService = () => {
         availableIntermediateStops.splice(index, 1);
       }
       
-      ;
     }
     
     // Convert back to DestinationCity format and create final sequence
@@ -311,7 +295,6 @@ export const usePlannerService = () => {
       routeStops[routeStops.length - 1] // End city
     ];
     
-    ;
     return finalSequence;
   };
 

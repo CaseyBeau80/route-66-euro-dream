@@ -15,7 +15,6 @@ const UnifiedItemCard: React.FC<UnifiedItemCardProps> = ({
   const [imageError, setImageError] = useState(false);
 
   // Debug website data
-  ;
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case 'attractions':

@@ -10,7 +10,6 @@ export const useRoute66Waypoints = () => {
   useEffect(() => {
     const fetchRoute66Waypoints = async () => {
       try {
-        ;
         
         const { data: waypoints, error } = await (supabase as any)
           .from('route66_waypoints')
@@ -19,7 +18,6 @@ export const useRoute66Waypoints = () => {
           .limit(6);
 
         if (!error && waypoints) {
-          ;
           setItems(waypoints.map((waypoint: any) => ({
             id: waypoint.id,
             name: waypoint.name,

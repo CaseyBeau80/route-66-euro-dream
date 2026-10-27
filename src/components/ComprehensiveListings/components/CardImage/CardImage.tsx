@@ -23,13 +23,11 @@ export const CardImage = ({ item, onImageClick, onContainerClick }: CardImagePro
     
     // Check if this is the first error (database image failed)
     if (!imageError && target.src !== fallbackUrl) {
-      ;
       setImageError(true);
       target.src = fallbackUrl;
     } 
     // This is the fallback image failing
     else if (imageError && !fallbackError) {
-      ;
       setFallbackError(true);
       // Use a very reliable backup image - vintage car/cinema theme
       target.src = "https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=600&q=80";
@@ -41,13 +39,9 @@ export const CardImage = ({ item, onImageClick, onContainerClick }: CardImagePro
   
   // Log image loading strategy
   if (!item.thumbnail_url && !item.image_url) {
-    ;
   } else if (imageError) {
-    ;
   } else if (item.thumbnail_url) {
-    ;
   } else {
-    ;
   }
 
   return (

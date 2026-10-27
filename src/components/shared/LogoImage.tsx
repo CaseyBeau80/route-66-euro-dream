@@ -18,7 +18,6 @@ const LogoImage: React.FC<LogoImageProps> = ({
   // Direct URL to your Supabase logo
   const logoUrl = "/images/ramble66-logo-512.webp";
   
-  ;
 
   const handleError = () => {
     console.error('❌ LogoImage: Failed to load logo from Supabase', {
@@ -30,7 +29,6 @@ const LogoImage: React.FC<LogoImageProps> = ({
   };
 
   const handleLoad = () => {
-    ;
     setHasError(false);
   };
 

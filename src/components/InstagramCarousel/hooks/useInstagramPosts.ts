@@ -13,7 +13,6 @@ export const useInstagramPosts = () => {
         setIsLoading(true);
         setError(null);
 
-        ;
 
         const { data, error } = await (supabase as any)
           .from('instagram_posts')
@@ -36,7 +35,6 @@ export const useInstagramPosts = () => {
           return true;
         });
 
-        ;
         
         setPosts(uniquePosts as InstagramPost[]);
       } catch (err) {
