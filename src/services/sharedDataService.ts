@@ -3,10 +3,17 @@ import { supabase } from '@/lib/supabase';
 import { PUBLIC_COLUMNS } from '@/lib/publicReadCache';
 import { queryClient } from '@/lib/queryClient';
 
-const read = async (table: string, order?: string) => {
+interface PublicRow {
+  id: string; name: string; title?: string; slug?: string; description?: string;
+  city_name?: string; state: string; latitude: number; longitude: number;
+  image_url?: string; thumbnail_url?: string; website?: string; tags?: string[];
+  founded_year?: number; year_opened?: number; featured?: boolean;
+  sequence_order?: number; is_major_stop?: boolean; highway_designation?: string;
+}
+const read = async (table: string, order?: string): Promise<PublicRow[]> => {
   let query = supabase.from(table).select(PUBLIC_COLUMNS[table]);
   if (order) query = query.order(order);
-  const { data, error } = await query;
+  const { data, error } = await query.returns<PublicRow[]>();
   if (error) throw error;
   return data || [];
 };
