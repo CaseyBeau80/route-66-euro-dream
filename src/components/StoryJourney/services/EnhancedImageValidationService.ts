@@ -1,3 +1,4 @@
+import { getOptimizedImageUrl } from '@/lib/optimizedImage';
 
 import { SupabaseImageService } from './SupabaseImageService';
 
@@ -72,7 +73,7 @@ export class EnhancedImageValidationService {
         resolve(false);
       };
       
-      img.src = url;
+      img.src = getOptimizedImageUrl(url, 1200);
     });
   }
 
