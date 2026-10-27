@@ -161,7 +161,7 @@ describe('ItineraryCard', () => {
       const { container } = render(
         <ItineraryCard tripPlan={mockTripPlan} className="custom-class" />
       );
-      expect(container.firstChild?.classList.contains('custom-class')).toBe(true);
+      expect(container.firstElementChild?.classList.contains('custom-class')).toBe(true);
     });
   });
 

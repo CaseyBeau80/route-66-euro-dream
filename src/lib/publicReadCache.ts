@@ -18,6 +18,7 @@ export function readPublicCache<T>(key: string): T | undefined {
     const raw = localStorage.getItem(PREFIX + key);
     if (!raw) return;
     const entry = JSON.parse(raw);
+    if (typeof entry.savedAt !== 'number' || !Number.isFinite(entry.savedAt)) return;
     if (Date.now() - entry.savedAt >= PUBLIC_CACHE_TTL) {
       localStorage.removeItem(PREFIX + key);
       return;
@@ -54,14 +55,13 @@ export async function cachedPublicFetch(input: RequestInfo | URL, init?: Request
     if (table === 'route66_waypoints') url.searchParams.set('order', 'sequence_order.asc');
   }
   url.searchParams.sort();
-  // Date cutoffs change every render; use a minute boundary for cache identity only.
+  // Published list cutoffs change every render; cache the current publication window.
   const keyUrl = new URL(url);
   const publishedBefore = keyUrl.searchParams.get('published_at');
-  if (publishedBefore?.startsWith('lte.')) {
+  if (!isDetail && table === 'blog_posts' && publishedBefore?.startsWith('lte.')) {
     const date = new Date(publishedBefore.slice(4));
     if (!Number.isNaN(date.getTime())) {
-      date.setUTCSeconds(0, 0);
-      keyUrl.searchParams.set('published_at', `lte.${date.toISOString()}`);
+      keyUrl.searchParams.set('published_at', 'lte.current-publication-window');
     }
   }
   const key = keyUrl.pathname + '?' + keyUrl.searchParams.toString();
