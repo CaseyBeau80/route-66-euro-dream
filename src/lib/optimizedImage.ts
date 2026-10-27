@@ -4,6 +4,7 @@ export function getOptimizedImageUrl(url: string, width: number, quality = 72, o
     if (!/^https?:\/\//i.test(url)) return url;
     const source = new URL(url);
     if (source.hostname === 'wsrv.nl') return url;
+    if (/\.svg$/i.test(source.pathname) || source.hostname.endsWith('googleapis.com') || source.searchParams.has('key')) return url;
     const w = Math.max(1, Math.round(width));
     if (source.hostname === 'images.unsplash.com') {
       source.searchParams.set('w', String(w));
