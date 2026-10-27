@@ -48,7 +48,8 @@ export async function cachedPublicFetch(input: RequestInfo | URL, init?: Request
   const allowed = [...Object.keys(PUBLIC_COLUMNS), 'blog_posts', 'instagram_posts', 'states', 'community_photos'];
   if (method !== 'GET' || !table || !allowed.includes(table)) return fetch(input, init);
   // Identical full-list reads use the same shape/key regardless of their consumer.
-  if (!isDetail && !url.searchParams.has('limit') && PUBLIC_COLUMNS[table]) {
+  if (!isDetail && !url.searchParams.has('limit') && PUBLIC_COLUMNS[table] &&
+      (table === 'destination_cities' || table === 'route66_waypoints' || !url.searchParams.has('state'))) {
     url.searchParams.set('select', PUBLIC_COLUMNS[table]);
     if (table === 'route66_waypoints') url.searchParams.set('order', 'sequence_order.asc');
   }
