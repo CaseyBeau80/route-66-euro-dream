@@ -54,13 +54,8 @@ export const useBlogPost = (slug: string): UseBlogPostResult => {
         if (cancelled) return;
 
         try {
-          const { data, error: fetchError } = await supabase
-            .from('blog_posts')
-            .select('*')
-            .eq('slug', slug)
-            .eq('is_published', true)
-            .lte('published_at', new Date().toISOString())
-            .maybeSingle();
+          const { data: rows, error: fetchError } = await supabase.rpc('get_blog_post', { p_slug: slug });
+          const data = rows?.[0];
 
           if (cancelled) return;
 

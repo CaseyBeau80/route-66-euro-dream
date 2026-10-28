@@ -4,35 +4,12 @@ import { Link } from 'react-router-dom';
 import { Camera, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-interface PhotoEntry {
-  id: string;
-  photo_url: string;
-  caption: string | null;
-  traveler_name: string | null;
-}
-
 const PhotoWallTeaser: React.FC = () => {
-  const [photos, setPhotos] = React.useState<PhotoEntry[]>([]);
   const [fallbackImages, setFallbackImages] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     const fetchPhotos = async () => {
-      try {
-        const { data } = await supabase
-          .from('community_photos' as any)
-          .select('id, photo_url, caption, traveler_name')
-          .eq('status', 'approved')
-          .order('created_at', { ascending: false })
-          .limit(4);
-        if (data && (data as any[]).length > 0) {
-          setPhotos(data as unknown as PhotoEntry[]);
-          return;
-        }
-      } catch {
-        // Table may not exist yet
-      }
-
-      // Fallback: grab 4 attraction images from the DB
+      // Use the existing attraction-image fallback without querying a missing table.
       try {
         const { data } = await supabase
           .from('attractions' as any)
@@ -49,11 +26,7 @@ const PhotoWallTeaser: React.FC = () => {
     fetchPhotos();
   }, []);
 
-  const hasPhotos = photos.length > 0;
-  const hasFallback = fallbackImages.length > 0;
-  const displayImages = hasPhotos
-    ? photos.map(p => ({ src: p.photo_url, alt: p.caption || 'Route 66 community photo' }))
-    : fallbackImages.map((src, i) => ({ src, alt: `Route 66 attraction ${i + 1}` }));
+  const displayImages = fallbackImages.map((src, i) => ({ src, alt: `Route 66 attraction ${i + 1}` }));
 
   return (
     <section className="py-12 sm:py-16 bg-route66-background">

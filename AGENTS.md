@@ -4,3 +4,4 @@
 - Route public remote photos through the shared image URL helper and wrapper-free OptimizedImg, retaining existing placeholders after a one-time original URL fallback to preserve layout and recovery.
 - Keep homepage data consumer-driven and viewport deferred; never globally preload all content tables, because visitors should download only sections they approach.
 - Drive-in detail slugs resolve against a cached id/name index and load by id, because that table has no slug column.
+- Shared-trip reads and view increments use share-code RPCs; blog content uses the slug RPC, while other blog reads omit content, because anonymous table/column reads are restricted.

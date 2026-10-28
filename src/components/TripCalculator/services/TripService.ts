@@ -21,7 +21,7 @@ export class TripService {
     const shareCode = this.generateShareCode();
     
     try {
-      const { data, error } = await (supabase as any)
+      const { error } = await (supabase as any)
         .from('trips')
         .insert({
           title: title || tripPlan.title,
@@ -29,16 +29,14 @@ export class TripService {
           trip_data: tripPlan as any, // Cast to any to satisfy Json type requirement
           share_code: shareCode,
           view_count: 0
-        })
-        .select()
-        .single();
+        });
 
       if (error) {
         console.error('❌ Error saving trip:', error);
         throw new Error(`Failed to save trip: ${error.message}`);
       }
 
-      console.log('✅ Trip saved successfully:', data);
+      console.log('✅ Trip saved successfully');
       return shareCode;
     } catch (error) {
       console.error('❌ Unexpected error saving trip:', error);
@@ -54,11 +52,8 @@ export class TripService {
     }
 
     try {
-      const { data, error } = await (supabase as any)
-        .from('trips')
-        .select('*')
-        .eq('share_code', shareCode)
-        .single();
+      const { data: rows, error } = await supabase.rpc('get_shared_trip', { p_share_code: shareCode });
+      const data = rows?.[0];
 
       if (error) {
         console.error('❌ Error loading trip:', error);
@@ -95,25 +90,7 @@ export class TripService {
     }
 
     try {
-      // First get the current view count
-      const { data: currentTrip, error: fetchError } = await (supabase as any)
-        .from('trips')
-        .select('view_count')
-        .eq('share_code', shareCode)
-        .single();
-
-      if (fetchError) {
-        console.error('❌ Error fetching current view count:', fetchError);
-        return;
-      }
-
-      // Then increment it
-      const { error } = await (supabase as any)
-        .from('trips')
-        .update({ 
-          view_count: (currentTrip?.view_count || 0) + 1
-        })
-        .eq('share_code', shareCode);
+      const { error } = await supabase.rpc('increment_trip_view', { p_share_code: shareCode });
 
       if (error) {
         console.error('❌ Error incrementing view count:', error);
