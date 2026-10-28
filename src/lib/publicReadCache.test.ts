@@ -34,4 +34,12 @@ describe('public caching rules', () => {
     for (let i = 0; i < 2; i++) await cachedPublicFetch('https://example.supabase.co/rest/v1/attractions', { method: 'POST' });
     expect(network).toHaveBeenCalledTimes(2);
   });
+  it('never caches blog or shared-trip RPC POSTs', async () => {
+    const network = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => new Response('[]'));
+    for (const name of ['get_blog_post', 'get_shared_trip', 'increment_trip_view']) {
+      for (let i = 0; i < 2; i++) await cachedPublicFetch(`https://example.supabase.co/rest/v1/rpc/${name}`, { method: 'POST' });
+    }
+    expect(network).toHaveBeenCalledTimes(6);
+    expect(localStorage.length).toBe(0);
+  });
 });
